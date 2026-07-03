@@ -53,24 +53,12 @@ function parseMese(meseStr: string): MonthYear | null {
 }
 
 export function computeCruscottoData(sheetsData: any): any[] {
-  if (!sheetsData) {
-    console.log("CRUSCOTTO UTILITY: sheetsData è nullo o indefinito.");
-    return [];
-  }
-
   const scalable = sheetsData.scalable || [];
   const tradeRepublic = sheetsData.tradeRepublic || [];
   const rendimenti = sheetsData.rendimentiInvestimenti || sheetsData.rendimenti || [];
 
   const scalableCategories = sheetsData.scalableColumnCategories || {};
   const tradeRepublicCategories = sheetsData.tradeRepublicColumnCategories || {};
-
-  console.log("CRUSCOTTO UTILITY: Inizio calcolo dinamico. Input:");
-  console.log(" - Scalable records:", scalable.length);
-  console.log(" - Trade Republic records:", tradeRepublic.length);
-  console.log(" - Rendimenti records:", rendimenti.length);
-  console.log(" - Scalable column categories:", scalableCategories);
-  console.log(" - Trade Republic column categories:", tradeRepublicCategories);
 
   // 1. Raccogliamo tutti gli anni presenti nei tre fogli
   const yearsSet = new Set<number>();
@@ -88,13 +76,7 @@ export function computeCruscottoData(sheetsData: any): any[] {
   getYearsFromRecords(tradeRepublic);
   getYearsFromRecords(rendimenti);
 
-  if (yearsSet.size === 0) {
-    console.log("CRUSCOTTO UTILITY: Nessun anno valido rilevato nei dati.");
-    return [];
-  }
-
   const sortedYears = Array.from(yearsSet).sort((a, b) => a - b);
-  console.log(" - Anni rilevati e ordinati:", sortedYears);
 
   // 2. Mappiamo i record validi con il loro mese e anno per un rapido accesso
   const mapWithDate = (records: any[]) => {
@@ -217,11 +199,6 @@ export function computeCruscottoData(sheetsData: any): any[] {
           }
         }
       }
-
-      if (chosenRendimento && chosenRendimento !== lastRendimento) {
-        console.log(`CRUSCOTTO UTILITY: Fallback rendimento cumulativo per l'anno ${year}. Ultimo record (${lastRendimento.mese}) era vuoto/zero. Preso record sopra (${chosenRendimento.mese}) con valore: ${chosenRendimento.rendimentoCumulativoEuro}`);
-      }
-
       rendimentoCumulativoEuro = Number(chosenRendimento ? chosenRendimento.rendimentoCumulativoEuro : 0);
 
       // Rendimento annuale €: somma dei rendimenti mensili dell'anno
@@ -259,14 +236,11 @@ export function computeCruscottoData(sheetsData: any): any[] {
       rendimentoMedioMensilePerc,
       rendimentoAnnuoStimatoPerc
     };
-
-    console.log(` - Calcolato anno ${year}:`, yearData);
     result.push(yearData);
   });
 
   // Ordiniamo l'array finale per anno decrescente (dal più recente al più vecchio)
   const sortedResult = result.sort((a, b) => b.anno - a.anno);
-  console.log("CRUSCOTTO UTILITY: Risultato ordinato finale:", sortedResult);
   return sortedResult;
 }
 

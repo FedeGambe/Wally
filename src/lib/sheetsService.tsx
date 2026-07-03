@@ -22,6 +22,7 @@ export interface SheetsData {
   tradeRepublicHeaders?: string[];
   scalableColumnCategories?: Record<string, string>;
   tradeRepublicColumnCategories?: Record<string, string>;
+  fondoPensione?: any[];
 }
 
 // Convert arrays of objects to row arrays for Google Sheets
@@ -349,14 +350,8 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
       const detectedDynamic: Array<{ header: string; type: string }> = [];
       const colCategories: Record<string, string> = {};
 
-      console.log(`SHEETS_SERVICE: Scansione colonne per il foglio ${sheet.title}. Totale colonne: ${maxCols}`);
       for (let colIdx = 0; colIdx < maxCols; colIdx++) {
         const headerName = String(row1[colIdx] || '').trim();
-        if (!headerName) {
-          console.log(`SHEETS_SERVICE: Colonna ${colIdx} saltata perché l'header è vuoto.`);
-          continue;
-        }
-
         const row2Val = row2 && row2[colIdx] ? String(row2[colIdx]).trim() : '';
         const row2Lower = row2Val.toLowerCase();
 
@@ -367,8 +362,6 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
           row2Lower.includes('obbligazioni') || 
           row2Lower.includes('bond') || 
           row2Lower.includes('monetari');
-
-        console.log(`SHEETS_SERVICE: Colonna ${colIdx} - Header: "${headerName}", Valore Riga 2: "${row2Val}", IsDynamic: ${isDynamic}`);
 
         if (isDynamic) {
           const fieldName = toValidFieldName(headerName);

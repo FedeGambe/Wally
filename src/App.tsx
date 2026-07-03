@@ -19,16 +19,16 @@ import {
 // Components & Views
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import Login from './views/Login';
+import Login from './pages/Login';
 import SheetsModal from './components/SheetsModal';
 
-import Panoramica from './views/Panoramica';
-import Entrate from './views/Entrate';
-import Uscite from './views/Uscite';
-import Patrimonio from './views/Patrimonio';
-import Investimenti from './views/Investimenti';
-import AnalisiConsumi from './views/AnalisiConsumi';
-import Impostazioni from './views/Impostazioni';
+import Panoramica from './pages/Panoramica';
+import Entrate from './pages/Entrate';
+import Uscite from './pages/Uscite';
+import Patrimonio from './pages/Patrimonio';
+import Investimenti from './pages/Investimenti';
+import AnalisiConsumi from './pages/AnalisiConsumi';
+import Impostazioni from './pages/Impostazioni';
 
 import { initAuth, logout } from './lib/googleAuth';
 import { getExportableData } from './data/mockData';

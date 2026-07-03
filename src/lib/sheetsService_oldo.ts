@@ -481,7 +481,6 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
       IntestazioneRealeNelFoglio: colIdx !== -1 && risparmioRows[0] ? risparmioRows[0][colIdx] : "NON TROVATO"
     };
   });
-  console.table(debugMapping);
 
   const rawRisparmio = mapFromRowsWithHeaders(risparmioRows, RISPARMIO_FIELDS, RISPARMIO_HEADERS, [], ['entrate', 'speseTotali', 'spesePrimarie', 'speseSecondarie', 'investiti', 'risparmio', 'andamentoRisparmio']);
 

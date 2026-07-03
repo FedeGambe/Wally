@@ -97,12 +97,19 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
   {
     title: 'Trade Republic',
     range: 'Trade Republic!A:ZZ',
-    fields: ['mese', 'rendimentoMensileEuro', 'rendimentoMensilePerc', 'importoMensileInvestitoe', 'rendimentoCumulativoEuro', 'rendimentoCumulativoPerc', 'totaleInvestito', 'saldoConto', 'interessiConto', 'interessiContoComulativo', 'commissioniMensili', 'commissioniomulative', 'dividendi'],
-    headers: ['Mese', 'Rendimento Mensile €', 'Rendimento Mensile %', 'Importo investito Mensile', 'Rendimento comulativo', 'Rendimento comulativo %', 'Totale investito', 'Saldo Conto', 'Interessi conto', 'Interessi conto comulativo', 'Commissioni nel mese', 'Commissioni comulative', 'Dividendi'],
-    numberFields: ['rendimentoMensileEuro', 'rendimentoMensilePerc', 'importoMensileInvestitoe', 'rendimentoCumulativoEuro', 'rendimentoCumulativoPerc', 'totaleInvestito', 'saldoConto', 'interessiConto', 'interessiContoComulativo', 'commissioniMensili', 'commissioniomulative', 'dividendi'],
+    fields: ['mese', 'rendimentoMensileEuro', 'rendimentoMensilePerc', 'importoMensileInvestitoe', 'rendimentoCumulativoEuro', 'rendimentoCumulativoPerc', 'totaleInvestito', 'saldoConto', 'interessiConto', 'savebacks', 'commissioniMensili', 'commissioniomulative', 'dividendiIbonds', 'dividendiAmundi'],
+    headers: ['Mese', 'Rendimento Mensile €', 'Rendimento Mensile %', 'Importo investito Mensile', 'Rendimento comulativo', 'Rendimento comulativo %', 'Totale investito', 'Saldo Conto', 'Interessi conto', 'Savebacks', 'Commissioni nel mese', 'Commissioni comulative', 'Dividendi iBonds', 'Dividendi Amundi'],
+    numberFields: ['rendimentoMensileEuro', 'rendimentoMensilePerc', 'importoMensileInvestitoe', 'rendimentoCumulativoEuro', 'rendimentoCumulativoPerc', 'totaleInvestito', 'saldoConto', 'interessiConto', 'savebacks', 'commissioniMensili', 'commissioniomulative', 'dividendiIbonds', 'dividendiAmundi'],
     dataKey: 'tradeRepublic'
   },
-
+  {
+    title: 'Fondo Pensione',
+    range: 'Fondo Pensione!A:G',
+    fields: ['mese', 'tfr', 'contrBase', 'contrVolontaria', 'contrAzienda', 'totMensile', 'totAccumulato'],
+    headers: ['Mese',	'TFR',	'Contribuzione base',	'Contribuzione volontaria',	'Contribuzione azienda',	'Totale mensile',	'Totale accumulato'],
+    numberFields: ['tfr', 'contrBase', 'contrVolontaria', 'contrAzienda', 'totMensile', 'totAccumulato'],
+    dataKey: 'fondoPensione'
+  },
   {
     title: 'Cruscotto',
     range: 'Cruscotto!A:L',

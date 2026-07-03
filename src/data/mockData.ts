@@ -505,6 +505,7 @@ export const saveToLocalStorage = (data: {
   tradeRepublicHeaders?: string[];
   scalableColumnCategories?: Record<string, string>;
   tradeRepublicColumnCategories?: Record<string, string>;
+  fondoPensione?: any[];
 }) => {
   if (data.cruscottoInvestimenti) {
     localStorage.setItem('sf_cruscotto_data', JSON.stringify(data.cruscottoInvestimenti));
@@ -577,6 +578,9 @@ export const saveToLocalStorage = (data: {
   if (data.tradeRepublicColumnCategories) {
     localStorage.setItem('sf_trade_republic_column_categories', JSON.stringify(data.tradeRepublicColumnCategories));
   }
+  if (data.fondoPensione) {
+    localStorage.setItem('sf_fondo_pensione', JSON.stringify(data.fondoPensione));
+  }
 };
 
 export const getExportableData = () => {
@@ -628,6 +632,14 @@ export const getExportableData = () => {
     tradeRepublicColumnCategories = val ? JSON.parse(val) : {};
   } catch {}
 
+  let fondoPensione: any[] = [];
+  try {
+    const val = localStorage.getItem('sf_fondo_pensione');
+    fondoPensione = val ? JSON.parse(val) : FONDO_PENSIONE_DATA;
+  } catch {
+    fondoPensione = FONDO_PENSIONE_DATA;
+  }
+
   return {
     uscite: TRANSACTIONS,
     risparmio: RISPARMIO_DATA,
@@ -647,6 +659,7 @@ export const getExportableData = () => {
     tradeRepublicHeaders,
     scalableColumnCategories,
     tradeRepublicColumnCategories,
+    fondoPensione,
     scalableInstruments: [],
     tradeRepublicInstruments: []
   };
