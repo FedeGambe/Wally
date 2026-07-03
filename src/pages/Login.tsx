@@ -68,9 +68,11 @@ export default function Login({ onLogin }: LoginProps) {
       >
         <div className="p-8">
           <div className="flex justify-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-              <LogIn className="w-6 h-6" />
-            </div>
+            <img
+              src="/icon/icon.png"
+              alt="Logo"
+              className="w-14 h-14 rounded-2xl object-cover shadow-md"
+            />
           </div>
 
           <h2 className="text-xl font-bold text-slate-800 text-center mb-2">

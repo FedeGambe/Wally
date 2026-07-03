@@ -291,7 +291,7 @@ export default function App() {
           />
         );
       case 'consumi':
-        return <AnalisiConsumi />;
+        return <AnalisiConsumi sheetsData={getExportableData()} />;
       case 'impostazioni':
         return (
           <Impostazioni
