@@ -27,6 +27,7 @@ import {
 } from 'recharts';
 import { ContoPatrimonio } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
+import FinanceKpiCard from '../components/FinanceKpiCard';
 
 export default function Patrimonio() {
   const { data } = useFinanceData();
@@ -100,7 +101,7 @@ export default function Patrimonio() {
       return valA - valB;
     });
   }, [localRisparmio]);
-  
+
   // Cumulative savings sum + monthly investments from Rendimenti (Somma attuale / valoreAttualePortafoglio)
   const cumulativeRisparmioData = useMemo(() => {
     // Month abbreviations helper
@@ -142,14 +143,14 @@ export default function Patrimonio() {
         const rendMonthIdx = getMonthIndex(rend.mese || '');
         if (rMonthIdx === -1 || rendMonthIdx === -1) return false;
         if (rMonthIdx !== rendMonthIdx) return false;
-        
+
         const rendYear = getYearFromStr(rend.mese || '');
         if (rendYear !== -1 && rendYear !== r.anno) return false;
-        
+
         return true;
       });
 
-      const investitoValue = matchingRendimento 
+      const investitoValue = matchingRendimento
         ? (matchingRendimento.valoreAttualePortafoglio || null)
         : (r.investito || r.investiti || null);
 
@@ -197,84 +198,64 @@ export default function Patrimonio() {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Wealth card 1 - Capitale Totale (Slate-900) */}
-        <div id="card-patrimonio" className="bg-slate-900 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-slate-950 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <BarChart3 className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Capitale Totale (Disp. + Inv.)</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(totalDisponibile + totalInvestito)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-slate-300 flex items-center gap-2 mt-auto z-10 font-medium">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-            <span>Incluso Impegnato: <strong className="font-bold text-white">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <BarChart3 className="w-32 h-32" />
-          </div>
-        </div>
+        <FinanceKpiCard
+          id="card-patrimonio"
+          type="totale"
+          title="Capitale Totale"
+          value={totalDisponibile + totalInvestito}
+          icon={BarChart3}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+              <span>Incluso Accantonamento: <strong className="text-xs sm:text-[13px] font-black font-mono text-white tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
+            </>
+          }
+        />
 
         {/* Wealth card 2 - Capitale Disponibile (Indigo) */}
-        <div id="card-liquido" className="bg-indigo-600 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-indigo-700 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <PiggyBank className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-indigo-200 font-bold uppercase tracking-wider block">Capitale Disponibile</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(totalDisponibile)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-indigo-100/90 flex items-center gap-2 mt-auto z-10 font-bold">
-            <span className="w-2 h-2 rounded-full bg-indigo-300 animate-pulse"></span>
-            <span>Liquidità immediata sui conti ({formatPercent(totalWealth > 0 ? (totalDisponibile / totalWealth) * 100 : 0)})</span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <PiggyBank className="w-32 h-32" />
-          </div>
-        </div>
+        <FinanceKpiCard
+          id="card-liquido"
+          type="disponibile"
+          title="Capitale Disponibile"
+          value={totalDisponibile}
+          icon={PiggyBank}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-indigo-300 animate-pulse"></span>
+              <span>Liquidità immediata sui conti ({formatPercent(totalWealth > 0 ? (totalDisponibile / totalWealth) * 100 : 0)})</span>
+            </>
+          }
+        />
 
         {/* Wealth card 3 - Capitale Investito (Emerald) */}
-        <div id="card-investito" className="bg-emerald-600 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-emerald-700 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <TrendingUp className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-emerald-200 font-bold uppercase tracking-wider block">Capitale Investito</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(totalInvestito)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-emerald-100/90 flex items-center gap-2 mt-auto z-10 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-            <span>Strumenti finanziari attivi ({formatPercent(totalWealth > 0 ? (totalInvestito / totalWealth) * 100 : 0)})</span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <TrendingUp className="w-32 h-32" />
-          </div>
-        </div>
+        <FinanceKpiCard
+          id="card-investito"
+          type="investito"
+          title="Capitale Investito"
+          value={totalInvestito}
+          icon={TrendingUp}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span>Strumenti finanziari attivi ({formatPercent(totalWealth > 0 ? (totalInvestito / totalWealth) * 100 : 0)})</span>
+            </>
+          }
+        />
 
-        {/* Wealth card 4 - Capitale Impegnato (Amber) */}
-        <div id="card-impegnato" className="bg-amber-600 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-amber-700 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <Coins className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-amber-200 font-bold uppercase tracking-wider block">Capitale Impegnato</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(totalImpegnato)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-amber-100/90 flex items-center gap-2 mt-auto z-10 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-            <span>Fondi vincolati o prenotati ({formatPercent(totalWealth > 0 ? (totalImpegnato / totalWealth) * 100 : 0)})</span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <Coins className="w-32 h-32" />
-          </div>
-        </div>
+        {/* Wealth card 4 - Capitale Accantonato (Amber) */}
+        <FinanceKpiCard
+          id="card-impegnato"
+          type="impegnato"
+          title="Capitale Accantonato"
+          value={totalImpegnato}
+          icon={Coins}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span>Fondi vincolati o prenotati ({formatPercent(totalWealth > 0 ? (totalImpegnato / totalWealth) * 100 : 0)})</span>
+            </>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-6">
@@ -290,15 +271,15 @@ export default function Patrimonio() {
               {localConti.map((conto, index) => {
                 const isUnderThreshold = conto.capitaleTotale < conto.sogliaAllarme;
                 const limitRemaining = conto.sogliaAllarme - conto.capitaleTotale;
-                const isSelected = selectedConto 
+                const isSelected = selectedConto
                   ? (conto.id && selectedConto.id === conto.id) || selectedConto.categoria === conto.categoria
                   : false;
 
-                const hasSoglia = 
-                  conto.allarmeSoglia !== undefined && 
-                  conto.allarmeSoglia !== null && 
+                const hasSoglia =
+                  conto.allarmeSoglia !== undefined &&
+                  conto.allarmeSoglia !== null &&
                   !isNaN(conto.allarmeSoglia) &&
-                  conto.rimanenteSoglia !== undefined && 
+                  conto.rimanenteSoglia !== undefined &&
                   conto.rimanenteSoglia !== null &&
                   !isNaN(conto.rimanenteSoglia) &&
                   !(Number(conto.allarmeSoglia) === 0 && Number(conto.rimanenteSoglia) === 0);
@@ -308,22 +289,20 @@ export default function Patrimonio() {
                     <div
                       id={`conto-row-${conto.id || index}`}
                       onClick={() => setSelectedConto(isSelected ? null : conto)}
-                      className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                        isSelected
-                          ? 'border-indigo-500 bg-indigo-50/25 shadow-xs'
-                          : 'border-slate-100 hover:border-slate-200 bg-white'
-                      }`}
+                      className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isSelected
+                        ? 'border-indigo-500 bg-indigo-50/25 shadow-xs'
+                        : 'border-slate-100 hover:border-slate-200 bg-white'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          hasSoglia 
-                            ? (conto.allarmeSoglia! > 100 
-                               ? 'bg-rose-50 text-rose-500' 
-                               : conto.allarmeSoglia! > 85 
-                                 ? 'bg-amber-50 text-amber-500' 
-                                 : 'bg-emerald-50 text-emerald-500')
-                            : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-600')
-                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${hasSoglia
+                          ? (conto.allarmeSoglia! > 100
+                            ? 'bg-rose-50 text-rose-500'
+                            : conto.allarmeSoglia! > 85
+                              ? 'bg-amber-50 text-amber-500'
+                              : 'bg-emerald-50 text-emerald-500')
+                          : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-600')
+                          }`}>
                           {hasSoglia && conto.allarmeSoglia! > 100 ? (
                             <AlertTriangle className="w-5 h-5 text-rose-500" />
                           ) : (isUnderThreshold || (hasSoglia && conto.allarmeSoglia! > 85)) ? (
@@ -384,7 +363,7 @@ export default function Patrimonio() {
                             </div>
                           )
                         )}
-                        
+
                         <div className="text-right shrink-0">
                           <span className="text-slate-400 font-bold text-[9px] uppercase block">Capitale Totale</span>
                           <span className="text-sm font-bold text-slate-800 font-display block mt-0.5">
@@ -440,7 +419,7 @@ export default function Patrimonio() {
                                   <span className="font-bold text-indigo-600">{formatEuro(conto.capitaleInvestito)}</span>
                                 </div>
                                 <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                  <span className="text-slate-500 font-medium">Quota impegni:</span>
+                                  <span className="text-slate-500 font-medium">Quota accantonamenti:</span>
                                   <span className="font-bold text-amber-600">{formatEuro(conto.capitaleImpegnato)}</span>
                                 </div>
                                 {hasSoglia && (
@@ -477,7 +456,7 @@ export default function Patrimonio() {
               <div className="flex items-center gap-2">
                 <Coins className="w-5 h-5 text-amber-500" />
                 <div>
-                  <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Capitale Impegnato</h3>
+                  <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Capitale Accantonato</h3>
                   <p className="text-xs text-slate-400 mt-0.5">Suddivisione del capitale vincolato e dei debiti attivi per conto</p>
                 </div>
               </div>
@@ -511,7 +490,7 @@ export default function Patrimonio() {
                   </>
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400 font-medium">
-                    Nessun capitale impegnato presente nel foglio Google Sheets
+                    Nessun capitale accantonato presente nel foglio Google Sheets
                   </div>
                 )}
               </div>
@@ -519,7 +498,7 @@ export default function Patrimonio() {
 
             {/* Detailed Breakdown Legend Table */}
             <div className="border-t border-slate-100 pt-4 mt-2">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Dettaglio Voci Impegni (dal Google Sheet)</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Dettaglio Voci accantonamenti (dal Google Sheet)</span>
               <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
                 {engagedCapitalData.length > 0 ? (
                   engagedCapitalData.map((item, idx) => (
@@ -553,33 +532,30 @@ export default function Patrimonio() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, netto: !prev.netto }))}
-              className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${
-                visibleLines.netto 
-                  ? 'bg-slate-100 text-slate-800 border-slate-300 shadow-2xs' 
-                  : 'bg-transparent text-slate-400 border-slate-200 hover:bg-slate-50 opacity-60'
-              }`}
+              className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.netto
+                ? 'bg-slate-100 text-slate-800 border-slate-300 shadow-2xs'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-slate-50 opacity-60'
+                }`}
             >
               <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.netto ? 'bg-slate-500' : 'bg-slate-300'}`}></span>
               <span>Netto</span>
             </button>
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, risparmio: !prev.risparmio }))}
-              className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${
-                visibleLines.risparmio 
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs' 
-                  : 'bg-transparent text-slate-400 border-slate-200 hover:bg-emerald-50/20 opacity-60'
-              }`}
+              className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.risparmio
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-emerald-50/20 opacity-60'
+                }`}
             >
               <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.risparmio ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
               <span>Risparmio</span>
             </button>
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, investito: !prev.investito }))}
-              className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${
-                visibleLines.investito 
-                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-2xs' 
-                  : 'bg-transparent text-slate-400 border-slate-200 hover:bg-indigo-50/20 opacity-60'
-              }`}
+              className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.investito
+                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-2xs'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-indigo-50/20 opacity-60'
+                }`}
             >
               <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.investito ? 'bg-indigo-500' : 'bg-slate-300'}`}></span>
               <span>Investito</span>
@@ -598,25 +574,25 @@ export default function Patrimonio() {
                 >
                   <defs>
                     <linearGradient id="colorNettoPatrimonio" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#94a3b8" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorRisparmioPatrimonio" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorInvestitoPatrimonio" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
                   <Tooltip
                     formatter={(value: any, name: any) => {
-                      const translatedName = 
+                      const translatedName =
                         name === 'andamentoNetto' || name === 'Andamento Netto' ? 'Andamento Netto' :
-                        (name === 'risparmioCumulativo' || name === 'Andamento Risparmio') ? 'Andamento Risparmio' : 
-                        (name === 'investito' || name === 'Quota Investimenti') ? 'Quota Investimenti' : name;
+                          (name === 'risparmioCumulativo' || name === 'Andamento Risparmio') ? 'Andamento Risparmio' :
+                            (name === 'investito' || name === 'Quota Investimenti') ? 'Quota Investimenti' : name;
                       return [
                         `€${Number(value).toLocaleString('it-IT', { useGrouping: true })}`,
                         translatedName
@@ -754,8 +730,8 @@ export default function Patrimonio() {
           </div>
         </div>
       </div>
-      
-      
+
+
     </div>
   );
 }

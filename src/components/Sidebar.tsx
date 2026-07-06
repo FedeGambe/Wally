@@ -80,9 +80,11 @@ export default function Sidebar({
       <div className={`h-16 flex items-center border-b border-slate-100 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-5'} gap-2`}>
         <div className="flex items-center gap-3 min-w-0">
           <img
-            src="/icon/icon.jpg"
+            src="/icon/asseta-rounded-1024.png"
             alt="Logo"
-            className="w-9 h-9 rounded-xl object-cover shadow-sm shrink-0"
+            width={36}
+            height={36}
+            className="w-9 h-9 aspect-square rounded-xl object-cover shadow-sm shrink-0"
           />
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">

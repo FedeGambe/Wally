@@ -1,0 +1,1 @@
+- Migliorare il responsive design per l'app in modalità mobile. Per il mobile dobbiamo avere meno informazioni e mantenere solo le più importanti. Per i widget iniziali nella pagina Panormaica, facciamo non un widget per riga ma due per riga, sempre per panoramica per il mese corrente in evidenza anche li mettiamo due widget affiancati. Per le uscite, diminuiamo la altezza

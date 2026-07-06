@@ -27,7 +27,8 @@ import { Transaction } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
 import Drawer from '../components/Drawer';
 import { SHEETS_CONFIG } from '../config/sheetsConfig';
-import {getThresholds} from '../utils/thresholds'
+import { getThresholds } from '../utils/thresholds';
+import FinanceKpiCard from '../components/FinanceKpiCard';
 
 interface PanoramicaProps {
   selectedYear: string;
@@ -49,10 +50,10 @@ const getTransactionYear = (t: Transaction): number => {
   }
   const match = t.data.match(/\b(20\d{2})\b/);
   if (match) return parseInt(match[1], 10);
-  
+
   const match2 = t.data.match(/\/(\d{2})$/);
   if (match2) return 2000 + parseInt(match2[1], 10);
-  
+
   return new Date().getFullYear();
 };
 
@@ -101,7 +102,7 @@ export default function Panoramica({
       const spesePrimarie = Number(r.spesePrimarie || 0);
       const speseSecondarie = Number(r.speseSecondarie || 0);
       const speseTotali = Number(r.speseTotali || (spesePrimarie + speseSecondarie));
-      
+
       const investito = Number(r.investiti !== undefined ? r.investiti : (r.investito !== undefined ? r.investito : 0));
       const risparmioNetto = Number(r.risparmio !== undefined ? r.risparmio : (r.risparmioNetto !== undefined ? r.risparmioNetto : 0));
 
@@ -130,8 +131,8 @@ export default function Panoramica({
 
     // Find the index of the selected month and year in chronologicalData
     const index = chronologicalData.findIndex(
-      (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase() && 
-             (selectedYear === 'Tutti' || r.anno.toString() === selectedYear)
+      (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase() &&
+        (selectedYear === 'Tutti' || r.anno.toString() === selectedYear)
     );
 
     // If not found, fallback to the latest month's index
@@ -175,19 +176,19 @@ export default function Panoramica({
   // Retrieve current month record and previous month record for delta calculations (year-aware)
   const currentMonthData = useMemo(() => {
     const yearToFind = selectedYear !== 'Tutti' ? parseInt(selectedYear, 10) : undefined;
-    
+
     // First try: match both month and selected year
     let found = chronologicalData.find(
       (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase() && (yearToFind === undefined || r.anno === yearToFind)
     );
-    
+
     // Fallback: match by month name only in any year
     if (!found) {
       found = chronologicalData.find(
         (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase()
       );
     }
-    
+
     return found || chronologicalData[chronologicalData.length - 1] || {
       mese: localSelectedMonth,
       anno: yearToFind || new Date().getFullYear(),
@@ -232,15 +233,28 @@ export default function Panoramica({
     return num.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
   };
 
+  // Selezione mese cliccabile dal grafico, sincronizzata col selettore globale in header.
+  // Recharts v3 non passa più `activePayload` all'onClick del chart: usiamo `activeLabel`
+  // (qui: uniqueKey, già univoco mese+anno) per risalire al record cliccato.
+  const handleChartClick = (chartEvent: any) => {
+    if (!chartEvent || !chartEvent.activeLabel) return;
+    const matched = chartData.find(r => r.uniqueKey === chartEvent.activeLabel);
+    if (matched) {
+      setLocalSelectedMonth(matched.mese);
+      setSelectedMonth(matched.mese);
+      setSelectedYear(matched.anno.toString());
+    }
+  };
+
   // Click handler to show details in the drawer
   const handleOpenMonthDetail = (monthName: string, yearValue: number) => {
     const formattedMonth = monthName.toLowerCase();
     setLocalSelectedMonth(monthName);
-    
+
     const matchedTx = data.uscite.filter((t: Transaction) => t.mese.toLowerCase() === formattedMonth && (selectedYear === 'Tutti' || t.data.includes(yearValue.toString())));
-    
+
     const savingRecord = chronologicalData.find(r => r.mese.toLowerCase() === formattedMonth && r.anno === yearValue);
-    
+
     setDrawerTitle(`Dettaglio Finanziario - ${monthName} ${yearValue}`);
     setDrawerSubtitle(`Analisi dei flussi e delle transazioni registrate`);
     setDrawerTransactions(matchedTx);
@@ -253,31 +267,31 @@ export default function Panoramica({
   };
 
   // Deltas against previous month (using currentMonthData vs prevMonthData)
-  const entrateDelta = (prevMonthData && prevMonthData.entrate > 0 && currentMonthData && currentMonthData.entrate !== undefined) 
-    ? ((currentMonthData.entrate - prevMonthData.entrate) / prevMonthData.entrate) * 100 
+  const entrateDelta = (prevMonthData && prevMonthData.entrate > 0 && currentMonthData && currentMonthData.entrate !== undefined)
+    ? ((currentMonthData.entrate - prevMonthData.entrate) / prevMonthData.entrate) * 100
     : undefined;
-  const speseDelta = (prevMonthData && prevMonthData.speseTotali > 0 && currentMonthData && currentMonthData.speseTotali !== undefined) 
-    ? ((currentMonthData.speseTotali - prevMonthData.speseTotali) / prevMonthData.speseTotali) * 100 
+  const speseDelta = (prevMonthData && prevMonthData.speseTotali > 0 && currentMonthData && currentMonthData.speseTotali !== undefined)
+    ? ((currentMonthData.speseTotali - prevMonthData.speseTotali) / prevMonthData.speseTotali) * 100
     : undefined;
-  const spesePrimDelta = (prevMonthData && prevMonthData.spesePrimarie > 0 && currentMonthData && currentMonthData.spesePrimarie !== undefined) 
-    ? ((currentMonthData.spesePrimarie - prevMonthData.spesePrimarie) / prevMonthData.spesePrimarie) * 100 
+  const spesePrimDelta = (prevMonthData && prevMonthData.spesePrimarie > 0 && currentMonthData && currentMonthData.spesePrimarie !== undefined)
+    ? ((currentMonthData.spesePrimarie - prevMonthData.spesePrimarie) / prevMonthData.spesePrimarie) * 100
     : undefined;
-  const speseSecDelta = (prevMonthData && prevMonthData.speseSecondarie > 0 && currentMonthData && currentMonthData.speseSecondarie !== undefined) 
-    ? ((currentMonthData.speseSecondarie - prevMonthData.speseSecondarie) / prevMonthData.speseSecondarie) * 100 
+  const speseSecDelta = (prevMonthData && prevMonthData.speseSecondarie > 0 && currentMonthData && currentMonthData.speseSecondarie !== undefined)
+    ? ((currentMonthData.speseSecondarie - prevMonthData.speseSecondarie) / prevMonthData.speseSecondarie) * 100
     : undefined;
 
   // Percentage on income for selectedMonth
-  const primPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.spesePrimarie !== undefined) 
-    ? (currentMonthData.spesePrimarie / currentMonthData.entrate) * 100 
+  const primPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.spesePrimarie !== undefined)
+    ? (currentMonthData.spesePrimarie / currentMonthData.entrate) * 100
     : undefined;
-  const secPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.speseSecondarie !== undefined) 
-    ? (currentMonthData.speseSecondarie / currentMonthData.entrate) * 100 
+  const secPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.speseSecondarie !== undefined)
+    ? (currentMonthData.speseSecondarie / currentMonthData.entrate) * 100
     : undefined;
-  const invPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.investito !== undefined) 
-    ? (currentMonthData.investito / currentMonthData.entrate) * 100 
+  const invPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.investito !== undefined)
+    ? (currentMonthData.investito / currentMonthData.entrate) * 100
     : undefined;
-  const rispPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.risparmioNetto !== undefined) 
-    ? (currentMonthData.risparmioNetto / currentMonthData.entrate) * 100 
+  const rispPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.risparmioNetto !== undefined)
+    ? (currentMonthData.risparmioNetto / currentMonthData.entrate) * 100
     : undefined;
 
   return (
@@ -285,84 +299,60 @@ export default function Panoramica({
       {/* Top row Wealth widget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Wealth card 1 - Capitale Disponibile (Indigo) */}
-        <div className="bg-indigo-600 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-indigo-700 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <PiggyBank className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-indigo-200 font-bold uppercase tracking-wider block">Capitale Disponibile</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(capitaleDisponibile)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-indigo-100/90 flex items-center gap-2 mt-auto z-10 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Liquidità pronta all'uso ({formatPercent((capitaleDisponibile / patrimonioTotale) * 100)})</span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <PiggyBank className="w-32 h-32" />
-          </div>
-        </div>
+        <FinanceKpiCard
+          type="disponibile"
+          title="Capitale Disponibile"
+          value={capitaleDisponibile}
+          icon={PiggyBank}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Liquidità pronta all'uso ({formatPercent((capitaleDisponibile / patrimonioTotale) * 100)})</span>
+            </>
+          }
+        />
 
         {/* Wealth card 2 - Capitale Investito (Emerald) */}
-        <div className="bg-emerald-600 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-emerald-700 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <TrendingUp className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-emerald-200 font-bold uppercase tracking-wider block">Capitale Investito</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(capitaleInvestito)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-emerald-100/90 flex items-center gap-2 mt-auto z-10 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-            <span>Strumenti finanziari attivi ({formatPercent((capitaleInvestito / patrimonioTotale) * 100)})</span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <TrendingUp className="w-32 h-32" />
-          </div>
-        </div>
+        <FinanceKpiCard
+          type="investito"
+          title="Capitale Investito"
+          value={capitaleInvestito}
+          icon={TrendingUp}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span>Strumenti finanziari attivi ({formatPercent((capitaleInvestito / patrimonioTotale) * 100)})</span>
+            </>
+          }
+        />
 
-        {/* Wealth card 3 - Capitale Impegnato (Amber) */}
-        <div className="bg-amber-600 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-amber-700 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <Coins className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-amber-200 font-bold uppercase tracking-wider block">Capitale Impegnato</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(capitaleImpegnato)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-amber-100/90 flex items-center gap-2 mt-auto z-10 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-            <span>Fondi vincolati o prenotati ({formatPercent((capitaleImpegnato / patrimonioTotale) * 100)})</span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <Coins className="w-32 h-32" />
-          </div>
-        </div>
+        {/* Wealth card 3 - Capitale Accantonato (Amber) */}
+        <FinanceKpiCard
+          type="impegnato"
+          title="Capitale Accantonato"
+          value={capitaleImpegnato}
+          icon={Coins}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span>Fondi vincolati o prenotati ({formatPercent((capitaleImpegnato / patrimonioTotale) * 100)})</span>
+            </>
+          }
+        />
 
         {/* Wealth card 4 - Capitale Totale (Slate-900) */}
-        <div className="bg-slate-900 text-white rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border border-slate-950 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-            <BarChart3 className="w-6 h-6" />
-          </div>
-          <div className="z-10">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Capitale Totale (Disp. + Inv.)</span>
-            <h3 className="text-[28px] font-extrabold font-display text-white mt-1 block leading-none">
-              {formatEuro(capitaleDisponibile + capitaleInvestito)}
-            </h3>
-          </div>
-          <p className="text-[10px] text-slate-300 flex items-center gap-2 mt-auto z-10 font-medium">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-            <span>Incluso Impegnato: <strong className="font-bold text-white">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
-          </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
-            <BarChart3 className="w-32 h-32" />
-          </div>
-        </div>
+        <FinanceKpiCard
+          type="totale"
+          title="Capitale Totale"
+          value={capitaleDisponibile + capitaleInvestito}
+          icon={BarChart3}
+          detail={
+            <>
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+              <span>Incluso Accantonato: <strong className="text-xs sm:text-[13px] font-black font-mono text-white tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
+            </>
+          }
+        />
       </div>
 
       {/* Main KPI Month Strip & Indicators */}
@@ -371,7 +361,7 @@ export default function Panoramica({
           <Calendar className="w-5 h-5 text-indigo-605 text-indigo-600" />
           Mese Corrente in Evidenza: <span className="text-indigo-600 font-extrabold capitalize">{currentMonthData.mese} {currentMonthData.anno}</span>
         </h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Risparmio */}
           <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75 flex flex-col justify-between h-32 transition-all duration-300 hover:bg-slate-50">
@@ -522,21 +512,16 @@ export default function Panoramica({
               <AreaChart
                 data={chartData}
                 margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                onClick={(data: any) => {
-                  if (data && data.activePayload && data.activePayload[0]) {
-                    const clickedElement = data.activePayload[0].payload;
-                    setLocalSelectedMonth(clickedElement.mese);
-                  }
-                }}
+                onClick={handleChartClick}
               >
                 <defs>
                   <linearGradient id="colorRisparmio" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorInvestito" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#d946ef" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#d946ef" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#d946ef" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#d946ef" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -716,19 +701,17 @@ export default function Panoramica({
                     <td className="px-6 py-3.5 text-right text-indigo-650 text-indigo-600 font-semibold">
                       {formatEuro(r.investito)}
                     </td>
-                    <td className={`px-6 py-3.5 text-right font-extrabold ${
-                      r.risparmioNetto >= 0 ? "text-emerald-500" : "text-rose-500"
-                    }`}>
+                    <td className={`px-6 py-3.5 text-right font-extrabold ${r.risparmioNetto >= 0 ? "text-emerald-500" : "text-rose-500"
+                      }`}>
                       {formatEuro(r.risparmioNetto)}
                     </td>
                     <td className="px-6 py-3.5 text-right">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        savingQuota >= 35
-                          ? "bg-emerald-100 text-emerald-800"
-                          : savingQuota >= 10
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${savingQuota >= 35
+                        ? "bg-emerald-100 text-emerald-800"
+                        : savingQuota >= 10
                           ? "bg-amber-100 text-amber-800"
                           : "bg-rose-100 text-rose-800"
-                      }`}>
+                        }`}>
                         {formatPercent(savingQuota)}
                       </span>
                     </td>

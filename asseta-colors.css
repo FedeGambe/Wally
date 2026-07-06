@@ -1,0 +1,40 @@
+/* Asseta — palette colori
+   Glassmorphism scuro · accento viola/indaco
+   Uso: importa questo file e usa le variabili CSS. */
+
+:root {
+  /* Sfondi (dal più profondo al rialzato) */
+  --asseta-bg-deep:    #0a0814; /* sfondo app / fondo scuro   */
+  --asseta-bg-base:    #14112e; /* superficie base            */
+  --asseta-bg-raised:  #241b46; /* card / superficie rialzata */
+
+  /* Accento — viola / indaco */
+  --asseta-violet:       #8b5cff; /* accento primario (CTA, brand) */
+  --asseta-violet-light: #a78bff; /* hover / stato attivo          */
+  --asseta-violet-soft:  #cdbaff; /* icone / dettagli soft         */
+  --asseta-lilac:        #ece4ff; /* tinta chiarissima             */
+  --asseta-indigo:       #4670ff; /* accento secondario            */
+
+  /* Semantici — finanza */
+  --asseta-up:   #3ecf8e; /* crescita / entrate  */
+  --asseta-down: #ff6f7d; /* perdita / uscite    */
+
+  /* Testo */
+  --asseta-text:        #f1ecff;              /* testo principale */
+  --asseta-text-muted:  rgba(241,236,255,0.62); /* testo secondario */
+
+  /* Vetro (glassmorphism) */
+  --asseta-glass-fill:   rgba(255,255,255,0.08);
+  --asseta-glass-stroke: rgba(255,255,255,0.22);
+  --asseta-glass-blur:   16px;
+}
+
+/* Esempio superficie in vetro */
+.asseta-glass {
+  background: var(--asseta-glass-fill);
+  border: 1px solid var(--asseta-glass-stroke);
+  backdrop-filter: blur(var(--asseta-glass-blur));
+  -webkit-backdrop-filter: blur(var(--asseta-glass-blur));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  border-radius: 20px;
+}

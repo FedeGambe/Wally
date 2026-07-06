@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# StarFinance
 
-# Run and deploy your AI Studio app
+Dashboard finanza personale (single-user), legge e scrive dati da un **Google Sheet** di proprietà dell'utente. React 19 + TypeScript + Vite 6, Tailwind CSS 4, grafici Recharts, animazioni Motion, login Google via Firebase.
 
-This contains everything you need to run your app locally.
+Nessun backend, nessun database: i dati vivono in tre livelli (Google Sheet ↔ `localStorage` ↔ stato React), vedi `CLAUDE.md` per i dettagli architetturali.
 
-View your app in AI Studio: https://ai.studio/apps/d83db3ea-aeb7-456c-a10d-a6ca594a4b03
+## Requisiti
 
-## Run Locally
+- Node.js
+- Un progetto Firebase con Google Sign-In abilitato
+- Un Google Sheet personale con i tab attesi da `src/config/sheetsConfig.tsx`
 
-**Prerequisites:**  Node.js
+## Setup locale
 
+1. Installa le dipendenze:
+   ```
+   npm install
+   ```
+2. Copia `.env.example` in `.env.local` e valorizza le chiavi Firebase (`VITE_FIREBASE_*`), prese da Firebase Console > Project Settings > General > SDK config.
+3. Avvia l'app:
+   ```
+   npm run dev
+   ```
+   Disponibile su `http://localhost:3000`.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Script
+
+- `npm run dev` — dev server Vite (porta 3000)
+- `npm run build` — build di produzione
+- `npm run preview` — serve la build di produzione
+- `npm run lint` — typecheck (`tsc --noEmit`), unica verifica automatica del repo
+
+Non c'è una suite di test. Verificare una modifica significa: `npm run lint`, poi `npm run build`, poi provare l'app avviata.
+
+## Pagine
+
+Panoramica, Entrate, Uscite, Analisi Consumi, Patrimonio, Investimenti, Impostazioni, Login.
+
+## Deploy
+
+Target: Vercel, auto-deploy dal branch `main` su GitHub. Le variabili `VITE_FIREBASE_*` vanno impostate anche su Vercel (Project Settings > Environment Variables).

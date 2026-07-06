@@ -354,9 +354,11 @@ export default function Entrate({
     }
   };
 
-  // Apertura Drawer al click sui punti del grafico
+  // Apertura Drawer al click sui punti del grafico. Sincronizza anche il selettore globale in header.
   const handlePointClick = (monthName: string, yearValue: number, totalEntrate: number) => {
     setLocalSelectedMonth(monthName);
+    setSelectedMonth(monthName);
+    setSelectedYear(yearValue.toString());
 
     const monthIncomes = normalizedEntrate.filter(
       (e) => e.meseNorm.toLowerCase() === monthName.toLowerCase() && e.anno === yearValue
@@ -461,11 +463,12 @@ export default function Entrate({
               <AreaChart
                 data={chartData}
                 margin={{ top: 15, right: 15, left: 10, bottom: 0 }}
-                onClick={(data: any) => {
-                  if (data && data.activePayload && data.activePayload[0]) {
-                    const clickedElement = data.activePayload[0].payload;
-                    handlePointClick(clickedElement.meseDisplay, clickedElement.anno, clickedElement.entrate);
-                  }
+                onClick={(chartEvent: any) => {
+                  // Recharts v3 non passa più `activePayload` all'onClick: usiamo `activeLabel`
+                  // (qui: uniqueKey, già univoco mese+anno) per risalire al record cliccato.
+                  if (!chartEvent || !chartEvent.activeLabel) return;
+                  const matched = chartData.find(r => r.uniqueKey === chartEvent.activeLabel);
+                  if (matched) handlePointClick(matched.meseDisplay, matched.anno, matched.entrate);
                 }}
               >
                 <defs>

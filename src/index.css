@@ -251,6 +251,11 @@ body {
   font-weight: bold !important;
 }
 
+/* Recharts v3 rende l'SVG focusabile per accessibilità: il click mostra il focus ring nativo del browser (il rettangolo bianco). */
+.recharts-surface:focus {
+  outline: none;
+}
+
 /* Beautiful color accents text popups */
 .glass-theme .text-indigo-600 { color: #818cf8 !important; }
 .glass-theme .text-emerald-600 { color: #34d399 !important; }

@@ -376,6 +376,19 @@ export default function Uscite({
     }).sort((a, b) => b.value - a.value);
   }, [activeMonthAllTransactions, selectedMacroCat]);
 
+  // Selezione mese cliccabile dal grafico storico, sincronizzata col selettore globale in header.
+  // Recharts v3 non passa più `activePayload` all'onClick del chart: usiamo `activeLabel`,
+  // la label dell'asse X (qui: mese), per risalire al record cliccato.
+  const handleChartClick = (chartEvent: any) => {
+    if (!chartEvent || !chartEvent.activeLabel) return;
+    const matched = rolling12MonthsData.find(r => r.mese === chartEvent.activeLabel);
+    if (matched) {
+      setLocalSelectedMonth(matched.mese);
+      setSelectedMonth(matched.mese);
+      setSelectedYear(matched.anno.toString());
+    }
+  };
+
   // Click handler to open detailed panel per Month
   const handleOpenMonthDetail = (monthName: string, yearValue: number) => {
     setLocalSelectedMonth(monthName);
@@ -691,12 +704,7 @@ export default function Uscite({
             <AreaChart
               data={rolling12MonthsData}
               margin={{ top: 15, right: 15, left: 10, bottom: 0 }}
-              onClick={(data: any) => {
-                if (data && data.activePayload && data.activePayload[0]) {
-                  const clickedElement = data.activePayload[0].payload;
-                  setLocalSelectedMonth(clickedElement.mese);
-                }
-              }}
+              onClick={handleChartClick}
             >
               <defs>
                 <linearGradient id="colorUscitePrimarie" x1="0" y1="0" x2="0" y2="1">
