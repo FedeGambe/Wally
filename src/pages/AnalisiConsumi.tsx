@@ -23,11 +23,7 @@ import {
   Line,
   Cell
 } from 'recharts';
-import { HISTORICAL_CAR_MEASUREMENTS, ConsumoAutoWeek } from '../data/mockData';
-
-interface AnalisiConsumiProps {
-  sheetsData?: any;
-}
+import { useFinanceData } from '../context/FinanceDataContext';
 
 // Helper to synthesize a week label like "Set W1" or "Gen W2" from raw dates
 function getSettimanaLabel(dataStr: string, index: number): string {
@@ -65,11 +61,13 @@ function getSettimanaLabel(dataStr: string, index: number): string {
   return dataStr; // Fallback to raw string if we can't parse
 }
 
-export default function AnalisiConsumi({ sheetsData }: AnalisiConsumiProps) {
-  // 1. Process and normalize sheets data or mock data fallback
+export default function AnalisiConsumi() {
+  const { data } = useFinanceData();
+
+  // 1. Process and normalize the finance data
   const consumiRecords = useMemo(() => {
-    const rawList = sheetsData?.analisiConsumi || HISTORICAL_CAR_MEASUREMENTS || [];
-    
+    const rawList = data.analisiConsumi || [];
+
     return rawList
       .filter((r: any) => r && (r.data || r.costo || r.kmEffettuati)) // filter empty rows
       .map((r: any, index: number) => {
@@ -103,7 +101,7 @@ export default function AnalisiConsumi({ sheetsData }: AnalisiConsumiProps) {
           costoExtra: parsedCostoExtra
         };
       });
-  }, [sheetsData?.analisiConsumi]);
+  }, [data.analisiConsumi]);
 
   // 2. Local selection state
   const [selectedWeekState, setSelectedWeekState] = useState<any | null>(null);

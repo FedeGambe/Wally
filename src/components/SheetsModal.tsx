@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { createSpreadsheet, fetchSpreadsheetData, pushSpreadsheetData } from '../lib/sheetsService';
 import { getExportableData, saveToLocalStorage } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
 
 interface SheetsModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function SheetsModal({
   accessToken,
   onRefreshCompleted
 }: SheetsModalProps) {
+  const { bumpVersion } = useFinanceData();
   const [sheetId, setSheetId] = useState<string>('');
   const [inputUrl, setInputUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -108,9 +110,10 @@ export default function SheetsModal({
       } else {
         // Pull existing data to local storage
         saveToLocalStorage(data);
+        bumpVersion();
         setSuccessMsg('Foglio Google collegato correttamente! Dati sincronizzati.');
       }
-      
+
       onRefreshCompleted();
     } catch (err: any) {
       console.error(err);
@@ -144,6 +147,7 @@ export default function SheetsModal({
       setInputUrl(`https://docs.google.com/spreadsheets/d/${newId}/edit`);
       
       setSuccessMsg('Nuovo foglio di lavoro "StarFinance" creato con successo nel tuo Google Drive!');
+      bumpVersion();
       onRefreshCompleted();
     } catch (err: any) {
       console.error(err);
@@ -205,6 +209,7 @@ export default function SheetsModal({
     try {
       const remoteData = await fetchSpreadsheetData(accessToken, sheetId);
       saveToLocalStorage(remoteData);
+      bumpVersion();
       setSuccessMsg('Dati scaricati da Google Sheets con successo!');
       onRefreshCompleted();
     } catch (err: any) {

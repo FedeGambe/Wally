@@ -25,25 +25,11 @@ import {
   YAxis,
   CartesianGrid
 } from 'recharts';
-import {
-  CONTI_PATRIMONIO,
-  CAPITALE_IMPEGNATO,
-  RENDIMENTI_MENSILI,
-  RISPARMIO_DATA,
-  ContoPatrimonio,
-  CapitaleImpegnato
-} from '../data/mockData';
+import { ContoPatrimonio } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
 
-interface PatrimonioProps {
-  sheetsData?: {
-    patrimonio?: ContoPatrimonio[];
-    risparmio?: any[];
-    rendimentiInvestimenti?: any[];
-    capitaleImpegnato?: any[];
-  };
-}
-
-export default function Patrimonio({ sheetsData }: PatrimonioProps) {
+export default function Patrimonio() {
+  const { data } = useFinanceData();
   const [selectedConto, setSelectedConto] = useState<ContoPatrimonio | null>(null);
   const [visibleLines, setVisibleLines] = useState({
     netto: true,
@@ -66,22 +52,10 @@ export default function Patrimonio({ sheetsData }: PatrimonioProps) {
     return num.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
   };
 
-  // Get data from sheets or fallback to mock data
-  const localConti = useMemo(() => {
-    return sheetsData?.patrimonio || CONTI_PATRIMONIO;
-  }, [sheetsData]);
-
-  const localRisparmio = useMemo(() => {
-    return sheetsData?.risparmio || RISPARMIO_DATA;
-  }, [sheetsData]);
-
-  const localRendimenti = useMemo(() => {
-    return sheetsData?.rendimentiInvestimenti || RENDIMENTI_MENSILI;
-  }, [sheetsData]);
-
-  const localCapitaleImpegnato = useMemo(() => {
-    return sheetsData?.capitaleImpegnato || CAPITALE_IMPEGNATO;
-  }, [sheetsData]);
+  const localConti = data.patrimonio;
+  const localRisparmio = data.risparmio;
+  const localRendimenti = data.rendimentiInvestimenti;
+  const localCapitaleImpegnato = data.capitaleImpegnato;
 
   // Sum aggregates based on localConti
   const totalWealth = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleTotale, 0), [localConti]);

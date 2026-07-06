@@ -3,17 +3,10 @@ import CruscottoGenerale from '../subviews/CruscottoGenerale';
 import Conti from '../subviews/Conti';
 import FondoPensione from '../subviews/FondoPensione';
 import { computeCruscottoData, computeRealAssetAllocation } from '../utils/cruscottoInvestimenti';
-import {
-  CRUSCOTTO_DATA,
-  RENDIMENTI_MENSILI,
-  SCALABLE_INSTRUMENTS,
-  TRADE_REPUBLIC_INSTRUMENTS,
-  FONDO_PENSIONE_DATA,
-  RendimentoInvestimenti
-} from '../data/mockData';
+import { RendimentoInvestimenti } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
 
 interface InvestimentiProps {
-  sheetsData?: any;
   selectedMonth?: string;
   setSelectedMonth?: (month: string) => void;
   selectedYear?: string;
@@ -78,13 +71,13 @@ function parseMeseStringToMonthYear(meseStr: string): { month: number; year: num
 }
 
 export default function Investimenti({
-  sheetsData,
   selectedMonth: globalSelectedMonth = 'Luglio',
   setSelectedMonth: setGlobalSelectedMonth,
   selectedYear: globalSelectedYear = '2026',
   setSelectedYear: setGlobalSelectedYear,
   theme = 'dark'
 }: InvestimentiProps = {}) {
+  const { data } = useFinanceData();
   const [activeTab, setActiveTab] = useState<'cruscotto' | 'conti' | 'pensione'>('cruscotto');
   const [activeConto, setActiveConto] = useState<'scalable' | 'trade'>('scalable');
   const [selectedMonth, setSelectedMonth] = useState<RendimentoInvestimenti | null>(null);
@@ -114,9 +107,9 @@ export default function Investimenti({
   }, []);
 
   const localRendimenti = useMemo(() => {
-    const raw = sheetsData?.rendimentiInvestimenti || sheetsData?.rendimentiMensili || RENDIMENTI_MENSILI;
+    const raw = data.rendimentiInvestimenti;
     return raw.filter((item: any) => item && item.mese && String(item.mese).trim() !== '');
-  }, [sheetsData?.rendimentiInvestimenti, sheetsData?.rendimentiMensili]);
+  }, [data.rendimentiInvestimenti]);
 
   // 1.5 Active records with non-zero portfolio value
   const activeRendimenti = useMemo(() => {
@@ -211,17 +204,12 @@ export default function Investimenti({
   }, [timeRange, globalFocusRendimenti, activeRendimenti]);
 
   const localCruscotto = useMemo(() => {
-    if (sheetsData?.cruscottoInvestimenti?.length > 0) {
-      return sheetsData.cruscottoInvestimenti;
+    if (data.cruscottoInvestimenti?.length > 0) {
+      return data.cruscottoInvestimenti;
     }
-    if (sheetsData) {
-      const computed = computeCruscottoData(sheetsData);
-      if (computed && computed.length > 0) {
-        return computed;
-      }
-    }
-    return CRUSCOTTO_DATA;
-  }, [sheetsData]);
+    const computed = computeCruscottoData(data);
+    return computed;
+  }, [data]);
 
   useEffect(() => {
     setSelectedMonth(globalInspectorRecord);
@@ -237,7 +225,7 @@ export default function Investimenti({
       
       // Calcoliamo liquidiConto dinamico sommando il capitale disponibile dei conti Trade Republic o Scalable Capital
       let liquidiContoComputed = 0;
-      const conti = sheetsData?.contiPatrimonio || [];
+      const conti = data.patrimonio || [];
       if (conti.length > 0) {
         conti.forEach((c: any) => {
           const name = String(c.categoria || '').toLowerCase();
@@ -268,7 +256,7 @@ export default function Investimenti({
         rendimentoCumulativoPerc: rendCumPerc || 13.8,
         rendimentoMedioMensilePerc: Number(lastRow.rendimentoMedioMensilePerc !== undefined ? lastRow.rendimentoMedioMensilePerc : 1.15),
         rendimentoAnnuoStimatoPerc: Number(lastRow.rendimentoAnnuoStimatoPerc !== undefined ? lastRow.rendimentoAnnuoStimatoPerc : 7.8),
-        liquidiConto: liquidiContoComputed
+          liquidiConto: liquidiContoComputed
       };
     }
 
@@ -303,7 +291,7 @@ export default function Investimenti({
       rendimentoAnnuoStimatoPerc: 7.8,
       liquidiConto: 5290.30
     };
-  }, [localCruscotto, sheetsData]);
+  }, [localCruscotto, data]);
 
   const lastValidRendimento = useMemo(() => {
     if (!localRendimenti || localRendimenti.length === 0) return null;
@@ -365,7 +353,7 @@ export default function Investimenti({
       rendimentoAnnualeEuro: 3600,
       rendimentoMedioMensilePerc: 1.15,
     };
-  }, [localCruscotto, sheetsData, globalSelectedYear]);
+  }, [localCruscotto, globalSelectedYear]);
 
   const elapsedMonthsForSelectedYear = useMemo(() => {
     if (!lastValidRendimento || !lastValidRendimento.mese) return 12;
@@ -438,8 +426,8 @@ export default function Investimenti({
     const obbligazioniColors = ['#7c2d12', '#9a3412', '#c2410c', '#ea580c', '#f97316', '#fb923c', '#fdba74'];
     const monetariColors = ['#064e3b', '#065f46', '#047857', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
 
-    if (sheetsData && (sheetsData.scalable?.length > 0 || sheetsData.tradeRepublic?.length > 0)) {
-      const allocation = computeRealAssetAllocation(sheetsData);
+    if (data.scalable?.length > 0 || data.tradeRepublic?.length > 0) {
+      const allocation = computeRealAssetAllocation(data);
       
       const azioniItems = allocation.detailData.filter(item => item.tipo === 'Azioni').sort((a, b) => b.importoInvestito - a.importoInvestito);
       const obbligazioniItems = allocation.detailData.filter(item => item.tipo === 'Obbligazioni').sort((a, b) => b.importoInvestito - a.importoInvestito);
@@ -483,7 +471,7 @@ export default function Investimenti({
       return { macroData, detailData };
     }
 
-    const fallbackList = [...SCALABLE_INSTRUMENTS, ...TRADE_REPUBLIC_INSTRUMENTS].map(item => {
+    const fallbackList = [...data.scalableInstruments, ...data.tradeRepublicInstruments].map((item: any) => {
       let mappedType = 'Azioni';
       const nameLower = item.nome.toLowerCase();
       if (nameLower.includes('bond') || nameLower.includes('obbligazion') || (item.tipo as string) === 'Obbligazioni') {
@@ -535,22 +523,13 @@ export default function Investimenti({
     const detailData = [...azioniMapped, ...obbligazioniMapped, ...monetariMapped];
 
     return { macroData, detailData };
-  }, [sheetsData, CRUSCOTTO_GENERALE]);
+  }, [data, CRUSCOTTO_GENERALE]);
 
-  const localScalableInstruments = useMemo(() => {
-    return sheetsData?.scalableInstruments?.length > 0
-      ? sheetsData.scalableInstruments
-      : SCALABLE_INSTRUMENTS;
-  }, [sheetsData?.scalableInstruments]);
-
-  const localTradeRepublicInstruments = useMemo(() => {
-    return sheetsData?.tradeRepublicInstruments?.length > 0
-      ? sheetsData.tradeRepublicInstruments
-      : TRADE_REPUBLIC_INSTRUMENTS;
-  }, [sheetsData?.tradeRepublicInstruments]);
+  const localScalableInstruments = data.scalableInstruments;
+  const localTradeRepublicInstruments = data.tradeRepublicInstruments;
 
   const localScalableMonthly = useMemo(() => {
-    const raw = sheetsData?.scalable || [];
+    const raw = data.scalable || [];
     if (raw.length > 0) return raw;
     
     return [
@@ -568,10 +547,10 @@ export default function Investimenti({
       { mese: 'Mag 26', anno: 2026, rendimentoMensileEuro: -50, rendimentoMensilePerc: -0.6, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 585, rendimentoCumulativoPerc: 7.3, totaleInvestito: 8000, saldoConto: 8585, saldoContoCompleto: 8585, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 32.89, dividendi: 35 },
       { mese: 'Giu 26', anno: 2026, rendimentoMensileEuro: 150, rendimentoMensilePerc: 1.7, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 735, rendimentoCumulativoPerc: 8.8, totaleInvestito: 8400, saldoConto: 9135, saldoContoCompleto: 9135, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 35.88, dividendi: 0 }
     ];
-  }, [sheetsData?.scalable]);
+  }, [data.scalable]);
 
   const localTradeRepublicMonthly = useMemo(() => {
-    const raw = sheetsData?.tradeRepublic || [];
+    const raw = data.tradeRepublic || [];
     if (raw.length > 0) return raw;
     
     return [
@@ -589,13 +568,9 @@ export default function Investimenti({
       { mese: 'Mag 26', anno: 2026, rendimentoMensileEuro: -70, rendimentoMensilePerc: -0.3, importoMensileInvestitoe: 450, rendimentoCumulativoEuro: 2545, rendimentoCumulativoPerc: 13.5, totaleInvestito: 18820, saldoConto: 21365, interessiConto: 15.30, interessiContoComulativo: 145.35, commissioniMensili: 1.00, commissioniomulative: 11.00, dividendi: 38 },
       { mese: 'Giu 26', anno: 2026, rendimentoMensileEuro: 300, rendimentoMensilePerc: 1.4, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 2845, rendimentoCumulativoPerc: 14.8, totaleInvestito: 19220, saldoConto: 22065, interessiConto: 15.80, interessiContoComulativo: 161.15, commissioniMensili: 1.00, commissioniomulative: 12.00, dividendi: 0 }
     ];
-  }, [sheetsData?.tradeRepublic]);
+  }, [data.tradeRepublic]);
 
-  const localFondoPensione = useMemo(() => {
-    return sheetsData?.fondoPensione?.length > 0
-      ? sheetsData.fondoPensione
-      : FONDO_PENSIONE_DATA;
-  }, [sheetsData?.fondoPensione]);
+  const localFondoPensione = data.fondoPensione;
 
   const filteredMonthlyRecords = useMemo(() => {
     const list = activeConto === 'scalable' ? localScalableMonthly : localTradeRepublicMonthly;

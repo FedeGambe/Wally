@@ -29,16 +29,12 @@ import {
   HelpCircle,
   Maximize2
 } from 'lucide-react';
-import { RISPARMIO_DATA, TRANSACTIONS, Transaction } from '../data/mockData';
+import { Transaction } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
 import Drawer from '../components/Drawer';
 import {SHEETS_CONFIG} from '../config/sheetsConfig';
 
 interface UsciteProps {
-  sheetsData?: {
-    uscite?: Transaction[];
-    risparmio?: any[];
-    risparmioHeaders?: string[];
-  };
   selectedYear: string;
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
@@ -78,14 +74,14 @@ const getTransactionYear = (t: Transaction): number => {
 };
 
 export default function Uscite({
-  sheetsData,
   selectedYear,
   setSelectedYear,
   selectedMonth,
   setSelectedMonth
 }: UsciteProps) {
-  const localTransactions = useMemo(() => sheetsData?.uscite || TRANSACTIONS, [sheetsData]);
-  const localRisparmio = useMemo(() => sheetsData?.risparmio || RISPARMIO_DATA, [sheetsData]);
+  const { data } = useFinanceData();
+  const localTransactions = data.uscite;
+  const localRisparmio = data.risparmio;
 
   // Local month state synced with parent selectedMonth
   const [localSelectedMonth, setLocalSelectedMonth] = useState(selectedMonth);
@@ -188,8 +184,8 @@ export default function Uscite({
   };
 
   const dynamicThresholds = useMemo(() => {
-    const headers = sheetsData?.risparmioHeaders?.length 
-      ? sheetsData.risparmioHeaders 
+    const headers = data.risparmioHeaders?.length
+      ? data.risparmioHeaders
       : DEFAULT_RISPARMIO_HEADERS;
 
     const primarie = parseThreshold(headers[4], 35);
@@ -212,7 +208,7 @@ export default function Uscite({
       risparmio,
       totali
     };
-  }, [sheetsData?.risparmioHeaders]);
+  }, [data.risparmioHeaders]);
 
   // Rolling last 12 months data for trend chart (dynamic detail based on selection)
   // Utilizza una finestra mobile dinamica: 9 mesi indietro e 2 mesi in avanti in base alla selezione.

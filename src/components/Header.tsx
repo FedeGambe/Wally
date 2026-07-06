@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Sparkles, Calendar, Search, Bell, Database, ChevronDown, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
-import { RISPARMIO_DATA, ENTRATE_LIST } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
 
 interface HeaderProps {
   key?: React.Key;
@@ -10,9 +10,6 @@ interface HeaderProps {
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   onOpenSheetsModal?: () => void;
-  sheetsData?: any;
-  isIncognito?: boolean;
-  onToggleIncognito?: (enabled: boolean) => void;
 }
 
 export default function Header({
@@ -21,11 +18,9 @@ export default function Header({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  onOpenSheetsModal,
-  sheetsData,
-  isIncognito = false,
-  onToggleIncognito
+  onOpenSheetsModal
 }: HeaderProps) {
+  const { data, isIncognito, toggleIncognito } = useFinanceData();
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
@@ -56,8 +51,8 @@ export default function Header({
     return { greeting: `${base}, ${name}!`, greetingIcon: icon };
   }, [userEmail]);
 
-  const localRisparmio = sheetsData?.risparmio || RISPARMIO_DATA;
-  const localEntrate = sheetsData?.entrate || ENTRATE_LIST;
+  const localRisparmio = data.risparmio;
+  const localEntrate = data.entrate;
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
@@ -113,20 +108,18 @@ export default function Header({
       {/* Action controls */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Incognito Mode Toggle - shows fictional demo data instead of real data */}
-        {onToggleIncognito && (
-          <button
-            onClick={() => onToggleIncognito(!isIncognito)}
-            title={isIncognito ? 'Disattiva modalità incognito (torna ai dati reali)' : 'Attiva modalità incognito (mostra dati fittizi)'}
-            className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold transition-all cursor-pointer border ${
-              isIncognito
-                ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-200 hover:bg-slate-100 text-slate-600'
-            }`}
-          >
-            {isIncognito ? <EyeOff className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" /> : <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />}
-            <span className="hidden md:inline">{isIncognito ? 'Demo' : 'Incognito'}</span>
-          </button>
-        )}
+        <button
+          onClick={() => toggleIncognito(!isIncognito)}
+          title={isIncognito ? 'Disattiva modalità incognito (torna ai dati reali)' : 'Attiva modalità incognito (mostra dati fittizi)'}
+          className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold transition-all cursor-pointer border ${
+            isIncognito
+              ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700'
+              : 'bg-slate-50 border-slate-100 hover:border-slate-200 hover:bg-slate-100 text-slate-600'
+          }`}
+        >
+          {isIncognito ? <EyeOff className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" /> : <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />}
+          <span className="hidden md:inline">{isIncognito ? 'Demo' : 'Incognito'}</span>
+        </button>
 
         {/* Year Selector Dropdown */}
         <div className="relative select-none shrink-0">

@@ -23,20 +23,13 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-import {
-  RISPARMIO_DATA,
-  CONTI_PATRIMONIO,
-  TRANSACTIONS,
-  Transaction,
-  ENTRATE_LIST,
-  RENDIMENTI_MENSILI
-} from '../data/mockData';
+import { Transaction } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
 import Drawer from '../components/Drawer';
 import { SHEETS_CONFIG } from '../config/sheetsConfig';
 import {getThresholds} from '../utils/thresholds'
 
 interface PanoramicaProps {
-  sheetsData?: any;
   selectedYear: string;
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
@@ -66,12 +59,13 @@ const getTransactionYear = (t: Transaction): number => {
 const DEFAULT_RISPARMIO_HEADERS = SHEETS_CONFIG.find(s => s.dataKey === 'risparmio')?.headers || [];
 
 export default function Panoramica({
-  sheetsData,
   selectedYear,
   setSelectedYear,
   selectedMonth,
   setSelectedMonth
 }: PanoramicaProps) {
+  const { data } = useFinanceData();
+
   // Local month state synced with parent selectedMonth
   const [localSelectedMonth, setLocalSelectedMonth] = useState(selectedMonth);
 
@@ -93,7 +87,7 @@ export default function Panoramica({
       'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
     ];
 
-    const localRisparmio = sheetsData?.risparmio || RISPARMIO_DATA;
+    const localRisparmio = data.risparmio;
     const baseSorted = [...localRisparmio].sort((a, b) => {
       const idxA = calendarOrder.indexOf(a.mese);
       const idxB = calendarOrder.indexOf(b.mese);
@@ -122,7 +116,7 @@ export default function Panoramica({
         risparmioNetto
       };
     });
-  }, [sheetsData]);
+  }, [data]);
 
   const filteredRisparmio = useMemo(() => {
     return chronologicalData.filter(
@@ -171,11 +165,11 @@ export default function Panoramica({
 
 
   const dynamicThresholds = useMemo(() => {
-    const headers = sheetsData?.risparmioHeaders?.length 
-      ? sheetsData.risparmioHeaders 
+    const headers = data.risparmioHeaders?.length
+      ? data.risparmioHeaders
       : DEFAULT_RISPARMIO_HEADERS;
     return getThresholds(headers);
-  }, [sheetsData?.risparmioHeaders]);
+  }, [data.risparmioHeaders]);
 
 
   // Retrieve current month record and previous month record for delta calculations (year-aware)
@@ -216,7 +210,7 @@ export default function Panoramica({
   }, [chronologicalData, currentMonthData]);
 
   // Patrimonio sum calculations
-  const localConti = sheetsData?.patrimonio || CONTI_PATRIMONIO;
+  const localConti = data.patrimonio;
   const patrimonioTotale = localConti.reduce((sum, item) => sum + (item.capitaleTotale || 0), 0);
   const capitaleDisponibile = localConti.reduce((sum, item) => sum + (item.capitaleDisponibile || 0), 0);
   const capitaleInvestito = localConti.reduce((sum, item) => sum + (item.capitaleInvestito || 0), 0);
@@ -243,7 +237,7 @@ export default function Panoramica({
     const formattedMonth = monthName.toLowerCase();
     setLocalSelectedMonth(monthName);
     
-    const matchedTx = (sheetsData?.uscite || TRANSACTIONS).filter(t => t.mese.toLowerCase() === formattedMonth && (selectedYear === 'Tutti' || t.data.includes(yearValue.toString())));
+    const matchedTx = data.uscite.filter((t: Transaction) => t.mese.toLowerCase() === formattedMonth && (selectedYear === 'Tutti' || t.data.includes(yearValue.toString())));
     
     const savingRecord = chronologicalData.find(r => r.mese.toLowerCase() === formattedMonth && r.anno === yearValue);
     

@@ -536,8 +536,8 @@ export const getExportableData = (incognito: boolean = false) => {
     scalableColumnCategories,
     tradeRepublicColumnCategories,
     fondoPensione,
-    scalableInstruments: [],
-    tradeRepublicInstruments: []
+    scalableInstruments: SCALABLE_INSTRUMENTS,
+    tradeRepublicInstruments: TRADE_REPUBLIC_INSTRUMENTS
   };
 };
 

@@ -20,19 +20,9 @@ import {
   CreditCard
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
-
-// Definizione interfaccia dati da Google Sheets
-export interface SheetsData {
-  uscite: any[];
-  risparmio: any[];
-  patrimonio: any[];
-  analisiConsumi: any[];
-  rendimentiInvestimenti: any[];
-  entrate?: any[];
-}
+import { useFinanceData } from '../context/FinanceDataContext';
 
 interface EntrateProps {
-  sheetsData?: SheetsData; // reso opzionale per evitare crash se non passato subito
   selectedYear: string;
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
@@ -63,12 +53,13 @@ const parseMeseAnno = (meseField: string) => {
 };
 
 export default function Entrate({
-  sheetsData = { uscite: [], risparmio: [], patrimonio: [], analisiConsumi: [], rendimentiInvestimenti: [], entrate: [] },
   selectedYear,
   setSelectedYear,
   selectedMonth,
   setSelectedMonth
 }: EntrateProps) {
+  const { data } = useFinanceData();
+
   // Sincronizzazione stato locale del mese con quello del componente padre
   const [localSelectedMonth, setLocalSelectedMonth] = useState(selectedMonth);
 
@@ -85,8 +76,8 @@ export default function Entrate({
 
   // 1. Normalizziamo e puliamo la lista delle Entrate reali (scartiamo righe di trasferimento o prive di importo)
   const normalizedEntrate = useMemo(() => {
-    if (!sheetsData?.entrate) return [];
-    return sheetsData.entrate
+    if (!data.entrate) return [];
+    return data.entrate
       .map(e => {
         let anno = Number(e.anno);
         if (anno < 100 && anno > 0) anno += 2000; // Normalizza "26" in 2026
@@ -100,12 +91,12 @@ export default function Entrate({
         };
       })
       .filter(e => monthsOrder.includes(e.meseNorm) && e.importo > 0);
-  }, [sheetsData?.entrate]);
+  }, [data.entrate]);
 
   // 2. Normalizziamo il foglio Risparmio reale filtrando le sole righe valide con dati mensili effettivi
   const normalizedRisparmio = useMemo(() => {
-    if (!sheetsData?.risparmio) return [];
-    return sheetsData.risparmio
+    if (!data.risparmio) return [];
+    return data.risparmio
       .map(r => {
         const parsed = parseMeseAnno(r.mese);
         const finalAnno = (r.anno && Number(r.anno) > 2000) ? Number(r.anno) : parsed.anno;
@@ -119,7 +110,7 @@ export default function Entrate({
         };
       })
       .filter(r => monthsOrder.includes(r.meseDisplay) && r.anno > 2000);
-  }, [sheetsData?.risparmio]);
+  }, [data.risparmio]);
 
   // 3. Unione intelligente (Smart Merge): creiamo un trend cronologico unendo Risparmio + mesi mancanti presi da Entrate
   const chronologicalData = useMemo(() => {
