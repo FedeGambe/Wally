@@ -69,7 +69,7 @@ export default function Login({ onLogin }: LoginProps) {
         <div className="p-8">
           <div className="flex justify-center mb-6">
             <img
-              src="/icon/icon.png"
+              src="/icon/icon.jpg"
               alt="Logo"
               className="w-14 h-14 rounded-2xl object-cover shadow-md"
             />

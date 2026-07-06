@@ -297,7 +297,7 @@ export default function Investimenti({
     if (!localRendimenti || localRendimenti.length === 0) return null;
     for (let i = localRendimenti.length - 1; i >= 0; i--) {
       const item = localRendimenti[i];
-      if (item && item.mese && String(item.mese).trim() !== '' && item.rendimentoMensileEuro !== null && item.rendimentoMensileEuro !== undefined && item.rendimentoMensileEuro !== '' && item.rendimentoMensileEuro !== 0) {
+      if (item && item.mese && String(item.mese).trim() !== '' && item.rendimentoMensileEuro !== null && item.rendimentoMensileEuro !== undefined && item.rendimentoMensileEuro !== 0) {
         return item;
       }
     }

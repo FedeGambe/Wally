@@ -80,7 +80,7 @@ export default function Sidebar({
       <div className={`h-16 flex items-center border-b border-slate-100 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-5'} gap-2`}>
         <div className="flex items-center gap-3 min-w-0">
           <img
-            src="/icon/icon.png"
+            src="/icon/icon.jpg"
             alt="Logo"
             className="w-9 h-9 rounded-xl object-cover shadow-sm shrink-0"
           />

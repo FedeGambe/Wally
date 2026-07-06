@@ -190,6 +190,7 @@ export interface EntrataRecord {
   categoria: string;
   conto: string;
   importo: number;
+  dettagli?: string;
 }
 
 export const ENTRATE_LIST: EntrataRecord[] = (() => {
