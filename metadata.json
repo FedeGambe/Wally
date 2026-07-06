@@ -1,6 +1,8 @@
 {
-  "name": "Dashboard Finanze",
+  "name": "Asseta: Dashboard Finanze",
   "description": "Web app personalizzata per il monitoraggio e la visualizzazione delle finanze personali con grafici interattivi.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
