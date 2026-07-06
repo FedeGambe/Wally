@@ -87,10 +87,10 @@ export default function Sidebar({
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">
               <span className="font-semibold font-display text-slate-800 text-base leading-tight tracking-tight truncate">
-                StarFinance
+                Asseta
               </span>
               <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase truncate">
-                Private Dashboard
+                Dashboard Finanze
               </span>
             </div>
           )}
@@ -114,22 +114,19 @@ export default function Sidebar({
               key={item.id}
               onClick={() => setActiveView(item.id)}
               title={isCollapsed ? item.label : undefined}
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0 py-3' : 'gap-3.5 px-4 py-3'} rounded-xl text-sm font-medium transition-all group ${
-                isActive
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0 py-3' : 'gap-3.5 px-4 py-3'} rounded-xl text-sm font-medium transition-all group ${isActive
                   ? activeClassMap[item.id] || 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+                }`}
             >
-              <Icon className={`w-4.5 h-4.5 transition-colors ${
-                isActive
+              <Icon className={`w-4.5 h-4.5 transition-colors ${isActive
                   ? (item.id === 'patrimonio' ? 'text-slate-950' : 'text-white')
                   : 'text-slate-400 group-hover:text-slate-600'
-              } shrink-0`} />
+                } shrink-0`} />
               {!isCollapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
               {!isCollapsed && isActive && (
-                <span className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${
-                  item.id === 'patrimonio' ? 'bg-slate-950' : 'bg-white'
-                }`} />
+                <span className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${item.id === 'patrimonio' ? 'bg-slate-950' : 'bg-white'
+                  }`} />
               )}
             </button>
           );
