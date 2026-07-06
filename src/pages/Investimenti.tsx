@@ -211,6 +211,9 @@ export default function Investimenti({
   }, [timeRange, globalFocusRendimenti, activeRendimenti]);
 
   const localCruscotto = useMemo(() => {
+    if (sheetsData?.cruscottoInvestimenti?.length > 0) {
+      return sheetsData.cruscottoInvestimenti;
+    }
     if (sheetsData) {
       const computed = computeCruscottoData(sheetsData);
       if (computed && computed.length > 0) {

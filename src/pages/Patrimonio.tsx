@@ -36,9 +36,9 @@ import {
 
 interface PatrimonioProps {
   sheetsData?: {
-    contiPatrimonio?: ContoPatrimonio[];
-    risparmioData?: any[];
-    rendimentiMensili?: any[];
+    patrimonio?: ContoPatrimonio[];
+    risparmio?: any[];
+    rendimentiInvestimenti?: any[];
     capitaleImpegnato?: any[];
   };
 }
@@ -68,15 +68,15 @@ export default function Patrimonio({ sheetsData }: PatrimonioProps) {
 
   // Get data from sheets or fallback to mock data
   const localConti = useMemo(() => {
-    return sheetsData?.contiPatrimonio || CONTI_PATRIMONIO;
+    return sheetsData?.patrimonio || CONTI_PATRIMONIO;
   }, [sheetsData]);
 
   const localRisparmio = useMemo(() => {
-    return sheetsData?.risparmioData || RISPARMIO_DATA;
+    return sheetsData?.risparmio || RISPARMIO_DATA;
   }, [sheetsData]);
 
   const localRendimenti = useMemo(() => {
-    return sheetsData?.rendimentiMensili || RENDIMENTI_MENSILI;
+    return sheetsData?.rendimentiInvestimenti || RENDIMENTI_MENSILI;
   }, [sheetsData]);
 
   const localCapitaleImpegnato = useMemo(() => {

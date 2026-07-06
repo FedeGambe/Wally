@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Sparkles, Calendar, Search, Bell, Database, ChevronDown, Sliders, Sun, CloudSun, Moon } from 'lucide-react';
+import { Sparkles, Calendar, Search, Bell, Database, ChevronDown, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
 import { RISPARMIO_DATA, ENTRATE_LIST } from '../data/mockData';
 
 interface HeaderProps {
@@ -10,6 +10,9 @@ interface HeaderProps {
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   onOpenSheetsModal?: () => void;
+  sheetsData?: any;
+  isIncognito?: boolean;
+  onToggleIncognito?: (enabled: boolean) => void;
 }
 
 export default function Header({
@@ -18,7 +21,10 @@ export default function Header({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  onOpenSheetsModal
+  onOpenSheetsModal,
+  sheetsData,
+  isIncognito = false,
+  onToggleIncognito
 }: HeaderProps) {
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
@@ -50,36 +56,39 @@ export default function Header({
     return { greeting: `${base}, ${name}!`, greetingIcon: icon };
   }, [userEmail]);
 
+  const localRisparmio = sheetsData?.risparmio || RISPARMIO_DATA;
+  const localEntrate = sheetsData?.entrate || ENTRATE_LIST;
+
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     // Ensure current year is always available
     years.add(new Date().getFullYear());
-    if (RISPARMIO_DATA) {
-      RISPARMIO_DATA.forEach(r => { if (r.anno) years.add(r.anno); });
+    if (localRisparmio) {
+      localRisparmio.forEach((r: any) => { if (r.anno) years.add(r.anno); });
     }
-    if (ENTRATE_LIST) {
-      ENTRATE_LIST.forEach(e => { if (e.anno) years.add(e.anno); });
+    if (localEntrate) {
+      localEntrate.forEach((e: any) => { if (e.anno) years.add(e.anno); });
     }
     const sortedYears = Array.from(years).sort((a, b) => b - a); // descending
     return sortedYears.map(String);
-  }, []);
+  }, [localRisparmio, localEntrate]);
 
   const hasAnyDataForSelectedYear = useMemo(() => {
     const yearNum = parseInt(selectedYear, 10);
-    const hasRisparmio = RISPARMIO_DATA?.some(r => r.anno === yearNum);
-    const hasEntrate = ENTRATE_LIST?.some(e => e.anno === yearNum);
+    const hasRisparmio = localRisparmio?.some((r: any) => r.anno === yearNum);
+    const hasEntrate = localEntrate?.some((e: any) => e.anno === yearNum);
     return hasRisparmio || hasEntrate;
-  }, [selectedYear]);
+  }, [selectedYear, localRisparmio, localEntrate]);
 
   const isMonthAvailable = (monthName: string) => {
     if (!hasAnyDataForSelectedYear) return true; // fallback if year has no records
     const monthLower = monthName.toLowerCase().trim();
     const yearNum = parseInt(selectedYear, 10);
-    const hasInRisparmio = RISPARMIO_DATA?.some(
-      r => r.anno === yearNum && r.mese?.toLowerCase().trim() === monthLower
+    const hasInRisparmio = localRisparmio?.some(
+      (r: any) => r.anno === yearNum && r.mese?.toLowerCase().trim() === monthLower
     );
-    const hasInEntrate = ENTRATE_LIST?.some(
-      e => e.anno === yearNum && e.mese?.toLowerCase().trim() === monthLower
+    const hasInEntrate = localEntrate?.some(
+      (e: any) => e.anno === yearNum && e.mese?.toLowerCase().trim() === monthLower
     );
     return hasInRisparmio || hasInEntrate;
   };
@@ -103,6 +112,22 @@ export default function Header({
 
       {/* Action controls */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* Incognito Mode Toggle - shows fictional demo data instead of real data */}
+        {onToggleIncognito && (
+          <button
+            onClick={() => onToggleIncognito(!isIncognito)}
+            title={isIncognito ? 'Disattiva modalità incognito (torna ai dati reali)' : 'Attiva modalità incognito (mostra dati fittizi)'}
+            className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold transition-all cursor-pointer border ${
+              isIncognito
+                ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700'
+                : 'bg-slate-50 border-slate-100 hover:border-slate-200 hover:bg-slate-100 text-slate-600'
+            }`}
+          >
+            {isIncognito ? <EyeOff className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" /> : <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />}
+            <span className="hidden md:inline">{isIncognito ? 'Demo' : 'Incognito'}</span>
+          </button>
+        )}
+
         {/* Year Selector Dropdown */}
         <div className="relative select-none shrink-0">
           <button

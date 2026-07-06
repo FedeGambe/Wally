@@ -31,7 +31,7 @@ import AnalisiConsumi from './pages/AnalisiConsumi';
 import Impostazioni from './pages/Impostazioni';
 
 import { initAuth, logout } from './lib/googleAuth';
-import { getExportableData } from './data/mockData';
+import { getExportableData, isIncognitoModeEnabled, setIncognitoModeEnabled } from './data/mockData';
 
 export default function App() {
   // Authentication State
@@ -51,7 +51,7 @@ export default function App() {
   // Layout View & Filters State
   const [activeView, setActiveView] = useState('panoramica');
   const [selectedYear, setSelectedYear] = useState(() => {
-    const data = getExportableData();
+    const data = getExportableData(isIncognitoModeEnabled());
     const today = new Date();
     const currentYear = today.getFullYear();
     
@@ -71,7 +71,7 @@ export default function App() {
   });
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
-    const data = getExportableData();
+    const data = getExportableData(isIncognitoModeEnabled());
     const today = new Date();
     const currentYear = today.getFullYear();
     const MESI_ITALIANI = [
@@ -122,6 +122,15 @@ export default function App() {
   const toggleTheme = (newTheme: 'dark' | 'light') => {
     setTheme(newTheme);
     localStorage.setItem('sf_theme', newTheme);
+  };
+
+  // Incognito Mode State: shows entirely fictional demo data instead of the real one
+  const [isIncognito, setIsIncognitoState] = useState<boolean>(() => isIncognitoModeEnabled());
+
+  const handleToggleIncognito = (enabled: boolean) => {
+    setIncognitoModeEnabled(enabled);
+    setIsIncognitoState(enabled);
+    setRefreshKey(prev => prev + 1);
   };
 
   // Load Auth State Automatically on Load
@@ -223,7 +232,7 @@ export default function App() {
 
   // Auto-correct selectedMonth when selectedYear or refreshed data changes
   useEffect(() => {
-    const data = getExportableData();
+    const data = getExportableData(isIncognito);
     const yearNum = parseInt(selectedYear, 10);
     
     // Check if there are any records for this year
@@ -250,7 +259,7 @@ export default function App() {
       case 'panoramica':
         return (
           <Panoramica
-            sheetsData={getExportableData()}
+            sheetsData={getExportableData(isIncognito)}
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
@@ -260,7 +269,7 @@ export default function App() {
       case 'entrate':
         return (
           <Entrate
-            sheetsData={getExportableData()}
+            sheetsData={getExportableData(isIncognito)}
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
@@ -270,7 +279,7 @@ export default function App() {
       case 'uscite':
         return (
           <Uscite
-            sheetsData={getExportableData()}
+            sheetsData={getExportableData(isIncognito)}
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
@@ -278,11 +287,11 @@ export default function App() {
           />
         );
       case 'patrimonio':
-        return <Patrimonio sheetsData={getExportableData()} />;
+        return <Patrimonio sheetsData={getExportableData(isIncognito)} />;
       case 'investimenti':
         return (
           <Investimenti
-            sheetsData={getExportableData()}
+            sheetsData={getExportableData(isIncognito)}
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
             selectedYear={selectedYear}
@@ -291,7 +300,7 @@ export default function App() {
           />
         );
       case 'consumi':
-        return <AnalisiConsumi sheetsData={getExportableData()} />;
+        return <AnalisiConsumi sheetsData={getExportableData(isIncognito)} />;
       case 'impostazioni':
         return (
           <Impostazioni
@@ -304,7 +313,7 @@ export default function App() {
       default:
         return (
           <Panoramica
-            sheetsData={getExportableData()}
+            sheetsData={getExportableData(isIncognito)}
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
@@ -370,6 +379,9 @@ export default function App() {
                 setSelectedYear={setSelectedYear}
                 selectedMonth={selectedMonth}
                 setSelectedMonth={setSelectedMonth}
+                sheetsData={getExportableData(isIncognito)}
+                isIncognito={isIncognito}
+                onToggleIncognito={handleToggleIncognito}
                 onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
               />
 
