@@ -108,6 +108,20 @@ export default function App() {
     localStorage.setItem('sf_sidebar_collapsed', String(collapsed));
   };
 
+  // Tablet range (md-lg): sidebar defaults collapsed to save space; expanding it
+  // opens as a temporary overlay (see Sidebar.tsx) instead of pushing the layout.
+  const [isTablet, setIsTablet] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px) and (max-width: 1023px)');
+    const applyTabletDefault = () => {
+      setIsTablet(mq.matches);
+      if (mq.matches) setIsSidebarCollapsed(true);
+    };
+    applyTabletDefault();
+    mq.addEventListener('change', applyTabletDefault);
+    return () => mq.removeEventListener('change', applyTabletDefault);
+  }, []);
+
   // Theme State
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('sf_theme') as 'dark' | 'light') || 'dark';
@@ -117,6 +131,10 @@ export default function App() {
     setTheme(newTheme);
     localStorage.setItem('sf_theme', newTheme);
   };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   // Load Auth State Automatically on Load
   useEffect(() => {
@@ -206,6 +224,7 @@ export default function App() {
                 setSelectedMonth={setSelectedMonth}
                 isSidebarCollapsed={isSidebarCollapsed}
                 setIsSidebarCollapsed={handleSetSidebarCollapsed}
+                isTablet={isTablet}
                 userEmail={userEmail}
                 userPhoto={userPhoto}
                 userDisplayName={userDisplayName}
@@ -231,6 +250,7 @@ interface DashboardShellProps {
   setSelectedMonth: (month: string) => void;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
+  isTablet: boolean;
   userEmail: string;
   userPhoto: string | null;
   userDisplayName: string | null;
@@ -251,6 +271,7 @@ function DashboardShell({
   setSelectedMonth,
   isSidebarCollapsed,
   setIsSidebarCollapsed,
+  isTablet,
   userEmail,
   userPhoto,
   userDisplayName,
@@ -343,6 +364,7 @@ function DashboardShell({
             setTheme={toggleTheme}
             onRefreshData={handleRefreshData}
             isRefreshing={isRefreshing}
+            onLogout={onLogout}
           />
         );
       default:
@@ -371,6 +393,7 @@ function DashboardShell({
         isRefreshing={isRefreshing}
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
+        isTablet={isTablet}
       />
 
       {/* Main Stage Panel Area */}
@@ -382,11 +405,11 @@ function DashboardShell({
           setSelectedYear={setSelectedYear}
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
-          onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
+          onOpenMobileSettings={() => setActiveView('impostazioni')}
         />
 
         {/* View Section Panels scrollable */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl w-full mx-auto pb-24 md:pb-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView + selectedYear}
@@ -413,7 +436,7 @@ function DashboardShell({
       />
 
       {/* Mobile Bottom Navigation Bar styled dynamically per active tab color */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around items-center h-16 px-2 select-none shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around items-center pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-2 select-none shadow-lg">
         {[
           { id: 'panoramica', label: 'Home', icon: LayoutDashboard },
           { id: 'entrate', label: 'Entrate', icon: ArrowUpRight },

@@ -8,7 +8,8 @@ import {
   Sun,
   RefreshCw,
   Check,
-  Save
+  Save,
+  LogOut
 } from 'lucide-react';
 
 interface ImpostazioniProps {
@@ -16,13 +17,15 @@ interface ImpostazioniProps {
   setTheme: (theme: 'dark' | 'light') => void;
   onRefreshData?: () => void;
   isRefreshing?: boolean;
+  onLogout?: () => void;
 }
 
 export default function Impostazioni({
   theme,
   setTheme,
   onRefreshData,
-  isRefreshing = false
+  isRefreshing = false,
+  onLogout
 }: ImpostazioniProps) {
   const [spreadsheetId, setSpreadsheetId] = useState(() => {
     return localStorage.getItem('sf_spreadsheet_id') || '1xfDnJX-Rx0F8d03ituBTY7HRp1Mw4FCjy4rEueTg9YA';
@@ -52,6 +55,18 @@ export default function Impostazioni({
           </p>
         </div>
       </div>
+
+      {/* Logout - only shown on mobile, desktop already has it in the sidebar */}
+      {onLogout && (
+        <button
+          type="button"
+          onClick={onLogout}
+          className="md:hidden w-full px-4 py-3 text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-2xl transition-all flex items-center justify-center gap-2 border border-rose-100 cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" />
+          Scollegati
+        </button>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Google Sheets Configuration Card */}

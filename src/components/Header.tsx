@@ -9,7 +9,7 @@ interface HeaderProps {
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
-  onOpenSheetsModal?: () => void;
+  onOpenMobileSettings?: () => void;
 }
 
 export default function Header({
@@ -18,7 +18,7 @@ export default function Header({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  onOpenSheetsModal
+  onOpenMobileSettings
 }: HeaderProps) {
   const { data, isIncognito, toggleIncognito } = useFinanceData();
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
@@ -97,13 +97,17 @@ export default function Header({
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex flex-row items-center justify-between px-3 sm:px-6 md:px-8 gap-2 sticky top-0 z-40 shrink-0 w-full">
-      {/* Dynamic Greeting based on time of day */}
-      <div className="flex items-center gap-2 text-left min-w-0">
+      {/* Dynamic Greeting based on time of day - on mobile, doubles as shortcut to Impostazioni */}
+      <button
+        type="button"
+        onClick={onOpenMobileSettings}
+        className="flex items-center gap-2 text-left min-w-0 cursor-pointer md:cursor-default md:pointer-events-none"
+      >
         <GreetingIcon className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
         <span className="text-xs sm:text-sm font-extrabold font-display text-slate-850 tracking-tight">
           {greeting}
         </span>
-      </div>
+      </button>
 
       {/* Action controls */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">

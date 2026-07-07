@@ -554,14 +554,14 @@ export default function Uscite({
               (essenziali)
             </span>
             <div className="mt-3 text-left">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center flex-wrap gap-2.5">
                 <h3 className="text-3xl font-extrabold font-display leading-none text-slate-800">
                   {formatEuro(selectedRecord.spesePrimarie)}
                 </h3>
                 {prevRecord?.spesePrimarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.spesePrimarie, prevRecord?.spesePrimarie, false)}
-                    <span className="text-[10px] text-slate-400 mt-1 whitespace-nowrap">rispetto al mese prec.</span>
+                    <span className="text-[10px] text-slate-400 mt-1">rispetto al mese prec.</span>
                   </div>
                 )}
               </div>
@@ -618,14 +618,14 @@ export default function Uscite({
               (discrezionali)
             </span>
             <div className="mt-3 text-left">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center flex-wrap gap-2.5">
                 <h3 className="text-3xl font-extrabold font-display leading-none text-slate-800">
                   {formatEuro(selectedRecord.speseSecondarie)}
                 </h3>
                 {prevRecord?.speseSecondarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.speseSecondarie, prevRecord?.speseSecondarie, false)}
-                    <span className="text-[10px] text-slate-400 mt-1 whitespace-nowrap">rispetto al mese prec.</span>
+                    <span className="text-[10px] text-slate-400 mt-1">rispetto al mese prec.</span>
                   </div>
                 )}
               </div>

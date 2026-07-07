@@ -26,6 +26,7 @@ interface SidebarProps {
   isRefreshing?: boolean;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+  isTablet?: boolean;
 }
 
 export default function Sidebar({
@@ -38,8 +39,18 @@ export default function Sidebar({
   onRefreshData,
   isRefreshing = false,
   isCollapsed,
-  setIsCollapsed
+  setIsCollapsed,
+  isTablet = false
 }: SidebarProps) {
+  // On tablet, an expanded sidebar overlays the app (like a drawer) instead of
+  // pushing the layout, and auto-collapses again once a destination is picked.
+  const isOverlay = isTablet && !isCollapsed;
+
+  const handleNavigate = (viewId: string) => {
+    setActiveView(viewId);
+    if (isTablet) setIsCollapsed(true);
+  };
+
   const menuItems = [
     { id: 'panoramica', label: 'Panoramica', icon: LayoutDashboard },
     { id: 'entrate', label: 'Entrate', icon: ArrowUpRight },
@@ -75,7 +86,17 @@ export default function Sidebar({
   };
 
   return (
-    <aside className={`hidden md:flex ${isCollapsed ? 'w-20' : 'w-68'} bg-white border-r border-slate-100 flex-col h-screen sticky top-0 shrink-0 select-none transition-all duration-300`}>
+    <>
+      {/* Backdrop: dismisses the tablet drawer overlay when tapped outside it */}
+      {isOverlay && (
+        <div
+          className="hidden md:block fixed inset-0 z-40 bg-slate-900/30"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
+      <aside className={`hidden md:flex ${isCollapsed ? 'w-20' : 'w-68'} bg-white border-r border-slate-100 flex-col h-screen select-none transition-all duration-300 ${
+        isOverlay ? 'fixed top-0 left-0 z-50 shadow-2xl' : 'sticky top-0 shrink-0'
+      }`}>
       {/* Brand Header */}
       <div className={`h-16 flex items-center border-b border-slate-100 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-5'} gap-2`}>
         <div className="flex items-center gap-3 min-w-0">
@@ -114,7 +135,7 @@ export default function Sidebar({
           return (
             <button
               key={item.id}
-              onClick={() => setActiveView(item.id)}
+              onClick={() => handleNavigate(item.id)}
               title={isCollapsed ? item.label : undefined}
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0 py-3' : 'gap-3.5 px-4 py-3'} rounded-xl text-sm font-medium transition-all group ${isActive
                   ? activeClassMap[item.id] || 'bg-blue-600 text-white shadow-xs'
@@ -206,5 +227,6 @@ export default function Sidebar({
         )}
       </div>
     </aside>
+    </>
   );
 }
