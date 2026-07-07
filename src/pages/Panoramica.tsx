@@ -297,7 +297,7 @@ export default function Panoramica({
   return (
     <div className="space-y-6">
       {/* Top row Wealth widget */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {/* Wealth card 1 - Capitale Disponibile (Indigo) */}
         <FinanceKpiCard
           type="disponibile"
@@ -362,7 +362,7 @@ export default function Panoramica({
           Mese Corrente in Evidenza: <span className="text-indigo-600 font-extrabold capitalize">{currentMonthData.mese} {currentMonthData.anno}</span>
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {/* Risparmio */}
           <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75 flex flex-col justify-between h-32 transition-all duration-300 hover:bg-slate-50">
             <div>

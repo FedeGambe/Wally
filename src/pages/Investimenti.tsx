@@ -628,9 +628,9 @@ export default function Investimenti({
             : 'top-0 pt-0 pb-3 bg-transparent'
         }`}
       >
-        <div className={`flex transition-all duration-300 p-1.5 rounded-2xl border flex-wrap gap-2 justify-center sm:justify-start ${
-          isSticky 
-            ? 'bg-white/35 dark:bg-[#0c1425]/35 border-slate-200/30 dark:border-slate-800/20' 
+        <div className={`grid grid-cols-1 sm:flex sm:flex-wrap transition-all duration-300 p-1.5 rounded-2xl border gap-2 sm:justify-start ${
+          isSticky
+            ? 'bg-white/35 dark:bg-[#0c1425]/35 border-slate-200/30 dark:border-slate-800/20'
             : 'bg-white/85 dark:bg-[#0c1425]/85 border-slate-200 dark:border-slate-800/60 shadow-xs'
         }`}>
           <button
@@ -643,26 +643,28 @@ export default function Investimenti({
           >
             Cruscotto Generale
           </button>
-          <button
-            onClick={() => setActiveTab('conti')}
-            className={`px-5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-              activeTab === 'conti'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
-            }`}
-          >
-            Conti (Scalable & TR)
-          </button>
-          <button
-            onClick={() => setActiveTab('pensione')}
-            className={`px-5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-              activeTab === 'pensione'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
-            }`}
-          >
-            Fondo Pensione
-          </button>
+          <div className="grid grid-cols-2 gap-2 sm:contents">
+            <button
+              onClick={() => setActiveTab('conti')}
+              className={`px-5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+                activeTab === 'conti'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+              }`}
+            >
+              Conti
+            </button>
+            <button
+              onClick={() => setActiveTab('pensione')}
+              className={`px-5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+                activeTab === 'pensione'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+              }`}
+            >
+              Fondo Pensione
+            </button>
+          </div>
         </div>
       </div>
 

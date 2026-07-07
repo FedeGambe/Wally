@@ -65,11 +65,11 @@ export default function FinanceKpiCard({
     return (
         <div
             id={id}
-            className={`${config.cardClass} rounded-3xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
+            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-32 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
         >
             {/* Top row with Title and small Icon Container */}
             <div className="flex justify-between items-start z-10">
-                <span className={`text-[12px] ${config.titleColor} font-extrabold uppercase tracking-wider block`}>
+                <span className={`text-[10px] sm:text-[12px] ${config.titleColor} font-extrabold uppercase tracking-wider block`}>
                     {title}
                 </span>
                 <div className={`${config.iconWrapper} p-1.5 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 hover:scale-105`}>
@@ -79,7 +79,7 @@ export default function FinanceKpiCard({
 
             {/* Value */}
             <div className="z-10 mt-1">
-                <h3 className="text-2xl sm:text-[26px] font-black font-display text-white block leading-none">
+                <h3 className="text-2xl font-black font-display text-white block leading-none">
                     {formatEuro(value)}
                 </h3>
             </div>

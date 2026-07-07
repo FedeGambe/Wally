@@ -90,15 +90,15 @@ export default function CruscottoGenerale({
               Sempre Aggiornato
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Portafoglio Attuale Box */}
-            <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white p-5 rounded-2xl border border-indigo-950 dark:border-indigo-900 shadow-md flex flex-col justify-between h-36 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+            <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white p-3 sm:p-5 rounded-2xl border border-indigo-950 dark:border-indigo-900 shadow-md flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-indigo-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
                 <Wallet className="w-4 h-4 text-indigo-400" />
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-black font-display text-white block">
+                <span className="text-lg sm:text-2xl font-black font-display text-white block">
                   {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
                 </span>
               </div>
@@ -108,7 +108,7 @@ export default function CruscottoGenerale({
             </div>
 
             {/* Plusvalenza Cumulata Box */}
-            <div className={`p-5 rounded-2xl border flex flex-col justify-between h-36 transition-all duration-300 hover:shadow-md ${
+            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md ${
               CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
                 ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_20px_rgba(16,185,129,0.18)]'
                 : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/60 shadow-xs'
@@ -120,7 +120,7 @@ export default function CruscottoGenerale({
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-extrabold font-display text-emerald-600 dark:text-emerald-400 block flex items-center gap-0.5">
+                <span className="text-lg sm:text-2xl font-extrabold font-display text-emerald-600 dark:text-emerald-400 block flex items-center gap-0.5">
                   <ChevronUp className="w-5 h-5 shrink-0" />
                   {formatEuro(CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
                 </span>
@@ -146,9 +146,9 @@ export default function CruscottoGenerale({
               Anno Selezionato
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Rendimento Annuo Box */}
-            <div className="bg-white dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
                 <div className="bg-violet-50 dark:bg-violet-950/50 p-1 rounded-lg">
@@ -156,7 +156,7 @@ export default function CruscottoGenerale({
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-extrabold font-display text-violet-600 dark:text-violet-400 block flex items-baseline gap-1 flex-wrap">
+                <span className="text-lg sm:text-2xl font-extrabold font-display text-violet-600 dark:text-violet-400 block flex items-baseline gap-1 flex-wrap">
                   <span>{formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}</span>
                   <span className="text-xs font-semibold text-violet-400 dark:text-violet-300">({formatPercent(calculatedRendimentoAnnuo)})</span>
                 </span>
@@ -168,7 +168,7 @@ export default function CruscottoGenerale({
             </div>
 
             {/* Contributo Anno Box */}
-            <div className="bg-white dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
                 <div className="bg-indigo-50 dark:bg-indigo-950/50 p-1 rounded-lg">
@@ -176,7 +176,7 @@ export default function CruscottoGenerale({
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-extrabold font-display text-slate-800 dark:text-slate-100 block">
+                <span className="text-lg sm:text-2xl font-extrabold font-display text-slate-800 dark:text-slate-100 block">
                   {formatEuro(CRUSCOTTO_ANNO.azioniInvestitoAnno + CRUSCOTTO_ANNO.obbligazioniInvestitoAnno + (CRUSCOTTO_ANNO.monetariInvestitoAnno || 0))}
                 </span>
               </div>

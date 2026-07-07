@@ -196,7 +196,7 @@ export default function Patrimonio() {
   return (
     <div className="space-y-6">
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {/* Wealth card 1 - Capitale Totale (Slate-900) */}
         <FinanceKpiCard
           id="card-patrimonio"

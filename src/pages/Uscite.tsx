@@ -463,11 +463,11 @@ export default function Uscite({
   return (
     <div className="space-y-6">
       {/* KPI Overviews row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
         {/* Cumulative Monthly Expenses - Orange card */}
-        <div 
+        <div
           onClick={() => setActiveChartFilter('all')}
-          className={`cursor-pointer text-white rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden min-h-[15.5rem] border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] ${
+          className={`cursor-pointer text-white rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden md:min-h-[15.5rem] border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] ${
             activeChartFilter === 'all' 
               ? 'bg-orange-600 border-orange-400 ring-4 ring-orange-500/20' 
               : 'bg-orange-700/80 border-orange-800 opacity-80 hover:opacity-100'
@@ -528,10 +528,12 @@ export default function Uscite({
           </div>
         </div>
 
+        {/* Spese Primarie + Secondarie: side by side on mobile, own grid columns on desktop */}
+        <div className="grid grid-cols-2 gap-3 md:contents">
         {/* Spese primarie - White Card */}
-        <div 
+        <div
           onClick={() => setActiveChartFilter('primarie')}
-          className={`cursor-pointer p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
+          className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'primarie'
               ? 'bg-indigo-50 border-indigo-500 ring-4 ring-indigo-500/15'
               : 'bg-white border-slate-200 hover:border-slate-300'
@@ -593,9 +595,9 @@ export default function Uscite({
         </div>
 
         {/* Spese Secondarie - White Card */}
-        <div 
+        <div
           onClick={() => setActiveChartFilter('secondarie')}
-          className={`cursor-pointer p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
+          className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'secondarie'
               ? 'bg-amber-50 border-amber-500 ring-4 ring-amber-500/15'
               : 'bg-white border-slate-200 hover:border-slate-300'
@@ -654,6 +656,7 @@ export default function Uscite({
               </span>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
