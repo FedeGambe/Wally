@@ -420,14 +420,14 @@ export default function Conti({
                         {rendMese >= 0 ? '+' : ''}{formatEuro(rendMese)}
                       </td>
                       <td className={`px-4 py-3 text-right font-semibold font-mono ${Number(r.rendimentoMensilePerc || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                        {Number(r.rendimentoMensilePerc || 0) >= 0 ? '+' : ''}{formatPercent(r.rendimentoMensilePerc || 0)}
+                        {formatPercent(r.rendimentoMensilePerc || 0)}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{formatEuro(r.importoMensileInvestitoe || r.importoMensileInvestito || 0)}</td>
                       <td className={`px-4 py-3 text-right font-semibold font-mono ${rendCum >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                         {rendCum >= 0 ? '+' : ''}{formatEuro(rendCum)}
                       </td>
                       <td className={`px-4 py-3 text-right font-semibold font-mono ${Number(r.rendimentoCumulativoPerc || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                        {Number(r.rendimentoCumulativoPerc || 0) >= 0 ? '+' : ''}{formatPercent(r.rendimentoCumulativoPerc || 0)}
+                        {formatPercent(r.rendimentoCumulativoPerc || 0)}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{formatEuro(r.totaleInvestito || 0)}</td>
                       <td className="px-4 py-3 text-right font-mono font-bold text-slate-850 dark:text-slate-100">{formatEuro(r.saldoConto || 0)}</td>

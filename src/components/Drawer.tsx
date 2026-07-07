@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard } from 'lucide-react';
 import { Transaction } from '../data/mockData';
+import { formatEuro } from '../utils/format';
 
 interface DrawerProps {
   isOpen: boolean;
@@ -25,13 +26,6 @@ export default function Drawer({
   transactions,
   stats
 }: DrawerProps) {
-  const formatEuro = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***';
-    }
-    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', useGrouping: true }).format(Number(value));
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (

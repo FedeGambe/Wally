@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Sparkles, Calendar, Search, Bell, Database, ChevronDown, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
 import { useFinanceData } from '../context/FinanceDataContext';
+import { MESI_ITALIANI } from '../utils/date';
 
 interface HeaderProps {
   key?: React.Key;
@@ -186,7 +187,7 @@ export default function Header({
           
           {isMonthDropdownOpen && (
             <div className="absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 grid grid-cols-2 gap-1 animate-fadeIn">
-              {['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'].map((m) => {
+              {MESI_ITALIANI.map((m) => {
                 const available = isMonthAvailable(m);
                 return (
                   <button
@@ -219,10 +220,6 @@ export default function Header({
           onClick={() => {
             const today = new Date();
             const currentYear = today.getFullYear().toString();
-            const MESI_ITALIANI = [
-              'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-              'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-            ];
             const currentMonth = MESI_ITALIANI[today.getMonth()];
             setSelectedYear(currentYear);
             setSelectedMonth(currentMonth);

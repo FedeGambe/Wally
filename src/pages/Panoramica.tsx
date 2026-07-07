@@ -1,17 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { motion } from 'motion/react';
+import React from 'react';
 import {
   TrendingUp,
-  ArrowDownRight,
-  TrendingDown,
-  ArrowUpRight,
   Coins,
-  ShieldAlert,
   PiggyBank,
   ChevronRight,
   BarChart3,
-  Calendar,
-  AlertCircle
+  Calendar
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -20,15 +14,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend
+  Tooltip
 } from 'recharts';
-import { Transaction } from '../data/mockData';
-import { useFinanceData } from '../context/FinanceDataContext';
 import Drawer from '../components/Drawer';
-import { SHEETS_CONFIG } from '../config/sheetsConfig';
-import { getThresholds } from '../utils/thresholds';
 import FinanceKpiCard from '../components/FinanceKpiCard';
+import { formatEuro, formatPercent } from '../utils/format';
+import { usePanoramicaData } from '../hooks/usePanoramicaData';
 
 interface PanoramicaProps {
   selectedYear: string;
@@ -37,262 +28,25 @@ interface PanoramicaProps {
   setSelectedMonth: (month: string) => void;
 }
 
-const getTransactionYear = (t: Transaction): number => {
-  if (!t.data) return new Date().getFullYear();
-  const parts = t.data.split(/[\/\-]/);
-  if (parts.length === 3) {
-    const yearPart = parts[2].length === 4 ? parts[2] : parts[0].length === 4 ? parts[0] : parts[2];
-    const parsedYear = parseInt(yearPart, 10);
-    if (!isNaN(parsedYear)) {
-      if (parsedYear < 100) return 2000 + parsedYear;
-      return parsedYear;
-    }
-  }
-  const match = t.data.match(/\b(20\d{2})\b/);
-  if (match) return parseInt(match[1], 10);
-
-  const match2 = t.data.match(/\/(\d{2})$/);
-  if (match2) return 2000 + parseInt(match2[1], 10);
-
-  return new Date().getFullYear();
-};
-
-const DEFAULT_RISPARMIO_HEADERS = SHEETS_CONFIG.find(s => s.dataKey === 'risparmio')?.headers || [];
-
 export default function Panoramica({
   selectedYear,
   setSelectedYear,
   selectedMonth,
   setSelectedMonth
 }: PanoramicaProps) {
-  const { data } = useFinanceData();
-
-  // Local month state synced with parent selectedMonth
-  const [localSelectedMonth, setLocalSelectedMonth] = useState(selectedMonth);
-
-  useEffect(() => {
-    setLocalSelectedMonth(selectedMonth);
-  }, [selectedMonth]);
-
-  // Drawer state
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerTitle, setDrawerTitle] = useState('');
-  const [drawerSubtitle, setDrawerSubtitle] = useState('');
-  const [drawerTransactions, setDrawerTransactions] = useState<Transaction[]>([]);
-  const [drawerStats, setDrawerStats] = useState<any>(undefined);
-
-  // Filter data based on selected year
-  const chronologicalData = useMemo(() => {
-    const calendarOrder = [
-      'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-    ];
-
-    const localRisparmio = data.risparmio;
-    const baseSorted = [...localRisparmio].sort((a, b) => {
-      const idxA = calendarOrder.indexOf(a.mese);
-      const idxB = calendarOrder.indexOf(b.mese);
-      const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
-      const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
-      return valA - valB;
-    });
-
-    return baseSorted.map(r => {
-      const entrate = Number(r.entrate || 0);
-      const spesePrimarie = Number(r.spesePrimarie || 0);
-      const speseSecondarie = Number(r.speseSecondarie || 0);
-      const speseTotali = Number(r.speseTotali || (spesePrimarie + speseSecondarie));
-
-      const investito = Number(r.investiti !== undefined ? r.investiti : (r.investito !== undefined ? r.investito : 0));
-      const risparmioNetto = Number(r.risparmio !== undefined ? r.risparmio : (r.risparmioNetto !== undefined ? r.risparmioNetto : 0));
-
-      return {
-        ...r,
-        uniqueKey: `${r.mese} ${r.anno}`,
-        entrate,
-        spesePrimarie,
-        speseSecondarie,
-        speseTotali,
-        investito,
-        risparmioNetto
-      };
-    });
-  }, [data]);
-
-  const filteredRisparmio = useMemo(() => {
-    return chronologicalData.filter(
-      (item) => selectedYear === 'Tutti' || item.anno.toString() === selectedYear
-    );
-  }, [chronologicalData, selectedYear]);
-
-  // Chart data: defaults to 6 months backward, or 4 months backward and 2 forward if the global selector is changed (non-latest)
-  const chartData = useMemo(() => {
-    if (chronologicalData.length === 0) return [];
-
-    // Find the index of the selected month and year in chronologicalData
-    const index = chronologicalData.findIndex(
-      (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase() &&
-        (selectedYear === 'Tutti' || r.anno.toString() === selectedYear)
-    );
-
-    // If not found, fallback to the latest month's index
-    const targetIdx = index !== -1 ? index : chronologicalData.length - 1;
-
-    // By default (or if the selected month is the latest month in chronologicalData), we show 6 months backward
-    const isLatest = targetIdx === chronologicalData.length - 1;
-
-    const goBackward = isLatest ? 5 : 4;
-    const goForward = isLatest ? 0 : 2;
-
-    const startIdx = Math.max(0, targetIdx - goBackward);
-    const endIdx = Math.min(chronologicalData.length - 1, targetIdx + goForward);
-
-    return chronologicalData.slice(startIdx, endIdx + 1);
-  }, [chronologicalData, localSelectedMonth, selectedYear]);
-
-  const parseThreshold = (headerString: string, fallback: number): number => {
-    if (!headerString) return fallback;
-    const pctMatch = headerString.match(/(\d+(?:[.,]\d+)?)\s*%/);
-    if (pctMatch) {
-      return parseFloat(pctMatch[1].replace(',', '.'));
-    }
-    const numMatch = headerString.match(/(\d+(?:[.,]\d+)?)/);
-    if (numMatch) {
-      return parseFloat(numMatch[1].replace(',', '.'));
-    }
-    return fallback;
-  };
-
-
-
-  const dynamicThresholds = useMemo(() => {
-    const headers = data.risparmioHeaders?.length
-      ? data.risparmioHeaders
-      : DEFAULT_RISPARMIO_HEADERS;
-    return getThresholds(headers);
-  }, [data.risparmioHeaders]);
-
-
-  // Retrieve current month record and previous month record for delta calculations (year-aware)
-  const currentMonthData = useMemo(() => {
-    const yearToFind = selectedYear !== 'Tutti' ? parseInt(selectedYear, 10) : undefined;
-
-    // First try: match both month and selected year
-    let found = chronologicalData.find(
-      (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase() && (yearToFind === undefined || r.anno === yearToFind)
-    );
-
-    // Fallback: match by month name only in any year
-    if (!found) {
-      found = chronologicalData.find(
-        (r) => r.mese.toLowerCase() === localSelectedMonth.toLowerCase()
-      );
-    }
-
-    return found || chronologicalData[chronologicalData.length - 1] || {
-      mese: localSelectedMonth,
-      anno: yearToFind || new Date().getFullYear(),
-      entrate: undefined,
-      speseTotali: undefined,
-      spesePrimarie: undefined,
-      speseSecondarie: undefined,
-      investito: undefined,
-      risparmioNetto: undefined,
-      andamentoRisparmio: undefined
-    };
-  }, [chronologicalData, localSelectedMonth, selectedYear]);
-
-  const prevMonthData = useMemo(() => {
-    if (!currentMonthData || currentMonthData.mese === undefined) return undefined;
-    const idx = chronologicalData.findIndex(
-      (r) => r.mese === currentMonthData.mese && r.anno === currentMonthData.anno
-    );
-    return idx > 0 ? chronologicalData[idx - 1] : undefined;
-  }, [chronologicalData, currentMonthData]);
-
-  // Patrimonio sum calculations
-  const localConti = data.patrimonio;
-  const patrimonioTotale = localConti.reduce((sum, item) => sum + (item.capitaleTotale || 0), 0);
-  const capitaleDisponibile = localConti.reduce((sum, item) => sum + (item.capitaleDisponibile || 0), 0);
-  const capitaleInvestito = localConti.reduce((sum, item) => sum + (item.capitaleInvestito || 0), 0);
-  const capitaleImpegnato = localConti.reduce((sum, item) => sum + (item.capitaleImpegnato || 0), 0);
-  const investitoImpegnato = capitaleInvestito + capitaleImpegnato;
-
-  const formatEuro = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***';
-    }
-    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', useGrouping: true }).format(Number(value));
-  };
-
-  const formatPercent = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***%';
-    }
-    const num = Number(value);
-    return num.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
-  };
-
-  // Selezione mese cliccabile dal grafico, sincronizzata col selettore globale in header.
-  // Recharts v3 non passa più `activePayload` all'onClick del chart: usiamo `activeLabel`
-  // (qui: uniqueKey, già univoco mese+anno) per risalire al record cliccato.
-  const handleChartClick = (chartEvent: any) => {
-    if (!chartEvent || !chartEvent.activeLabel) return;
-    const matched = chartData.find(r => r.uniqueKey === chartEvent.activeLabel);
-    if (matched) {
-      setLocalSelectedMonth(matched.mese);
-      setSelectedMonth(matched.mese);
-      setSelectedYear(matched.anno.toString());
-    }
-  };
-
-  // Click handler to show details in the drawer
-  const handleOpenMonthDetail = (monthName: string, yearValue: number) => {
-    const formattedMonth = monthName.toLowerCase();
-    setLocalSelectedMonth(monthName);
-
-    const matchedTx = data.uscite.filter((t: Transaction) => t.mese.toLowerCase() === formattedMonth && (selectedYear === 'Tutti' || t.data.includes(yearValue.toString())));
-
-    const savingRecord = chronologicalData.find(r => r.mese.toLowerCase() === formattedMonth && r.anno === yearValue);
-
-    setDrawerTitle(`Dettaglio Finanziario - ${monthName} ${yearValue}`);
-    setDrawerSubtitle(`Analisi dei flussi e delle transazioni registrate`);
-    setDrawerTransactions(matchedTx);
-    setDrawerStats({
-      total: savingRecord ? savingRecord.speseTotali : matchedTx.reduce((sum, t) => sum + t.importo, 0),
-      count: matchedTx.length,
-      primaryTotal: savingRecord ? savingRecord.spesePrimarie : undefined
-    });
-    setDrawerOpen(true);
-  };
-
-  // Deltas against previous month (using currentMonthData vs prevMonthData)
-  const entrateDelta = (prevMonthData && prevMonthData.entrate > 0 && currentMonthData && currentMonthData.entrate !== undefined)
-    ? ((currentMonthData.entrate - prevMonthData.entrate) / prevMonthData.entrate) * 100
-    : undefined;
-  const speseDelta = (prevMonthData && prevMonthData.speseTotali > 0 && currentMonthData && currentMonthData.speseTotali !== undefined)
-    ? ((currentMonthData.speseTotali - prevMonthData.speseTotali) / prevMonthData.speseTotali) * 100
-    : undefined;
-  const spesePrimDelta = (prevMonthData && prevMonthData.spesePrimarie > 0 && currentMonthData && currentMonthData.spesePrimarie !== undefined)
-    ? ((currentMonthData.spesePrimarie - prevMonthData.spesePrimarie) / prevMonthData.spesePrimarie) * 100
-    : undefined;
-  const speseSecDelta = (prevMonthData && prevMonthData.speseSecondarie > 0 && currentMonthData && currentMonthData.speseSecondarie !== undefined)
-    ? ((currentMonthData.speseSecondarie - prevMonthData.speseSecondarie) / prevMonthData.speseSecondarie) * 100
-    : undefined;
-
-  // Percentage on income for selectedMonth
-  const primPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.spesePrimarie !== undefined)
-    ? (currentMonthData.spesePrimarie / currentMonthData.entrate) * 100
-    : undefined;
-  const secPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.speseSecondarie !== undefined)
-    ? (currentMonthData.speseSecondarie / currentMonthData.entrate) * 100
-    : undefined;
-  const invPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.investito !== undefined)
-    ? (currentMonthData.investito / currentMonthData.entrate) * 100
-    : undefined;
-  const rispPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.risparmioNetto !== undefined)
-    ? (currentMonthData.risparmioNetto / currentMonthData.entrate) * 100
-    : undefined;
+  const {
+    localSelectedMonth,
+    drawerOpen, setDrawerOpen,
+    drawerTitle, drawerSubtitle, drawerTransactions, drawerStats,
+    filteredRisparmio,
+    chartData,
+    dynamicThresholds,
+    currentMonthData, prevMonthData,
+    patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
+    handleChartClick, handleOpenMonthDetail,
+    entrateDelta, speseDelta, spesePrimDelta, speseSecDelta,
+    primPerc, secPerc, invPerc, rispPerc
+  } = usePanoramicaData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
   return (
     <div className="space-y-6">

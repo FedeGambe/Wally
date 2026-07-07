@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatEuro } from '../utils/format';
 
 export type FinanceKpiCardType = 'disponibile' | 'investito' | 'impegnato' | 'totale';
 
@@ -19,15 +20,6 @@ export default function FinanceKpiCard({
     icon: Icon,
     id
 }: FinanceKpiCardProps) {
-    // Format as Euro
-    const formatEuro = (val: number) => {
-        return new Intl.NumberFormat('it-IT', {
-            style: 'currency',
-            currency: 'EUR',
-            useGrouping: true
-        }).format(val);
-    };
-
     // Dynamic classes per card type
     const typeConfigs = {
         disponibile: {

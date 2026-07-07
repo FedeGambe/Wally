@@ -1,11 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Coins,
   ShieldAlert,
   AlertTriangle,
-  Calendar,
-  Layers,
   TrendingUp,
   Info,
   PiggyBank,
@@ -19,179 +17,25 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid
 } from 'recharts';
-import { ContoPatrimonio } from '../data/mockData';
-import { useFinanceData } from '../context/FinanceDataContext';
 import FinanceKpiCard from '../components/FinanceKpiCard';
+import { formatEuro, formatPercent } from '../utils/format';
+import { usePatrimonioData } from '../hooks/usePatrimonioData';
 
 export default function Patrimonio() {
-  const { data } = useFinanceData();
-  const [selectedConto, setSelectedConto] = useState<ContoPatrimonio | null>(null);
-  const [visibleLines, setVisibleLines] = useState({
-    netto: true,
-    risparmio: true,
-    investito: true,
-  });
-
-  const formatEuro = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***';
-    }
-    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', useGrouping: true }).format(Number(value));
-  };
-
-  const formatPercent = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***%';
-    }
-    const num = Number(value);
-    return num.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
-  };
-
-  const localConti = data.patrimonio;
-  const localRisparmio = data.risparmio;
-  const localRendimenti = data.rendimentiInvestimenti;
-  const localCapitaleImpegnato = data.capitaleImpegnato;
-
-  // Sum aggregates based on localConti
-  const totalWealth = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleTotale, 0), [localConti]);
-  const totalDisponibile = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleDisponibile, 0), [localConti]);
-  const totalInvestito = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleInvestito, 0), [localConti]);
-  const totalImpegnato = useMemo(() => {
-    return localCapitaleImpegnato.reduce((sum, item) => sum + (item.capitaleImpegnato || 0), 0);
-  }, [localCapitaleImpegnato]);
-
-  // Locked commitments pie dataset
-  const engagedCapitalData = useMemo(() => {
-    return localCapitaleImpegnato.map((item) => ({
-      name: item.categoria,
-      value: item.capitaleImpegnato
-    }));
-  }, [localCapitaleImpegnato]);
-
-  const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'];
-
-  // Historical Net worth progression
-  const evolutionData = useMemo(() => {
-    return localRendimenti.map((item, idx) => {
-      const calculatedBase = 44000 + (idx * 1650) + (item.valoreAttualePortafoglio || 0) * 0.15;
-      return {
-        mese: item.mese,
-        patrimonio: calculatedBase
-      };
-    });
-  }, [localRendimenti]);
-
-  // Sort and process savings trend from localRisparmio
-  const sortedRisparmio = useMemo(() => {
-    const calendarOrder = [
-      'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-    ];
-    return [...localRisparmio].sort((a, b) => {
-      const idxA = calendarOrder.indexOf(a.mese);
-      const idxB = calendarOrder.indexOf(b.mese);
-      const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
-      const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
-      return valA - valB;
-    });
-  }, [localRisparmio]);
-
-  // Cumulative savings sum + monthly investments from Rendimenti (Somma attuale / valoreAttualePortafoglio)
-  const cumulativeRisparmioData = useMemo(() => {
-    // Month abbreviations helper
-    const getMonthIndex = (mStr: string): number => {
-      const clean = mStr.toLowerCase().trim();
-      if (clean.includes('gen') || clean.includes('jan')) return 0;
-      if (clean.includes('feb')) return 1;
-      if (clean.includes('mar')) return 2;
-      if (clean.includes('apr')) return 3;
-      if (clean.includes('mag') || clean.includes('may')) return 4;
-      if (clean.includes('giu') || clean.includes('jun')) return 5;
-      if (clean.includes('lug') || clean.includes('jul')) return 6;
-      if (clean.includes('ago') || clean.includes('aug')) return 7;
-      if (clean.includes('set') || clean.includes('sep')) return 8;
-      if (clean.includes('ott') || clean.includes('oct')) return 9;
-      if (clean.includes('nov')) return 10;
-      if (clean.includes('dic') || clean.includes('dec')) return 11;
-      return -1;
-    };
-
-    const getYearFromStr = (yStr: string): number => {
-      const clean = yStr.toLowerCase().trim();
-      const matches = clean.match(/\b\d{2,4}\b/g);
-      if (matches && matches.length > 0) {
-        const yrNum = parseInt(matches[matches.length - 1], 10);
-        if (yrNum < 100) return 2000 + yrNum;
-        return yrNum;
-      }
-      return -1;
-    };
-    const BASE = 5560.86;
-    let runningSavings = 0;
-    const rawData = sortedRisparmio.map(r => {
-      runningSavings += (r.risparmioNetto || r.risparmio || 0);
-
-      // Find matching record in localRendimenti
-      const matchingRendimento = localRendimenti.find(rend => {
-        const rMonthIdx = getMonthIndex(r.mese);
-        const rendMonthIdx = getMonthIndex(rend.mese || '');
-        if (rMonthIdx === -1 || rendMonthIdx === -1) return false;
-        if (rMonthIdx !== rendMonthIdx) return false;
-
-        const rendYear = getYearFromStr(rend.mese || '');
-        if (rendYear !== -1 && rendYear !== r.anno) return false;
-
-        return true;
-      });
-
-      const investitoValue = matchingRendimento
-        ? (matchingRendimento.valoreAttualePortafoglio || null)
-        : (r.investito || r.investiti || null);
-
-      const risparmioCumulativo = (r.andamentoRisparmio !== undefined && r.andamentoRisparmio !== null && r.andamentoRisparmio !== 0)
-        ? r.andamentoRisparmio
-        : (runningSavings + BASE);
-
-      const andamentoNettoValue = (r.andamentoNetto !== undefined && r.andamentoNetto !== null && r.andamentoNetto !== 0)
-        ? r.andamentoNetto
-        : (risparmioCumulativo + (investitoValue || 0));
-
-      return {
-        mese: r.mese,
-        anno: r.anno,
-        uniqueKey: `${r.mese} ${r.anno}`,
-        risparmioCumulativo,
-        investito: investitoValue,
-        andamentoNetto: andamentoNettoValue
-      };
-    });
-
-    // Find the last index with a valid non-null, non-zero investito value
-    let lastValidIndex = -1;
-    for (let i = rawData.length - 1; i >= 0; i--) {
-      if (rawData[i].investito !== null && rawData[i].investito !== undefined && rawData[i].investito !== 0) {
-        lastValidIndex = i;
-        break;
-      }
-    }
-
-    // For all indices after lastValidIndex, set investito to undefined so Recharts stops drawing there
-    return rawData.map((d, idx) => {
-      if (idx > lastValidIndex) {
-        return {
-          ...d,
-          investito: undefined
-        };
-      }
-      return d;
-    });
-  }, [sortedRisparmio, localRendimenti]);
+  const {
+    selectedConto, setSelectedConto,
+    visibleLines, setVisibleLines,
+    localConti,
+    totalWealth, totalDisponibile, totalInvestito, totalImpegnato,
+    engagedCapitalData,
+    COLORS,
+    sortedRisparmio,
+    cumulativeRisparmioData
+  } = usePatrimonioData();
 
   return (
     <div className="space-y-6">

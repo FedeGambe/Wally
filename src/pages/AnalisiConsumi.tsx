@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { calcolaEsitiSettimanali, EsitoSettimana } from '../utils/esitoSettimanale';
+import { formatEuro, formatPercent } from '../utils/format';
 
 const MESI_ABBR = [
   'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
@@ -189,21 +190,6 @@ export default function AnalisiConsumi() {
     costoExtra: 0
   };
 
-  const formatEuro = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***';
-    }
-    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', useGrouping: true }).format(Number(value));
-  };
-
-  const formatPercent = (value: any) => {
-    if (value === undefined || value === null || isNaN(Number(value)) || value === '') {
-      return '***%';
-    }
-    const num = Number(value);
-    return num.toLocaleString('it-IT', { maximumFractionDigits: 1 }) + '%';
-  };
-
   // Historic averages for coloring scale thresholds
   const averages = useMemo(() => {
     const totalRecords = consumiRecords.length;
@@ -356,7 +342,7 @@ export default function AnalisiConsumi() {
                   <span className="text-[10px] font-bold uppercase tracking-wider block">Punteggio Efficienza %</span>
                   <span className="text-xs font-bold font-mono">{efficienzaColors.label}</span>
                 </div>
-                <span className="text-xl font-bold font-display mt-1 block">{formatPercent(selectedWeek.efficienzaPercentuale)}</span>
+                <span className="text-xl font-bold font-display mt-1 block">{formatPercent(selectedWeek.efficienzaPercentuale, { minDecimals: 0 })}</span>
               </div>
 
               {/* Costo Extra */}

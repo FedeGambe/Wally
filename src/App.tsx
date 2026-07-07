@@ -33,6 +33,7 @@ import Impostazioni from './pages/Impostazioni';
 import { initAuth, logout } from './lib/googleAuth';
 import { getExportableData, isIncognitoModeEnabled } from './data/mockData';
 import { FinanceDataProvider, useFinanceData } from './context/FinanceDataContext';
+import { MESI_ITALIANI } from './utils/date';
 
 export default function App() {
   // Authentication State
@@ -68,10 +69,6 @@ export default function App() {
     const data = getExportableData(isIncognitoModeEnabled());
     const today = new Date();
     const currentYear = today.getFullYear();
-    const MESI_ITALIANI = [
-      'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-    ];
     const currentMonth = MESI_ITALIANI[today.getMonth()];
 
     // Check if current month and year exists

@@ -1,0 +1,136 @@
+import { useState, useMemo } from 'react';
+import { ContoPatrimonio } from '../data/mockData';
+import { useFinanceData } from '../context/FinanceDataContext';
+import { MESI_ITALIANI, getMonthIndex } from '../utils/date';
+
+/**
+ * Aggregati e serie storiche della pagina Patrimonio (conti, capitale impegnato,
+ * andamento netto/risparmio/investito), separati dal JSX per isolare i bug numerici.
+ */
+export function usePatrimonioData() {
+  const { data } = useFinanceData();
+  const [selectedConto, setSelectedConto] = useState<ContoPatrimonio | null>(null);
+  const [visibleLines, setVisibleLines] = useState({
+    netto: true,
+    risparmio: true,
+    investito: true,
+  });
+
+  const localConti = data.patrimonio;
+  const localRisparmio = data.risparmio;
+  const localRendimenti = data.rendimentiInvestimenti;
+  const localCapitaleImpegnato = data.capitaleImpegnato;
+
+  // Sum aggregates based on localConti
+  const totalWealth = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleTotale, 0), [localConti]);
+  const totalDisponibile = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleDisponibile, 0), [localConti]);
+  const totalInvestito = useMemo(() => localConti.reduce((sum, item) => sum + item.capitaleInvestito, 0), [localConti]);
+  const totalImpegnato = useMemo(() => {
+    return localCapitaleImpegnato.reduce((sum, item) => sum + (item.capitaleImpegnato || 0), 0);
+  }, [localCapitaleImpegnato]);
+
+  // Locked commitments pie dataset
+  const engagedCapitalData = useMemo(() => {
+    return localCapitaleImpegnato.map((item) => ({
+      name: item.categoria,
+      value: item.capitaleImpegnato
+    }));
+  }, [localCapitaleImpegnato]);
+
+  const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'];
+
+  // Sort and process savings trend from localRisparmio
+  const sortedRisparmio = useMemo(() => {
+    return [...localRisparmio].sort((a, b) => {
+      const idxA = MESI_ITALIANI.indexOf(a.mese);
+      const idxB = MESI_ITALIANI.indexOf(b.mese);
+      const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
+      const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
+      return valA - valB;
+    });
+  }, [localRisparmio]);
+
+  // Cumulative savings sum + monthly investments from Rendimenti (Somma attuale / valoreAttualePortafoglio)
+  const cumulativeRisparmioData = useMemo(() => {
+    const getYearFromStr = (yStr: string): number => {
+      const clean = yStr.toLowerCase().trim();
+      const matches = clean.match(/\b\d{2,4}\b/g);
+      if (matches && matches.length > 0) {
+        const yrNum = parseInt(matches[matches.length - 1], 10);
+        if (yrNum < 100) return 2000 + yrNum;
+        return yrNum;
+      }
+      return -1;
+    };
+    const BASE = 5560.86;
+    let runningSavings = 0;
+    const rawData = sortedRisparmio.map(r => {
+      runningSavings += (r.risparmioNetto || r.risparmio || 0);
+
+      // Find matching record in localRendimenti
+      const matchingRendimento = localRendimenti.find(rend => {
+        const rMonthIdx = getMonthIndex(r.mese);
+        const rendMonthIdx = getMonthIndex(rend.mese || '');
+        if (rMonthIdx === -1 || rendMonthIdx === -1) return false;
+        if (rMonthIdx !== rendMonthIdx) return false;
+
+        const rendYear = getYearFromStr(rend.mese || '');
+        if (rendYear !== -1 && rendYear !== r.anno) return false;
+
+        return true;
+      });
+
+      const investitoValue = matchingRendimento
+        ? (matchingRendimento.valoreAttualePortafoglio || null)
+        : (r.investito || r.investiti || null);
+
+      const risparmioCumulativo = (r.andamentoRisparmio !== undefined && r.andamentoRisparmio !== null && r.andamentoRisparmio !== 0)
+        ? r.andamentoRisparmio
+        : (runningSavings + BASE);
+
+      const andamentoNettoValue = (r.andamentoNetto !== undefined && r.andamentoNetto !== null && r.andamentoNetto !== 0)
+        ? r.andamentoNetto
+        : (risparmioCumulativo + (investitoValue || 0));
+
+      return {
+        mese: r.mese,
+        anno: r.anno,
+        uniqueKey: `${r.mese} ${r.anno}`,
+        risparmioCumulativo,
+        investito: investitoValue,
+        andamentoNetto: andamentoNettoValue
+      };
+    });
+
+    // Find the last index with a valid non-null, non-zero investito value
+    let lastValidIndex = -1;
+    for (let i = rawData.length - 1; i >= 0; i--) {
+      if (rawData[i].investito !== null && rawData[i].investito !== undefined && rawData[i].investito !== 0) {
+        lastValidIndex = i;
+        break;
+      }
+    }
+
+    // For all indices after lastValidIndex, set investito to undefined so Recharts stops drawing there
+    return rawData.map((d, idx) => {
+      if (idx > lastValidIndex) {
+        return {
+          ...d,
+          investito: undefined
+        };
+      }
+      return d;
+    });
+  }, [sortedRisparmio, localRendimenti]);
+
+  return {
+    selectedConto, setSelectedConto,
+    visibleLines, setVisibleLines,
+    localConti,
+    totalWealth, totalDisponibile, totalInvestito, totalImpegnato,
+    engagedCapitalData,
+    COLORS,
+    sortedRisparmio,
+    cumulativeRisparmioData
+  };
+}
