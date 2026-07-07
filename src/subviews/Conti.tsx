@@ -1,6 +1,15 @@
 import { useMemo } from 'react';
 import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
 
+// ponytail: scala colore graduata (verde->rosso) in base al segno/intensità del rendimento %, satura a ±maxAbs
+function rendColor(perc: number, maxAbs = 3): string {
+  const t = Math.min(Math.abs(perc) / maxAbs, 1);
+  const hue = perc >= 0 ? 158 : 350;
+  const saturation = 30 + t * 55;
+  const lightness = 58 - t * 16;
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+}
+
 interface ContiProps {
   activeConto: 'scalable' | 'trade';
   setActiveConto: (conto: 'scalable' | 'trade') => void;
@@ -416,17 +425,17 @@ export default function Conti({
                   return (
                     <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/15 transition-colors duration-155">
                       <td className="px-4 py-3 font-bold text-slate-850 dark:text-slate-200 capitalize">{r.mese}</td>
-                      <td className={`px-4 py-3 text-right font-semibold font-mono ${rendMese >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
                         {rendMese >= 0 ? '+' : ''}{formatEuro(rendMese)}
                       </td>
-                      <td className={`px-4 py-3 text-right font-semibold font-mono ${Number(r.rendimentoMensilePerc || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
                         {formatPercent(r.rendimentoMensilePerc || 0)}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{formatEuro(r.importoMensileInvestitoe || r.importoMensileInvestito || 0)}</td>
-                      <td className={`px-4 py-3 text-right font-semibold font-mono ${rendCum >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
                         {rendCum >= 0 ? '+' : ''}{formatEuro(rendCum)}
                       </td>
-                      <td className={`px-4 py-3 text-right font-semibold font-mono ${Number(r.rendimentoCumulativoPerc || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
                         {formatPercent(r.rendimentoCumulativoPerc || 0)}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{formatEuro(r.totaleInvestito || 0)}</td>
