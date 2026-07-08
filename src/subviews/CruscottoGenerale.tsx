@@ -3,6 +3,7 @@ import {
   Database,
   Wallet,
   ChevronUp,
+  ChevronDown,
   TrendingUp,
   Calendar,
   Award,
@@ -23,8 +24,6 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  BarChart,
-  Bar,
 } from 'recharts';
 
 interface CruscottoGeneraleProps {
@@ -41,8 +40,6 @@ interface CruscottoGeneraleProps {
   selectedMacroCategory: 'Azioni' | 'Obbligazioni' | 'Monetari' | null;
   setSelectedMacroCategory: (cat: 'Azioni' | 'Obbligazioni' | 'Monetari' | null) => void;
   filteredDetailData: any[];
-  subTab: 'valore' | 'crescita' | 'mensile';
-  setSubTab: (tab: 'valore' | 'crescita' | 'mensile') => void;
   timeRange: 'storico' | '12mesi';
   setTimeRange: (range: 'storico' | '12mesi') => void;
   chartData: any[];
@@ -64,8 +61,6 @@ export default function CruscottoGenerale({
   selectedMacroCategory,
   setSelectedMacroCategory,
   filteredDetailData,
-  subTab,
-  setSubTab,
   timeRange,
   setTimeRange,
   chartData,
@@ -75,6 +70,17 @@ export default function CruscottoGenerale({
   formatPercent,
   lastValidRendimento,
 }: CruscottoGeneraleProps) {
+  // Confronto con l'anno precedente per i triangolini di Rendimento/Contributo
+  const previousYearRow = cruscottoRows.find((r: any) => Number(r.anno) === Number(globalSelectedYear) - 1);
+  const annualUp = !previousYearRow || Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= Number(previousYearRow.rendimentoAnnualeEuro || 0);
+  const isAnnualPositive = Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= 0;
+
+  const currentContributoTotale = Number(CRUSCOTTO_ANNO.azioniInvestitoAnno || 0) + Number(CRUSCOTTO_ANNO.obbligazioniInvestitoAnno || 0) + Number(CRUSCOTTO_ANNO.monetariInvestitoAnno || 0);
+  const previousContributoTotale = previousYearRow
+    ? Number(previousYearRow.azioniInvestitoAnno || 0) + Number(previousYearRow.obbligazioniInvestitoAnno || 0) + Number(previousYearRow.monetariInvestitoAnno || 0)
+    : 0;
+  const contributoUp = !previousYearRow || currentContributoTotale >= previousContributoTotale;
+
   return (
     <div className="space-y-6 text-left animate-fadeIn">
       {/* Key KPI grouped section */}
@@ -92,18 +98,18 @@ export default function CruscottoGenerale({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Portafoglio Attuale Box */}
-            <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white p-3 sm:p-5 rounded-2xl border border-indigo-950 dark:border-indigo-900 shadow-md flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-950 dark:border-sky-900 shadow-md flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
               <div className="flex justify-between items-start">
-                <span className="text-[10px] text-indigo-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
-                <Wallet className="w-4 h-4 text-indigo-400" />
+                <span className="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
+                <Wallet className="w-4 h-4 text-sky-400" />
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
                   {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
                 </span>
               </div>
-              <div className="border-t border-indigo-800/60 pt-2 mt-2">
-                <p className="text-[9px] text-indigo-300 font-medium">Investito: <span className="font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}</span></p>
+              <div className="border-t border-sky-800/60 pt-2 mt-2">
+                <p className="text-[9px] text-sky-300 font-medium">Investito: <span className="font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}</span></p>
               </div>
             </div>
 
@@ -151,14 +157,21 @@ export default function CruscottoGenerale({
             <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
-                <div className="bg-violet-50 dark:bg-violet-950/50 p-1 rounded-lg">
-                  <Award className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                <div className="bg-sky-50 dark:bg-sky-950/50 p-1 rounded-lg">
+                  <Award className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display text-violet-600 dark:text-violet-400 block flex items-baseline gap-1 flex-wrap">
-                  <span>{formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}</span>
-                  <span className="text-xs font-semibold text-violet-400 dark:text-violet-300">({formatPercent(calculatedRendimentoAnnuo)})</span>
+                <span className={`text-lg sm:text-2xl font-extrabold font-display block flex items-baseline gap-1 flex-wrap ${
+                  isAnnualPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                }`}>
+                  <span className="flex items-center gap-0.5">
+                    {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
+                    {formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}
+                  </span>
+                  <span className={`text-xs font-semibold ${isAnnualPositive ? 'text-emerald-400 dark:text-emerald-300' : 'text-rose-400 dark:text-rose-300'}`}>
+                    ({formatPercent(calculatedRendimentoAnnuo)})
+                  </span>
                 </span>
               </div>
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
@@ -171,18 +184,23 @@ export default function CruscottoGenerale({
             <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
-                <div className="bg-indigo-50 dark:bg-indigo-950/50 p-1 rounded-lg">
-                  <Coins className="w-4 h-4 text-indigo-600 dark:text-indigo-455" />
+                <div className="bg-sky-50 dark:bg-sky-950/50 p-1 rounded-lg">
+                  <Coins className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display text-slate-800 dark:text-slate-100 block">
+                <span className="text-lg sm:text-2xl font-extrabold font-display text-slate-800 dark:text-slate-100 flex items-center gap-0.5">
+                  {contributoUp ? (
+                    <ChevronUp className="w-5 h-5 shrink-0 text-slate-300 dark:text-slate-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 shrink-0 text-slate-300 dark:text-slate-600" />
+                  )}
                   {formatEuro(CRUSCOTTO_ANNO.azioniInvestitoAnno + CRUSCOTTO_ANNO.obbligazioniInvestitoAnno + (CRUSCOTTO_ANNO.monetariInvestitoAnno || 0))}
                 </span>
               </div>
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
                 <span>Contributo Totale</span>
-                <span className="font-extrabold text-indigo-600 dark:text-indigo-440 font-mono">
+                <span className="font-extrabold text-sky-600 dark:text-sky-400 font-mono">
                   {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}
                 </span>
               </div>
@@ -196,7 +214,7 @@ export default function CruscottoGenerale({
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md h-[540px]">
           <div>
             <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-1.5 mb-1">
-              <Briefcase className="w-5 h-5 text-indigo-600" />
+              <Briefcase className="w-5 h-5 text-sky-600" />
               Ripartizione Asset e Strumenti
             </h3>
             <p className="text-xs text-slate-400 mb-2">
@@ -395,69 +413,24 @@ export default function CruscottoGenerale({
           })()}
         </div>
 
-        {/* Analisi Portafoglio Widget */}
+        {/* Investito vs Valore Portafoglio Widget */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md h-[540px]">
           <div>
             <div className="flex flex-col gap-3 mb-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-1.5">
-                  <Activity className={`w-5 h-5 ${
-                    subTab === 'valore' ? 'text-indigo-600' :
-                    subTab === 'crescita' ? 'text-emerald-600' : 'text-violet-600'
-                  }`} />
-                  Analisi Portafoglio
+                  <Activity className="w-5 h-5 text-sky-600" />
+                  Investito vs Valore Portafoglio
                 </h3>
-                
-                {/* Premium mini-segmented control */}
-                <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5 border border-slate-200 select-none">
-                  <button
-                    onClick={() => setSubTab('valore')}
-                    className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
-                      subTab === 'valore'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-500 hover:text-indigo-600'
-                    }`}
-                  >
-                    Investito vs Valore
-                  </button>
-                  <button
-                    onClick={() => setSubTab('crescita')}
-                    className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
-                      subTab === 'crescita'
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'text-slate-500 hover:text-emerald-600'
-                    }`}
-                  >
-                    Crescita Rendimento
-                  </button>
-                  <button
-                    onClick={() => setSubTab('mensile')}
-                    className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
-                      subTab === 'mensile'
-                        ? 'bg-violet-600 text-white shadow-sm'
-                        : 'text-slate-500 hover:text-violet-600'
-                    }`}
-                  >
-                    Rendimenti Mensili
-                  </button>
-                </div>
-              </div>
 
-              {/* Time Range Selector underneath sections */}
-              <div className="flex justify-start sm:justify-end">
+                {/* Time Range Selector */}
                 <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5 border border-slate-200 select-none">
                   <button
                     onClick={() => setTimeRange('storico')}
                     className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
                       timeRange === 'storico'
-                        ? `${
-                            subTab === 'valore' ? 'bg-indigo-600' :
-                            subTab === 'crescita' ? 'bg-emerald-600' : 'bg-violet-600'
-                          } text-white shadow-xs`
-                        : `text-slate-500 ${
-                            subTab === 'valore' ? 'hover:text-indigo-600' :
-                            subTab === 'crescita' ? 'hover:text-emerald-600' : 'hover:text-violet-600'
-                          }`
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-sky-600'
                     }`}
                   >
                     Storico
@@ -466,14 +439,8 @@ export default function CruscottoGenerale({
                     onClick={() => setTimeRange('12mesi')}
                     className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
                       timeRange === '12mesi'
-                        ? `${
-                            subTab === 'valore' ? 'bg-indigo-600' :
-                            subTab === 'crescita' ? 'bg-emerald-600' : 'bg-violet-600'
-                          } text-white shadow-xs`
-                        : `text-slate-500 ${
-                            subTab === 'valore' ? 'hover:text-indigo-600' :
-                            subTab === 'crescita' ? 'hover:text-emerald-600' : 'hover:text-violet-600'
-                          }`
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-sky-600'
                     }`}
                   >
                     Ultimi 12 Mesi
@@ -482,9 +449,7 @@ export default function CruscottoGenerale({
               </div>
             </div>
             <p className="text-xs text-slate-400 mb-4 font-medium">
-              {subTab === 'valore' && "Confronto storico tra il capitale depositato e l'attuale valore di mercato."}
-              {subTab === 'crescita' && "Progresso della plusvalenza netta (€) con focus temporale e storico."}
-              {subTab === 'mensile' && "Plusvalenza o minusvalenza mensile (€) registrata nel tempo."}
+              Confronto storico tra il capitale depositato e l'attuale valore di mercato.
             </p>
           </div>
 
@@ -495,10 +460,7 @@ export default function CruscottoGenerale({
                 <span className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">
                   {timeRange === '12mesi' ? "Focus Periodo (Ultimi 12 Mesi)" : "Storico Completo"}
                 </span>
-                <span className={`text-xs font-bold font-mono ${
-                  subTab === 'valore' ? 'text-indigo-600' :
-                  subTab === 'crescita' ? 'text-emerald-600' : 'text-violet-600'
-                }`}>
+                <span className="text-xs font-bold font-mono text-sky-600">
                   {chartData.length > 0 ? (
                     <span className="text-[10px] text-slate-500">
                       {chartData[0]?.mese} - {chartData[chartData.length - 1]?.mese}
@@ -506,120 +468,59 @@ export default function CruscottoGenerale({
                   ) : ''}
                 </span>
               </div>
-              
+
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  {subTab === 'valore' ? (
-                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorInvestitoValore" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15}/>
-                          <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01}/>
-                        </linearGradient>
-                        <linearGradient id="colorValorePortafoglio" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.01}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT')}`} />
-                      <Tooltip
-                        formatter={(value: any) => formatEuro(value)}
-                        contentStyle={{
-                          background: '#1e293b',
-                          border: 'none',
-                          borderRadius: '12px',
-                          color: '#fff',
-                          fontSize: '11px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        itemStyle={{ color: '#fff' }}
-                        labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                      />
-                      <Area
-                        type="monotone"
-                        name="Capitale Investito"
-                        dataKey="importoInvestitoCumulato"
-                        stroke="#94a3b8"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorInvestitoValore)"
-                        dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 1.5, stroke: '#94a3b8', fill: '#fff' } : false}
-                        activeDot={{ r: 5 }}
-                      />
-                      <Area
-                        type="monotone"
-                        name="Valore Portafoglio"
-                        dataKey="valoreAttualePortafoglio"
-                        stroke="#4f46e5"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorValorePortafoglio)"
-                        dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 2, stroke: '#4f46e5', fill: '#fff' } : false}
-                        activeDot={{ r: 6 }}
-                      />
-                    </AreaChart>
-                  ) : subTab === 'crescita' ? (
-                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorGlobalRendimentoSingle" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.01}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT')}`} />
-                      <Tooltip
-                        formatter={(value: any) => [formatEuro(value), 'Plusvalenza']}
-                        contentStyle={{
-                          background: '#1e293b',
-                          border: 'none',
-                          borderRadius: '12px',
-                          color: '#fff',
-                          fontSize: '11px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        itemStyle={{ color: '#fff' }}
-                        labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="rendimentoCumulativoEuro"
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorGlobalRendimentoSingle)"
-                        dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 2, stroke: '#10b981', fill: '#fff' } : false}
-                        activeDot={{ r: 6 }}
-                      />
-                    </AreaChart>
-                  ) : (
-                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT')}`} />
-                      <Tooltip
-                        formatter={(value: any) => [formatEuro(value), 'Rendimento Mese']}
-                        contentStyle={{
-                          background: '#1e293b',
-                          border: 'none',
-                          borderRadius: '12px',
-                          color: '#fff',
-                          fontSize: '11px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        itemStyle={{ color: '#fff' }}
-                        labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                      />
-                      <Bar dataKey="rendimentoMensileEuro" radius={[4, 4, 0, 0]}>
-                        {chartData.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={entry.rendimentoMensileEuro >= 0 ? '#10b981' : '#f43f5e'} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  )}
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorInvestitoValore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01}/>
+                      </linearGradient>
+                      <linearGradient id="colorValorePortafoglio" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.01}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT')}`} />
+                    <Tooltip
+                      formatter={(value: any) => formatEuro(value)}
+                      contentStyle={{
+                        background: '#1e293b',
+                        border: 'none',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '11px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      }}
+                      itemStyle={{ color: '#fff' }}
+                      labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
+                    />
+                    <Area
+                      type="monotone"
+                      name="Capitale Investito"
+                      dataKey="importoInvestitoCumulato"
+                      stroke="#94a3b8"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorInvestitoValore)"
+                      dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 1.5, stroke: '#94a3b8', fill: '#fff' } : false}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Area
+                      type="monotone"
+                      name="Valore Portafoglio"
+                      dataKey="valoreAttualePortafoglio"
+                      stroke="#0ea5e9"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorValorePortafoglio)"
+                      dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 2, stroke: '#0ea5e9', fill: '#fff' } : false}
+                      activeDot={{ r: 6 }}
+                    />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -632,10 +533,7 @@ export default function CruscottoGenerale({
             </div>
             <div className="text-right">
               <span className="block text-[9px] uppercase text-slate-400 font-bold">Fine Range</span>
-              <span className={`font-bold font-mono ${
-                subTab === 'valore' ? 'text-indigo-600' :
-                subTab === 'crescita' ? 'text-emerald-600' : 'text-violet-600'
-              }`}>
+              <span className="font-bold font-mono text-sky-600">
                 {chartData[chartData.length - 1]?.mese || 'N/D'} ({formatEuro(chartData[chartData.length - 1]?.valoreAttualePortafoglio || 0)})
               </span>
             </div>
@@ -679,7 +577,7 @@ export default function CruscottoGenerale({
                 </div>
                 <div className="flex justify-between">
                   <span>Plusvalenza Cumulata:</span>
-                  <span className="text-indigo-600 font-bold font-mono">{formatEuro(globalInspectorRecord.rendimentoCumulativoEuro)}</span>
+                  <span className="text-sky-600 font-bold font-mono">{formatEuro(globalInspectorRecord.rendimentoCumulativoEuro)}</span>
                 </div>
               </div>
 
@@ -700,43 +598,43 @@ export default function CruscottoGenerale({
             <h3 className="font-bold text-slate-800 font-display text-base mb-4">Distribuzione Asset Class per Anno</h3>
             <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-sm text-left">
-                <thead className="bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border-b border-indigo-100">
+                <thead className="bg-sky-100 text-sky-800 text-xs font-bold uppercase tracking-wider border-b border-sky-200">
                   <tr>
-                    <th className="px-6 py-4 rounded-tl-2xl">Esercizio</th>
-                    <th className="px-6 py-4 text-right">Azioni Cumulato</th>
-                    <th className="px-6 py-4 text-right">Azioni Annuale</th>
-                    <th className="px-6 py-4 text-right">Obbligazioni Cumulato</th>
-                    <th className="px-6 py-4 text-right">Obbligazioni Annuale</th>
-                    <th className="px-6 py-4 text-right">Monetari Cumulato</th>
-                    <th className="px-6 py-4 text-right">Monetari Annuale</th>
-                    <th className="px-6 py-4 text-right rounded-tr-2xl">Valutazione Totale</th>
+                    <th className="px-4 py-4 rounded-tl-2xl">Anno</th>
+                    <th className="px-4 py-4 text-right">Azioni Cum.</th>
+                    <th className="px-4 py-4 text-right">Azioni Ann.</th>
+                    <th className="px-4 py-4 text-right">Obblig. Cum.</th>
+                    <th className="px-4 py-4 text-right">Obblig. Ann.</th>
+                    <th className="px-4 py-4 text-right">Monet. Cum.</th>
+                    <th className="px-4 py-4 text-right">Monet. Ann.</th>
+                    <th className="px-4 py-4 text-right rounded-tr-2xl">Valutazione</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-150 text-slate-700 font-medium">
                   {cruscottoRows.map((row: any) => {
                     const isCorrente = Number(row.anno) === Number(cruscottoRows[0]?.anno);
-                    const valuationSum = Number(row.azioniInvestitoCum || 0) + 
-                                         Number(row.obbligazioniInvestitoCum || 0) + 
-                                         Number(row.monetariInvestitoCum || 0) + 
+                    const valuationSum = Number(row.azioniInvestitoCum || 0) +
+                                         Number(row.obbligazioniInvestitoCum || 0) +
+                                         Number(row.monetariInvestitoCum || 0) +
                                          Number(row.rendimentoCumulativoEuro || 0);
                     return (
                       <tr key={row.anno} className="hover:bg-slate-50/50 transition-colors duration-155">
-                        <td className="px-6 py-3.5 font-bold text-slate-800">
+                        <td className="px-4 py-3.5 font-bold text-slate-800">
                           {row.anno} {isCorrente ? '(Corrente)' : ''}
                         </td>
-                        <td className="px-6 py-3.5 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
-                        <td className="px-6 py-3.5 text-right text-emerald-600 font-bold font-mono">
+                        <td className="px-4 py-3.5 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
+                        <td className="px-4 py-3.5 text-right text-emerald-600 font-bold font-mono">
                           +{formatEuro(row.azioniInvestitoAnno)}
                         </td>
-                        <td className="px-6 py-3.5 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
-                        <td className="px-6 py-3.5 text-right text-emerald-600 font-bold font-mono">
+                        <td className="px-4 py-3.5 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
+                        <td className="px-4 py-3.5 text-right text-emerald-600 font-bold font-mono">
                           +{formatEuro(row.obbligazioniInvestitoAnno)}
                         </td>
-                        <td className="px-6 py-3.5 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
-                        <td className="px-6 py-3.5 text-right text-emerald-600 font-bold font-mono">
+                        <td className="px-4 py-3.5 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
+                        <td className="px-4 py-3.5 text-right text-emerald-600 font-bold font-mono">
                           +{formatEuro(row.monetariInvestitoAnno)}
                         </td>
-                        <td className="px-6 py-3.5 text-right font-bold text-indigo-600 font-mono">
+                        <td className="px-4 py-3.5 text-right font-bold text-sky-600 font-mono">
                           {formatEuro(valuationSum)}
                         </td>
                       </tr>

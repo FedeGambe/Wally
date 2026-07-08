@@ -1,5 +1,6 @@
 import React from 'react';
 import CruscottoGenerale from '../subviews/CruscottoGenerale';
+import Rendimenti from '../subviews/Rendimenti';
 import Conti from '../subviews/Conti';
 import FondoPensione from '../subviews/FondoPensione';
 import { formatEuro } from '../utils/format';
@@ -21,7 +22,6 @@ export default function Investimenti({
     activeTab, setActiveTab,
     activeConto, setActiveConto,
     selectedMacroCategory, setSelectedMacroCategory,
-    subTab, setSubTab,
     timeRange, setTimeRange,
     isSticky,
     CRUSCOTTO_GENERALE, CRUSCOTTO_ANNO,
@@ -33,7 +33,8 @@ export default function Investimenti({
     accountKPIs,
     localScalableInstruments, localTradeRepublicInstruments,
     sortedFilteredRecords,
-    localFondoPensione
+    localFondoPensione,
+    localRendimenti, activeRendimenti
   } = useInvestimentiData(globalSelectedMonth, globalSelectedYear);
 
   return (
@@ -59,8 +60,17 @@ export default function Investimenti({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
             }`}
           >
-            <span className="sm:hidden">Cruscotto</span>
-            <span className="hidden sm:inline">Cruscotto Generale</span>
+            Cruscotto
+          </button>
+          <button
+            onClick={() => setActiveTab('rendimenti')}
+            className={`flex-1 px-2 sm:px-5 py-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+              activeTab === 'rendimenti'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+            }`}
+          >
+            Rendimenti
           </button>
           <button
             onClick={() => setActiveTab('conti')}
@@ -85,7 +95,7 @@ export default function Investimenti({
         </div>
       </div>
 
-      {/* TAB 1: Cruscotto Generale */}
+      {/* TAB 1: Cruscotto */}
       {activeTab === 'cruscotto' && (
         <CruscottoGenerale
           CRUSCOTTO_GENERALE={CRUSCOTTO_GENERALE}
@@ -98,8 +108,6 @@ export default function Investimenti({
           selectedMacroCategory={selectedMacroCategory}
           setSelectedMacroCategory={setSelectedMacroCategory}
           filteredDetailData={filteredDetailData}
-          subTab={subTab}
-          setSubTab={setSubTab}
           timeRange={timeRange}
           setTimeRange={setTimeRange}
           chartData={chartData}
@@ -108,6 +116,22 @@ export default function Investimenti({
           formatEuro={formatEuro}
           formatPercent={formatPercent}
           lastValidRendimento={lastValidRendimento}
+        />
+      )}
+
+      {/* TAB 1.5: Rendimenti */}
+      {activeTab === 'rendimenti' && (
+        <Rendimenti
+          localRendimenti={localRendimenti}
+          activeRendimenti={activeRendimenti}
+          CRUSCOTTO_GENERALE={CRUSCOTTO_GENERALE}
+          CRUSCOTTO_ANNO={CRUSCOTTO_ANNO}
+          calculatedRendimentoAnnuo={calculatedRendimentoAnnuo}
+          globalSelectedYear={globalSelectedYear}
+          lastValidRendimento={lastValidRendimento}
+          cruscottoRows={cruscottoRows}
+          formatEuro={formatEuro}
+          formatPercent={formatPercent}
         />
       )}
 

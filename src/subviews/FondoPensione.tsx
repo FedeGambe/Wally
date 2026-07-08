@@ -452,7 +452,7 @@ export default function FondoPensione({
         <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base mb-4">Registro Storico Versamenti Fondo Pensione</h3>
         <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-850">
           <table className="w-full text-sm text-left">
-            <thead className="bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider border-b border-indigo-100 dark:border-indigo-950/60">
+            <thead className="bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider border-b border-indigo-200 dark:border-indigo-950/80">
               <tr>
                 <th className="px-6 py-4 rounded-tl-2xl">Mese Rif</th>
                 <th className="px-6 py-4 text-right">Quota TFR</th>

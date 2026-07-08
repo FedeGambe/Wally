@@ -1,14 +1,6 @@
 import { useMemo } from 'react';
 import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
-
-// ponytail: scala colore graduata (verde->rosso) in base al segno/intensità del rendimento %, satura a ±maxAbs
-function rendColor(perc: number, maxAbs = 3): string {
-  const t = Math.min(Math.abs(perc) / maxAbs, 1);
-  const hue = perc >= 0 ? 158 : 350;
-  const saturation = 30 + t * 55;
-  const lightness = 58 - t * 16;
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
-}
+import { rendColor } from '../utils/format';
 
 interface ContiProps {
   activeConto: 'scalable' | 'trade';
@@ -393,7 +385,7 @@ export default function Conti({
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider border-b border-indigo-100/60 dark:border-indigo-900/40">
+              <thead className="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider border-b border-indigo-200 dark:border-indigo-900/60">
                 <tr>
                   <th className="px-4 py-3 rounded-tl-2xl">Mese</th>
                   <th className="px-4 py-3 text-right">Rend. Mensile €</th>

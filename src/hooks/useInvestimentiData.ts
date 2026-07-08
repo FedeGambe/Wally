@@ -4,7 +4,7 @@ import { useFinanceData } from '../context/FinanceDataContext';
 import { formatPercent as formatPercentBase } from '../utils/format';
 import { MESI_ITALIANI } from '../utils/date';
 
-function parseMeseStringToMonthYear(meseStr: string): { month: number; year: number } | null {
+export function parseMeseStringToMonthYear(meseStr: string): { month: number; year: number } | null {
   if (!meseStr) return null;
   const str = String(meseStr).trim().toLowerCase();
 
@@ -67,10 +67,9 @@ function parseMeseStringToMonthYear(meseStr: string): { month: number; year: num
  */
 export function useInvestimentiData(globalSelectedMonth: string, globalSelectedYear: string) {
   const { data } = useFinanceData();
-  const [activeTab, setActiveTab] = useState<'cruscotto' | 'conti' | 'pensione'>('cruscotto');
+  const [activeTab, setActiveTab] = useState<'cruscotto' | 'rendimenti' | 'conti' | 'pensione'>('cruscotto');
   const [activeConto, setActiveConto] = useState<'scalable' | 'trade'>('scalable');
   const [selectedMacroCategory, setSelectedMacroCategory] = useState<'Azioni' | 'Obbligazioni' | 'Monetari' | null>(null);
-  const [subTab, setSubTab] = useState<'valore' | 'crescita' | 'mensile'>('valore');
   const [timeRange, setTimeRange] = useState<'storico' | '12mesi'>('storico');
   const [isSticky, setIsSticky] = useState(false);
 
@@ -589,7 +588,6 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     activeTab, setActiveTab,
     activeConto, setActiveConto,
     selectedMacroCategory, setSelectedMacroCategory,
-    subTab, setSubTab,
     timeRange, setTimeRange,
     isSticky,
     CRUSCOTTO_GENERALE, CRUSCOTTO_ANNO,
@@ -601,6 +599,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     accountKPIs,
     localScalableInstruments, localTradeRepublicInstruments,
     sortedFilteredRecords,
-    localFondoPensione
+    localFondoPensione,
+    localRendimenti, activeRendimenti
   };
 }
