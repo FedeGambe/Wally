@@ -88,9 +88,7 @@ export function usePatrimonioData() {
         ? r.andamentoRisparmio
         : (runningSavings + BASE);
 
-      const andamentoNettoValue = (r.andamentoNetto !== undefined && r.andamentoNetto !== null && r.andamentoNetto !== 0)
-        ? r.andamentoNetto
-        : (risparmioCumulativo + (investitoValue || 0));
+      const andamentoNettoValue = risparmioCumulativo + (investitoValue || 0) + 1500;
 
       return {
         mese: r.mese,
@@ -111,15 +109,41 @@ export function usePatrimonioData() {
       }
     }
 
-    // For all indices after lastValidIndex, set investito to undefined so Recharts stops drawing there
+    // Range storico dei rendimenti mensili % (per stimare il mese/i mesi mancanti in due scenari tratteggiati)
+    const storicoPerc = localRendimenti
+      .map(r => r.rendimentoMensilePerc)
+      .filter((p): p is number => typeof p === 'number' && isFinite(p));
+    const percOttimistica = storicoPerc.length ? Math.max(0, ...storicoPerc) : 0;
+    const percPessimistica = storicoPerc.length ? Math.min(0, ...storicoPerc) : 0;
+
+    let runningOttimistica = lastValidIndex >= 0 ? (rawData[lastValidIndex].investito || 0) : 0;
+    let runningPessimistica = runningOttimistica;
+
+    // Oltre l'ultimo dato reale il valore investito (e quindi il netto, che lo somma) manca sempre (sheet non ancora aggiornato):
+    // stimiamo due scenari tratteggiati (ottimistico/pessimistico) applicando il range storico dei rendimenti %
     return rawData.map((d, idx) => {
-      if (idx > lastValidIndex) {
+      if (idx < lastValidIndex) return d;
+      if (idx === lastValidIndex) {
+        // punto di raccordo: la stima parte esattamente dall'ultimo valore reale
         return {
           ...d,
-          investito: undefined
+          investitoStimaOttimistica: d.investito,
+          investitoStimaPessimistica: d.investito,
+          andamentoNettoStimaOttimistica: d.andamentoNetto,
+          andamentoNettoStimaPessimistica: d.andamentoNetto
         };
       }
-      return d;
+      runningOttimistica = runningOttimistica * (1 + percOttimistica / 100);
+      runningPessimistica = runningPessimistica * (1 + percPessimistica / 100);
+      return {
+        ...d,
+        investito: undefined,
+        andamentoNetto: undefined,
+        investitoStimaOttimistica: runningOttimistica,
+        investitoStimaPessimistica: runningPessimistica,
+        andamentoNettoStimaOttimistica: d.risparmioCumulativo + runningOttimistica + 1500,
+        andamentoNettoStimaPessimistica: d.risparmioCumulativo + runningPessimistica + 1500
+      };
     });
   }, [sortedRisparmio, localRendimenti]);
 

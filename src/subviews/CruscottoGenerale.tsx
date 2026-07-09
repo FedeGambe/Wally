@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Database,
   Wallet,
@@ -37,8 +37,8 @@ interface CruscottoGeneraleProps {
     detailData: any[];
   };
   totalAssetAllocation: number;
-  selectedMacroCategory: 'Azioni' | 'Obbligazioni' | 'Monetari' | null;
-  setSelectedMacroCategory: (cat: 'Azioni' | 'Obbligazioni' | 'Monetari' | null) => void;
+  selectedMacroCategories: Array<'Azioni' | 'Obbligazioni' | 'Monetari'>;
+  setSelectedMacroCategories: (cats: Array<'Azioni' | 'Obbligazioni' | 'Monetari'>) => void;
   filteredDetailData: any[];
   timeRange: 'storico' | '12mesi';
   setTimeRange: (range: 'storico' | '12mesi') => void;
@@ -58,8 +58,8 @@ export default function CruscottoGenerale({
   globalSelectedYear,
   nestedPieData,
   totalAssetAllocation,
-  selectedMacroCategory,
-  setSelectedMacroCategory,
+  selectedMacroCategories,
+  setSelectedMacroCategories,
   filteredDetailData,
   timeRange,
   setTimeRange,
@@ -74,6 +74,36 @@ export default function CruscottoGenerale({
   const previousYearRow = cruscottoRows.find((r: any) => Number(r.anno) === Number(globalSelectedYear) - 1);
   const annualUp = !previousYearRow || Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= Number(previousYearRow.rendimentoAnnualeEuro || 0);
   const isAnnualPositive = Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= 0;
+
+  const [isLegendCollapsed, setIsLegendCollapsed] = useState(false);
+  const [areButtonsCollapsed, setAreButtonsCollapsed] = useState(false);
+  const sortedFilteredDetailData = [...filteredDetailData].sort((a, b) => b.value - a.value);
+
+  const CATEGORY_STYLES: Record<string, { base: string; title: string; glow: string }> = {
+    Azioni: {
+      base: 'bg-blue-50/60 border-blue-400 dark:bg-blue-950/25 dark:border-blue-600',
+      title: 'text-blue-700 dark:text-blue-300',
+      glow: 'hover:shadow-[0_0_18px_rgba(59,130,246,0.4)] hover:border-blue-500 dark:hover:border-blue-400',
+    },
+    Obbligazioni: {
+      base: 'bg-orange-50/60 border-orange-400 dark:bg-orange-950/25 dark:border-orange-600',
+      title: 'text-orange-700 dark:text-orange-300',
+      glow: 'hover:shadow-[0_0_18px_rgba(249,115,22,0.4)] hover:border-orange-500 dark:hover:border-orange-400',
+    },
+    Monetari: {
+      base: 'bg-emerald-50/60 border-emerald-400 dark:bg-emerald-950/25 dark:border-emerald-600',
+      title: 'text-emerald-700 dark:text-emerald-300',
+      glow: 'hover:shadow-[0_0_18px_rgba(16,185,129,0.4)] hover:border-emerald-500 dark:hover:border-emerald-400',
+    },
+  };
+
+  const toggleMacroCategory = (cat: 'Azioni' | 'Obbligazioni' | 'Monetari') => {
+    setSelectedMacroCategories(
+      selectedMacroCategories.includes(cat)
+        ? selectedMacroCategories.filter(c => c !== cat)
+        : [...selectedMacroCategories, cat]
+    );
+  };
 
   const currentContributoTotale = Number(CRUSCOTTO_ANNO.azioniInvestitoAnno || 0) + Number(CRUSCOTTO_ANNO.obbligazioniInvestitoAnno || 0) + Number(CRUSCOTTO_ANNO.monetariInvestitoAnno || 0);
   const previousContributoTotale = previousYearRow
@@ -98,7 +128,7 @@ export default function CruscottoGenerale({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Portafoglio Attuale Box */}
-            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-950 dark:border-sky-900 shadow-md flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-900 dark:border-sky-900 shadow-[0_0_15px_rgba(14,165,233,0.12)] flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.3)] hover:border-sky-900/30 dark:hover:border-sky-800/25 hover:scale-[1.01]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg">
@@ -111,16 +141,15 @@ export default function CruscottoGenerale({
                 </span>
               </div>
               <div className="border-t border-sky-800/60 pt-2 mt-2">
-                <p className="text-[9px] text-sky-300 font-medium">Investito: <span className="font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}</span></p>
+                <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}</span></p>
               </div>
             </div>
 
             {/* Plusvalenza Cumulata Box */}
-            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md ${
-              CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
-                ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_20px_rgba(16,185,129,0.18)]'
-                : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/60 shadow-xs'
-            }`}>
+            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 ${CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
+                ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_25px_rgba(16,185,129,0.32)] hover:border-emerald-500/15 dark:hover:border-emerald-500/10'
+                : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/60 shadow-xs hover:shadow-md'
+              }`}>
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Plusvalenza Cumulata</span>
                 <div className="bg-emerald-50 dark:bg-emerald-950/50 p-1 rounded-lg">
@@ -134,8 +163,8 @@ export default function CruscottoGenerale({
                 </span>
               </div>
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px]">
-                <span className="text-slate-400 dark:text-slate-400 font-medium">Rendimento Totale</span>
-                <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold font-mono">
+                <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">Rendimento Totale</span>
+                <span className="text-[12px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300/70 dark:border-emerald-700/60 px-1.5 py-0.5 rounded-lg font-extrabold font-mono">
                   {formatPercent(lastValidRendimento?.rendimentoCumulativoPerc)}
                 </span>
               </div>
@@ -164,9 +193,8 @@ export default function CruscottoGenerale({
                 </div>
               </div>
               <div className="mt-2">
-                <span className={`text-lg sm:text-2xl font-extrabold font-display block flex items-baseline gap-1 flex-wrap ${
-                  isAnnualPositive ? 'text-emerald-400' : 'text-rose-400'
-                }`}>
+                <span className={`text-lg sm:text-2xl font-extrabold font-display block flex items-baseline gap-1 flex-wrap ${isAnnualPositive ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>
                   <span className="flex items-center gap-0.5">
                     {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
                     {formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}
@@ -178,7 +206,7 @@ export default function CruscottoGenerale({
               </div>
               <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
                 <span>Media mensile ({elapsedMonthsForSelectedYear}m)</span>
-                <span className="font-bold text-slate-300 font-mono">{formatPercent(CRUSCOTTO_ANNO.rendimentoMedioMensilePerc)}</span>
+                <span className="text-[12px] font-bold text-slate-300 font-mono">{formatPercent(CRUSCOTTO_ANNO.rendimentoMedioMensilePerc)}</span>
               </div>
             </div>
 
@@ -202,7 +230,7 @@ export default function CruscottoGenerale({
               </div>
               <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
                 <span>Contributo Totale</span>
-                <span className="font-extrabold text-sky-400 font-mono">
+                <span className="text-[12px] font-extrabold text-sky-400 font-mono">
                   {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}
                 </span>
               </div>
@@ -257,81 +285,69 @@ export default function CruscottoGenerale({
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden mt-3">
                 {/* 1. Macro Data Legend Tiles (Interactive buttons) - FULL WIDTH */}
                 <div className="mb-4 shrink-0">
-                  <div className="grid grid-cols-3 gap-2">
-                    {nestedPieData.macroData.map((item, idx) => {
-                      const value = item.value;
-                      const percentage = totalAssetAllocation > 0 ? (value / totalAssetAllocation) * 105 : 0; // Wait, total allocation %
-                      const actualPercent = totalAssetAllocation > 0 ? (value / totalAssetAllocation) * 100 : 0;
-                      const categoryKey = item.name as 'Azioni' | 'Obbligazioni' | 'Monetari';
-                      const isSelected = selectedMacroCategory === categoryKey;
-                      const isAnySelected = selectedMacroCategory !== null;
-
-                      // Dynamic professional styling based on state
-                      let containerClass = '';
-                      let textTitleClass = '';
-                      let textPercentageClass = '';
-                      let textAmountClass = '';
-                      let dotColor = item.color;
-                      let dotClass = '';
-
-                      if (isSelected) {
-                        if (categoryKey === 'Azioni') {
-                          containerClass = 'bg-blue-950 border-blue-900 text-white shadow-md ring-2 ring-blue-500/30';
-                          textTitleClass = 'text-blue-200 font-bold';
-                          textPercentageClass = 'text-white font-black';
-                          textAmountClass = 'text-blue-300';
-                          dotColor = '#60a5fa'; // bright neon blue
-                          dotClass = 'shadow-xs shadow-blue-400/50 animate-pulse';
-                        } else if (categoryKey === 'Obbligazioni') {
-                          containerClass = 'bg-orange-950 border-orange-900 text-white shadow-md ring-2 ring-orange-500/30';
-                          textTitleClass = 'text-orange-200 font-bold';
-                          textPercentageClass = 'text-white font-black';
-                          textAmountClass = 'text-orange-300';
-                          dotColor = '#fb923c'; // bright neon orange
-                          dotClass = 'shadow-xs shadow-orange-400/50 animate-pulse';
-                        } else if (categoryKey === 'Monetari') {
-                          containerClass = 'bg-emerald-950 border-emerald-900 text-white shadow-md ring-2 ring-emerald-500/30';
-                          textTitleClass = 'text-emerald-200 font-bold';
-                          textPercentageClass = 'text-white font-black';
-                          textAmountClass = 'text-emerald-300';
-                          dotColor = '#34d399'; // bright neon green
-                          dotClass = 'shadow-xs shadow-emerald-400/50 animate-pulse';
-                        }
-                      } else if (isAnySelected) {
-                        containerClass = 'border-slate-100 bg-slate-50/40 opacity-45 hover:opacity-90 hover:bg-slate-100/60';
-                        textTitleClass = 'text-slate-400 font-semibold';
-                        textPercentageClass = 'text-slate-500 font-extrabold';
-                        textAmountClass = 'text-slate-400/70';
-                      } else {
-                        containerClass = 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-xs';
-                        textTitleClass = 'text-slate-600 font-bold';
-                        textPercentageClass = 'text-slate-800 font-extrabold';
-                        textAmountClass = 'text-slate-400';
-                      }
-
-                      return (
-                        <button
-                          key={idx}
-                          onClick={() => setSelectedMacroCategory(isSelected ? null : categoryKey)}
-                          className={`p-2 rounded-xl border flex flex-col justify-between text-left transition-all duration-200 cursor-pointer active:scale-[0.97] h-[64px] ${containerClass}`}
-                        >
-                          <div className="flex items-center gap-1.5 truncate w-full">
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} style={{ backgroundColor: dotColor }} />
-                            <span className={`text-[10px] truncate uppercase tracking-wider ${textTitleClass}`}>{item.name}</span>
-                          </div>
-                          <div className="mt-0.5 flex flex-col">
-                            <span className={`font-mono text-[11px] leading-tight ${textPercentageClass}`}>{actualPercent.toFixed(1)}%</span>
-                            <span className={`text-[9px] font-mono leading-none ${textAmountClass}`}>{formatEuro(value)}</span>
-                          </div>
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Filtri Asset Class</span>
+                    <button
+                      onClick={() => setAreButtonsCollapsed(v => !v)}
+                      className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      aria-label={areButtonsCollapsed ? 'Mostra filtri' : 'Nascondi filtri'}
+                    >
+                      <ChevronRight className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${areButtonsCollapsed ? '' : 'rotate-90'}`} />
+                    </button>
                   </div>
+                  {!areButtonsCollapsed && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {nestedPieData.macroData.map((item, idx) => {
+                        const value = item.value;
+                        const percentage = totalAssetAllocation > 0 ? (value / totalAssetAllocation) * 105 : 0; // Wait, total allocation %
+                        const actualPercent = totalAssetAllocation > 0 ? (value / totalAssetAllocation) * 100 : 0;
+                        const categoryKey = item.name as 'Azioni' | 'Obbligazioni' | 'Monetari';
+                        const isSelected = selectedMacroCategories.includes(categoryKey);
+                        const style = CATEGORY_STYLES[categoryKey];
+
+                        // Two-state styling: selected (own light color, bright border) vs deselected (grayed out)
+                        let containerClass = '';
+                        let textTitleClass = '';
+                        let textPercentageClass = '';
+                        let textAmountClass = '';
+                        const dotColor = item.color;
+
+                        if (isSelected) {
+                          containerClass = `border-2 ${style.base} ${style.glow} shadow-sm`;
+                          textTitleClass = `${style.title} font-bold`;
+                          textPercentageClass = 'text-slate-800 dark:text-slate-100 font-extrabold';
+                          textAmountClass = 'text-slate-500 dark:text-slate-400';
+                        } else {
+                          containerClass = 'border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 opacity-50 hover:opacity-80';
+                          textTitleClass = 'text-slate-400 font-semibold';
+                          textPercentageClass = 'text-slate-400 font-extrabold';
+                          textAmountClass = 'text-slate-400/70';
+                        }
+
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => toggleMacroCategory(categoryKey)}
+                            className={`p-2 rounded-xl flex flex-col justify-between text-left transition-all duration-200 cursor-pointer active:scale-[0.97] h-[64px] ${containerClass}`}
+                          >
+                            <div className="flex items-center gap-1.5 truncate w-full">
+                              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColor, opacity: isSelected ? 1 : 0.4 }} />
+                              <span className={`text-[10px] truncate uppercase tracking-wider ${textTitleClass}`}>{item.name}</span>
+                            </div>
+                            <div className="mt-0.5 flex flex-col">
+                              <span className={`font-mono text-[11px] leading-tight ${textPercentageClass}`}>{actualPercent.toFixed(1)}%</span>
+                              <span className={`text-[9px] font-mono leading-none ${textAmountClass}`}>{formatEuro(value)}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                {/* 50/50 Split Grid (Chart left, Micro Legend right) */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 items-center min-h-0 overflow-hidden">
-                  {/* Pie Chart Column - 50% split */}
+                {/* Chart/Legend Split Grid: legend collapses to a thin rail on the right, chart expands and stays centered */}
+                <div className={`flex-1 grid grid-cols-1 gap-6 items-center min-h-0 overflow-hidden transition-all duration-300 ${isLegendCollapsed ? 'md:grid-cols-[1fr_auto]' : 'md:grid-cols-2'}`}>
+                  {/* Pie Chart Column */}
                   <div className="h-full min-h-[240px] md:min-h-[260px] flex items-center justify-center relative">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -345,13 +361,22 @@ export default function CruscottoGenerale({
                           stroke="none"
                           dataKey="value"
                         >
-                          {nestedPieData.macroData.map((entry: any, index: number) => (
-                            <Cell key={`cell-macro-${index}`} fill={entry.color} />
-                          ))}
+                          {nestedPieData.macroData.map((entry: any, index: number) => {
+                            const isDimmed = !selectedMacroCategories.includes(entry.name);
+                            return (
+                              <Cell
+                                key={`cell-macro-${index}`}
+                                fill={entry.color}
+                                opacity={isDimmed ? 0.25 : 1}
+                                className="cursor-pointer transition-opacity duration-200"
+                                onClick={() => toggleMacroCategory(entry.name)}
+                              />
+                            );
+                          })}
                         </Pie>
-                        {/* Outer Pie: Detailed instruments */}
+                        {/* Outer Pie: Detailed instruments (filtered by selected macro category) */}
                         <Pie
-                          data={nestedPieData.detailData}
+                          data={filteredDetailData}
                           cx="50%"
                           cy="50%"
                           innerRadius={85}
@@ -359,7 +384,7 @@ export default function CruscottoGenerale({
                           stroke="none"
                           dataKey="value"
                         >
-                          {nestedPieData.detailData.map((entry: any, index: number) => (
+                          {filteredDetailData.map((entry: any, index: number) => (
                             <Cell key={`cell-detail-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -376,38 +401,49 @@ export default function CruscottoGenerale({
                     </div>
                   </div>
 
-                  {/* Micro Data Legend Column - 50% split */}
-                  <div className="h-full flex flex-col min-h-0 overflow-hidden pb-1">
-                    <div className="flex items-center justify-between mb-1.5 shrink-0">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                        Dettaglio Strumenti {selectedMacroCategory && `(${selectedMacroCategory})`}
+                  {/* Micro Data Legend Column - collapses to a narrow rail on the right, title stays visible */}
+                  <div className={`h-full flex flex-col min-h-0 overflow-hidden pb-1 transition-all duration-300 ${isLegendCollapsed ? 'md:max-w-[150px]' : 'w-full'}`}>
+                    <div className="flex items-center justify-between mb-1.5 shrink-0 gap-2 w-full">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider truncate">
+                        Dettaglio Strumenti {selectedMacroCategories.length < 3 && `(${selectedMacroCategories.join(', ')})`}
                       </span>
-                      {selectedMacroCategory && (
+                      <div className="flex items-center gap-2 ml-auto shrink-0">
+                        {!isLegendCollapsed && selectedMacroCategories.length < 3 && (
+                          <button
+                            onClick={() => setSelectedMacroCategories(['Azioni', 'Obbligazioni', 'Monetari'])}
+                            className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer transition-colors whitespace-nowrap"
+                          >
+                            Mostra tutti
+                          </button>
+                        )}
                         <button
-                          onClick={() => setSelectedMacroCategory(null)}
-                          className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer transition-colors"
+                          onClick={() => setIsLegendCollapsed(v => !v)}
+                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                          aria-label={isLegendCollapsed ? 'Espandi legenda' : 'Comprimi legenda'}
                         >
-                          Mostra tutti
+                          <ChevronRight className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isLegendCollapsed ? '' : 'rotate-90'}`} />
                         </button>
-                      )}
+                      </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
-                      {filteredDetailData.map((item, idx) => {
-                        const itemPerc = totalAssetAllocation > 0 ? (item.value / totalAssetAllocation) * 100 : 0;
-                        return (
-                          <div key={idx} className="flex items-center justify-between font-semibold py-1 border-b border-slate-50 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]">
-                            <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
-                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                              <span className="text-slate-500 truncate uppercase font-bold" title={item.name}>{item.name}</span>
+                    {!isLegendCollapsed && (
+                      <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
+                        {sortedFilteredDetailData.map((item, idx) => {
+                          const itemPerc = totalAssetAllocation > 0 ? (item.value / totalAssetAllocation) * 100 : 0;
+                          return (
+                            <div key={idx} className="flex items-center justify-between font-semibold py-1 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]">
+                              <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
+                                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                                <span className="text-slate-500 truncate uppercase font-bold" title={item.name}>{item.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2 font-mono text-right shrink-0">
+                                <span className="text-slate-500 font-extrabold text-[10px]">({itemPerc.toFixed(1)}%)</span>
+                                <span className="text-slate-880 font-bold">{formatEuro(item.value)}</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                              <span className="text-slate-500 font-extrabold text-[10px]">({itemPerc.toFixed(1)}%)</span>
-                              <span className="text-slate-880 font-bold">{formatEuro(item.value)}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -429,21 +465,19 @@ export default function CruscottoGenerale({
                 <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5 border border-slate-200 select-none">
                   <button
                     onClick={() => setTimeRange('storico')}
-                    className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
-                      timeRange === 'storico'
+                    className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === 'storico'
                         ? 'bg-sky-500 text-white shadow-xs'
                         : 'text-slate-500 hover:text-sky-600'
-                    }`}
+                      }`}
                   >
                     Storico
                   </button>
                   <button
                     onClick={() => setTimeRange('12mesi')}
-                    className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
-                      timeRange === '12mesi'
+                    className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === '12mesi'
                         ? 'bg-sky-500 text-white shadow-xs'
                         : 'text-slate-500 hover:text-sky-600'
-                    }`}
+                      }`}
                   >
                     Ultimi 12 Mesi
                   </button>
@@ -476,12 +510,12 @@ export default function CruscottoGenerale({
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorInvestitoValore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01}/>
+                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01} />
                       </linearGradient>
                       <linearGradient id="colorValorePortafoglio" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.01}/>
+                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.01} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -553,9 +587,8 @@ export default function CruscottoGenerale({
                 <span className="text-[10px] text-slate-450 font-bold uppercase tracking-wider block">Filtro Mese Selezionato</span>
                 <h3 className="text-xl font-bold font-display text-slate-800 capitalize mt-2 flex items-center justify-between">
                   <span>{globalInspectorRecord.mese}</span>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                    globalInspectorRecord.rendimentoMensileEuro >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-lg ${globalInspectorRecord.rendimentoMensileEuro >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                    }`}>
                     {formatPercent(globalInspectorRecord.rendimentoMensilePerc)}
                   </span>
                 </h3>
@@ -598,45 +631,45 @@ export default function CruscottoGenerale({
         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md flex flex-col justify-between">
           <div>
             <h3 className="font-bold text-slate-800 font-display text-base mb-4">Distribuzione Asset Class per Anno</h3>
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-400 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-900/60">
-                  <tr>
-                    <th className="px-4 py-4 rounded-tl-2xl">Anno</th>
-                    <th className="px-4 py-4 text-right">Azioni Cum.</th>
-                    <th className="px-4 py-4 text-right">Azioni Ann.</th>
-                    <th className="px-4 py-4 text-right">Obblig. Cum.</th>
-                    <th className="px-4 py-4 text-right">Obblig. Ann.</th>
-                    <th className="px-4 py-4 text-right">Monet. Cum.</th>
-                    <th className="px-4 py-4 text-right">Monet. Ann.</th>
-                    <th className="px-4 py-4 text-right rounded-tr-2xl">Valutazione</th>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <th className="py-3 px-4">Anno</th>
+                    <th className="py-3 px-4 text-right">Azioni Cum.</th>
+                    <th className="py-3 px-4 text-right">Azioni Ann.</th>
+                    <th className="py-3 px-4 text-right">Obblig. Cum.</th>
+                    <th className="py-3 px-4 text-right">Obblig. Ann.</th>
+                    <th className="py-3 px-4 text-right">Monet. Cum.</th>
+                    <th className="py-3 px-4 text-right">Monet. Ann.</th>
+                    <th className="py-3 px-4 text-right">Valutazione</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-150 text-slate-700 font-medium">
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">
                   {cruscottoRows.map((row: any) => {
                     const isCorrente = Number(row.anno) === Number(cruscottoRows[0]?.anno);
                     const valuationSum = Number(row.azioniInvestitoCum || 0) +
-                                         Number(row.obbligazioniInvestitoCum || 0) +
-                                         Number(row.monetariInvestitoCum || 0) +
-                                         Number(row.rendimentoCumulativoEuro || 0);
+                      Number(row.obbligazioniInvestitoCum || 0) +
+                      Number(row.monetariInvestitoCum || 0) +
+                      Number(row.rendimentoCumulativoEuro || 0);
                     return (
-                      <tr key={row.anno} className="hover:bg-slate-50/50 transition-colors duration-155">
-                        <td className="px-4 py-3.5 font-bold text-slate-800">
-                          {row.anno} {isCorrente ? '(Corrente)' : ''}
+                      <tr key={row.anno} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
+                        <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-100">
+                          {row.anno} {isCorrente ? '' : ''}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
-                        <td className="px-4 py-3.5 text-right text-emerald-600 font-bold font-mono">
+                        <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
+                        <td className="py-3.5 px-4 text-right text-emerald-600 font-bold font-mono">
                           +{formatEuro(row.azioniInvestitoAnno)}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
-                        <td className="px-4 py-3.5 text-right text-emerald-600 font-bold font-mono">
+                        <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
+                        <td className="py-3.5 px-4 text-right text-emerald-600 font-bold font-mono">
                           +{formatEuro(row.obbligazioniInvestitoAnno)}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
-                        <td className="px-4 py-3.5 text-right text-emerald-600 font-bold font-mono">
+                        <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
+                        <td className="py-3.5 px-4 text-right text-emerald-600 font-bold font-mono">
                           +{formatEuro(row.monetariInvestitoAnno)}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-bold text-sky-600 font-mono">
+                        <td className="py-3.5 px-4 text-right font-bold text-sky-600 font-mono">
                           {formatEuro(valuationSum)}
                         </td>
                       </tr>

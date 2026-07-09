@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Car, AlertOctagon } from 'lucide-react';
+import { Car, AlertOctagon, Gauge, Calendar, ChevronDown } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -9,11 +9,13 @@ import {
   CartesianGrid,
   Tooltip,
   LineChart,
-  Line
+  Line,
+  ComposedChart
 } from 'recharts';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { calcolaEsitiSettimanali, EsitoSettimana } from '../utils/esitoSettimanale';
-import { formatEuro, formatPercent } from '../utils/format';
+import { formatEuro } from '../utils/format';
+import { kpiColorAlpha, kpiTextColor, median, KpiRange } from '../utils/kpiColorScale';
 
 const MESI_ABBR = [
   'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
@@ -37,6 +39,20 @@ function parseDataConsumo(dataStr: string): { day: number; month: number; year: 
 function toDate(dataStr: string): Date | null {
   const p = parseDataConsumo(dataStr);
   return p ? new Date(p.year, p.month - 1, p.day) : null;
+}
+
+// Etichetta asse X compatta: solo mese abbreviato + anno a 2 cifre (es. "Gen W1 26" -> "Gen 26")
+function formatSettimanaTick(value: string): string {
+  const parts = String(value).split(' ');
+  return parts.length === 3 ? `${parts[0]} ${parts[2]}` : value;
+}
+
+// Etichetta asse Y: massimo 2 cifre decimali
+function formatAxisNumber(val: number): string {
+  return Number(val).toLocaleString('it-IT', { maximumFractionDigits: 2 });
+}
+function formatAxisEuro(val: number): string {
+  return `€${formatAxisNumber(val)}`;
 }
 
 // Sintetizza una label tipo "Gen W1 26" dalla data grezza
@@ -63,12 +79,16 @@ interface RecordConsumo {
   kmFinali: number;
   kmEffettuati: number;
   kmAlLitro: number;
+  kmAlLitroAuto: number | null;
+  euroPer100Km: number;
+  kmPersi: number;
   efficienzaPercentuale: number;
   costoExtra: number;
   esitoSettimana: EsitoSettimana;
 }
 
 type TimeRange = 'storico' | '12mesi';
+type ExtraMode = 'accumulato' | 'perKm';
 
 function filtraUltimi12Mesi(records: RecordConsumo[], range: TimeRange): RecordConsumo[] {
   if (range !== '12mesi' || records.length === 0) return records;
@@ -82,31 +102,61 @@ function filtraUltimi12Mesi(records: RecordConsumo[], range: TimeRange): RecordC
   });
 }
 
-// Toggle Storico / Ultimi 12 Mesi, riusato in ogni singolo grafico della pagina
-function TimeRangeToggle({ value, onChange }: { value: TimeRange; onChange: (range: TimeRange) => void }) {
+// Toggle generico a segmenti, riusato per storico/12 mesi e per accumulato/per km
+function SegmentedToggle<T extends string>({ value, onChange, options }: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+}) {
   return (
     <div className="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700 select-none shrink-0">
-      <button
-        onClick={() => onChange('storico')}
-        className={`text-[9px] px-2.5 py-1 font-extrabold rounded-lg transition-all cursor-pointer ${
-          value === 'storico' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-500 hover:text-indigo-600'
-        }`}
-      >
-        Storico
-      </button>
-      <button
-        onClick={() => onChange('12mesi')}
-        className={`text-[9px] px-2.5 py-1 font-extrabold rounded-lg transition-all cursor-pointer ${
-          value === '12mesi' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-500 hover:text-indigo-600'
-        }`}
-      >
-        Ultimi 12 Mesi
-      </button>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`text-[9px] px-2.5 py-1 font-extrabold rounded-lg transition-all cursor-pointer ${
+            value === opt.value ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-500 hover:text-rose-600'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }
 
-export default function AnalisiConsumi() {
+function TimeRangeToggle({ value, onChange }: { value: TimeRange; onChange: (range: TimeRange) => void }) {
+  return (
+    <SegmentedToggle
+      value={value}
+      onChange={onChange}
+      options={[{ value: 'storico', label: 'Storico' }, { value: '12mesi', label: 'Ultimi 12 Mesi' }]}
+    />
+  );
+}
+
+// Tooltip dedicato per Km/Lt: bianco per il valore calcolato, grigio per il dato di bordo auto
+function KmLtTooltip({ active, payload, label }: any) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px', padding: '8px 12px' }}>
+      <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: 4, fontSize: 12 }}>{label}</div>
+      {payload
+        .filter((entry: any) => entry.value !== null && entry.value !== undefined)
+        .map((entry: any) => (
+          <div key={entry.dataKey} style={{ color: entry.dataKey === 'kmAlLitroAuto' ? '#94a3b8' : '#fff', fontSize: 12 }}>
+            {entry.dataKey === 'kmAlLitroAuto' ? 'Km/Lt Auto' : 'Km/Lt'}: {entry.value} km/lt
+          </div>
+        ))}
+    </div>
+  );
+}
+
+interface AnalisiConsumiProps {
+  goToTodaySignal?: number;
+}
+
+export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps) {
   const { data } = useFinanceData();
 
   // 1. Process and normalize the finance data
@@ -120,6 +170,12 @@ export default function AnalisiConsumi() {
         const parsedCosto = Number(r.costo || 0);
         const parsedKmEffettuati = Number(r.kmEffettuati || 0);
         const parsedKmLitro = Number(r.kmAlLitro || 0);
+        // fetchSpreadsheetData normalizza le celle numeriche vuote a 0: un kmAlLitroAuto reale non è mai 0,
+        // quindi 0 qui significa "nessun dato" (auto non ancora tracciata quella settimana).
+        const rawKmLitroAuto = Number(r.kmAlLitroAuto || 0);
+        const parsedKmLitroAuto = rawKmLitroAuto === 0 ? null : rawKmLitroAuto;
+        const parsedEuroPer100Km = Number(r.euroPer100Km || 0);
+        const parsedKmPersi = Number(r.kmPersi || 0);
         const parsedEfficienza = Number(r.efficienzaPercentuale || 0);
         const parsedCostoExtra = Number(r.costoExtra || 0);
         const parsedQuantitaLitri = Number(r.quantitaLitri || 0);
@@ -139,6 +195,9 @@ export default function AnalisiConsumi() {
           kmFinali: parsedKmFinali,
           kmEffettuati: parsedKmEffettuati,
           kmAlLitro: parsedKmLitro,
+          kmAlLitroAuto: parsedKmLitroAuto,
+          euroPer100Km: parsedEuroPer100Km,
+          kmPersi: parsedKmPersi,
           efficienzaPercentuale: parsedEfficienza,
           costoExtra: parsedCostoExtra
         };
@@ -150,6 +209,7 @@ export default function AnalisiConsumi() {
 
   // 2. Local selection state
   const [selectedWeekState, setSelectedWeekState] = useState<RecordConsumo | null>(null);
+  const [isWeekDropdownOpen, setIsWeekDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (consumiRecords.length > 0) {
@@ -165,16 +225,43 @@ export default function AnalisiConsumi() {
     }
   }, [consumiRecords]);
 
+  // Il pulsante "data odierna" dell'Header non ha un mese/anno da applicare qui:
+  // per questa pagina equivale a saltare all'ultima settimana presente nei dati.
+  useEffect(() => {
+    if (goToTodaySignal && goToTodaySignal > 0 && consumiRecords.length > 0) {
+      setSelectedWeekState(consumiRecords[consumiRecords.length - 1]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goToTodaySignal]);
+
   // 3. Time range indipendente per ciascun grafico storico
   const [kmChartRange, setKmChartRange] = useState<TimeRange>('storico');
   const [kmLtChartRange, setKmLtChartRange] = useState<TimeRange>('storico');
+  const [euro100ChartRange, setEuro100ChartRange] = useState<TimeRange>('storico');
   const [prezzoChartRange, setPrezzoChartRange] = useState<TimeRange>('storico');
   const [costoExtraChartRange, setCostoExtraChartRange] = useState<TimeRange>('storico');
+  const [kmPersiChartRange, setKmPersiChartRange] = useState<TimeRange>('storico');
+  const [extraMode, setExtraMode] = useState<ExtraMode>('accumulato');
 
   const kmChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, kmChartRange), [consumiRecords, kmChartRange]);
   const kmLtChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, kmLtChartRange), [consumiRecords, kmLtChartRange]);
+  const euro100ChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, euro100ChartRange), [consumiRecords, euro100ChartRange]);
   const prezzoChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, prezzoChartRange), [consumiRecords, prezzoChartRange]);
-  const costoExtraChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, costoExtraChartRange), [consumiRecords, costoExtraChartRange]);
+
+  // Costo extra e km persi: normalizzabili "per km" dividendo per i km effettuati nella settimana
+  const applyExtraMode = (records: RecordConsumo[], field: 'costoExtra' | 'kmPersi') => {
+    if (extraMode === 'accumulato') return records;
+    return records.map(r => ({ ...r, [field]: (r[field] || 0) / (r.kmEffettuati || 1) }));
+  };
+
+  const costoExtraChartData = useMemo(
+    () => applyExtraMode(filtraUltimi12Mesi(consumiRecords, costoExtraChartRange), 'costoExtra'),
+    [consumiRecords, costoExtraChartRange, extraMode]
+  );
+  const kmPersiChartData = useMemo(
+    () => applyExtraMode(filtraUltimi12Mesi(consumiRecords, kmPersiChartRange), 'kmPersi'),
+    [consumiRecords, kmPersiChartRange, extraMode]
+  );
 
   const selectedWeek = selectedWeekState || {
     settimana: 'N/D',
@@ -185,96 +272,80 @@ export default function AnalisiConsumi() {
     kmFinali: 0,
     kmEffettuati: 0,
     kmAlLitro: 0,
+    kmAlLitroAuto: null,
+    euroPer100Km: 0,
+    kmPersi: 0,
     efficienzaPercentuale: 0,
-    esitoSettimana: 'Nella media',
+    esitoSettimana: 'Nella media' as EsitoSettimana,
     costoExtra: 0
   };
 
-  // Historic averages for coloring scale thresholds
-  const averages = useMemo(() => {
-    const totalRecords = consumiRecords.length;
-    if (totalRecords === 0) {
-      return {
-        kmAlLitro: 0,
-        efficienza: 0,
-        costo100: 0,
-        costoExtra: 0
-      };
+  // Min/mediana/max storici per settimana, base della scala colore continua dei KPI
+  const stats = useMemo(() => {
+    const empty: KpiRange = { min: 0, median: 0, max: 0 };
+    if (consumiRecords.length === 0) {
+      return { costo100: empty, kmAlLitro: empty, costoExtra: empty, kmPersi: empty, efficienza: empty };
     }
-    const avgKmLt = consumiRecords.reduce((sum: number, item: any) => sum + (item.kmAlLitro || 0), 0) / totalRecords;
-    const avgEfficienza = consumiRecords.reduce((sum: number, item: any) => sum + (item.efficienzaPercentuale || 0), 0) / totalRecords;
-    
-    // Cost per 100km average
-    const avgCost100 = consumiRecords.reduce((sum: number, item: any) => {
-      const cost100 = ((item.costo || 0) / (item.kmEffettuati || 1)) * 100;
-      return sum + cost100;
-    }, 0) / totalRecords;
-
-    const avgCostoExtra = consumiRecords.reduce((sum: number, item: any) => sum + (item.costoExtra || 0), 0) / totalRecords;
-
+    const rangeOf = (values: number[]): KpiRange => ({
+      min: Math.min(...values),
+      median: median(values),
+      max: Math.max(...values)
+    });
     return {
-      kmAlLitro: avgKmLt,
-      efficienza: avgEfficienza,
-      costo100: avgCost100,
-      costoExtra: avgCostoExtra
+      costo100: rangeOf(consumiRecords.map(r => r.euroPer100Km)),
+      kmAlLitro: rangeOf(consumiRecords.map(r => r.kmAlLitro)),
+      costoExtra: rangeOf(consumiRecords.map(r => r.costoExtra)),
+      kmPersi: rangeOf(consumiRecords.map(r => r.kmPersi)),
+      efficienza: rangeOf(consumiRecords.map(r => r.efficienzaPercentuale))
     };
   }, [consumiRecords]);
 
-  // Determine colors based on thresholds vs averages
-  const getKpiColors = (value: number, type: 'costo100' | 'kmLt' | 'efficienza' | 'extra') => {
-    if (isNaN(value)) {
-      return { bg: 'bg-slate-50 dark:bg-slate-900/30 text-slate-500 border-slate-100 dark:border-slate-800/40', label: 'Dato non disponibile' };
-    }
-    if (type === 'costo100') {
-      const delta = value - averages.costo100;
-      if (delta < -1) return { bg: 'bg-emerald-50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30', label: 'Ottimo (Sotto Media)' };
-      if (delta < 1) return { bg: 'bg-amber-50 dark:bg-amber-950/10 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/20', label: 'Nella Media' };
-      return { bg: 'bg-red-50 dark:bg-red-950/15 text-red-800 dark:text-red-400 border-red-100 dark:border-red-900/30', label: 'Elevato (Sopra Media)' };
-    }
-    if (type === 'kmLt') {
-      const delta = value - averages.kmAlLitro;
-      if (delta > 1.5) return { bg: 'bg-emerald-50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30', label: 'Ottimo (Sopra Media)' };
-      if (delta > -1) return { bg: 'bg-amber-50 dark:bg-amber-950/10 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/20', label: 'Nella Media' };
-      return { bg: 'bg-red-50 dark:bg-red-950/15 text-red-800 dark:text-red-400 border-red-100 dark:border-red-900/30', label: 'Scarso (Sotto Media)' };
-    }
-    if (type === 'efficienza') {
-      const delta = value - averages.efficienza;
-      if (delta > 5) return { bg: 'bg-emerald-50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30', label: 'Ottima' };
-      if (delta > -5) return { bg: 'bg-amber-50 dark:bg-amber-950/10 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/20', label: 'Nella Media' };
-      return { bg: 'bg-red-50 dark:bg-red-950/15 text-red-800 dark:text-red-400 border-red-100 dark:border-red-900/30', label: 'Bassa' };
-    }
-    // extra cost
-    if (value === 0) return { bg: 'bg-emerald-50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30', label: 'Nessun Costo Extra' };
-    if (value < averages.costoExtra) return { bg: 'bg-amber-50 dark:bg-amber-950/10 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/20', label: 'Basso Costo Extra' };
-    return { bg: 'bg-red-50 dark:bg-red-950/15 text-red-800 dark:text-red-400 border-red-100 dark:border-red-900/30', label: 'Incurrenza Extra' };
+  // Etichetta testuale posizione vs mediana (il colore, continuo, è calcolato a parte con kpiColor/kpiColorAlpha)
+  const kpiLabel = (value: number, range: KpiRange, higherIsBetter: boolean, zeroLabel?: string): string => {
+    if (isNaN(value)) return 'Dato non disponibile';
+    if (zeroLabel !== undefined && value === 0) return zeroLabel;
+    const span = range.max - range.min;
+    const epsilon = span > 0 ? span * 0.05 : 0;
+    const diff = higherIsBetter ? value - range.median : range.median - value;
+    if (diff > epsilon) return 'Migliore della media';
+    if (diff < -epsilon) return 'Peggiore della media';
+    return 'Nella media';
   };
 
-  const getOutcomeBadge = (outcome: EsitoSettimana) => {
-    switch (outcome) {
-      case 'Migliore':
-        return 'bg-emerald-700 text-white font-black';
-      case 'Ottima':
-        return 'bg-emerald-600 text-white font-black';
-      case 'Buona':
-        return 'bg-emerald-500 text-white font-bold';
-      case 'Nella media':
-        return 'bg-amber-500 text-white font-bold';
-      case 'Non buona':
-        return 'bg-orange-500 text-white font-bold';
-      case 'Scarsa':
-        return 'bg-red-600 text-white font-black';
-      case 'Peggiore':
-        return 'bg-red-800 text-white font-black';
-    }
+  // Stile inline per una card KPI: colore continuo (kpiColor/kpiColorAlpha) invece delle 3 fasce discrete
+  const kpiCardStyle = (value: number, range: KpiRange, higherIsBetter: boolean) => {
+    const r: KpiRange = { ...range, higherIsBetter };
+    return {
+      backgroundColor: kpiColorAlpha(value, r, 0.1),
+      borderColor: kpiColorAlpha(value, r, 0.4),
+      ['--glow' as string]: kpiColorAlpha(value, r, 0.55)
+    } as React.CSSProperties;
   };
+  const kpiTextStyle = (value: number, range: KpiRange, higherIsBetter: boolean): React.CSSProperties => ({
+    color: kpiTextColor(value, { ...range, higherIsBetter })
+  });
 
-  // Cost per 100km for selected week
-  const selectedCost100 = ((selectedWeek.costo || 0) / (selectedWeek.kmEffettuati || 1)) * 100;
 
-  const cost100Colors = getKpiColors(selectedCost100, 'costo100');
-  const kmLtColors = getKpiColors(selectedWeek.kmAlLitro, 'kmLt');
-  const efficienzaColors = getKpiColors(selectedWeek.efficienzaPercentuale, 'efficienza');
-  const costoExtraColors = getKpiColors(selectedWeek.costoExtra, 'extra');
+  // kmLt: più alto è meglio. costo100/costoExtra/kmPersi: più basso è meglio.
+  const kmLtLabel = kpiLabel(selectedWeek.kmAlLitro, stats.kmAlLitro, true);
+  const cost100Label = kpiLabel(selectedWeek.euroPer100Km, stats.costo100, false);
+  const kmPersiLabel = kpiLabel(selectedWeek.kmPersi, stats.kmPersi, false, 'Nessun Km Perso');
+  const costoExtraLabel = kpiLabel(selectedWeek.costoExtra, stats.costoExtra, false, 'Nessun Costo Extra');
+
+  // Settimana precedente a quella selezionata, per il confronto km/litri/prezzo
+  const selectedWeekIndex = selectedWeekState
+    ? consumiRecords.findIndex(r => r.data === selectedWeekState.data && r.settimana === selectedWeekState.settimana)
+    : -1;
+  const previousWeek = selectedWeekIndex > 0 ? consumiRecords[selectedWeekIndex - 1] : null;
+  const kmDelta = previousWeek ? selectedWeek.kmEffettuati - previousWeek.kmEffettuati : null;
+  const litriDelta = previousWeek ? selectedWeek.quantitaLitri - previousWeek.quantitaLitri : null;
+  const prezzoDelta = previousWeek ? selectedWeek.prezzoAlLitro - previousWeek.prezzoAlLitro : null;
+
+  // Km/litri in più sono "peggio" (rosso); il prezzo al litro segue la logica opposta (in calo è "peggio")
+  const deltaClass = (delta: number, dangerWhenPositive: boolean) => {
+    const isDanger = dangerWhenPositive ? delta >= 0 : delta < 0;
+    return isDanger ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400';
+  };
 
   // Selezione settimana cliccabile da qualsiasi grafico della pagina.
   // Recharts v3 non passa più `activePayload` all'onClick del chart (rimosso rispetto a v2):
@@ -287,98 +358,270 @@ export default function AnalisiConsumi() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Grid container dividing Left interactive inspector and right charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* LEFT PANEL: Selected Week Inspector and KPI color maps */}
-        <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left h-fit lg:col-span-1">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-4 mb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base">Settimana Selezionata</h3>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
-            </div>
-            <span className={`px-3 py-1 rounded-full text-xs uppercase tracking-wider ${getOutcomeBadge(selectedWeek.esitoSettimana)}`}>
+
+      {/* RIEPILOGO SETTIMANALE: header a tutta larghezza + 3 sotto-widget + analisi */}
+      <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
+        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-4 mb-4">
+          <div>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h3>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
+          </div>
+          <div className="flex items-center gap-8 pr-4">
+            <span
+              className="px-4 py-1.5 rounded-full text-sm uppercase tracking-wider font-bold text-white transition-all"
+              style={{
+                backgroundColor: kpiTextColor(selectedWeek.efficienzaPercentuale, { ...stats.efficienza, higherIsBetter: true }),
+                boxShadow: `0 0 20px -3px ${kpiColorAlpha(selectedWeek.efficienzaPercentuale, { ...stats.efficienza, higherIsBetter: true }, 0.65)}`
+              }}
+            >
               {selectedWeek.esitoSettimana}
             </span>
-          </div>
 
-          <div className="space-y-4">
-            {/* Quick stats totals */}
-            <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
-              <span className="text-4xl font-black font-display text-blue-600 dark:text-indigo-400 mt-1 block">
-                {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-slate-400 dark:text-slate-500">Km</span>
-              </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 block font-mono">
-                Rifornimento: {selectedWeek.data} • {selectedWeek.quantitaLitri} Lt • {selectedWeek.prezzoAlLitro} €/Lt
+            <div className="text-right">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Punteggio</span>
+              <span className="text-xl font-black font-display text-slate-800 dark:text-slate-100">
+                {typeof selectedWeek.efficienzaPercentuale === 'number' && !isNaN(selectedWeek.efficienzaPercentuale) ? selectedWeek.efficienzaPercentuale.toFixed(2) : '***'}
+                <span className="text-xs font-medium text-slate-400 dark:text-slate-500"> /1</span>
               </span>
             </div>
 
-            {/* Dynamic colored KPI matrices */}
-            <div className="space-y-3">
-              {/* Cost per 100km */}
-              <div className={`p-3.5 rounded-xl border ${cost100Colors.bg} transition-all`}>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider block">Costo / 100 Km</span>
-                  <span className="text-xs font-bold font-mono">{cost100Colors.label}</span>
-                </div>
-                <span className="text-xl font-bold font-display mt-1 block">{formatEuro(selectedCost100)}</span>
-              </div>
-
-              {/* km/lt */}
-              <div className={`p-3.5 rounded-xl border ${kmLtColors.bg} transition-all`}>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider block">Consumo medio (Km/Lt)</span>
-                  <span className="text-xs font-bold font-mono">{kmLtColors.label}</span>
-                </div>
-                <span className="text-xl font-bold font-display mt-1 block">
-                  {typeof selectedWeek.kmAlLitro === 'number' && !isNaN(selectedWeek.kmAlLitro) ? selectedWeek.kmAlLitro.toFixed(1) + ' km/lt' : '***'}
+            {/* Selettore settimana: stesso design/layout del selettore Anno globale in Header */}
+            <div className="relative select-none shrink-0">
+              <button
+                onClick={() => setIsWeekDropdownOpen(o => !o)}
+                className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+              >
+                <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>
+                  Sett.: <strong className="text-rose-600 dark:text-rose-400">{selectedWeek.settimana}</strong>
                 </span>
-              </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              </button>
 
-              {/* Punteggio efficienza */}
-              <div className={`p-3.5 rounded-xl border ${efficienzaColors.bg} transition-all`}>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider block">Punteggio Efficienza %</span>
-                  <span className="text-xs font-bold font-mono">{efficienzaColors.label}</span>
+              {isWeekDropdownOpen && (
+                <div className="absolute right-0 mt-1.5 w-36 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-0.5 animate-fadeIn">
+                  {[...consumiRecords].reverse().map((r) => (
+                    <button
+                      key={`${r.settimana}-${r.data}`}
+                      onClick={() => {
+                        setSelectedWeekState(r);
+                        setIsWeekDropdownOpen(false);
+                      }}
+                      className={`px-3 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                        selectedWeek.settimana === r.settimana && selectedWeek.data === r.data
+                          ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {r.settimana}
+                    </button>
+                  ))}
                 </div>
-                <span className="text-xl font-bold font-display mt-1 block">{formatPercent(selectedWeek.efficienzaPercentuale, { minDecimals: 0 })}</span>
-              </div>
-
-              {/* Costo Extra */}
-              <div className={`p-3.5 rounded-xl border ${costoExtraColors.bg} transition-all`}>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider block">Incurrenza Costo Extra</span>
-                  <span className="text-xs font-bold font-mono">{costoExtraColors.label}</span>
-                </div>
-                <span className="text-xl font-bold font-display mt-1 block">{formatEuro(selectedWeek.costoExtra)}</span>
-              </div>
-            </div>
-
-            <div className="p-4 bg-indigo-50/20 dark:bg-indigo-950/10 border border-indigo-100/40 dark:border-indigo-900/20 rounded-2xl text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-              <span className="font-bold block mb-0.5 text-indigo-600 dark:text-indigo-400">💡 Analisi per Federico:</span>
-              I KPI e le colorazioni sono valutati automaticamente rispetto alla tua media storica di consumo carburante ({typeof averages.kmAlLitro === 'number' && !isNaN(averages.kmAlLitro) ? averages.kmAlLitro.toFixed(1) + ' km/lt' : '***'}).
+              )}
             </div>
           </div>
         </div>
 
-        {/* RIGHT PANEL: Historical graphs */}
-        <div className="lg:col-span-2 space-y-6 text-left">
-
-          {/* Weekly Kilometres and efficiency over time lines */}
-          <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5">
-                  <Car className="w-4.5 h-4.5 text-indigo-500 dark:text-indigo-400" />
-                  Chilometri Percorsi per Settimana
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Sotto-widget 1: Km Effettuati */}
+          <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
+            <span className="text-4xl font-black font-display text-blue-600 dark:text-rose-400 mt-1 block">
+              {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-slate-400 dark:text-slate-500">Km</span>
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 block font-mono">
+              Rifornimento: {selectedWeek.data} • {selectedWeek.quantitaLitri} Lt • {selectedWeek.prezzoAlLitro} €/Lt
+            </span>
+            {previousWeek && (
+              <div className="mt-1.5 space-y-0.5">
+                {kmDelta !== null && (
+                  <span className={`text-[10px] block ${deltaClass(kmDelta, true)}`}>
+                    <span className="font-bold">{kmDelta >= 0 ? '▲' : '▼'} {Math.abs(kmDelta)} km</span> vs sett. precedente
+                  </span>
+                )}
+                {litriDelta !== null && (
+                  <span className={`text-[10px] block ${deltaClass(litriDelta, true)}`}>
+                    <span className="font-bold">{litriDelta >= 0 ? '▲' : '▼'} {Math.abs(litriDelta).toFixed(1)} Lt</span> vs sett. precedente
+                  </span>
+                )}
+                {prezzoDelta !== null && (
+                  <span className={`text-[10px] block ${deltaClass(prezzoDelta, true)}`}>
+                    <span className="font-bold">{prezzoDelta >= 0 ? '▲' : '▼'} {Math.abs(prezzoDelta).toFixed(3)} €/Lt</span> vs sett. precedente
+                  </span>
+                )}
               </div>
+            )}
+          </div>
+
+          {/* Sotto-widget 2: Consumo medio e costo */}
+          <div className="h-full flex flex-col gap-3">
+            <div
+              className="p-3.5 rounded-xl border transition-all grid grid-cols-3 gap-2 flex-1 hover:shadow-[0_0_20px_-4px_var(--glow)]"
+              style={kpiCardStyle(selectedWeek.kmAlLitro, stats.kmAlLitro, true)}
+            >
+              <div className="col-span-2 h-full flex flex-col justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider block">Consumo medio (Km/Lt)</span>
+                <span className="text-xl font-bold font-display block">
+                  {typeof selectedWeek.kmAlLitro === 'number' && !isNaN(selectedWeek.kmAlLitro) ? selectedWeek.kmAlLitro.toFixed(1) + ' km/lt' : '***'}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.kmAlLitro, stats.kmAlLitro, true)}>{kmLtLabel}</span>
+                <span className="text-xs font-mono opacity-70 block">{stats.kmAlLitro.median.toFixed(1)} km/lt</span>
+              </div>
+            </div>
+            <div
+              className="p-3.5 rounded-xl border transition-all grid grid-cols-3 gap-2 flex-1 hover:shadow-[0_0_20px_-4px_var(--glow)]"
+              style={kpiCardStyle(selectedWeek.euroPer100Km, stats.costo100, false)}
+            >
+              <div className="col-span-2 h-full flex flex-col justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider block">Costo / 100 Km</span>
+                <span className="text-xl font-bold font-display block">{formatEuro(selectedWeek.euroPer100Km)}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.euroPer100Km, stats.costo100, false)}>{cost100Label}</span>
+                <span className="text-xs font-mono opacity-70 block">{formatEuro(stats.costo100.median)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Sotto-widget 3: Incurrenza e costo extra */}
+          <div className="h-full flex flex-col gap-3">
+            <div
+              className="p-3.5 rounded-xl border transition-all grid grid-cols-3 gap-2 flex-1 hover:shadow-[0_0_20px_-4px_var(--glow)]"
+              style={kpiCardStyle(selectedWeek.kmPersi, stats.kmPersi, false)}
+            >
+              <div className="col-span-2 h-full flex flex-col justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider block">Km Persi (Incurrenza)</span>
+                <span className="text-xl font-bold font-display block">
+                  {typeof selectedWeek.kmPersi === 'number' && !isNaN(selectedWeek.kmPersi) ? selectedWeek.kmPersi.toFixed(1) + ' km' : '***'}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.kmPersi, stats.kmPersi, false)}>{kmPersiLabel}</span>
+                <span className="text-xs font-mono opacity-70 block">{stats.kmPersi.median.toFixed(1)} km</span>
+              </div>
+            </div>
+            <div
+              className="p-3.5 rounded-xl border transition-all grid grid-cols-3 gap-2 flex-1 hover:shadow-[0_0_20px_-4px_var(--glow)]"
+              style={kpiCardStyle(selectedWeek.costoExtra, stats.costoExtra, false)}
+            >
+              <div className="col-span-2 h-full flex flex-col justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider block">Costo Extra</span>
+                <span className="text-xl font-bold font-display block">{formatEuro(selectedWeek.costoExtra)}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.costoExtra, stats.costoExtra, false)}>{costoExtraLabel}</span>
+                <span className="text-xs font-mono opacity-70 block">{formatEuro(stats.costoExtra.median)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 px-1 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+          <span className="font-bold block mb-0.5 text-rose-600 dark:text-rose-400">💡 Analisi per Federico:</span>
+          I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? stats.kmAlLitro.median.toFixed(1) + ' km/lt' : '***'}).
+        </div>
+      </div>
+
+      {/* CONTENITORE 1: Efficienza di Marcia */}
+      <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
+        <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
+          <Gauge className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
+          Efficienza di Marcia
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Km / Litro */}
+          <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Evoluzione Km / Litro</h4>
+              <TimeRangeToggle value={kmLtChartRange} onChange={setKmLtChartRange} />
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
+            <div className="h-44">
+              {kmLtChartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart
+                    data={kmLtChartData}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    onClick={handleChartClick}
+                  >
+                    <defs>
+                      <linearGradient id="colorKmAlLitro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" />
+                        <stop offset="100%" stopColor="#ef4444" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
+                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin - 0.75), (dataMax: number) => dataMax + 0.75]} />
+                    <Tooltip content={<KmLtTooltip />} />
+                    <Line type="monotone" dataKey="kmAlLitroAuto" stroke="#94a3b8" strokeOpacity={0.6} strokeWidth={2} strokeDasharray="4 4" dot={false} activeDot={false} connectNulls={false} />
+                    <Area type="monotone" dataKey="kmAlLitro" stroke="url(#colorKmAlLitro)" strokeWidth={2.5} fill="url(#colorKmAlLitro)" fillOpacity={0.18} dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* €/100km */}
+          <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Costo per 100 Km</h4>
+              <TimeRangeToggle value={euro100ChartRange} onChange={setEuro100ChartRange} />
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>
+            <div className="h-44">
+              {euro100ChartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={euro100ChartData}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    onClick={handleChartClick}
+                  >
+                    <defs>
+                      <linearGradient id="colorEuro100" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
+                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
+                      labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#f59e0b' }}
+                      formatter={(value: any) => [formatEuro(value), '€/100km']}
+                    />
+                    <Area type="monotone" dataKey="euroPer100Km" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorEuro100)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CONTENITORE 2: Percorrenza & Prezzo Carburante */}
+      <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
+        <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
+          <Car className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
+          Percorrenza & Prezzo Carburante
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Km settimanali */}
+          <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Chilometri Percorsi per Settimana</h4>
               <TimeRangeToggle value={kmChartRange} onChange={setKmChartRange} />
             </div>
-
-            <div className="h-56 mt-4">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
+            <div className="h-44">
               {kmChartData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
               ) : (
@@ -390,44 +633,29 @@ export default function AnalisiConsumi() {
                   >
                     <defs>
                       <linearGradient id="colorKmEffettuati" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.01} />
+                        <stop offset="5%" stopColor="#e11d48" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#e11d48" stopOpacity={0.01} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#93c5fd' }}
+                      itemStyle={{ color: '#fda4af' }}
                       formatter={(value: any) => [`${value} Km`, 'Km Effettuati']}
                     />
                     <Area
                       type="monotone"
                       dataKey="kmEffettuati"
                       name="Km percorsi"
-                      stroke="#6366f1"
+                      stroke="#e11d48"
                       strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#colorKmEffettuati)"
-                      dot={(props: any) => {
-                        const { cx, cy, payload } = props;
-                        const isSelected = payload.data === selectedWeek.data && payload.settimana === selectedWeek.settimana;
-                        return (
-                          <circle
-                            key={`dot-km-${payload.settimana}`}
-                            cx={cx}
-                            cy={cy}
-                            r={isSelected ? 5 : 3}
-                            fill={isSelected ? '#6366f1' : '#93c5fd'}
-                            stroke="#fff"
-                            strokeWidth={1.5}
-                            style={{ cursor: 'pointer' }}
-                          />
-                        );
-                      }}
-                      activeDot={{ r: 6, fill: '#6366f1', cursor: 'pointer' }}
+                      dot={false}
+                      activeDot={{ r: 6, fill: '#e11d48', cursor: 'pointer' }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -435,102 +663,69 @@ export default function AnalisiConsumi() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Efficiency curve lines */}
-            <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-xs">Evoluzione Km / Litro</h3>
-                <TimeRangeToggle value={kmLtChartRange} onChange={setKmLtChartRange} />
-              </div>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Riconversione consumi km/lt. Verde = sopra la media, rosso = sotto.</p>
-
-              <div className="h-44">
-                {kmLtChartData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={kmLtChartData}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                      onClick={handleChartClick}
-                    >
-                      <defs>
-                        <linearGradient id="colorKmAlLitro" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10b981" />
-                          <stop offset="100%" stopColor="#ef4444" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                      <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
-                        labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#10b981' }}
-                        formatter={(value: any) => [`${value} km/lt`, 'Km/Lt']}
-                      />
-                      <Line type="monotone" dataKey="kmAlLitro" stroke="url(#colorKmAlLitro)" strokeWidth={2.5} dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+          {/* €/Lt */}
+          <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Andamento Prezzo Carburante (€/Lt)</h4>
+              <TimeRangeToggle value={prezzoChartRange} onChange={setPrezzoChartRange} />
             </div>
-
-            {/* Price trend lines */}
-            <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-xs">Andamento Prezzo Carburante (€/Lt)</h3>
-                <TimeRangeToggle value={prezzoChartRange} onChange={setPrezzoChartRange} />
-              </div>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
-
-              <div className="h-44">
-                {prezzoChartData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={prezzoChartData}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                      onClick={handleChartClick}
-                    >
-                      <defs>
-                        <linearGradient id="colorPrezzoAlLitro" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.01} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                      <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
-                        labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#f59e0b' }}
-                        formatter={(value: any) => [`€${value}`, 'Prezzo al Lt']}
-                      />
-                      <Area type="monotone" dataKey="prezzoAlLitro" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrezzoAlLitro)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
+            <div className="h-44">
+              {prezzoChartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={prezzoChartData}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    onClick={handleChartClick}
+                  >
+                    <defs>
+                      <linearGradient id="colorPrezzoAlLitro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
+                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
+                      labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#f59e0b' }}
+                      formatter={(value: any) => [`€${value}`, 'Prezzo al Lt']}
+                    />
+                    <Area type="monotone" dataKey="prezzoAlLitro" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrezzoAlLitro)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Locked-in penalty cost extra index line chart */}
-          <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5">
-                  <AlertOctagon className="w-4.5 h-4.5 text-orange-500" />
-                  Costo Extra da Inefficienza Carburante Accumulato
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
-              </div>
+      {/* CONTENITORE 3: Costo Extra & Km Persi */}
+      <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5">
+            <AlertOctagon className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
+            Costo Extra & Km Persi
+          </h3>
+          <SegmentedToggle<ExtraMode>
+            value={extraMode}
+            onChange={setExtraMode}
+            options={[{ value: 'accumulato', label: 'Accumulato' }, { value: 'perKm', label: '€/Km' }]}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Costo extra */}
+          <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Costo Extra da Inefficienza Carburante</h4>
               <TimeRangeToggle value={costoExtraChartRange} onChange={setCostoExtraChartRange} />
             </div>
-
-            <div className="h-48 mt-4">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
+            <div className="h-44">
               {costoExtraChartData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
               ) : (
@@ -547,13 +742,18 @@ export default function AnalisiConsumi() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                       itemStyle={{ color: '#f97316' }}
-                      formatter={(value: any) => [formatEuro(value), 'Costo Extra']}
+                      formatter={(value: any) => [
+                        extraMode === 'perKm'
+                          ? new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(Number(value))
+                          : formatEuro(value),
+                        extraMode === 'perKm' ? 'Costo Extra/Km' : 'Costo Extra'
+                      ]}
                     />
                     <Area type="monotone" dataKey="costoExtra" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCostoExtra)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
                   </AreaChart>
@@ -562,8 +762,47 @@ export default function AnalisiConsumi() {
             </div>
           </div>
 
+          {/* Km persi */}
+          <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Km Persi per Inefficienza</h4>
+              <TimeRangeToggle value={kmPersiChartRange} onChange={setKmPersiChartRange} />
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Chilometri "persi" per uno stile di guida sopra la media consigliata</p>
+            <div className="h-44">
+              {kmPersiChartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={kmPersiChartData}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    onClick={handleChartClick}
+                  >
+                    <defs>
+                      <linearGradient id="colorKmPersi" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#e11d48" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#e11d48" stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
+                    <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
+                      labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#fda4af' }}
+                      formatter={(value: any) => [`${Number(value).toFixed(1)} Km`, extraMode === 'perKm' ? 'Km Persi/Km' : 'Km Persi']}
+                    />
+                    <Area type="monotone" dataKey="kmPersi" stroke="#e11d48" strokeWidth={2.5} fillOpacity={1} fill="url(#colorKmPersi)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
   );
 }

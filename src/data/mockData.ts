@@ -79,6 +79,9 @@ export interface ConsumoAutoWeek {
   kmFinali: number;
   kmEffettuati: number;
   kmAlLitro: number;
+  kmAlLitroAuto?: number;
+  euroPer100Km?: number;
+  kmPersi?: number;
   efficienzaPercentuale: number;
   esitoSettimana: 'Ottima' | 'Buona' | 'Nella media' | 'Sopra media' | 'Scarsa';
   costoExtra: number;

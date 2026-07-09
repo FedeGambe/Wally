@@ -7,7 +7,8 @@ import {
   TrendingUp,
   Info,
   PiggyBank,
-  BarChart3
+  BarChart3,
+  Wallet
 } from 'lucide-react';
 import {
   PieChart,
@@ -36,6 +37,46 @@ export default function Patrimonio() {
     sortedRisparmio,
     cumulativeRisparmioData
   } = usePatrimonioData();
+
+  // Le voci "Stima" (linee tratteggiate) compaiono in tooltip solo per il mese effettivamente mancante,
+  // non nel punto di raccordo dove duplicano il valore reale già mostrato dalla linea piena.
+  const renderAndamentoTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const rowData = payload[0].payload;
+    const meseMancante = rowData.investito === undefined || rowData.investito === null;
+    const visible = payload.filter((p: any) => {
+      if (p.value === undefined || p.value === null) return false;
+      const isStima = typeof p.dataKey === 'string' && p.dataKey.includes('Stima');
+      return isStima ? meseMancante : true;
+    });
+    if (visible.length === 0) return null;
+    return (
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(30,41,59,0.92), rgba(15,23,42,0.96))',
+          backdropFilter: 'blur(4px)',
+          border: 'none',
+          borderRadius: '12px',
+          color: '#fff',
+          fontSize: '12px',
+          padding: '8px 12px'
+        }}
+      >
+        {visible.map((p: any, idx: number) => (
+          <div key={idx} className="flex items-center gap-1.5" style={{ marginTop: idx > 0 ? 4 : 0 }}>
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+            <span>{p.name}: {formatEuro(Number(p.value))}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const splitCapitalData = [
+    { name: 'Disponibile', value: totalDisponibile, color: '#10b981' },
+    { name: 'Investito', value: totalInvestito, color: '#0ea5e9' },
+    { name: 'Accantonato', value: totalImpegnato, color: '#f59e0b' }
+  ].filter(item => item.value > 0);
 
   return (
     <div className="space-y-6">
@@ -134,7 +175,7 @@ export default function Patrimonio() {
                       id={`conto-row-${conto.id || index}`}
                       onClick={() => setSelectedConto(isSelected ? null : conto)}
                       className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isSelected
-                        ? 'border-amber-500 bg-amber-50/25 shadow-xs'
+                        ? 'conto-row-selezionato border-amber-500 bg-amber-50/25'
                         : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
@@ -227,7 +268,7 @@ export default function Patrimonio() {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="p-5 mt-1 mb-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 shadow-md">
+                          <div className="conto-panel-espanso p-5 mt-1 mb-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800">
                             <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3">
                               <div>
                                 <h4 className="font-bold font-display text-sm text-slate-800">{conto.categoria}</h4>
@@ -293,30 +334,88 @@ export default function Patrimonio() {
         </div>
 
         {/* Analytical Widgets Column (Right, 35% width) */}
-        <div className="space-y-6">
-          {/* 1. Dedicated Capitale Impegnato Box Widget */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col justify-between min-h-[340px]">
-            <div>
-              <div className="flex items-center gap-2">
-                <Coins className="w-5 h-5 text-amber-500" />
-                <div>
-                  <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Capitale Accantonato</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Suddivisione del capitale vincolato e dei debiti attivi per conto</p>
-                </div>
+        <div className="flex flex-col gap-6 h-full">
+          {/* 0. Suddivisione Capitale (Disponibile / Investito / Accantonato) */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col flex-1 min-h-0">
+            <div className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-amber-500" />
+              <div>
+                <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Suddivisione Capitale</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Ripartizione tra capitale disponibile, investito e accantonato</p>
               </div>
+            </div>
 
-              {/* Pie Chart of Capitale Impegnato */}
-              <div className="h-44 mt-4 relative">
-                {engagedCapitalData.length > 0 ? (
-                  <>
+            <div className="flex-1 min-h-0 mt-4 flex items-center gap-4">
+              {splitCapitalData.length > 0 ? (
+                <>
+                  <div className="flex-1 h-full min-h-[120px] relative">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
+                        <Tooltip wrapperStyle={{ zIndex: 50 }} formatter={(value: any, name: any) => [formatEuro(Number(value)), name]} />
+                        <Pie
+                          data={splitCapitalData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="55%"
+                          outerRadius="85%"
+                          paddingAngle={0}
+                          stroke="none"
+                          dataKey="value"
+                        >
+                          {splitCapitalData.map((entry, index) => (
+                            <Cell key={`split-cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Totale</span>
+                      <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0 max-w-[30%]">
+                    {splitCapitalData.map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-1.5">
+                        <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
+                        <div className="min-w-0">
+                          <span className="text-slate-600 font-medium text-[10px] block truncate">{item.name}</span>
+                          <span className="font-bold text-slate-800 text-[11px] block">{formatEuro(item.value)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="w-full text-center text-xs text-slate-400 font-medium">
+                  Nessun capitale presente nel foglio Google Sheets
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 1. Dedicated Capitale Impegnato Box Widget */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col flex-1 min-h-0">
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-amber-500" />
+              <div>
+                <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Capitale Accantonato</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Suddivisione del capitale vincolato e dei debiti attivi per conto</p>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 mt-4 flex items-center gap-4">
+              {engagedCapitalData.length > 0 ? (
+                <>
+                  <div className="flex-1 h-full min-h-[120px] relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Tooltip wrapperStyle={{ zIndex: 50 }} formatter={(value: any, name: any) => [formatEuro(Number(value)), name]} />
                         <Pie
                           data={engagedCapitalData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={45}
-                          outerRadius={68}
+                          innerRadius="55%"
+                          outerRadius="85%"
                           paddingAngle={0}
                           stroke="none"
                           dataKey="value"
@@ -329,35 +428,26 @@ export default function Patrimonio() {
                     </ResponsiveContainer>
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                       <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Totale</span>
-                      <span className="text-sm font-black font-display text-amber-600">{formatEuro(totalImpegnato)}</span>
+                      <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalImpegnato)}</span>
                     </div>
-                  </>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400 font-medium">
-                    Nessun capitale accantonato presente nel foglio Google Sheets
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Detailed Breakdown Legend Table */}
-            <div className="border-t border-slate-100 pt-4 mt-2">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Dettaglio Voci accantonamenti (dal Google Sheet)</span>
-              <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                {engagedCapitalData.length > 0 ? (
-                  engagedCapitalData.map((item, idx) => (
-                    <div key={idx} className="flex items-start justify-between gap-1.5 leading-tight pb-1.5 border-b border-slate-50 last:border-b-0">
-                      <div className="flex items-start gap-1.5 min-w-0">
-                        <span className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                        <span className="text-slate-600 font-medium text-xs truncate" title={item.name}>{item.name}</span>
+                  <div className="flex flex-col gap-1.5 shrink-0 max-w-[30%] max-h-full overflow-y-auto pr-1">
+                    {engagedCapitalData.map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-1.5">
+                        <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                        <div className="min-w-0">
+                          <span className="text-slate-600 font-medium text-[10px] block truncate" title={item.name}>{item.name}</span>
+                          <span className="font-bold text-slate-800 text-[11px] block">{formatEuro(item.value)}</span>
+                        </div>
                       </div>
-                      <span className="font-bold text-slate-800 text-xs shrink-0">{formatEuro(item.value)}</span>
-                    </div>
-                  ))
-                ) : (
-                  <span className="text-xs text-slate-400 italic">I conti sincronizzati non hanno somme vincolate.</span>
-                )}
-              </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="w-full text-center text-xs text-slate-400 font-medium">
+                  Nessun capitale accantonato presente nel foglio Google Sheets
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -431,25 +521,7 @@ export default function Patrimonio() {
                     </linearGradient>
                   </defs>
 
-                  <Tooltip
-                    formatter={(value: any, name: any) => {
-                      const translatedName =
-                        name === 'andamentoNetto' || name === 'Andamento Netto' ? 'Andamento Netto' :
-                          (name === 'risparmioCumulativo' || name === 'Andamento Risparmio') ? 'Andamento Risparmio' :
-                            (name === 'investito' || name === 'Quota Investimenti') ? 'Quota Investimenti' : name;
-                      return [
-                        `€${Number(value).toLocaleString('it-IT', { useGrouping: true })}`,
-                        translatedName
-                      ];
-                    }}
-                    contentStyle={{
-                      background: '#1e293b',
-                      border: 'none',
-                      borderRadius: '12px',
-                      color: '#fff',
-                      fontSize: '12px'
-                    }}
-                  />
+                  <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderAndamentoTooltip} />
 
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis
@@ -532,6 +604,66 @@ export default function Patrimonio() {
                     dot={false}
                     activeDot={false}
                     hide={!visibleLines.investito}
+                  />
+
+                  {/* Stima mese mancante Investito: scenario ottimistico e pessimistico (tratteggiate, stesso colore della linea Quota Investimenti) */}
+                  <Area
+                    type="monotone"
+                    yAxisId="right"
+                    name="Stima Investito (ottimistica)"
+                    dataKey="investitoStimaOttimistica"
+                    stroke="#0284c7"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    fill="url(#colorInvestitoPatrimonio)"
+                    fillOpacity={1}
+                    dot={false}
+                    activeDot={false}
+                    hide={!visibleLines.investito}
+                  />
+                  <Area
+                    type="monotone"
+                    yAxisId="right"
+                    name="Stima Investito (pessimistica)"
+                    dataKey="investitoStimaPessimistica"
+                    stroke="#0284c7"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    fill="url(#colorInvestitoPatrimonio)"
+                    fillOpacity={1}
+                    dot={false}
+                    activeDot={false}
+                    hide={!visibleLines.investito}
+                  />
+
+                  {/* Stima mese mancante Andamento Netto: somma risparmio + stima investito, scenario ottimistico e pessimistico (tratteggiate, stesso grigio della linea Netto) */}
+                  <Area
+                    type="monotone"
+                    yAxisId="left"
+                    name="Stima Netto (ottimistica)"
+                    dataKey="andamentoNettoStimaOttimistica"
+                    stroke="#94a3b8"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    fill="url(#colorNettoPatrimonio)"
+                    fillOpacity={1}
+                    dot={false}
+                    activeDot={false}
+                    hide={!visibleLines.netto}
+                  />
+                  <Area
+                    type="monotone"
+                    yAxisId="left"
+                    name="Stima Netto (pessimistica)"
+                    dataKey="andamentoNettoStimaPessimistica"
+                    stroke="#94a3b8"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    fill="url(#colorNettoPatrimonio)"
+                    fillOpacity={1}
+                    dot={false}
+                    activeDot={false}
+                    hide={!visibleLines.netto}
                   />
                 </AreaChart>
               </ResponsiveContainer>

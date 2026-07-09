@@ -69,7 +69,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   const { data } = useFinanceData();
   const [activeTab, setActiveTab] = useState<'cruscotto' | 'rendimenti' | 'conti' | 'pensione'>('cruscotto');
   const [activeConto, setActiveConto] = useState<'scalable' | 'trade'>('scalable');
-  const [selectedMacroCategory, setSelectedMacroCategory] = useState<'Azioni' | 'Obbligazioni' | 'Monetari' | null>(null);
+  const [selectedMacroCategories, setSelectedMacroCategories] = useState<Array<'Azioni' | 'Obbligazioni' | 'Monetari'>>(['Azioni', 'Obbligazioni', 'Monetari']);
   const [timeRange, setTimeRange] = useState<'storico' | '12mesi'>('storico');
   const [isSticky, setIsSticky] = useState(false);
 
@@ -580,14 +580,13 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   }, [nestedPieData]);
 
   const filteredDetailData = useMemo(() => {
-    if (!selectedMacroCategory) return nestedPieData.detailData;
-    return nestedPieData.detailData.filter(item => item.tipo === selectedMacroCategory);
-  }, [nestedPieData.detailData, selectedMacroCategory]);
+    return nestedPieData.detailData.filter(item => (selectedMacroCategories as string[]).includes(item.tipo));
+  }, [nestedPieData.detailData, selectedMacroCategories]);
 
   return {
     activeTab, setActiveTab,
     activeConto, setActiveConto,
-    selectedMacroCategory, setSelectedMacroCategory,
+    selectedMacroCategories, setSelectedMacroCategories,
     timeRange, setTimeRange,
     isSticky,
     CRUSCOTTO_GENERALE, CRUSCOTTO_ANNO,

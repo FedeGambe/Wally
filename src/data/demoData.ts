@@ -103,13 +103,13 @@ export const DEMO_RENDIMENTI_MENSILI: RendimentoInvestimenti[] = [
 ];
 
 export const DEMO_HISTORICAL_CAR_MEASUREMENTS: ConsumoAutoWeek[] = [
-  { settimana: 'Gen W1', data: '02/01/2026', mese: 'gennaio', costo: 24.00, quantitaLitri: 14.0, prezzoAlLitro: 1.714, kmFinali: 50200, kmEffettuati: 300, kmAlLitro: 21.4, esitoSettimana: 'Ottima', efficienzaPercentuale: 95, costoExtra: 0 },
-  { settimana: 'Gen W2', data: '16/01/2026', mese: 'gennaio', costo: 33.00, quantitaLitri: 19.0, prezzoAlLitro: 1.737, kmFinali: 50520, kmEffettuati: 320, kmAlLitro: 16.8, esitoSettimana: 'Buona', efficienzaPercentuale: 85, costoExtra: 0.5 },
-  { settimana: 'Feb W1', data: '06/02/2026', mese: 'febbraio', costo: 25.00, quantitaLitri: 14.5, prezzoAlLitro: 1.724, kmFinali: 50820, kmEffettuati: 300, kmAlLitro: 20.7, esitoSettimana: 'Ottima', efficienzaPercentuale: 93, costoExtra: 0 },
-  { settimana: 'Mar W1', data: '06/03/2026', mese: 'marzo', costo: 30.00, quantitaLitri: 17.1, prezzoAlLitro: 1.754, kmFinali: 51140, kmEffettuati: 320, kmAlLitro: 18.7, esitoSettimana: 'Buona', efficienzaPercentuale: 88, costoExtra: 0 },
-  { settimana: 'Apr W1', data: '07/04/2026', mese: 'aprile', costo: 34.00, quantitaLitri: 19.0, prezzoAlLitro: 1.789, kmFinali: 51470, kmEffettuati: 330, kmAlLitro: 17.4, esitoSettimana: 'Nella media', efficienzaPercentuale: 81, costoExtra: 1.10 },
-  { settimana: 'Mag W1', data: '01/05/2026', mese: 'maggio', costo: 21.00, quantitaLitri: 11.7, prezzoAlLitro: 1.795, kmFinali: 51680, kmEffettuati: 210, kmAlLitro: 17.9, esitoSettimana: 'Buona', efficienzaPercentuale: 85, costoExtra: 0 },
-  { settimana: 'Giu W1', data: '05/06/2026', mese: 'giugno', costo: 40.00, quantitaLitri: 22.2, prezzoAlLitro: 1.802, kmFinali: 52080, kmEffettuati: 400, kmAlLitro: 18.0, esitoSettimana: 'Buona', efficienzaPercentuale: 86, costoExtra: 0 }
+  { settimana: 'Gen W1', data: '02/01/2026', mese: 'gennaio', costo: 24.00, quantitaLitri: 14.0, prezzoAlLitro: 1.714, kmFinali: 50200, kmEffettuati: 300, kmAlLitro: 21.4, kmAlLitroAuto: 21.0, euroPer100Km: 8.00, kmPersi: 0, esitoSettimana: 'Ottima', efficienzaPercentuale: 0.95, costoExtra: 0 },
+  { settimana: 'Gen W2', data: '16/01/2026', mese: 'gennaio', costo: 33.00, quantitaLitri: 19.0, prezzoAlLitro: 1.737, kmFinali: 50520, kmEffettuati: 320, kmAlLitro: 16.8, kmAlLitroAuto: 16.5, euroPer100Km: 10.31, kmPersi: 3.2, esitoSettimana: 'Buona', efficienzaPercentuale: 0.85, costoExtra: 0.5 },
+  { settimana: 'Feb W1', data: '06/02/2026', mese: 'febbraio', costo: 25.00, quantitaLitri: 14.5, prezzoAlLitro: 1.724, kmFinali: 50820, kmEffettuati: 300, kmAlLitro: 20.7, kmAlLitroAuto: 20.3, euroPer100Km: 8.33, kmPersi: 0, esitoSettimana: 'Ottima', efficienzaPercentuale: 0.93, costoExtra: 0 },
+  { settimana: 'Mar W1', data: '06/03/2026', mese: 'marzo', costo: 30.00, quantitaLitri: 17.1, prezzoAlLitro: 1.754, kmFinali: 51140, kmEffettuati: 320, kmAlLitro: 18.7, kmAlLitroAuto: 18.4, euroPer100Km: 9.38, kmPersi: 0, esitoSettimana: 'Buona', efficienzaPercentuale: 0.88, costoExtra: 0 },
+  { settimana: 'Apr W1', data: '07/04/2026', mese: 'aprile', costo: 34.00, quantitaLitri: 19.0, prezzoAlLitro: 1.789, kmFinali: 51470, kmEffettuati: 330, kmAlLitro: 17.4, kmAlLitroAuto: 17.1, euroPer100Km: 10.30, kmPersi: 5.1, esitoSettimana: 'Nella media', efficienzaPercentuale: 0.81, costoExtra: 1.10 },
+  { settimana: 'Mag W1', data: '01/05/2026', mese: 'maggio', costo: 21.00, quantitaLitri: 11.7, prezzoAlLitro: 1.795, kmFinali: 51680, kmEffettuati: 210, kmAlLitro: 17.9, kmAlLitroAuto: 17.6, euroPer100Km: 10.00, kmPersi: 0, esitoSettimana: 'Buona', efficienzaPercentuale: 0.85, costoExtra: 0 },
+  { settimana: 'Giu W1', data: '05/06/2026', mese: 'giugno', costo: 40.00, quantitaLitri: 22.2, prezzoAlLitro: 1.802, kmFinali: 52080, kmEffettuati: 400, kmAlLitro: 18.0, kmAlLitroAuto: 17.7, euroPer100Km: 10.00, kmPersi: 0, esitoSettimana: 'Buona', efficienzaPercentuale: 0.86, costoExtra: 0 }
 ];
 
 export const DEMO_SCALABLE_INSTRUMENTS: InstrumentDetail[] = [

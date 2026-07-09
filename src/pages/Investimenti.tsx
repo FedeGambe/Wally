@@ -21,7 +21,7 @@ export default function Investimenti({
   const {
     activeTab, setActiveTab,
     activeConto, setActiveConto,
-    selectedMacroCategory, setSelectedMacroCategory,
+    selectedMacroCategories, setSelectedMacroCategories,
     timeRange, setTimeRange,
     isSticky,
     CRUSCOTTO_GENERALE, CRUSCOTTO_ANNO,
@@ -105,8 +105,8 @@ export default function Investimenti({
           globalSelectedYear={globalSelectedYear}
           nestedPieData={nestedPieData}
           totalAssetAllocation={totalAssetAllocation}
-          selectedMacroCategory={selectedMacroCategory}
-          setSelectedMacroCategory={setSelectedMacroCategory}
+          selectedMacroCategories={selectedMacroCategories}
+          setSelectedMacroCategories={setSelectedMacroCategories}
           filteredDetailData={filteredDetailData}
           timeRange={timeRange}
           setTimeRange={setTimeRange}
@@ -125,10 +125,9 @@ export default function Investimenti({
           localRendimenti={localRendimenti}
           activeRendimenti={activeRendimenti}
           CRUSCOTTO_GENERALE={CRUSCOTTO_GENERALE}
-          CRUSCOTTO_ANNO={CRUSCOTTO_ANNO}
-          calculatedRendimentoAnnuo={calculatedRendimentoAnnuo}
           globalSelectedYear={globalSelectedYear}
           lastValidRendimento={lastValidRendimento}
+          globalInspectorRecord={globalInspectorRecord}
           cruscottoRows={cruscottoRows}
           formatEuro={formatEuro}
           formatPercent={formatPercent}

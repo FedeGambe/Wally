@@ -450,29 +450,29 @@ export default function FondoPensione({
       {/* Historical Records Table */}
       <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base mb-4">Registro Storico Versamenti Fondo Pensione</h3>
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-850">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-950/80">
-              <tr>
-                <th className="px-6 py-4 rounded-tl-2xl">Mese Rif</th>
-                <th className="px-6 py-4 text-right">Quota TFR</th>
-                <th className="px-6 py-4 text-right">Dipendente Base</th>
-                <th className="px-6 py-4 text-right">Volontario</th>
-                <th className="px-6 py-4 text-right">Quota Datoriale</th>
-                <th className="px-6 py-4 text-right">Totale Mese</th>
-                <th className="px-6 py-4 text-right rounded-tr-2xl">Importo Cumulativo</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <th className="py-3 px-4">Mese Rif</th>
+                <th className="py-3 px-4 text-right">Quota TFR</th>
+                <th className="py-3 px-4 text-right">Dipendente Base</th>
+                <th className="py-3 px-4 text-right">Volontario</th>
+                <th className="py-3 px-4 text-right">Quota Datoriale</th>
+                <th className="py-3 px-4 text-right">Totale Mese</th>
+                <th className="py-3 px-4 text-right">Importo Cumulativo</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-150 dark:divide-slate-800 text-slate-700 dark:text-slate-350 font-medium">
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">
               {descendingData.map((r, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/15 transition-colors duration-150">
-                  <td className="px-6 py-3.5 font-bold text-slate-850 dark:text-slate-200 capitalize">{r.mese}</td>
-                  <td className="px-6 py-3.5 text-right">{formatEuro(r.tfr)}</td>
-                  <td className="px-6 py-3.5 text-right">{formatEuro(r.contrBase)}</td>
-                  <td className="px-6 py-3.5 text-right text-sky-500 dark:text-sky-400 font-semibold">{formatEuro(r.contrVolont)}</td>
-                  <td className="px-6 py-3.5 text-right">{formatEuro(r.contrAzienda)}</td>
-                  <td className="px-6 py-3.5 text-right font-bold text-slate-800 dark:text-slate-200">{formatEuro(r.totMensile)}</td>
-                  <td className="px-6 py-3.5 text-right font-black text-sky-600 dark:text-sky-400">{formatEuro(r.totCumulativo)}</td>
+                <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
+                  <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200 capitalize">{r.mese}</td>
+                  <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.tfr)}</td>
+                  <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.contrBase)}</td>
+                  <td className="py-3.5 px-4 text-right font-mono text-sky-500 dark:text-sky-400 font-semibold">{formatEuro(r.contrVolont)}</td>
+                  <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.contrAzienda)}</td>
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{formatEuro(r.totMensile)}</td>
+                  <td className="py-3.5 px-4 text-right font-mono font-black text-sky-600 dark:text-sky-400">{formatEuro(r.totCumulativo)}</td>
                 </tr>
               ))}
             </tbody>

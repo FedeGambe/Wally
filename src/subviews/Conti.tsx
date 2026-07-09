@@ -383,67 +383,67 @@ export default function Conti({
             <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Nessun dato mensile disponibile per l'anno {globalSelectedYear}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-            <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-400 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-900/60">
-                <tr>
-                  <th className="px-4 py-3 rounded-tl-2xl">Mese</th>
-                  <th className="px-4 py-3 text-right">Rend. Mensile €</th>
-                  <th className="px-4 py-3 text-right">Rend. Mensile %</th>
-                  <th className="px-4 py-3 text-right">Importo Inv. Mese</th>
-                  <th className="px-4 py-3 text-right">Rend. Cumulativo €</th>
-                  <th className="px-4 py-3 text-right">Rend. Cumulativo %</th>
-                  <th className="px-4 py-3 text-right">Totale Investito</th>
-                  <th className="px-4 py-3 text-right">Saldo Conto</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4">Mese</th>
+                  <th className="py-3 px-4 text-right">Rend. Mensile €</th>
+                  <th className="py-3 px-4 text-right">Rend. Mensile %</th>
+                  <th className="py-3 px-4 text-right">Importo Inv. Mese</th>
+                  <th className="py-3 px-4 text-right">Rend. Cumulativo €</th>
+                  <th className="py-3 px-4 text-right">Rend. Cumulativo %</th>
+                  <th className="py-3 px-4 text-right">Totale Investito</th>
+                  <th className="py-3 px-4 text-right">Saldo Conto</th>
                   {activeConto === 'scalable' && (
-                    <th className="px-4 py-3 text-right">Saldo Conto Compl.</th>
+                    <th className="py-3 px-4 text-right">Saldo Conto Compl.</th>
                   )}
-                  <th className="px-4 py-3 text-right">Interessi Conto</th>
+                  <th className="py-3 px-4 text-right">Interessi Conto</th>
                   {activeConto === 'trade' ? (
-                    <th className="px-4 py-3 text-right">Savebacks</th>
+                    <th className="py-3 px-4 text-right">Savebacks</th>
                   ) : (
-                    <th className="px-4 py-3 text-right">Interessi Cumulati</th>
+                    <th className="py-3 px-4 text-right">Interessi Cumulati</th>
                   )}
-                  <th className="px-4 py-3 text-right">Commissioni Mese</th>
-                  <th className="px-4 py-3 text-right">Commissioni Cumul.</th>
-                  <th className="px-4 py-3 text-right rounded-tr-2xl">Dividendi</th>
+                  <th className="py-3 px-4 text-right">Commissioni Mese</th>
+                  <th className="py-3 px-4 text-right">Commissioni Cumul.</th>
+                  <th className="py-3 px-4 text-right">Dividendi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-150 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300 font-medium">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">
                 {sortedFilteredRecords.map((r, idx) => {
                   const rendMese = Number(r.rendimentoMensileEuro || 0);
                   const rendCum = Number(r.rendimentoCumulativoEuro || 0);
                   const divSum = Number(r.dividendiIbonds || 0) + Number(r.dividendiAmundi || 0) + Number(r.dividendi || 0);
                   return (
-                    <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/15 transition-colors duration-155">
-                      <td className="px-4 py-3 font-bold text-slate-850 dark:text-slate-200 capitalize">{r.mese}</td>
-                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
+                    <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
+                      <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200 capitalize">{r.mese}</td>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
                         {rendMese >= 0 ? '+' : ''}{formatEuro(rendMese)}
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
                         {formatPercent(r.rendimentoMensilePerc || 0)}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono">{formatEuro(r.importoMensileInvestitoe || r.importoMensileInvestito || 0)}</td>
-                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.importoMensileInvestitoe || r.importoMensileInvestito || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
                         {rendCum >= 0 ? '+' : ''}{formatEuro(rendCum)}
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
                         {formatPercent(r.rendimentoCumulativoPerc || 0)}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono">{formatEuro(r.totaleInvestito || 0)}</td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-slate-850 dark:text-slate-100">{formatEuro(r.saldoConto || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.totaleInvestito || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-800 dark:text-slate-100">{formatEuro(r.saldoConto || 0)}</td>
                       {activeConto === 'scalable' && (
-                        <td className="px-4 py-3 text-right font-mono">{formatEuro(r.saldoContoCompleto || 0)}</td>
+                        <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.saldoContoCompleto || 0)}</td>
                       )}
-                      <td className="px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400">{formatEuro(r.interessiConto || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono text-emerald-600 dark:text-emerald-400">{formatEuro(r.interessiConto || 0)}</td>
                       {activeConto === 'trade' ? (
-                        <td className="px-4 py-3 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.savebacks || 0)}</td>
+                        <td className="py-3.5 px-4 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.savebacks || 0)}</td>
                       ) : (
-                        <td className="px-4 py-3 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.interessiContoComulativo || 0)}</td>
+                        <td className="py-3.5 px-4 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.interessiContoComulativo || 0)}</td>
                       )}
-                      <td className="px-4 py-3 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniMensili || 0)}</td>
-                      <td className="px-4 py-3 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniomulative || 0)}</td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-sky-600 dark:text-sky-400">{formatEuro(divSum)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniMensili || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniomulative || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-sky-600 dark:text-sky-400">{formatEuro(divSum)}</td>
                     </tr>
                   );
                 })}

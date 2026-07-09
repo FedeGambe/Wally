@@ -11,6 +11,7 @@ interface HeaderProps {
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   onOpenMobileSettings?: () => void;
+  onGoToToday?: () => void;
 }
 
 export default function Header({
@@ -19,7 +20,8 @@ export default function Header({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  onOpenMobileSettings
+  onOpenMobileSettings,
+  onGoToToday
 }: HeaderProps) {
   const { data, isIncognito, toggleIncognito } = useFinanceData();
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
@@ -223,6 +225,7 @@ export default function Header({
             const currentMonth = MESI_ITALIANI[today.getMonth()];
             setSelectedYear(currentYear);
             setSelectedMonth(currentMonth);
+            onGoToToday?.();
           }}
           title="Imposta data odierna come filtro globale"
           className="hidden lg:flex items-center gap-2 bg-slate-50 hover:bg-indigo-50/30 hover:text-indigo-600 hover:border-indigo-200 active:bg-indigo-100 border border-slate-100 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 shrink-0 transition-all duration-200 hover:scale-[1.02] active:scale-98 cursor-pointer shadow-xs hover:shadow-sm"

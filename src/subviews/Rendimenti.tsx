@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { TrendingUp, BarChart3, Euro, Percent, Wallet, Award, ChevronUp, Database, ChevronDown, Calendar } from 'lucide-react';
 import {
   ResponsiveContainer,
-  LineChart,
+  ComposedChart,
+  Area,
   Line,
   BarChart,
   Bar,
@@ -13,16 +14,16 @@ import {
   Cell,
 } from 'recharts';
 import { rendColor, rendColorAlpha } from '../utils/format';
+import { kpiColor, kpiColorAlpha, median, type KpiRange } from '../utils/kpiColorScale';
 import { parseMeseStringToMonthYear } from '../hooks/useInvestimentiData';
 
 interface RendimentiProps {
   localRendimenti: any[];
   activeRendimenti: any[];
   CRUSCOTTO_GENERALE: any;
-  CRUSCOTTO_ANNO: any;
-  calculatedRendimentoAnnuo: number | undefined;
   globalSelectedYear: string;
   lastValidRendimento: any;
+  globalInspectorRecord: any;
   cruscottoRows: any[];
   formatEuro: (val: any) => string;
   formatPercent: (val: any) => string;
@@ -35,10 +36,9 @@ export default function Rendimenti({
   localRendimenti,
   activeRendimenti,
   CRUSCOTTO_GENERALE,
-  CRUSCOTTO_ANNO,
-  calculatedRendimentoAnnuo,
   globalSelectedYear,
   lastValidRendimento,
+  globalInspectorRecord,
   cruscottoRows,
   formatEuro,
   formatPercent,
@@ -51,13 +51,26 @@ export default function Rendimenti({
 
   useEffect(() => setTableYear(globalSelectedYear), [globalSelectedYear]);
 
+  // "Ultimi 12 Mesi" ancorati al filtro globale mese/anno: 12 mesi consecutivi che finiscono al mese
+  // della data impostata nell'header (globalInspectorRecord), a meno che sia il mese attuale (senza dati),
+  // nel qual caso globalInspectorRecord e' gia' risolto al mese precedente. Niente lookahead sui mesi
+  // successivi (a differenza di globalFocusRendimenti usato dal Cruscotto, pensato per una finestra centrata).
+  const last12MonthsRendimenti = useMemo(() => {
+    if (!globalInspectorRecord) return activeRendimenti.slice(-12);
+    const idx = activeRendimenti.findIndex(
+      (r: any) => r.mese.toLowerCase().trim() === globalInspectorRecord.mese.toLowerCase().trim()
+    );
+    if (idx === -1) return activeRendimenti.slice(-12);
+    return activeRendimenti.slice(Math.max(0, idx - 11), idx + 1);
+  }, [activeRendimenti, globalInspectorRecord]);
+
   const crescitaData = useMemo(
-    () => (crescitaRange === 'storico' ? activeRendimenti : activeRendimenti.slice(-12)),
-    [crescitaRange, activeRendimenti]
+    () => (crescitaRange === 'storico' ? activeRendimenti : last12MonthsRendimenti),
+    [crescitaRange, activeRendimenti, last12MonthsRendimenti]
   );
   const mensileData = useMemo(
-    () => (mensileRange === 'storico' ? activeRendimenti : activeRendimenti.slice(-12)),
-    [mensileRange, activeRendimenti]
+    () => (mensileRange === 'storico' ? activeRendimenti : last12MonthsRendimenti),
+    [mensileRange, activeRendimenti, last12MonthsRendimenti]
   );
 
   const crescitaKey = valueMode === 'euro' ? 'rendimentoCumulativoEuro' : 'rendimentoCumulativoPerc';
@@ -79,21 +92,6 @@ export default function Rendimenti({
     return Array.from(years).sort((a, b) => b - a);
   }, [localRendimenti]);
 
-  const previousYearRow = useMemo(
-    () => cruscottoRows.find((r: any) => Number(r.anno) === Number(globalSelectedYear) - 1),
-    [cruscottoRows, globalSelectedYear]
-  );
-  const annualUp = !previousYearRow || Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= Number(previousYearRow.rendimentoAnnualeEuro || 0);
-
-  const previousMonthRecord = useMemo(() => {
-    if (!lastValidRendimento) return null;
-    const idx = localRendimenti.findIndex((r: any) => r.mese === lastValidRendimento.mese);
-    return idx > 0 ? localRendimenti[idx - 1] : null;
-  }, [localRendimenti, lastValidRendimento]);
-  const monthlyUp = !previousMonthRecord || Number(lastValidRendimento?.rendimentoMensileEuro || 0) >= Number(previousMonthRecord.rendimentoMensileEuro || 0);
-  const annualDelta = Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) - Number(previousYearRow?.rendimentoAnnualeEuro || 0);
-  const monthlyDelta = Number(lastValidRendimento?.rendimentoMensileEuro || 0) - Number(previousMonthRecord?.rendimentoMensileEuro || 0);
-
   const tableRows = useMemo(() => {
     return localRendimenti
       .filter((r: any) => {
@@ -107,6 +105,101 @@ export default function Rendimenti({
         return 0;
       });
   }, [localRendimenti, tableYear]);
+
+  // Riga cruscotto dell'anno mostrato nel Registro Rendimenti (tableYear): guida anche titolo e box
+  // "Performance Anno"/"Rendimento", cosi il dropdown "Esercizio" e' l'unica fonte di verita per l'anno
+  // (prima title e box restavano sull'anno globale della pagina, ignorando questo dropdown locale).
+  const tableYearRow = useMemo(
+    () => cruscottoRows.find((r: any) => Number(r.anno) === Number(tableYear)) || cruscottoRows[0] || {},
+    [cruscottoRows, tableYear]
+  );
+
+  const previousYearRow = useMemo(
+    () => cruscottoRows.find((r: any) => Number(r.anno) === Number(tableYear) - 1),
+    [cruscottoRows, tableYear]
+  );
+  const annualUp = !previousYearRow || Number(tableYearRow.rendimentoAnnualeEuro || 0) >= Number(previousYearRow.rendimentoAnnualeEuro || 0);
+  const annualDelta = Number(tableYearRow.rendimentoAnnualeEuro || 0) - Number(previousYearRow?.rendimentoAnnualeEuro || 0);
+
+  // Ultimo mese valido DENTRO l'anno mostrato: serve solo per stimare quanti mesi dell'anno sono
+  // trascorsi (proiezione % annua sotto). Il widget "Ultimo Mese" a video usa invece globalInspectorRecord,
+  // che segue il mese/anno selezionati globalmente (con fallback al mese precedente se quello corrente
+  // non ha ancora dati, esattamente come nel Cruscotto).
+  const lastValidForTableYear = useMemo(() => {
+    for (const r of tableRows) {
+      if (r && r.mese && r.rendimentoMensileEuro !== null && r.rendimentoMensileEuro !== undefined && r.rendimentoMensileEuro !== 0) {
+        return r;
+      }
+    }
+    return tableRows[0] || null;
+  }, [tableRows]);
+
+  const previousMonthRecord = useMemo(() => {
+    if (!globalInspectorRecord) return null;
+    const idx = localRendimenti.findIndex((r: any) => r.mese === globalInspectorRecord.mese);
+    return idx > 0 ? localRendimenti[idx - 1] : null;
+  }, [localRendimenti, globalInspectorRecord]);
+  const monthlyUp = !previousMonthRecord || Number(globalInspectorRecord?.rendimentoMensileEuro || 0) >= Number(previousMonthRecord.rendimentoMensileEuro || 0);
+  const monthlyDelta = Number(globalInspectorRecord?.rendimentoMensileEuro || 0) - Number(previousMonthRecord?.rendimentoMensileEuro || 0);
+
+  const mensilePercRange: KpiRange = useMemo(() => {
+    const values = tableRows.map((r: any) => Number(r.rendimentoMensilePerc || 0)).filter(v => !isNaN(v));
+    if (values.length === 0) return { min: -1, median: 0, max: 1 };
+    return { min: Math.min(...values), median: median(values), max: Math.max(...values) };
+  }, [tableRows]);
+
+  const cumulativoPercRange: KpiRange = useMemo(() => {
+    const values = localRendimenti.map((r: any) => Number(r.rendimentoCumulativoPerc || 0)).filter(v => !isNaN(v));
+    if (values.length === 0) return { min: -1, median: 0, max: 1 };
+    return { min: Math.min(...values), median: median(values), max: Math.max(...values) };
+  }, [localRendimenti]);
+
+  // Rendimento annuo: scala dedicata segno+intensità (verde positivo/rosso negativo/giallo zero),
+  // non la scala kpiColorScale condivisa. Confronta sulla stessa metrica mostrata a video
+  // (rendimentoAnnualeEuro, non la %): confrontare basi diverse (es. % annualizzata sempre a 12 mesi
+  // contro un valore mostrato diverso) falsava il ranking tra anni con capitale investito differente.
+  const annualEuroPositiveMax = useMemo(() => {
+    const values = cruscottoRows.map((r: any) => Number(r.rendimentoAnnualeEuro || 0)).filter(v => !isNaN(v) && v > 0);
+    return values.length > 0 ? Math.max(...values) : 1;
+  }, [cruscottoRows]);
+
+  const annualEuroNegativeMin = useMemo(() => {
+    const values = cruscottoRows.map((r: any) => Number(r.rendimentoAnnualeEuro || 0)).filter(v => !isNaN(v) && v < 0);
+    return values.length > 0 ? Math.min(...values) : -1;
+  }, [cruscottoRows]);
+
+  const normalizeAnnual = (value: number): number => {
+    if (value >= 0) return annualEuroPositiveMax > 0 ? Math.min(1, value / annualEuroPositiveMax) : 0;
+    return annualEuroNegativeMin < 0 ? Math.max(-1, value / Math.abs(annualEuroNegativeMin)) : 0;
+  };
+
+  // Il badge "Variazione annuale" mostra una %, non un importo: va confrontato contro le percentuali
+  // annuali degli altri anni (rendimentoAnnuoStimatoPerc), non contro la stessa scala € del valore sopra.
+  const annualPercPositiveMax = useMemo(() => {
+    const values = cruscottoRows.map((r: any) => Number(r.rendimentoAnnuoStimatoPerc || 0)).filter(v => !isNaN(v) && v > 0);
+    return values.length > 0 ? Math.max(...values) : 1;
+  }, [cruscottoRows]);
+
+  const annualPercNegativeMin = useMemo(() => {
+    const values = cruscottoRows.map((r: any) => Number(r.rendimentoAnnuoStimatoPerc || 0)).filter(v => !isNaN(v) && v < 0);
+    return values.length > 0 ? Math.min(...values) : -1;
+  }, [cruscottoRows]);
+
+  const normalizeAnnualPerc = (value: number): number => {
+    if (value >= 0) return annualPercPositiveMax > 0 ? Math.min(1, value / annualPercPositiveMax) : 0;
+    return annualPercNegativeMin < 0 ? Math.max(-1, value / Math.abs(annualPercNegativeMin)) : 0;
+  };
+
+  // Testo mostrato nel badge "Variazione annuale": per l'anno reale in corso, media mensile * mesi
+  // realmente trascorsi (non ancora un anno intero); per un anno chiuso, mediaMensile*12 (=rendimentoAnnuoStimatoPerc).
+  // Il COLORE resta sempre su rendimentoAnnuoStimatoPerc (sopra) per un confronto equo tra anni.
+  const annualDisplayPerc = useMemo(() => {
+    const isRealCurrentYear = Number(tableYear) === new Date().getFullYear();
+    if (!isRealCurrentYear) return Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0);
+    const mediaMensile = Number(tableYearRow.rendimentoMedioMensilePerc || 0);
+    const elapsedMonths = lastValidForTableYear ? (parseMeseStringToMonthYear(lastValidForTableYear.mese)?.month ?? 12) : 12;
+    return mediaMensile * elapsedMonths;
+  }, [tableYear, tableYearRow, lastValidForTableYear]);
 
   return (
     <div className="space-y-6 text-left animate-fadeIn">
@@ -125,7 +218,7 @@ export default function Rendimenti({
           </div>
           <div className="grid grid-cols-2 auto-rows-fr gap-2 sm:gap-4 flex-1">
             {/* Portafoglio Attuale Box */}
-            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-950 dark:border-sky-900 shadow-md flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-900 dark:border-sky-900 shadow-[0_0_15px_rgba(14,165,233,0.12)] flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.3)] hover:border-sky-900/30 dark:hover:border-sky-800/25 hover:scale-[1.01]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg">
@@ -143,9 +236,9 @@ export default function Rendimenti({
             </div>
 
             {/* Plusvalenza Cumulata Box */}
-            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300 hover:shadow-md ${CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
-              ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_20px_rgba(16,185,129,0.18)]'
-              : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/60 shadow-xs'
+            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300 ${CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
+              ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_25px_rgba(16,185,129,0.32)] hover:border-emerald-500/15 dark:hover:border-emerald-500/10'
+              : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/60 shadow-xs hover:shadow-md'
               }`}>
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Plusvalenza Cumulata</span>
@@ -161,7 +254,7 @@ export default function Rendimenti({
               </div>
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px]">
                 <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">Rendimento Totale</span>
-                <span className="text-[12px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold font-mono">
+                <span className="text-[12px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300/70 dark:border-emerald-700/60 px-1.5 py-0.5 rounded-lg font-extrabold font-mono">
                   {formatPercent(lastValidRendimento?.rendimentoCumulativoPerc)}
                 </span>
               </div>
@@ -174,7 +267,7 @@ export default function Rendimenti({
           <div className="flex items-center justify-between px-1">
             <span className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-slate-400 dark:text-slate-300" />
-              Performance Anno {globalSelectedYear}
+              Performance Anno {tableYear}
             </span>
             <span className="text-[9px] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">
               Anno Selezionato
@@ -183,15 +276,15 @@ export default function Rendimenti({
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div className="bg-[#0c1425]/90 p-3 sm:p-5 pb-2 sm:pb-3 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col">
               <div className="flex justify-between items-start">
-                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Rendimento {globalSelectedYear}</span>
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Rendimento {tableYear}</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg">
                   <Award className="w-4 h-4 text-sky-400" />
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(Number(calculatedRendimentoAnnuo || 0)) }}>
+                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(normalizeAnnual(Number(tableYearRow.rendimentoAnnualeEuro || 0)), 1) }}>
                   {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
-                  {formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}
+                  {formatEuro(tableYearRow.rendimentoAnnualeEuro)}
                 </span>
                 {previousYearRow && (
                   <span className={`text-[10px] font-bold block mt-2 ${annualDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -204,28 +297,28 @@ export default function Rendimenti({
                 <span
                   className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-black border"
                   style={{
-                    backgroundColor: rendColorAlpha(Number(calculatedRendimentoAnnuo || 0), 0.15),
-                    borderColor: rendColor(Number(calculatedRendimentoAnnuo || 0)),
-                    color: rendColor(Number(calculatedRendimentoAnnuo || 0)),
-                    boxShadow: `0 0 10px ${rendColorAlpha(Number(calculatedRendimentoAnnuo || 0), 0.45)}`,
+                    backgroundColor: rendColorAlpha(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 0.15, 1),
+                    borderColor: rendColor(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 1),
+                    color: rendColor(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 1),
+                    boxShadow: `0 0 10px ${rendColorAlpha(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 0.45, 1)}`,
                   }}
                 >
-                  {formatPercent(calculatedRendimentoAnnuo)}
+                  {formatPercent(annualDisplayPerc)}
                 </span>
               </div>
             </div>
 
             <div className="bg-[#0c1425]/90 p-3 sm:p-5 pb-2 sm:pb-3 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col">
               <div className="flex justify-between items-start gap-2">
-                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider truncate">Ultimo Mese ({lastValidRendimento?.mese || 'N/D'})</span>
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider truncate">Ultimo Mese {globalInspectorRecord?.mese || 'N/D'}</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg shrink-0">
                   <BarChart3 className="w-4 h-4 text-sky-400" />
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(Number(lastValidRendimento?.rendimentoMensilePerc || 0)) }}>
+                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange) }}>
                   {monthlyUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
-                  {formatEuro(lastValidRendimento?.rendimentoMensileEuro)}
+                  {formatEuro(globalInspectorRecord?.rendimentoMensileEuro)}
                 </span>
                 {previousMonthRecord && (
                   <span className={`text-[9px] font-bold block mt-2 ${monthlyDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -238,13 +331,13 @@ export default function Rendimenti({
                 <span
                   className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-black border"
                   style={{
-                    backgroundColor: rendColorAlpha(Number(lastValidRendimento?.rendimentoMensilePerc || 0), 0.15),
-                    borderColor: rendColor(Number(lastValidRendimento?.rendimentoMensilePerc || 0)),
-                    color: rendColor(Number(lastValidRendimento?.rendimentoMensilePerc || 0)),
-                    boxShadow: `0 0 10px ${rendColorAlpha(Number(lastValidRendimento?.rendimentoMensilePerc || 0), 0.45)}`,
+                    backgroundColor: kpiColorAlpha(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange, 0.15),
+                    borderColor: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange),
+                    color: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange),
+                    boxShadow: `0 0 10px ${kpiColorAlpha(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange, 0.45)}`,
                   }}
                 >
-                  {formatPercent(lastValidRendimento?.rendimentoMensilePerc)}
+                  {formatPercent(globalInspectorRecord?.rendimentoMensilePerc)}
                 </span>
               </div>
             </div>
@@ -317,13 +410,21 @@ export default function Rendimenti({
             </div>
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={crescitaData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <ComposedChart data={crescitaData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorCrescitaLine" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="33%" stopColor="#eab308" />
-                      <stop offset="66%" stopColor="#f97316" />
-                      <stop offset="100%" stopColor="#f43f5e" />
+                      <stop offset="0%" stopColor="rgb(7 207 150)" />
+                      <stop offset="50%" stopColor="rgb(163 230 53)" />
+                      <stop offset="60%" stopColor="rgb(251 191 36)" />
+                      <stop offset="75%" stopColor="rgb(249 115 22)" />
+                      <stop offset="100%" stopColor="rgb(187 27 27)" />
+                    </linearGradient>
+                    <linearGradient id="colorCrescitaFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgb(7 207 150)" stopOpacity={0.22} />
+                      <stop offset="50%" stopColor="rgb(163 230 53)" stopOpacity={0.16} />
+                      <stop offset="60%" stopColor="rgb(251 191 36)" stopOpacity={0.12} />
+                      <stop offset="75%" stopColor="rgb(249 115 22)" stopOpacity={0.08} />
+                      <stop offset="100%" stopColor="rgb(187 27 27)" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -336,14 +437,16 @@ export default function Rendimenti({
                     itemStyle={{ color: '#fff' }}
                     labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
                   />
-                  <Line
+                  <Area
                     yAxisId="left"
                     type="monotone"
                     dataKey={crescitaKey}
                     name={valueMode === 'euro' ? 'Cumulato €' : 'Cumulato %'}
                     stroke="url(#colorCrescitaLine)"
                     strokeWidth={3}
-                    dot={crescitaRange === '12mesi' ? { r: 3.5, strokeWidth: 2, stroke: '#10b981', fill: '#fff' } : false}
+                    fill="url(#colorCrescitaFill)"
+                    fillOpacity={1}
+                    dot={false}
                     activeDot={{ r: 6, cursor: 'pointer' }}
                   />
                   <Line
@@ -358,7 +461,7 @@ export default function Rendimenti({
                     dot={false}
                     activeDot={{ r: 4 }}
                   />
-                </LineChart>
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 flex justify-between items-center shrink-0">
@@ -488,39 +591,39 @@ export default function Rendimenti({
             <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Nessun dato disponibile per l'anno {tableYear}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-            <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-400 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-900/60">
-                <tr>
-                  <th className="px-3 py-3 rounded-tl-2xl">Mese</th>
-                  <th className="px-3 py-3 text-right">Mensile €</th>
-                  <th className="px-3 py-3 text-right">Mensile %</th>
-                  <th className="px-3 py-3 text-right">Inv. Mese</th>
-                  <th className="px-3 py-3 text-right">Cumul. €</th>
-                  <th className="px-3 py-3 text-right">Cumul. %</th>
-                  <th className="px-3 py-3 text-right">Investito</th>
-                  <th className="px-3 py-3 text-right rounded-tr-2xl">Saldo</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4">Mese</th>
+                  <th className="py-3 px-4 text-right">Mensile €</th>
+                  <th className="py-3 px-4 text-right">Mensile %</th>
+                  <th className="py-3 px-4 text-right">Inv. Mese</th>
+                  <th className="py-3 px-4 text-right">Cumul. €</th>
+                  <th className="py-3 px-4 text-right">Cumul. %</th>
+                  <th className="py-3 px-4 text-right">Investito</th>
+                  <th className="py-3 px-4 text-right">Saldo</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-150 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300 font-medium">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">
                 {tableRows.map((r: any, idx: number) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/15 transition-colors duration-155">
-                    <td className="px-3 py-3 font-bold text-slate-850 dark:text-slate-200 capitalize">{r.mese}</td>
-                    <td className="px-3 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
+                  <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200 capitalize">{r.mese}</td>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoMensilePerc || 0), mensilePercRange) }}>
                       {Number(r.rendimentoMensileEuro || 0) >= 0 ? '+' : ''}{formatEuro(r.rendimentoMensileEuro)}
                     </td>
-                    <td className="px-3 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoMensilePerc || 0), mensilePercRange) }}>
                       {formatPercent(r.rendimentoMensilePerc)}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono">{formatEuro(r.importoMensileInvestito)}</td>
-                    <td className="px-3 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
+                    <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.importoMensileInvestito)}</td>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) }}>
                       {Number(r.rendimentoCumulativoEuro || 0) >= 0 ? '+' : ''}{formatEuro(r.rendimentoCumulativoEuro)}
                     </td>
-                    <td className="px-3 py-3 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) }}>
                       {formatPercent(r.rendimentoCumulativoPerc)}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono">{formatEuro(r.importoInvestitoCumulato)}</td>
-                    <td className="px-3 py-3 text-right font-mono font-bold text-slate-850 dark:text-slate-100">{formatEuro(r.valoreAttualePortafoglio)}</td>
+                    <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.importoInvestitoCumulato)}</td>
+                    <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-800 dark:text-slate-100">{formatEuro(r.valoreAttualePortafoglio)}</td>
                   </tr>
                 ))}
               </tbody>

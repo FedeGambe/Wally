@@ -45,6 +45,8 @@ export default function App() {
 
   // Layout View & Filters State
   const [activeView, setActiveView] = useState('panoramica');
+  // Incrementato dal pulsante "data odierna" dell'Header: AnalisiConsumi lo usa per saltare all'ultima settimana nei dati
+  const [goToTodaySignal, setGoToTodaySignal] = useState(0);
   const [selectedYear, setSelectedYear] = useState(() => {
     const data = getExportableData(isIncognitoModeEnabled());
     const today = new Date();
@@ -219,6 +221,8 @@ export default function App() {
                 setSelectedYear={setSelectedYear}
                 selectedMonth={selectedMonth}
                 setSelectedMonth={setSelectedMonth}
+                goToTodaySignal={goToTodaySignal}
+                setGoToTodaySignal={setGoToTodaySignal}
                 isSidebarCollapsed={isSidebarCollapsed}
                 setIsSidebarCollapsed={handleSetSidebarCollapsed}
                 isTablet={isTablet}
@@ -245,6 +249,8 @@ interface DashboardShellProps {
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
+  goToTodaySignal: number;
+  setGoToTodaySignal: (updater: (s: number) => number) => void;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   isTablet: boolean;
@@ -266,6 +272,8 @@ function DashboardShell({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
+  goToTodaySignal,
+  setGoToTodaySignal,
   isSidebarCollapsed,
   setIsSidebarCollapsed,
   isTablet,
@@ -353,7 +361,7 @@ function DashboardShell({
           />
         );
       case 'consumi':
-        return <AnalisiConsumi />;
+        return <AnalisiConsumi goToTodaySignal={goToTodaySignal} />;
       case 'impostazioni':
         return (
           <Impostazioni
@@ -403,13 +411,14 @@ function DashboardShell({
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
           onOpenMobileSettings={() => setActiveView('impostazioni')}
+          onGoToToday={() => setGoToTodaySignal(s => s + 1)}
         />
 
         {/* View Section Panels scrollable */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeView + selectedYear}
+              key={activeView}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
