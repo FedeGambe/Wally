@@ -159,7 +159,7 @@ export default function Conti({
           onClick={() => setActiveConto('scalable')}
           className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
             activeConto === 'scalable'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+              ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
               : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           }`}
         >
@@ -169,7 +169,7 @@ export default function Conti({
           onClick={() => setActiveConto('trade')}
           className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
             activeConto === 'trade'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+              ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
               : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           }`}
         >
@@ -228,7 +228,7 @@ export default function Conti({
         <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
           <div className="mb-6 border-b border-slate-100 dark:border-slate-800/60 pb-4">
             <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-2">
-              <Landmark className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+              <Landmark className="w-5 h-5 text-sky-500 dark:text-sky-400" />
               Dettaglio Rendimenti e Benefit Accumulati ({globalSelectedYear})
             </h3>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
@@ -238,14 +238,14 @@ export default function Conti({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* COLUMN 1: INTERESSI ACCUMULATI */}
-            <div className="p-5 rounded-2xl bg-indigo-50/20 dark:bg-indigo-950/10 border border-indigo-150/40 dark:border-indigo-900/20 flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-sky-50/20 dark:bg-sky-950/10 border border-sky-150/40 dark:border-sky-900/20 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Interessi Accumulati</span>
-                  <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded">4% Lordo</span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded">4% Lordo</span>
                 </div>
                 <div className="mb-4">
-                  <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400 font-display block">
+                  <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
                     {formatEuro(realMetrics.annualInteressi)}
                   </span>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
@@ -255,7 +255,7 @@ export default function Conti({
               </div>
               
               {/* Historical progression list */}
-              <div className="mt-4 border-t border-indigo-150/40 dark:border-indigo-900/20 pt-4">
+              <div className="mt-4 border-t border-sky-150/40 dark:border-sky-900/20 pt-4">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   {runningTotals.length === 0 ? (
@@ -276,14 +276,14 @@ export default function Conti({
             </div>
 
             {/* COLUMN 2: SAVEBACK */}
-            <div className="p-5 rounded-2xl bg-indigo-50/20 dark:bg-indigo-950/10 border border-indigo-150/40 dark:border-indigo-900/20 flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-sky-50/20 dark:bg-sky-950/10 border border-sky-150/40 dark:border-sky-900/20 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Saveback Maturati</span>
-                  <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded">1% Spesa</span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded">1% Spesa</span>
                 </div>
                 <div className="mb-4">
-                  <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400 font-display block">
+                  <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
                     {formatEuro(realMetrics.annualSaveback)}
                   </span>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
@@ -293,7 +293,7 @@ export default function Conti({
               </div>
 
               {/* Historical progression list */}
-              <div className="mt-4 border-t border-indigo-150/40 dark:border-indigo-900/20 pt-4">
+              <div className="mt-4 border-t border-sky-150/40 dark:border-sky-900/20 pt-4">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   {runningTotals.length === 0 ? (
@@ -366,14 +366,14 @@ export default function Conti({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+              <TrendingUp className="w-5 h-5 text-sky-500 dark:text-sky-400" />
               Registro Storico Mensile — Foglio di Calcolo ({activeConto === 'scalable' ? 'Scalable Capital' : 'Trade Republic'})
             </h3>
             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">
               Rappresentazione della struttura del foglio Google filtrata per l'anno {globalSelectedYear}
             </p>
           </div>
-          <div className="px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-bold font-mono self-start sm:self-center">
+          <div className="px-3 py-1 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-full text-xs font-bold font-mono self-start sm:self-center">
             Anno: {globalSelectedYear}
           </div>
         </div>
@@ -385,7 +385,7 @@ export default function Conti({
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider border-b border-indigo-200 dark:border-indigo-900/60">
+              <thead className="bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-400 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-900/60">
                 <tr>
                   <th className="px-4 py-3 rounded-tl-2xl">Mese</th>
                   <th className="px-4 py-3 text-right">Rend. Mensile €</th>
@@ -437,13 +437,13 @@ export default function Conti({
                       )}
                       <td className="px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400">{formatEuro(r.interessiConto || 0)}</td>
                       {activeConto === 'trade' ? (
-                        <td className="px-4 py-3 text-right font-mono text-indigo-600 dark:text-indigo-400">{formatEuro(r.savebacks || 0)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.savebacks || 0)}</td>
                       ) : (
-                        <td className="px-4 py-3 text-right font-mono text-indigo-600 dark:text-indigo-400">{formatEuro(r.interessiContoComulativo || 0)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.interessiContoComulativo || 0)}</td>
                       )}
                       <td className="px-4 py-3 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniMensili || 0)}</td>
                       <td className="px-4 py-3 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniomulative || 0)}</td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">{formatEuro(divSum)}</td>
+                      <td className="px-4 py-3 text-right font-mono font-bold text-sky-600 dark:text-sky-400">{formatEuro(divSum)}</td>
                     </tr>
                   );
                 })}

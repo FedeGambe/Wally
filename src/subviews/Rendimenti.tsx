@@ -128,7 +128,9 @@ export default function Rendimenti({
             <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-950 dark:border-sky-900 shadow-md flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
-                <Wallet className="w-4 h-4 text-sky-400" />
+                <div className="bg-sky-950/50 p-1 rounded-lg">
+                  <Wallet className="w-4 h-4 text-sky-400" />
+                </div>
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
@@ -179,10 +181,12 @@ export default function Rendimenti({
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
-            <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 pb-2 sm:pb-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col">
+            <div className="bg-[#0c1425]/90 p-3 sm:p-5 pb-2 sm:pb-3 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col">
               <div className="flex justify-between items-start">
-                <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider">Rendimento {globalSelectedYear}</span>
-                <Award className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Rendimento {globalSelectedYear}</span>
+                <div className="bg-sky-950/50 p-1 rounded-lg">
+                  <Award className="w-4 h-4 text-sky-400" />
+                </div>
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(Number(calculatedRendimentoAnnuo || 0)) }}>
@@ -190,13 +194,13 @@ export default function Rendimenti({
                   {formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}
                 </span>
                 {previousYearRow && (
-                  <span className={`text-[10px] font-bold block mt-2 ${annualDelta >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                    {annualDelta >= 0 ? '+' : ''}{formatEuro(annualDelta)} <span className="text-slate-400 dark:text-slate-500 font-medium">vs {previousYearRow.anno}</span>
+                  <span className={`text-[10px] font-bold block mt-2 ${annualDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {annualDelta >= 0 ? '+' : ''}{formatEuro(annualDelta)} <span className="text-slate-500 font-medium">vs {previousYearRow.anno}</span>
                   </span>
                 )}
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 tracking-wide">Variazione annuale</span>
+              <div className="border-t border-sky-900/60 pt-2 mt-2 flex items-center justify-between gap-2">
+                <span className="text-[10px] font-semibold text-slate-500 tracking-wide">Variazione annuale</span>
                 <span
                   className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-black border"
                   style={{
@@ -211,10 +215,12 @@ export default function Rendimenti({
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 pb-2 sm:pb-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col">
+            <div className="bg-[#0c1425]/90 p-3 sm:p-5 pb-2 sm:pb-3 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col">
               <div className="flex justify-between items-start gap-2">
-                <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider truncate">Ultimo Mese ({lastValidRendimento?.mese || 'N/D'})</span>
-                <BarChart3 className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider truncate">Ultimo Mese ({lastValidRendimento?.mese || 'N/D'})</span>
+                <div className="bg-sky-950/50 p-1 rounded-lg shrink-0">
+                  <BarChart3 className="w-4 h-4 text-sky-400" />
+                </div>
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(Number(lastValidRendimento?.rendimentoMensilePerc || 0)) }}>
@@ -222,13 +228,13 @@ export default function Rendimenti({
                   {formatEuro(lastValidRendimento?.rendimentoMensileEuro)}
                 </span>
                 {previousMonthRecord && (
-                  <span className={`text-[9px] font-bold block mt-2 ${monthlyDelta >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                    {monthlyDelta >= 0 ? '+' : ''}{formatEuro(monthlyDelta)} <span className="text-slate-400 dark:text-slate-500 font-medium">vs {previousMonthRecord.mese}</span>
+                  <span className={`text-[9px] font-bold block mt-2 ${monthlyDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {monthlyDelta >= 0 ? '+' : ''}{formatEuro(monthlyDelta)} <span className="text-slate-500 font-medium">vs {previousMonthRecord.mese}</span>
                   </span>
                 )}
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-auto flex items-center justify-between gap-2">
-                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 tracking-wide">Variazione mensile</span>
+              <div className="border-t border-sky-900/60 pt-2 mt-auto flex items-center justify-between gap-2">
+                <span className="text-[10px] font-semibold text-slate-500 tracking-wide">Variazione mensile</span>
                 <span
                   className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-black border"
                   style={{
@@ -278,7 +284,7 @@ export default function Rendimenti({
           <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-900/20 border border-slate-200/70 dark:border-slate-800/60">
             <div className="flex items-center justify-between gap-3 mb-2">
               <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 Crescita Rendimento
               </h4>
               <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
@@ -370,7 +376,7 @@ export default function Rendimenti({
           <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-900/20 border border-slate-200/70 dark:border-slate-800/60">
             <div className="flex items-center justify-between gap-3 mb-2">
               <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-1.5">
-                <BarChart3 className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                <BarChart3 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 Rendimenti Mensili
               </h4>
               <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">

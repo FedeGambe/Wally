@@ -74,7 +74,7 @@ export default function Panoramica({
           icon={TrendingUp}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
               <span>Strumenti finanziari attivi ({formatPercent((capitaleInvestito / patrimonioTotale) * 100)})</span>
             </>
           }
@@ -88,7 +88,7 @@ export default function Panoramica({
           icon={Coins}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
               <span>Fondi vincolati o prenotati ({formatPercent((capitaleImpegnato / patrimonioTotale) * 100)})</span>
             </>
           }
@@ -102,8 +102,8 @@ export default function Panoramica({
           icon={BarChart3}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-              <span>Incluso Accantonato: <strong className="text-xs sm:text-[13px] font-black font-mono text-white tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
+              <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+              <span>Incluso Accantonato: <strong className="text-xs sm:text-[13px] font-black font-mono text-slate-800 dark:text-slate-100 tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
             </>
           }
         />

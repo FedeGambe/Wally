@@ -101,7 +101,9 @@ export default function CruscottoGenerale({
             <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-950 dark:border-sky-900 shadow-md flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
-                <Wallet className="w-4 h-4 text-sky-400" />
+                <div className="bg-sky-950/50 p-1 rounded-lg">
+                  <Wallet className="w-4 h-4 text-sky-400" />
+                </div>
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
@@ -154,53 +156,53 @@ export default function CruscottoGenerale({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Rendimento Annuo Box */}
-            <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div className="bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-700">
               <div className="flex justify-between items-start">
-                <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
-                <div className="bg-sky-50 dark:bg-sky-950/50 p-1 rounded-lg">
-                  <Award className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
+                <div className="bg-sky-950/50 p-1 rounded-lg">
+                  <Award className="w-4 h-4 text-sky-400" />
                 </div>
               </div>
               <div className="mt-2">
                 <span className={`text-lg sm:text-2xl font-extrabold font-display block flex items-baseline gap-1 flex-wrap ${
-                  isAnnualPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                  isAnnualPositive ? 'text-emerald-400' : 'text-rose-400'
                 }`}>
                   <span className="flex items-center gap-0.5">
                     {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
                     {formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}
                   </span>
-                  <span className={`text-xs font-semibold ${isAnnualPositive ? 'text-emerald-400 dark:text-emerald-300' : 'text-rose-400 dark:text-rose-300'}`}>
+                  <span className={`text-xs font-semibold ${isAnnualPositive ? 'text-emerald-300' : 'text-rose-300'}`}>
                     ({formatPercent(calculatedRendimentoAnnuo)})
                   </span>
                 </span>
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
+              <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
                 <span>Media mensile ({elapsedMonthsForSelectedYear}m)</span>
-                <span className="font-bold text-slate-600 dark:text-slate-300 font-mono">{formatPercent(CRUSCOTTO_ANNO.rendimentoMedioMensilePerc)}</span>
+                <span className="font-bold text-slate-300 font-mono">{formatPercent(CRUSCOTTO_ANNO.rendimentoMedioMensilePerc)}</span>
               </div>
             </div>
 
             {/* Contributo Anno Box */}
-            <div className="bg-white dark:bg-slate-900/40 p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div className="bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-700">
               <div className="flex justify-between items-start">
-                <span className="text-[10px] text-slate-400 dark:text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
-                <div className="bg-sky-50 dark:bg-sky-950/50 p-1 rounded-lg">
-                  <Coins className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
+                <div className="bg-sky-950/50 p-1 rounded-lg">
+                  <Coins className="w-4 h-4 text-sky-400" />
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display text-slate-800 dark:text-slate-100 flex items-center gap-0.5">
+                <span className="text-lg sm:text-2xl font-extrabold font-display text-slate-100 flex items-center gap-0.5">
                   {contributoUp ? (
-                    <ChevronUp className="w-5 h-5 shrink-0 text-slate-300 dark:text-slate-600" />
+                    <ChevronUp className="w-5 h-5 shrink-0 text-slate-500" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 shrink-0 text-slate-300 dark:text-slate-600" />
+                    <ChevronDown className="w-5 h-5 shrink-0 text-slate-500" />
                   )}
                   {formatEuro(CRUSCOTTO_ANNO.azioniInvestitoAnno + CRUSCOTTO_ANNO.obbligazioniInvestitoAnno + (CRUSCOTTO_ANNO.monetariInvestitoAnno || 0))}
                 </span>
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
+              <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
                 <span>Contributo Totale</span>
-                <span className="font-extrabold text-sky-600 dark:text-sky-400 font-mono">
+                <span className="font-extrabold text-sky-400 font-mono">
                   {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}
                 </span>
               </div>
@@ -598,7 +600,7 @@ export default function CruscottoGenerale({
             <h3 className="font-bold text-slate-800 font-display text-base mb-4">Distribuzione Asset Class per Anno</h3>
             <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-sm text-left">
-                <thead className="bg-sky-100 text-sky-800 text-xs font-bold uppercase tracking-wider border-b border-sky-200">
+                <thead className="bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-400 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-900/60">
                   <tr>
                     <th className="px-4 py-4 rounded-tl-2xl">Anno</th>
                     <th className="px-4 py-4 text-right">Azioni Cum.</th>

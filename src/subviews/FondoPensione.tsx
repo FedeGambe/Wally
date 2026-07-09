@@ -320,7 +320,7 @@ export default function FondoPensione({
         <div className="lg:col-span-1 bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md min-h-[380px]">
           <div>
             <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-2 mb-1">
-              <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <Shield className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               Ripartizione Totale Versamenti
             </h3>
             <p className="text-xs text-slate-400 dark:text-slate-400 mb-2 font-medium">
@@ -384,7 +384,7 @@ export default function FondoPensione({
         <div className="lg:col-span-2 bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md min-h-[380px]">
           <div>
             <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-2 mb-1">
-              <TrendingUp className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               Andamento Valore Accumulato
             </h3>
             <p className="text-xs text-slate-400 dark:text-slate-400 mb-4 font-medium">
@@ -452,7 +452,7 @@ export default function FondoPensione({
         <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base mb-4">Registro Storico Versamenti Fondo Pensione</h3>
         <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-850">
           <table className="w-full text-sm text-left">
-            <thead className="bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider border-b border-indigo-200 dark:border-indigo-950/80">
+            <thead className="bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 text-xs font-bold uppercase tracking-wider border-b border-sky-200 dark:border-sky-950/80">
               <tr>
                 <th className="px-6 py-4 rounded-tl-2xl">Mese Rif</th>
                 <th className="px-6 py-4 text-right">Quota TFR</th>
@@ -469,10 +469,10 @@ export default function FondoPensione({
                   <td className="px-6 py-3.5 font-bold text-slate-850 dark:text-slate-200 capitalize">{r.mese}</td>
                   <td className="px-6 py-3.5 text-right">{formatEuro(r.tfr)}</td>
                   <td className="px-6 py-3.5 text-right">{formatEuro(r.contrBase)}</td>
-                  <td className="px-6 py-3.5 text-right text-indigo-500 dark:text-indigo-400 font-semibold">{formatEuro(r.contrVolont)}</td>
+                  <td className="px-6 py-3.5 text-right text-sky-500 dark:text-sky-400 font-semibold">{formatEuro(r.contrVolont)}</td>
                   <td className="px-6 py-3.5 text-right">{formatEuro(r.contrAzienda)}</td>
                   <td className="px-6 py-3.5 text-right font-bold text-slate-800 dark:text-slate-200">{formatEuro(r.totMensile)}</td>
-                  <td className="px-6 py-3.5 text-right font-black text-indigo-600 dark:text-indigo-400">{formatEuro(r.totCumulativo)}</td>
+                  <td className="px-6 py-3.5 text-right font-black text-sky-600 dark:text-sky-400">{formatEuro(r.totCumulativo)}</td>
                 </tr>
               ))}
             </tbody>

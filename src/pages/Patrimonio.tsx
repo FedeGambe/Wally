@@ -50,8 +50,8 @@ export default function Patrimonio() {
           icon={BarChart3}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-              <span>Incluso Accantonamento: <strong className="text-xs sm:text-[13px] font-black font-mono text-white tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
+              <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+              <span>Incluso Accantonamento: <strong className="text-xs sm:text-[13px] font-black font-mono text-slate-800 dark:text-slate-100 tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
             </>
           }
         />
@@ -65,7 +65,7 @@ export default function Patrimonio() {
           icon={PiggyBank}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-indigo-300 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span>Liquidità immediata sui conti ({formatPercent(totalWealth > 0 ? (totalDisponibile / totalWealth) * 100 : 0)})</span>
             </>
           }
@@ -80,7 +80,7 @@ export default function Patrimonio() {
           icon={TrendingUp}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
               <span>Strumenti finanziari attivi ({formatPercent(totalWealth > 0 ? (totalInvestito / totalWealth) * 100 : 0)})</span>
             </>
           }
@@ -95,7 +95,7 @@ export default function Patrimonio() {
           icon={Coins}
           detail={
             <>
-              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
               <span>Fondi vincolati o prenotati ({formatPercent(totalWealth > 0 ? (totalImpegnato / totalWealth) * 100 : 0)})</span>
             </>
           }
@@ -134,7 +134,7 @@ export default function Patrimonio() {
                       id={`conto-row-${conto.id || index}`}
                       onClick={() => setSelectedConto(isSelected ? null : conto)}
                       className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isSelected
-                        ? 'border-indigo-500 bg-indigo-50/25 shadow-xs'
+                        ? 'border-amber-500 bg-amber-50/25 shadow-xs'
                         : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
@@ -233,7 +233,7 @@ export default function Patrimonio() {
                                 <h4 className="font-bold font-display text-sm text-slate-800">{conto.categoria}</h4>
                                 <p className="text-[10px] text-slate-500">Analisi approfondita disponibilità del conto</p>
                               </div>
-                              <span className="text-[10px] bg-indigo-50 text-indigo-600 font-bold px-2.5 py-0.5 rounded-full border border-indigo-200/60">
+                              <span className="text-[10px] bg-amber-50 text-amber-600 font-bold px-2.5 py-0.5 rounded-full border border-amber-200/60">
                                 CONTO SELEZIONATO
                               </span>
                             </div>
@@ -260,7 +260,7 @@ export default function Patrimonio() {
                               <div className="space-y-2.5">
                                 <div className="flex justify-between border-b border-slate-100 pb-1.5">
                                   <span className="text-slate-500 font-medium">Quota investimenti:</span>
-                                  <span className="font-bold text-indigo-600">{formatEuro(conto.capitaleInvestito)}</span>
+                                  <span className="font-bold text-sky-600">{formatEuro(conto.capitaleInvestito)}</span>
                                 </div>
                                 <div className="flex justify-between border-b border-slate-100 pb-1.5">
                                   <span className="text-slate-500 font-medium">Quota accantonamenti:</span>
@@ -278,7 +278,7 @@ export default function Patrimonio() {
                             </div>
 
                             <div className="mt-4 pt-3.5 border-t border-slate-100 text-[10px] text-slate-500 flex items-center gap-1.5">
-                              <Info className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+                              <Info className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
                               <span>Valori storici e saldi sincronizzati in tempo reale dal foglio di calcolo Google Sheets.</span>
                             </div>
                           </div>
@@ -366,7 +366,7 @@ export default function Patrimonio() {
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-indigo-500" />
+            <TrendingUp className="w-5 h-5 text-amber-500" />
             <div>
               <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Andamento Finanziario</h3>
               <p className="text-xs text-slate-400 mt-0.5">Analisi storica e cumulativa del patrimonio netto</p>
@@ -397,11 +397,11 @@ export default function Patrimonio() {
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, investito: !prev.investito }))}
               className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.investito
-                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-2xs'
-                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-indigo-50/20 opacity-60'
+                ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-2xs'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-sky-50/20 opacity-60'
                 }`}
             >
-              <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.investito ? 'bg-indigo-500' : 'bg-slate-300'}`}></span>
+              <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.investito ? 'bg-sky-500' : 'bg-slate-300'}`}></span>
               <span>Investito</span>
             </button>
           </div>
@@ -426,8 +426,8 @@ export default function Patrimonio() {
                       <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorInvestitoPatrimonio" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0284c7" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#0284c7" stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
@@ -525,7 +525,7 @@ export default function Patrimonio() {
                     yAxisId="right"
                     name="Quota Investimenti"
                     dataKey="investito"
-                    stroke="#4f46e5"
+                    stroke="#0284c7"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#colorInvestitoPatrimonio)"
@@ -562,7 +562,7 @@ export default function Patrimonio() {
                       </div>
                       <div className="flex items-center justify-end gap-1.5">
                         <span className="text-[9px] text-slate-400 font-medium">Inv:</span>
-                        <span className="font-bold text-indigo-600">
+                        <span className="font-bold text-sky-600">
                           {formatEuro(invVal)}
                         </span>
                       </div>
