@@ -1,4 +1,23 @@
-import React from 'react';
+// ============================================================================
+// Pagina "Uscite": mostra le spese (uscite) del mese/anno selezionati,
+// distinte in "primarie" (essenziali) e "secondarie" (discrezionali), con
+// filtri per categoria, conto e ricerca testuale sull'elenco transazioni.
+//
+// Dati: i calcoli (percentuali su entrate, soglie di allerta dinamiche,
+// storico ultimi 12 mesi, distribuzione per macro/micro categoria, elenco
+// filtrato) sono tutti nell'hook useUsciteData (src/hooks/useUsciteData.ts).
+// Questo file gestisce solo la resa grafica e un piccolo stato locale di UI
+// (scroll/evidenziazione del pannello Micro Categoria).
+//
+// Sotto-sezioni della pagina:
+//  1. Tre card KPI: Spese Totali, Primarie, Secondarie (con barra soglia)
+//  2. Grafico ad area con lo storico spese ultimi 12 mesi (cliccabile)
+//  3. Due grafici a torta: distribuzione per Macro Categoria e Micro Categoria
+//     (cliccare una fetta della Macro filtra la Micro, vedi useEffect sotto)
+//  4. Tabella/archivio transazioni con ricerca e filtri (macro, conto, tipo)
+//  5. Drawer laterale con il dettaglio movimenti quando si apre un mese
+// ============================================================================
+import React, { useEffect, useRef, useState } from 'react';
 import {
   XAxis,
   YAxis,
@@ -22,6 +41,7 @@ import {
   XCircle
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
+import DropdownMenu from '../components/DropdownMenu';
 import { formatEuro, formatPercent } from '../utils/format';
 import { useUsciteData } from '../hooks/useUsciteData';
 
@@ -59,6 +79,24 @@ export default function Uscite({
     handleChartClick, handleOpenMonthDetail
   } = useUsciteData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
+  // Selezionare una fetta nella torta Macro porta il focus (scroll + ring) sulla torta Micro,
+  // che si aggiorna già filtrata sulla macro categoria scelta.
+  const microPanelRef = useRef<HTMLDivElement>(null);
+  const [microFocused, setMicroFocused] = useState(false);
+
+  useEffect(() => {
+    if (selectedMacroCat === 'Tutte') return;
+    microPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setMicroFocused(true);
+    const timer = setTimeout(() => setMicroFocused(false), 1400);
+    return () => clearTimeout(timer);
+  }, [selectedMacroCat]);
+
+  // Badge con la variazione percentuale rispetto al mese precedente.
+  // Qui la logica è invertita rispetto alle Entrate: per le SPESE "di meno" è
+  // meglio. Se il mese precedente era più alto (isPreviousHigher) vuol dire
+  // che la spesa è diminuita: mostriamo verde (buono), altrimenti rosso.
+  // isDark sceglie la palette adatta a sfondi scuri (card arancione) o chiari.
   const renderDeltaBadge = (current: number, previous?: number, isDark = false) => {
     if (previous === undefined || previous === 0) return null;
     const isPreviousHigher = previous > current; // spending decreased -> Green (good)
@@ -95,6 +133,71 @@ export default function Uscite({
       }
     }
   };
+
+  const renderPieTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const p = payload[0];
+    return (
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(30,41,59,0.92), rgba(15,23,42,0.96))',
+          backdropFilter: 'blur(4px)',
+          border: 'none',
+          borderRadius: '12px',
+          color: '#fff',
+          fontSize: '12px',
+          padding: '8px 12px'
+        }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.payload.color || p.color }} />
+          <span><strong>{p.name}</strong>: {formatEuro(Number(p.value))}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Tooltip custom del grafico storico (Andamento Spese ultimi 12 mesi):
+  // Recharts passa "label" = valore dell'asse X (il mese), qui lo cerchiamo
+  // in rolling12MonthsData per recuperare anche l'anno da mostrare in testa.
+  const renderAreaTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const match = rolling12MonthsData.find(d => d.mese === label);
+    const headerLabel = match ? `${label} ${match.anno}` : label;
+    return (
+      <div
+        style={{
+          background: '#1e293b',
+          border: 'none',
+          borderRadius: '12px',
+          color: '#fff',
+          fontSize: '12px',
+          padding: '8px 12px'
+        }}
+      >
+        <div className="font-bold" style={{ marginBottom: 4 }}>{headerLabel}</div>
+        {payload.map((p: any, idx: number) => (
+          <div key={idx} className="flex items-center gap-1.5" style={{ marginTop: idx > 0 ? 4 : 0 }}>
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+            <span>{p.name}: {formatEuro(Number(p.value))}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Legenda custom sopra il grafico storico, per avere lo stile coerente col
+  // resto della pagina invece della legenda di default di Recharts.
+  const renderAreaLegend = ({ payload }: any) => (
+    <div className="flex items-center justify-center gap-4" style={{ marginBottom: 12 }}>
+      {payload.map((entry: any, idx: number) => (
+        <span key={idx} className="flex items-center gap-1.5 text-slate-500" style={{ fontSize: 11, fontWeight: 600 }}>
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+          {entry.value}
+        </span>
+      ))}
+    </div>
+  );
 
   const renderDeltaLabel = (current: number, previous?: number, isDark = false) => {
     if (previous === undefined || previous === 0) return null;
@@ -143,7 +246,12 @@ export default function Uscite({
             </div>
           </div>
           
-          {/* Progress bar compared to Entrate */}
+          {/* Progress bar compared to Entrate.
+              La barra non è scalata sul 100%, ma su "soglia + 5 punti": così la
+              tacca verticale (il marcatore della soglia) non finisce sempre
+              appiccicata al bordo destro e si vede meglio quanto si è vicini
+              o lontani dal limite. Stesso pattern ripetuto per Primarie e
+              Secondarie qui sotto. */}
           <div className="mt-4 pt-3 border-t border-white/15 w-full z-10">
             <div className="flex justify-between items-center text-[10px] text-orange-100 font-bold mb-1">
               <span>Rapporto Entrate</span>
@@ -153,8 +261,8 @@ export default function Uscite({
             </div>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden relative">
-                <div 
-                  className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-200 to-amber-200" 
+                <div
+                  className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-200 to-amber-200"
                   style={{ width: `${Math.min((totalPctOfIncome / (dynamicThresholds.totali + 5)) * 100, 100)}%` }}
                 />
                 <div className="absolute top-0 bottom-0 w-0.5 bg-white/40" style={{ left: `${(dynamicThresholds.totali / (dynamicThresholds.totali + 5)) * 100}%` }} />
@@ -180,14 +288,14 @@ export default function Uscite({
           onClick={() => setActiveChartFilter('primarie')}
           className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'primarie'
-              ? 'bg-indigo-50 border-indigo-500 ring-4 ring-indigo-500/15'
+              ? 'bg-orange-50 border-orange-700 ring-4 ring-orange-700/15'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
           <div className={`absolute right-4 top-4 w-12 h-12 rounded-xl flex items-center justify-center transition-colors border ${
             activeChartFilter === 'primarie'
-              ? 'bg-indigo-600 border-indigo-600 text-white'
-              : 'bg-indigo-50 border-indigo-100 text-indigo-600'
+              ? 'bg-orange-700 border-orange-700 text-white'
+              : 'bg-orange-50 border-orange-100 text-orange-700'
           }`}>
             <CheckCircle className="w-6 h-6" />
           </div>
@@ -224,7 +332,7 @@ export default function Uscite({
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
                 <div 
-                  className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r from-indigo-400 to-indigo-600`} 
+                  className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-500 to-orange-700`}
                   style={{ width: `${Math.min((primaryPctOfIncome / (dynamicThresholds.primarie + 5)) * 100, 100)}%` }}
                 />
                 <div className="absolute top-0 bottom-0 w-0.5 bg-slate-300" style={{ left: `${(dynamicThresholds.primarie / (dynamicThresholds.primarie + 5)) * 100}%` }} />
@@ -244,14 +352,14 @@ export default function Uscite({
           onClick={() => setActiveChartFilter('secondarie')}
           className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'secondarie'
-              ? 'bg-amber-50 border-amber-500 ring-4 ring-amber-500/15'
+              ? 'bg-orange-50 border-orange-400 ring-4 ring-orange-400/15'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
           <div className={`absolute right-4 top-4 w-12 h-12 rounded-xl flex items-center justify-center transition-colors border ${
             activeChartFilter === 'secondarie'
-              ? 'bg-amber-500 border-amber-500 text-white'
-              : 'bg-amber-50 border-amber-100 text-amber-600'
+              ? 'bg-orange-400 border-orange-400 text-white'
+              : 'bg-orange-50 border-orange-100 text-orange-400'
           }`}>
             <XCircle className="w-6 h-6" />
           </div>
@@ -288,7 +396,7 @@ export default function Uscite({
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
                 <div 
-                  className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r from-amber-400 to-amber-600`} 
+                  className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-300 to-orange-400`}
                   style={{ width: `${Math.min((secondaryPctOfIncome / (dynamicThresholds.secondarie + 5)) * 100, 100)}%` }}
                 />
                 <div className="absolute top-0 bottom-0 w-0.5 bg-slate-300" style={{ left: `${(dynamicThresholds.secondarie / (dynamicThresholds.secondarie + 5)) * 100}%` }} />
@@ -341,7 +449,7 @@ export default function Uscite({
             </span>
             <button
               onClick={() => handleOpenMonthDetail(localSelectedMonth, selectedRecord.anno)}
-              className="bg-indigo-600 text-white font-bold text-xs px-4 py-2 rounded-xl transition hover:bg-indigo-700 cursor-pointer text-center"
+              className="bg-orange-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition hover:bg-orange-800 cursor-pointer text-center"
             >
               Vedi Transazioni
             </button>
@@ -356,12 +464,12 @@ export default function Uscite({
             >
               <defs>
                 <linearGradient id="colorUscitePrimarie" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25}/>
-                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.01}/>
+                  <stop offset="5%" stopColor="#c2410c" stopOpacity={0.25}/>
+                  <stop offset="95%" stopColor="#c2410c" stopOpacity={0.01}/>
                 </linearGradient>
                 <linearGradient id="colorUsciteSecondarie" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.01}/>
+                  <stop offset="5%" stopColor="#fb923c" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#fb923c" stopOpacity={0.01}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -377,23 +485,14 @@ export default function Uscite({
                 }}
               />
               <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`} />
-              <Tooltip
-                formatter={(value: any, name: any) => [formatEuro(Number(value)), name]}
-                contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
-              />
-              <Legend 
-                verticalAlign="top" 
-                height={36} 
-                iconType="circle" 
-                iconSize={8}
-                wrapperStyle={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }} 
-              />
+              <Tooltip content={renderAreaTooltip} />
+              <Legend verticalAlign="top" height={36} content={renderAreaLegend} />
               {(activeChartFilter === 'all' || activeChartFilter === 'primarie') && (
                 <Area
                   type="monotone"
                   dataKey="spesePrimarie"
                   name="Spese Primarie"
-                  stroke="#4f46e5"
+                  stroke="#c2410c"
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorUscitePrimarie)"
@@ -406,8 +505,8 @@ export default function Uscite({
                         cx={cx}
                         cy={cy}
                         r={isSelected ? 6 : 4}
-                        fill={isSelected ? '#4f46e5' : '#fff'}
-                        stroke="#4f46e5"
+                        fill={isSelected ? '#c2410c' : '#fff'}
+                        stroke="#c2410c"
                         strokeWidth={isSelected ? 3 : 2}
                         className="cursor-pointer transition-all"
                       />
@@ -420,7 +519,7 @@ export default function Uscite({
                   type="monotone"
                   dataKey="speseSecondarie"
                   name="Spese Secondarie"
-                  stroke="#f59e0b"
+                  stroke="#fb923c"
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorUsciteSecondarie)"
@@ -433,8 +532,8 @@ export default function Uscite({
                         cx={cx}
                         cy={cy}
                         r={isSelected ? 6 : 4}
-                        fill={isSelected ? '#f59e0b' : '#fff'}
-                        stroke="#f59e0b"
+                        fill={isSelected ? '#fb923c' : '#fff'}
+                        stroke="#fb923c"
                         strokeWidth={isSelected ? 3 : 2}
                         className="cursor-pointer transition-all"
                       />
@@ -452,7 +551,7 @@ export default function Uscite({
         {/* Expenditure per Macro Categoria */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
           <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-2">
-            <Grid className="w-5 h-5 text-indigo-600" />
+            <Grid className="w-5 h-5 text-orange-600" />
             Spese per Macro Categoria
           </h3>
           <p className="text-xs text-slate-400 mt-1">Sottodivisione in base alle voci principali in euro</p>
@@ -472,6 +571,11 @@ export default function Uscite({
                     dataKey="value"
                     isAnimationActive={false}
                   >
+                    {/* Ogni fetta è cliccabile: clic su una fetta già selezionata la
+                        deseleziona (torna a 'Tutte'), altrimenti la seleziona e
+                        le altre fette si "spengono" (opacity 0.35) per evidenziarla.
+                        Il cambio di selectedMacroCat fa scattare l'useEffect sopra
+                        che scrolla e mette in evidenza il pannello Micro Categoria. */}
                     {macroCategoryDistribution.map((entry, index) => {
                       const name = entry.name || 'Altro';
                       const isSelected = selectedMacroCat === name;
@@ -481,9 +585,9 @@ export default function Uscite({
                       const cellStrokeWidth = isSelected ? 2 : 0;
 
                       return (
-                        <Cell 
-                          key={`macro-cell-${index}-${entry.name}`} 
-                          fill={SECTOR_COLORS[index % SECTOR_COLORS.length]} 
+                        <Cell
+                          key={`macro-cell-${index}-${entry.name}`}
+                          fill={SECTOR_COLORS[index % SECTOR_COLORS.length]}
                           opacity={cellOpacity}
                           stroke={cellStroke}
                           strokeWidth={cellStrokeWidth}
@@ -499,7 +603,7 @@ export default function Uscite({
                       );
                     })}
                   </Pie>
-                  <Tooltip formatter={(value: any) => formatEuro(value)} />
+                  <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -519,16 +623,16 @@ export default function Uscite({
                       }
                     }}
                     className={`flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
-                      isSelected 
-                        ? 'bg-indigo-50/70 border border-indigo-200/50 shadow-xs' 
-                        : 'hover:bg-slate-50 border border-transparent'
+                      isSelected
+                        ? 'bg-indigo-50/70 dark:bg-indigo-400/10 border border-indigo-200/50 dark:border-indigo-400/20 shadow-xs'
+                        : 'hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SECTOR_COLORS[idx % SECTOR_COLORS.length] }} />
-                      <span className={`text-slate-600 truncate ${isSelected ? 'font-bold text-indigo-700' : 'font-semibold'}`}>{name}</span>
+                      <span className={`text-slate-600 dark:text-slate-300 truncate ${isSelected ? 'font-bold text-indigo-700 dark:text-indigo-300' : 'font-semibold'}`}>{name}</span>
                     </div>
-                    <span className={`font-bold ${isSelected ? 'text-indigo-700' : 'text-slate-800'}`}>{formatEuro(m.value)}</span>
+                    <span className={`font-bold ${isSelected ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-800 dark:text-slate-100'}`}>{formatEuro(m.value)}</span>
                   </div>
                 );
               })}
@@ -537,9 +641,14 @@ export default function Uscite({
         </div>
 
         {/* Expenditure per Micro Category */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+        <div
+          ref={microPanelRef}
+          className={`bg-white p-6 rounded-3xl border shadow-sm text-left transition-all duration-300 hover:shadow-md ${
+            microFocused ? 'border-orange-400 ring-4 ring-orange-400/30' : 'border-slate-200'
+          }`}
+        >
           <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-indigo-600" />
+            <CreditCard className="w-5 h-5 text-orange-600" />
             Spese per Micro Categoria
           </h3>
           <p className="text-xs text-slate-400 mt-1">Sottodivisione in base alle categorie delle transazioni del mese</p>
@@ -586,7 +695,7 @@ export default function Uscite({
                       );
                     })}
                   </Pie>
-                  <Tooltip formatter={(value: any) => formatEuro(value)} />
+                  <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -606,16 +715,16 @@ export default function Uscite({
                       }
                     }}
                     className={`flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
-                      isSelected 
-                        ? 'bg-indigo-50/70 border border-indigo-200/50 shadow-xs' 
-                        : 'hover:bg-slate-50 border border-transparent'
+                      isSelected
+                        ? 'bg-indigo-50/70 dark:bg-indigo-400/10 border border-indigo-200/50 dark:border-indigo-400/20 shadow-xs'
+                        : 'hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SECTOR_COLORS[(idx + 3) % SECTOR_COLORS.length] }} />
-                      <span className={`text-slate-600 truncate ${isSelected ? 'font-bold text-indigo-700' : 'font-semibold'}`}>{name}</span>
+                      <span className={`text-slate-600 dark:text-slate-300 truncate ${isSelected ? 'font-bold text-indigo-700 dark:text-indigo-300' : 'font-semibold'}`}>{name}</span>
                     </div>
-                    <span className={`font-bold ${isSelected ? 'text-indigo-700' : 'text-slate-800'}`}>{formatEuro(a.value)}</span>
+                    <span className={`font-bold ${isSelected ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-800 dark:text-slate-100'}`}>{formatEuro(a.value)}</span>
                   </div>
                 );
               })}
@@ -652,41 +761,59 @@ export default function Uscite({
             <span>Filtri attivi:</span>
           </div>
 
-           {/* macro category selector */}
-           <select
-             value={selectedMacroCat}
-             onChange={(e) => {
-               setSelectedMacroCat(e.target.value);
-               setSelectedMicroCat('Tutte');
-             }}
-             className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-semibold shrink-0 cursor-pointer"
-           >
-             {macroCategoriesList.map((m, idx) => (
-               <option key={`macro-opt-${idx}-${m}`} value={m}>{m === 'Tutte' ? 'Macro Categorie (Tutte)' : m}</option>
-             ))}
-           </select>
+          {/* macro category selector */}
+          <DropdownMenu
+            icon={Grid}
+            accent="orange"
+            widthClass="w-56"
+            label="Macro"
+            value={selectedMacroCat}
+            displayValue={selectedMacroCat}
+            options={macroCategoriesList}
+            onSelect={(m) => {
+              setSelectedMacroCat(m);
+              setSelectedMicroCat('Tutte');
+            }}
+            getOptionLabel={(m) => (m === 'Tutte' ? 'Macro Categorie (Tutte)' : m)}
+          />
 
           {/* payment account selector */}
-          <select
+          <DropdownMenu
+            icon={CreditCard}
+            accent="orange"
+            widthClass="w-56"
+            label="Conto"
             value={selectedConto}
-            onChange={(e) => setSelectedConto(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-semibold shrink-0 cursor-pointer"
-          >
-            {accountsList.map((a, idx) => (
-              <option key={`acct-opt-${idx}-${a}`} value={a}>{a === 'Tutti' ? 'Conto Utilizzato (Tutti)' : a}</option>
-            ))}
-          </select>
+            displayValue={selectedConto}
+            options={accountsList}
+            onSelect={setSelectedConto}
+            getOptionLabel={(a) => (a === 'Tutti' ? 'Conto Utilizzato (Tutti)' : a)}
+          />
 
           {/* primary / secondary checklist switcher */}
-          <select
+          <DropdownMenu
+            icon={Filter}
+            accent="orange"
+            widthClass="w-56"
+            label="Tipologia"
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-semibold shrink-0 cursor-pointer"
-          >
-            <option value="Tutte font-semibold">Tipologia Spesa (Tutte)</option>
-            <option value="Primarie font-semibold">Solo Spese Primarie (Target 35%)</option>
-            <option value="Secondarie font-semibold">Solo Spese Secondarie (Target 15%)</option>
-          </select>
+            displayValue={
+              selectedType === 'Primarie'
+                ? 'Primarie (35%)'
+                : selectedType === 'Secondarie'
+                ? 'Secondarie (15%)'
+                : 'Tutte'
+            }
+            options={['Tutte', 'Primarie', 'Secondarie']}
+            onSelect={setSelectedType}
+            getOptionLabel={(v) =>
+              v === 'Tutte'
+                ? 'Tipologia Spesa (Tutte)'
+                : v === 'Primarie'
+                ? 'Solo Spese Primarie (Target 35%)'
+                : 'Solo Spese Secondarie (Target 15%)'
+            }
+          />
 
           {/* Micro category selection indicator */}
           {selectedMicroCat !== 'Tutte' && (
@@ -708,71 +835,69 @@ export default function Uscite({
         </div>
 
         {/* Transactions list layout table */}
-        <div className="overflow-x-auto rounded-2xl border border-slate-200">
-          <table className="w-full text-sm text-left text-slate-600">
-            <thead className="bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border-b border-indigo-150">
-              <tr>
-                <th className="px-6 py-4 rounded-tl-2xl">Data</th>
-                <th className="px-6 py-4">Descrizione</th>
-                <th className="px-6 py-4">Macro</th>
-                <th className="px-6 py-4">Categoria</th>
-                <th className="px-6 py-4 text-right">Importo</th>
-                <th className="px-6 py-4">Conto utilizzato</th>
-                <th className="px-6 py-4 text-center rounded-tr-2xl">Primaria</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-150 text-slate-700 font-medium">
-              {finalFilteredTransactions.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400 text-xs font-mono">
-                    Nessuna transazione soddisfa i filtri selezionati.
-                  </td>
+        {finalFilteredTransactions.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+            Nessuna transazione soddisfa i filtri selezionati.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3 px-4">Data</th>
+                  <th className="py-3 px-4">Descrizione</th>
+                  <th className="py-3 px-4">Macro</th>
+                  <th className="py-3 px-4">Categoria</th>
+                  <th className="py-3 px-4 text-right">Importo</th>
+                  <th className="py-3 px-4">Conto utilizzato</th>
+                  <th className="py-3 px-4 text-center">Primaria</th>
                 </tr>
-              ) : (
-                finalFilteredTransactions.map((tx, idx) => (
-                  <tr key={tx.id || `tx-${idx}`} className="hover:bg-slate-50/20 transition-colors">
-                    <td className="px-6 py-3.5 text-xs text-slate-500 font-mono">
+              </thead>
+              <tbody className="divide-y divide-slate-50 text-xs">
+                {finalFilteredTransactions.map((tx, idx) => (
+                  <tr key={tx.id || `tx-${idx}`} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3.5 px-4 text-slate-400 font-normal font-mono">
                       {tx.data}
                     </td>
-                    <td className="px-6 py-3.5">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
                         <span className="shrink-0">{tx.icon || '🍕'}</span>
-                        <span className="font-semibold text-slate-800 text-xs truncate max-w-xs">{tx.descrizione}</span>
+                        <span className="font-semibold text-slate-800 truncate max-w-xs">{tx.descrizione}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-3.5">
+                    <td className="py-3.5 px-4">
                       <span className="bg-slate-100 border border-slate-200/50 text-[10px] text-slate-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">
                         {tx.macroCategoria}
                       </span>
                     </td>
-                    <td className="px-6 py-3.5 text-xs text-slate-500">
+                    <td className="py-3.5 px-4 text-slate-400 font-normal">
                       {tx.categoria}
                     </td>
-                    <td className="px-6 py-3.5 text-right font-bold text-slate-800">
+                    <td className="py-3.5 px-4 text-right font-extrabold text-slate-800 font-mono">
                       {formatEuro(tx.importo)}
                     </td>
-                    <td className="px-6 py-3.5 text-xs">
-                      <span className="inline-flex items-center gap-1 bg-slate-50 border border-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                    <td className="py-3.5 px-4 text-slate-600 font-medium">
+                      <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 font-mono">
                         {tx.conto}
                       </span>
                     </td>
-                    <td className="px-6 py-3.5 text-center">
+                    <td className="py-3.5 px-4 text-center">
                       {tx.primaria ? (
-                        <span className="inline-flex items-center bg-blue-50 text-blue-600 text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
+                        <span className="inline-flex items-center bg-orange-700 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
                           Sì (35%)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center bg-fuchsia-50 text-fuchsia-600 text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
+                        <span className="inline-flex items-center bg-orange-100 text-orange-700 text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
                           No (15%)
                         </span>
                       )}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <Drawer

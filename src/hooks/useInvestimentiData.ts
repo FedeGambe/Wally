@@ -4,6 +4,14 @@ import { useFinanceData } from '../context/FinanceDataContext';
 import { formatPercent as formatPercentBase } from '../utils/format';
 import { MESI_ITALIANI } from '../utils/date';
 
+/**
+ * Funzione helper esportata: prova a leggere mese e anno da una stringa libera
+ * (es. "ottobre 25", "Oct 2025", "10/25"), sia in italiano che in inglese, sia
+ * per esteso che abbreviata. Restituisce null se non riesce a riconoscerli.
+ * Usata sia qui che nella pagina Investimenti per confrontare/ordinare i
+ * record dei fogli "Scalable" e "Trade Republic" (che arrivano dal foglio
+ * Google in formati di data non sempre uniformi).
+ */
 export function parseMeseStringToMonthYear(meseStr: string): { month: number; year: number } | null {
   if (!meseStr) return null;
   const str = String(meseStr).trim().toLowerCase();
@@ -61,6 +69,12 @@ export function parseMeseStringToMonthYear(meseStr: string): { month: number; ye
 }
 
 /**
+ * Hook usato dalla pagina Investimenti (tab Cruscotto/Rendimenti/Conti/Pensione).
+ * Prende in input il mese/anno selezionati globalmente (stato condiviso con
+ * l'header) e legge da useFinanceData() i fogli Rendimenti, Scalable, Trade
+ * Republic, Fondo Pensione e il Cruscotto aggregato. Restituisce i KPI e le
+ * serie storiche gia' calcolati per ciascun tab, con dei valori demo di
+ * fallback quando lo spreadsheet non e' ancora collegato.
  * Tutto il calcolo dietro la pagina Investimenti (cruscotto generale, conti, fondo
  * pensione): 24 useMemo concentrati qui invece che sparsi prima del JSX della pagina,
  * cosi un bug nei numeri si isola senza toccare il render dei 3 tab.
@@ -103,7 +117,11 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return localRendimenti.filter((r: any) => r && r.valoreAttualePortafoglio && r.valoreAttualePortafoglio > 0);
   }, [localRendimenti]);
 
-  // 1.7 Check if global selection matches current month/year
+  // 1.7 Check if global selection matches current month/year.
+  // Serve a distinguere due casi diversi piu' sotto: se l'utente guarda il mese in
+  // corso, i dati di quel mese potrebbero essere ancora incompleti (lo sheet non
+  // e' stato aggiornato fino a fine mese), quindi l'inspector "ripiega" sul mese
+  // precedente invece di mostrare un valore parziale/fuorviante.
   const isCurrentMonthSelected = useMemo(() => {
     const today = new Date();
     const currentMonthName = MESI_ITALIANI[today.getMonth()];
@@ -125,7 +143,9 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     });
   }, [localRendimenti, globalSelectedMonth, globalSelectedYear]);
 
-  // 1.9 Find the target index in localRendimenti for the inspector
+  // 1.9 Find the target index in localRendimenti for the inspector.
+  // Se e' selezionato il mese corrente, punta al mese PRIMA (rawIdx - 1): come spiegato
+  // sopra, i dati del mese in corso sono spesso ancora vuoti/parziali sullo sheet.
   const inspectorTargetRawIndex = useMemo(() => {
     const rawIdx = selectedRawIndex;
     if (isCurrentMonthSelected) {
@@ -143,7 +163,9 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
       targetIdx = localRendimenti.length - 1;
     }
 
-    // Cerca all'indietro a partire da targetIdx per trovare il primo record valido (> 0)
+    // Cerca all'indietro a partire da targetIdx per trovare il primo record valido (> 0):
+    // se il mese calcolato ha portafoglio a 0 (riga non ancora compilata), si retrocede
+    // finche' non si trova un mese con dati reali, cosi' i KPI non mostrano mai uno zero fasullo.
     for (let i = Math.min(targetIdx, localRendimenti.length - 1); i >= 0; i--) {
       const r = localRendimenti[i];
       if (r && r.valoreAttualePortafoglio && r.valoreAttualePortafoglio > 0) {
@@ -186,6 +208,8 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return timeRange === '12mesi' ? globalFocusRendimenti : activeRendimenti;
   }, [timeRange, globalFocusRendimenti, activeRendimenti]);
 
+  // Se lo sheet ha un tab "Cruscotto" gia' compilato lo usiamo cosi' com'e';
+  // altrimenti lo calcoliamo al volo dai fogli Scalable/Trade Republic.
   const localCruscotto = useMemo(() => {
     if (data.cruscottoInvestimenti?.length > 0) {
       return data.cruscottoInvestimenti;
@@ -194,6 +218,10 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return computed;
   }, [data]);
 
+  // KPI generali (card in alto nel tab Cruscotto). isLoaded distingue "nessuno
+  // spreadsheet collegato ancora" (mostra tutto vuoto/undefined, niente numeri
+  // finti) da "spreadsheet collegato ma senza righe cruscotto" (qui invece si
+  // mostrano dei valori demo plausibili come placeholder).
   const CRUSCOTTO_GENERALE = useMemo(() => {
     const isLoaded = !!localStorage.getItem('sf_spreadsheet_id');
 
@@ -334,6 +362,10 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     };
   }, [localCruscotto, globalSelectedYear]);
 
+  // Numero di mesi "trascorsi" nell'anno selezionato per cui ci sono davvero dati
+  // (serve a proiettare il rendimento medio mensile su base annua sotto). Se
+  // l'ultimo mese valido appartiene a un anno diverso da quello selezionato,
+  // si assume l'anno completo (12 mesi).
   const elapsedMonthsForSelectedYear = useMemo(() => {
     if (!lastValidRendimento || !lastValidRendimento.mese) return 12;
     const targetMonthYear = parseMeseStringToMonthYear(lastValidRendimento.mese);
@@ -356,6 +388,8 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return 12;
   }, [lastValidRendimento, globalSelectedYear]);
 
+  // Rendimento annuo stimato = rendimento medio mensile x mesi trascorsi (proiezione
+  // lineare semplice, non un calcolo composto/attuariale).
   const calculatedRendimentoAnnuo = useMemo(() => {
     const mediaMensile = CRUSCOTTO_ANNO.rendimentoMedioMensilePerc;
     if (mediaMensile === undefined || mediaMensile === null || isNaN(Number(mediaMensile))) {
@@ -386,7 +420,13 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
 
   const formatPercent = (value: any) => formatPercentBase(value, { signed: true });
 
-  // Grouped instruments detail across Scalable and Trade Republic
+  // Grouped instruments detail across Scalable and Trade Republic.
+  // Costruisce i dati per il grafico a torta "nidificato" (macro-categoria Azioni/
+  // Obbligazioni/Monetari + dettaglio dei singoli strumenti dentro ciascuna fetta).
+  // Se sono disponibili righe reali nei fogli Scalable/Trade Republic si usa
+  // computeRealAssetAllocation (calcolo esatto); altrimenti si ricostruisce
+  // un'allocazione approssimata dai soli "strumenti" (scalableInstruments/
+  // tradeRepublicInstruments), classificandoli per parole chiave nel nome.
   const nestedPieData = useMemo(() => {
     const azioniColors = ['#1e3a8a', '#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
     const obbligazioniColors = ['#7c2d12', '#9a3412', '#c2410c', '#ea580c', '#f97316', '#fb923c', '#fdba74'];
@@ -494,6 +534,8 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   const localScalableInstruments = data.scalableInstruments;
   const localTradeRepublicInstruments = data.tradeRepublicInstruments;
 
+  // Se il foglio "Scalable" non ha righe reali, si mostra una serie demo hardcoded
+  // (12 mesi plausibili) cosi' la pagina non appare vuota prima di collegare lo sheet.
   const localScalableMonthly = useMemo(() => {
     const raw = data.scalable || [];
     if (raw.length > 0) return raw;
@@ -515,6 +557,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     ];
   }, [data.scalable]);
 
+  // Stesso principio del blocco sopra, ma per il foglio "Trade Republic".
   const localTradeRepublicMonthly = useMemo(() => {
     const raw = data.tradeRepublic || [];
     if (raw.length > 0) return raw;
@@ -538,6 +581,10 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
 
   const localFondoPensione = data.fondoPensione;
 
+  // Record del conto attivo (Scalable o Trade Republic) filtrati per l'anno selezionato.
+  // Prova prima a interpretare "mese" con parseMeseStringToMonthYear; se fallisce,
+  // ripiega sul campo "anno" o su un controllo testuale grezzo sulle ultime 2 cifre
+  // dell'anno dentro la stringa mese (tollera dati sporchi/formati vecchi).
   const filteredMonthlyRecords = useMemo(() => {
     const list = activeConto === 'scalable' ? localScalableMonthly : localTradeRepublicMonthly;
     return list.filter((row: any) => {

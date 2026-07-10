@@ -1,3 +1,12 @@
+/**
+ * Pagina "Investimenti": contenitore con 4 schede (Cruscotto, Rendimenti, Conti, Fondo Pensione).
+ * Questo file NON contiene la logica di calcolo: fa solo da "guscio" che sceglie quale sotto-vista
+ * mostrare (subviews/CruscottoGenerale, Rendimenti, Conti, FondoPensione) e passa loro i dati già
+ * pronti. Tutti i calcoli (asset allocation, rendimenti, KPI dei conti broker, ecc.) vivono nel
+ * custom hook useInvestimentiData (src/hooks/useInvestimentiData.ts), che a sua volta si appoggia
+ * a useFinanceData() e a src/utils/cruscottoInvestimenti.ts. Qui vengono solo destrutturati i
+ * risultati dell'hook e smistati alla scheda attiva.
+ */
 import React from 'react';
 import CruscottoGenerale from '../subviews/CruscottoGenerale';
 import Rendimenti from '../subviews/Rendimenti';
@@ -15,9 +24,12 @@ interface InvestimentiProps {
 }
 
 export default function Investimenti({
+  // Mese/anno selezionati globalmente in App.tsx (header); i valori di default qui sotto scattano
+  // solo se la pagina viene montata senza props (es. in isolamento/test), non nell'uso normale.
   selectedMonth: globalSelectedMonth = 'Luglio',
   selectedYear: globalSelectedYear = '2026',
 }: InvestimentiProps = {}) {
+  // Tutta la logica (filtri, aggregazioni, KPI) è calcolata dall'hook: qui prendiamo solo i risultati.
   const {
     activeTab, setActiveTab,
     activeConto, setActiveConto,

@@ -1,3 +1,22 @@
+// ============================================================================
+// Pagina "Panoramica": è la dashboard riassuntiva mostrata come prima
+// schermata, con la fotografia del patrimonio e l'andamento mensile di
+// entrate/uscite/risparmio/investimenti per il mese/anno selezionati.
+//
+// Dati: tutti i calcoli (totali di patrimonio, percentuali sul mese, delta
+// vs mese precedente, serie storica per il grafico) vengono dall'hook
+// usePanoramicaData (src/hooks/usePanoramicaData.ts). Qui c'è solo il layout.
+//
+// Sotto-sezioni della pagina:
+//  1. Quattro card di patrimonio (Disponibile / Investito / Accantonato / Totale)
+//  2. Strip KPI del mese corrente (Risparmio, Investito, Spese Primarie/Secondarie)
+//     con indicatori "sopra/sotto soglia" rispetto ai target dinamici
+//  3. Riga con delta % vs mese precedente per Entrate/Uscite/Primarie/Secondarie
+//  4. Grafico ad area con il trend mensile di Risparmio Netto e Quota Investita
+//  5. Widget riepilogo "Disponibilità Netta" del mese corrente
+//  6. Tabella storica mensile (Bilancio Storico) con colori in base alle soglie
+//  7. Drawer laterale con il dettaglio movimenti quando si apre un mese
+// ============================================================================
 import React from 'react';
 import {
   TrendingUp,
@@ -18,7 +37,9 @@ import {
 } from 'recharts';
 import Drawer from '../components/Drawer';
 import FinanceKpiCard from '../components/FinanceKpiCard';
+import DataTable from '../components/DataTable';
 import { formatEuro, formatPercent } from '../utils/format';
+import { kpiColor, thresholdRange } from '../utils/kpiColorScale';
 import { usePanoramicaData } from '../hooks/usePanoramicaData';
 
 interface PanoramicaProps {
@@ -110,12 +131,17 @@ export default function Panoramica({
       </div>
 
       {/* Main KPI Month Strip & Indicators */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left">
         <h3 className="text-base font-bold text-slate-800 font-display mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-indigo-605 text-indigo-600" />
           Mese Corrente in Evidenza: <span className="text-indigo-600 font-extrabold capitalize">{currentMonthData.mese} {currentMonthData.anno}</span>
         </h3>
 
+        {/* Nota sul verso dei confronti con la soglia: per Risparmio e
+            Investito "di più è meglio" quindi il confronto è >= (raggiunto
+            o superato il target = verde). Per le Spese (Primarie/Secondarie)
+            vale il contrario: "di meno è meglio", quindi il confronto è <=
+            (sotto la soglia = verde, sopra = allerta rossa). */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {/* Risparmio */}
           <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75 flex flex-col justify-between h-32 transition-all duration-300 hover:bg-slate-50">
@@ -421,69 +447,94 @@ export default function Panoramica({
           </span>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-200">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border-b border-indigo-100">
-              <tr>
-                <th className="px-6 py-4 rounded-tl-2xl">Mese / Anno</th>
-                <th className="px-6 py-4 text-right">Entrate</th>
-                <th className="px-6 py-4 text-right">Spese Primarie</th>
-                <th className="px-6 py-4 text-right">Spese Secondarie</th>
-                <th className="px-6 py-4 text-right">Investito</th>
-                <th className="px-6 py-4 text-right">Risparmio Netto</th>
-                <th className="px-6 py-4 text-right">Quota Netto %</th>
-                <th className="px-6 py-4 text-right rounded-tr-2xl">Dettagli</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-150 text-slate-700 font-medium">
-              {[...filteredRisparmio].reverse().map((r, idx) => {
-                const savingQuota = (r.risparmioNetto / r.entrate) * 100;
+        {/* Colonne Spese/Investito/Risparmio Netto: il colore del testo non è
+            fisso ma calcolato da kpiColor() in base a quanto la percentuale
+            sul totale entrate (r.xxx / r.entrate * 100) si avvicina o supera
+            la soglia target dinamica (dynamicThresholds.*), con una fascia di
+            tolleranza di 10 punti (vedi src/utils/kpiColorScale.ts). L'ultimo
+            parametro `false` di thresholdRange inverte la scala per le spese
+            (dove superare la soglia è un male, non un bene). */}
+        <DataTable
+          data={[...filteredRisparmio].reverse()}
+          keyExtractor={(r) => `${r.mese}-${r.anno}`}
+          columns={[
+            {
+              header: 'Mese / Anno',
+              render: (r) => <span className="font-semibold text-slate-800 capitalize">{r.mese} {r.anno}</span>
+            },
+            {
+              header: 'Entrate',
+              align: 'right',
+              render: (r) => <span className="text-slate-600 font-medium font-mono">{formatEuro(r.entrate)}</span>
+            },
+            {
+              header: 'Spese Primarie',
+              align: 'right',
+              render: (r) => (
+                <span className="font-medium font-mono" style={{ color: kpiColor(r.entrate ? (r.spesePrimarie / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.primarie, 10, false)) }}>
+                  {formatEuro(r.spesePrimarie)}
+                </span>
+              )
+            },
+            {
+              header: 'Spese Secondarie',
+              align: 'right',
+              render: (r) => (
+                <span className="font-medium font-mono" style={{ color: kpiColor(r.entrate ? (r.speseSecondarie / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.secondarie, 10, false)) }}>
+                  {formatEuro(r.speseSecondarie)}
+                </span>
+              )
+            },
+            {
+              header: 'Investito',
+              align: 'right',
+              render: (r) => (
+                <span className="font-semibold font-mono" style={{ color: kpiColor(r.entrate ? (r.investito / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.investiti, 10)) }}>
+                  {formatEuro(r.investito)}
+                </span>
+              )
+            },
+            {
+              header: 'Risparmio Netto',
+              align: 'right',
+              render: (r) => (
+                <span className="font-extrabold font-mono" style={{ color: kpiColor(r.entrate ? (r.risparmioNetto / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.risparmio, 10)) }}>
+                  {formatEuro(r.risparmioNetto)}
+                </span>
+              )
+            },
+            {
+              header: 'Quota Invest.+Risp. %',
+              align: 'right',
+              render: (r) => {
+                const quota = r.entrate ? ((r.investito + r.risparmioNetto) / r.entrate) * 100 : 0;
                 return (
-                  <tr key={idx} className="hover:bg-slate-55/40 hover:bg-slate-50/50 transition-colors duration-155">
-                    <td className="px-6 py-3.5 font-bold text-slate-850 capitalize">
-                      {r.mese} {r.anno}
-                    </td>
-                    <td className="px-6 py-3.5 text-right font-bold text-emerald-600">
-                      {formatEuro(r.entrate)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right text-slate-600">
-                      {formatEuro(r.spesePrimarie)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right text-slate-600">
-                      {formatEuro(r.speseSecondarie)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right text-indigo-650 text-indigo-600 font-semibold">
-                      {formatEuro(r.investito)}
-                    </td>
-                    <td className={`px-6 py-3.5 text-right font-extrabold ${r.risparmioNetto >= 0 ? "text-emerald-500" : "text-rose-500"
-                      }`}>
-                      {formatEuro(r.risparmioNetto)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${savingQuota >= 35
-                        ? "bg-emerald-100 text-emerald-800"
-                        : savingQuota >= 10
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-rose-100 text-rose-800"
-                        }`}>
-                        {formatPercent(savingQuota)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <button
-                        onClick={() => handleOpenMonthDetail(r.mese, r.anno)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 rounded-xl border border-indigo-200 hover:border-transparent transition-all duration-150 cursor-pointer"
-                      >
-                        Analizza
-                        <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                      </button>
-                    </td>
-                  </tr>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${quota >= 35
+                    ? "bg-emerald-100 text-emerald-800"
+                    : quota >= 10
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-rose-100 text-rose-800"
+                    }`}>
+                    {formatPercent(quota)}
+                  </span>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
+              }
+            },
+            {
+              header: 'Dettagli',
+              align: 'right',
+              render: (r) => (
+                <button
+                  onClick={() => handleOpenMonthDetail(r.mese, r.anno)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 rounded-xl border border-indigo-200 hover:border-transparent transition-all duration-150 cursor-pointer"
+                >
+                  Analizza
+                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                </button>
+              )
+            }
+          ]}
+        />
       </div>
 
       {/* Drawer detailed details */}

@@ -13,6 +13,16 @@ import {
 } from 'recharts';
 import { TrendingUp, Shield, Coins, Wallet, Landmark } from 'lucide-react';
 
+// Sotto-vista "Fondo Pensione" della pagina Investimenti: mostra l'andamento del
+// fondo pensione complementare (TFR + contributo dipendente + contributo azienda).
+// Dati usati: FONDO_PENSIONE_DATA, un array di righe mensili che può arrivare sia
+// dai dati mock (chiavi es. "contrVolont") sia dal foglio Google (chiavi es.
+// "contrVolontaria", "totAccumulato") — normalizedData qui sotto unifica le due forme.
+// Contenuti principali:
+//  - 3 KPI (Valore Fondo Accumulato, Versamento Mensile Medio, Contributo Azienda Attivo)
+//  - torta con la ripartizione storica tra TFR / Azienda / Dipendente
+//  - grafico ad area con la crescita del capitale accumulato nel tempo
+//  - tabella "Registro Storico Versamenti"
 interface FondoPensioneProps {
   FONDO_PENSIONE_DATA: any[];
   formatEuro: (val: any) => string;
@@ -20,10 +30,13 @@ interface FondoPensioneProps {
   selectedYearStr: string;
 }
 
+// Converte una stringa mese come "Gennaio 2024", "gen-24" o "01/2024" in { month, year } numerici,
+// così le righe del fondo pensione possono essere ordinate e confrontate cronologicamente
+// anche se il testo del foglio Google non è sempre scritto nello stesso formato.
 function parseMeseStringToMonthYear(meseStr: string): { month: number; year: number } | null {
   if (!meseStr) return null;
   const str = String(meseStr).trim().toLowerCase();
-  
+
   // Trova l'anno (4 cifre o 2 cifre)
   const yearMatch = str.match(/\b(20\d{2}|\d{2})\b/);
   let year = yearMatch ? parseInt(yearMatch[1], 10) : null;
@@ -81,9 +94,12 @@ export default function FondoPensione({
   selectedYearStr,
 }: FondoPensioneProps) {
   // Normalize data to support both mock keys and Google Sheets keys dynamically
+  // Questo blocco "appiattisce" le righe grezze in una forma unica (mese, tfr, contrBase,
+  // contrVolont, contrAzienda, totMensile, totCumulativo), indipendentemente dal fatto che
+  // i dati vengano dai mock locali o dal foglio Google (che usa nomi di colonna leggermente diversi).
   const normalizedData = useMemo(() => {
     let rawList = FONDO_PENSIONE_DATA || [];
-    
+
     // Check if the data comes from Google Sheets. Google Sheets maps fields like 'contrVolontaria' or 'totAccumulato'.
     const isFromSheets = rawList.some((item: any) => 'contrVolontaria' in item || 'totAccumulato' in item);
     console.log("FONDO_PENSIONE_DATA length:", rawList.length, "isFromSheets:", isFromSheets);
@@ -96,7 +112,7 @@ export default function FondoPensione({
       // (This is the calculations/percentage row)
       rawList = rawList.slice(1);
     }
-    
+
     return rawList
       .map((item: any, index: number) => {
         const tfr = Number(item.tfr) || 0;
@@ -112,6 +128,8 @@ export default function FondoPensione({
 
         const contrAzienda = Number(item.contrAzienda) || 0;
 
+        // Preferisce il totale mensile già calcolato nel foglio (colonna totMensile);
+        // se manca, non è un numero valido o è zero, lo ricalcola sommando le singole voci.
         let totMensile = 0;
         if (item.totMensile !== undefined && item.totMensile !== null && item.totMensile !== '') {
           totMensile = Number(item.totMensile);
@@ -122,7 +140,7 @@ export default function FondoPensione({
           totMensile = tfr + contrBase + contrVolont + contrAzienda;
         }
         let totCumulativo = 0;
-        
+
         // Debugging totAccumulato mapping
         console.log(`[FondoPensione Map Item ${index}] Month: "${item.mese}"`);
         console.log(contrVolont)
@@ -130,6 +148,8 @@ export default function FondoPensione({
         console.log(` - item.totCumulativo:`, item.totCumulativo, `(type: ${typeof item.totCumulativo})`);
         console.log(` - keys in item:`, Object.keys(item));
 
+        // totAccumulato è il nome della colonna sul foglio Google, totCumulativo quello usato
+        // dai dati mock: si prova prima la colonna del foglio, poi quella mock, poi si resta a 0.
         if (item.totAccumulato !== undefined && item.totAccumulato !== null && item.totAccumulato !== '') {
           totCumulativo = Number(item.totAccumulato);
           console.log(` - Selected totAccumulato -> Number:`, totCumulativo);
@@ -167,6 +187,9 @@ export default function FondoPensione({
   }, [FONDO_PENSIONE_DATA]);
 
   // Derive key indicators dynamically
+  // Trova la riga da usare per i KPI in base al mese/anno selezionati globalmente nell'header:
+  // se non c'è una riga esatta per quel mese (es. mese corrente non ancora versato), usa l'ultima
+  // riga cronologicamente precedente disponibile; se anche quella manca, usa la primissima riga.
   const resolvedRecord = useMemo(() => {
     const parsedRows = normalizedData.map(row => {
       const parsed = parseMeseStringToMonthYear(row.mese);
@@ -220,6 +243,8 @@ export default function FondoPensione({
   const activeCompanyContrib = resolvedRecord?.contrAzienda || 0;
 
   // Pie chart data: breakdown of all historical contributions summed up
+  // Somma su tutto lo storico (non solo l'anno/mese selezionato) le 3 fonti di versamento,
+  // per mostrare nella torta quanto pesa il TFR rispetto ai contributi di azienda e dipendente.
   const pieData = useMemo(() => {
     if (normalizedData.length === 0) return [];
     let totalTfr = 0;

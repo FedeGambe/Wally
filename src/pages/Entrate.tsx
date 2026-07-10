@@ -1,3 +1,20 @@
+// ============================================================================
+// Pagina "Entrate": mostra i flussi di ENTRATA (stipendio, altri introiti...)
+// per il mese/anno selezionati dall'utente (filtri gestiti in App.tsx e
+// passati come props selectedYear/selectedMonth).
+//
+// Dati: tutta la logica di calcolo (aggregazioni per categoria/conto, delta
+// rispetto al mese precedente, elenco movimenti del mese) vive nell'hook
+// useEntrateData (src/hooks/useEntrateData.ts). Questo file si occupa SOLO
+// della resa grafica (JSX) dei dati già pronti restituiti dall'hook.
+//
+// Sotto-sezioni della pagina:
+//  1. Due box "bento" con Entrate del mese ed Entrate annuali + media mensile
+//  2. Grafico ad area con lo storico mensile delle entrate (cliccabile)
+//  3. Due grafici a torta: ripartizione per categoria e per conto di accredito
+//  4. Tabella con il dettaglio dei singoli movimenti del mese selezionato
+//  5. Drawer laterale con l'elenco delle transazioni quando si clicca un punto
+// ============================================================================
 import React from 'react';
 import {
   CartesianGrid,
@@ -19,6 +36,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
+import DataTable from '../components/DataTable';
 import { formatEuro, formatPercent } from '../utils/format';
 import { useEntrateData } from '../hooks/useEntrateData';
 
@@ -48,6 +66,11 @@ export default function Entrate({
     handlePointClick
   } = useEntrateData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
+  // Badge con la variazione percentuale rispetto al mese precedente.
+  // Per le entrate "di più" è positivo: se il mese corrente è più basso del
+  // precedente (isPreviousHigher) si mostra in rosso (peggioramento),
+  // altrimenti in verde (miglioramento). Nessun badge se manca lo storico
+  // o se il mese precedente vale 0 (per evitare divisioni per zero).
   const renderDelta = (current: number, previous?: number) => {
     if (previous === undefined || previous === 0) return null;
     const isPreviousHigher = previous > current;
@@ -67,6 +90,31 @@ export default function Entrate({
         </span>
       );
     }
+  };
+
+  // Tooltip custom per i grafici a torta (Recharts passa "active"/"payload"
+  // quando il mouse è sopra una fetta): mostriamo solo nome + importo in euro.
+  const renderPieTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const p = payload[0];
+    return (
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(30,41,59,0.92), rgba(15,23,42,0.96))',
+          backdropFilter: 'blur(4px)',
+          border: 'none',
+          borderRadius: '12px',
+          color: '#fff',
+          fontSize: '12px',
+          padding: '8px 12px'
+        }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.payload.color || p.color }} />
+          <span><strong>{p.name}</strong>: {formatEuro(Number(p.value))}</span>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -98,24 +146,24 @@ export default function Entrate({
         </div>
 
         {/* Box Entrate Annuali */}
-        <div className="bg-indigo-900 text-white rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden h-40 border border-indigo-950 transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-indigo-100 backdrop-blur-xs">
+        <div className="bg-transparent text-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden h-40 border-2 border-emerald-500 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+          <div className="absolute right-4 top-4 w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <Calendar className="w-6 h-6" />
           </div>
           <div className="z-10 text-left">
-            <span className="text-xs text-indigo-200 font-bold uppercase tracking-wider block">
+            <span className="text-xs text-emerald-600 font-bold uppercase tracking-wider block">
               Entrate Anno Corrente ({selectedRecord?.anno})
             </span>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              <h3 className="text-3xl font-extrabold font-display text-white leading-none">
+              <h3 className="text-3xl font-extrabold font-display text-slate-800 leading-none">
                 {formatEuro(totalIncomeForSelectedYear)}
               </h3>
             </div>
           </div>
-          <p className="text-xs text-indigo-100/95 mt-auto z-10 font-medium text-left">
-            Media mensile stimata di <strong className="font-bold">{formatEuro(avgMonthlyIncome)}</strong>
+          <p className="text-xs text-slate-500 mt-auto z-10 font-medium text-left">
+            Media mensile stimata di <strong className="font-bold text-slate-700">{formatEuro(avgMonthlyIncome)}</strong>
           </p>
-          <div className="absolute -right-4 -bottom-4 opacity-10">
+          <div className="absolute -right-4 -bottom-4 text-emerald-500/10">
             <TrendingUp className="w-32 h-32" />
           </div>
         </div>
@@ -130,8 +178,16 @@ export default function Entrate({
               Visualizzazione dei flussi di entrata storici estratti da Google Fogli. Clicca sul punto del mese per visualizzare il dettaglio dei bonifici.
             </p>
           </div>
-          <div className="bg-emerald-50 px-3 py-1.5 rounded-full text-xs font-bold text-emerald-700 self-start sm:self-center capitalize">
-            Attivo: {localSelectedMonth} {selectedRecord?.anno}
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline bg-emerald-50 px-3 py-1.5 rounded-full text-xs font-bold text-emerald-700 capitalize">
+              Attivo: {localSelectedMonth} {selectedRecord?.anno}
+            </span>
+            <button
+              onClick={() => handlePointClick(selectedRecord?.meseDisplay || localSelectedMonth, selectedRecord?.anno || new Date().getFullYear(), selectedRecord?.entrate || 0)}
+              className="bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition hover:bg-emerald-800 cursor-pointer text-center"
+            >
+              Vedi Transazioni
+            </button>
           </div>
         </div>
 
@@ -248,7 +304,7 @@ export default function Entrate({
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: any) => formatEuro(value)} />
+                      <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -272,7 +328,7 @@ export default function Entrate({
         {/* Torta Canali / Conti di accredito */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
           <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-indigo-600" />
+            <CreditCard className="w-5 h-5 text-emerald-600" />
             Canali di Accredito
           </h3>
           <p className="text-xs text-slate-400 mt-1">Conti correnti e depositi su cui sono confluiti i capitali</p>
@@ -303,7 +359,7 @@ export default function Entrate({
                           <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: any) => formatEuro(value)} />
+                      <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -346,41 +402,34 @@ export default function Entrate({
             Nessun movimento di entrata inserito direttamente per questo mese.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">Categoria / Causale</th>
-                  <th className="py-3 px-4">Canale / Conto</th>
-                  <th className="py-3 px-4">Note / Dettagli</th>
-                  <th className="py-3 px-4 text-right">Importo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-xs">
-                {activeMonthEntries.map((e, idx) => (
-                  <tr key={e.id || idx} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                        <span>{e.categoria || 'Generica'}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 font-medium">
-                      <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 font-mono">
-                        {e.conto || 'Altro'}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-400 font-normal">
-                      {e.dettagli || '-'}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-emerald-600 font-mono">
-                      {formatEuro(e.importo)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            data={activeMonthEntries}
+            keyExtractor={(e, idx) => e.id || idx}
+            columns={[
+              {
+                header: 'Categoria / Causale',
+                render: (e) => (
+                  <div className="flex items-center gap-2 font-semibold text-slate-800">
+                    <span className="shrink-0">{e.categoria === 'Stipendio' ? '💼' : '💵'}</span>
+                    <span>{e.categoria || 'Generica'}</span>
+                  </div>
+                )
+              },
+              {
+                header: 'Canale / Conto',
+                render: (e) => (
+                  <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 font-mono">
+                    {e.conto || 'Altro'}
+                  </span>
+                )
+              },
+              {
+                header: 'Importo',
+                align: 'right',
+                render: (e) => <span className="font-extrabold text-emerald-600 font-mono">{formatEuro(e.importo)}</span>
+              }
+            ]}
+          />
         )}
       </div>
 

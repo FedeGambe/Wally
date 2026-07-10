@@ -1,4 +1,23 @@
-import React from 'react';
+// ============================================================================
+// Pagina "Patrimonio": mostra la fotografia complessiva del patrimonio
+// (somma di tutti i conti) e il suo andamento storico nel tempo. Non ha
+// filtri anno/mese come le altre pagine: mostra sempre tutto lo storico.
+//
+// Dati: i totali per conto, le somme aggregate (disponibile/investito/
+// impegnato) e la serie storica cumulativa vengono dall'hook
+// usePatrimonioData (src/hooks/usePatrimonioData.ts). Qui restano solo la
+// resa grafica e un po' di stato locale di interazione (zoom sul grafico,
+// conto espanso/selezionato).
+//
+// Sotto-sezioni della pagina:
+//  1. Quattro card di patrimonio (Totale / Disponibile / Investito / Accantonato)
+//  2. Elenco conti con soglie di allerta, espandibile per il dettaglio di ognuno
+//  3. Due grafici a torta: suddivisione capitale e capitale accantonato per conto
+//  4. Grafico ad area "Andamento Finanziario" con zoom via drag del mouse,
+//     3 linee attivabili (Netto/Risparmio/Investito) e stime per mesi mancanti
+//  5. Riepilogo mensile a fianco del grafico (risparmio e investito per mese)
+// ============================================================================
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Coins,
@@ -20,7 +39,8 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid
+  CartesianGrid,
+  ReferenceArea
 } from 'recharts';
 import FinanceKpiCard from '../components/FinanceKpiCard';
 import { formatEuro, formatPercent } from '../utils/format';
@@ -37,6 +57,51 @@ export default function Patrimonio() {
     sortedRisparmio,
     cumulativeRisparmioData
   } = usePatrimonioData();
+
+  // Zoom a selezione (drag) sul grafico Andamento Finanziario: solo desktop con mouse (pointer: fine).
+  const isPointerFine = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches,
+    []
+  );
+  const [zoomDomain, setZoomDomain] = useState<{ left: string; right: string } | null>(null);
+  const [zoomSelection, setZoomSelection] = useState<{ left?: string; right?: string }>({});
+
+  // Dati effettivamente disegnati nel grafico: se non c'è uno zoom attivo
+  // (zoomDomain null) si usa tutta la serie storica; altrimenti si ritaglia
+  // (slice) la porzione di array compresa tra i due punti selezionati con il
+  // drag del mouse, indipendentemente dall'ordine in cui sono stati scelti
+  // (da qui il confronto i1 <= i2 per capire quale sia "start" e quale "end").
+  const chartData = useMemo(() => {
+    if (!zoomDomain) return cumulativeRisparmioData;
+    const i1 = cumulativeRisparmioData.findIndex(d => d.uniqueKey === zoomDomain.left);
+    const i2 = cumulativeRisparmioData.findIndex(d => d.uniqueKey === zoomDomain.right);
+    if (i1 === -1 || i2 === -1) return cumulativeRisparmioData;
+    const [start, end] = i1 <= i2 ? [i1, i2] : [i2, i1];
+    return cumulativeRisparmioData.slice(start, end + 1);
+  }, [cumulativeRisparmioData, zoomDomain]);
+
+  // Sequenza drag-to-zoom sul grafico: mouseDown segna il punto di partenza,
+  // mouseMove aggiorna il punto di arrivo mentre si trascina (mostrando
+  // l'area evidenziata via <ReferenceArea> più sotto), mouseUp conferma la
+  // selezione impostando zoomDomain (che rifà girare la useMemo sopra) e
+  // pulisce lo stato di selezione temporanea. Attivo solo con mouse preciso
+  // (isPointerFine) per non rompere lo scroll su schermi touch.
+  const handleChartMouseDown = (e: any) => {
+    if (!isPointerFine || !e?.activeLabel) return;
+    setZoomSelection({ left: e.activeLabel });
+  };
+  const handleChartMouseMove = (e: any) => {
+    if (!isPointerFine || !zoomSelection.left || !e?.activeLabel) return;
+    setZoomSelection(prev => ({ ...prev, right: e.activeLabel }));
+  };
+  const handleChartMouseUp = () => {
+    if (!isPointerFine) return;
+    const { left, right } = zoomSelection;
+    if (left && right && left !== right) {
+      setZoomDomain({ left, right });
+    }
+    setZoomSelection({});
+  };
 
   // Le voci "Stima" (linee tratteggiate) compaiono in tooltip solo per il mese effettivamente mancante,
   // non nel punto di raccordo dove duplicano il valore reale già mostrato dalla linea piena.
@@ -62,6 +127,7 @@ export default function Patrimonio() {
           padding: '8px 12px'
         }}
       >
+        <div className="font-bold" style={{ marginBottom: 4 }}>{rowData.mese} {rowData.anno}</div>
         {visible.map((p: any, idx: number) => (
           <div key={idx} className="flex items-center gap-1.5" style={{ marginTop: idx > 0 ? 4 : 0 }}>
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
@@ -72,6 +138,31 @@ export default function Patrimonio() {
     );
   };
 
+  const renderPieTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const p = payload[0];
+    return (
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(30,41,59,0.92), rgba(15,23,42,0.96))',
+          backdropFilter: 'blur(4px)',
+          border: 'none',
+          borderRadius: '12px',
+          color: '#fff',
+          fontSize: '12px',
+          padding: '8px 12px'
+        }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.payload.color || p.color }} />
+          <span><strong>{p.name}</strong>: {formatEuro(Number(p.value))}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Dati per la torta "Suddivisione Capitale": si filtrano le voci a 0 per
+  // non disegnare fette vuote (es. se non ci sono capitali accantonati).
   const splitCapitalData = [
     { name: 'Disponibile', value: totalDisponibile, color: '#10b981' },
     { name: 'Investito', value: totalInvestito, color: '#0ea5e9' },
@@ -143,13 +234,13 @@ export default function Patrimonio() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[60fr_40fr] gap-6">
         {/* Accounts Summary Cards List (Left, 65% width) */}
         <div className="space-y-4">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
             <h3 className="font-bold text-slate-800 font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span>Sintesi Situazione Conti</span>
-              <span className="text-[10px] text-slate-400 font-semibold font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
+              <span className="text-[10px] text-slate-400 font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
             </h3>
 
             <div className="space-y-3">
@@ -160,6 +251,12 @@ export default function Patrimonio() {
                   ? (conto.id && selectedConto.id === conto.id) || selectedConto.categoria === conto.categoria
                   : false;
 
+                // hasSoglia = true solo se il conto ha una soglia di allarme
+                // configurata sul foglio Google Sheets (campi allarmeSoglia/
+                // rimanenteSoglia validi e non entrambi a zero, che indica
+                // "soglia non impostata" più che "soglia raggiunta a zero").
+                // Se false, si usa il fallback più semplice isUnderThreshold
+                // (confronto diretto capitaleTotale vs sogliaAllarme fissa).
                 const hasSoglia =
                   conto.allarmeSoglia !== undefined &&
                   conto.allarmeSoglia !== null &&
@@ -170,14 +267,17 @@ export default function Patrimonio() {
                   !(Number(conto.allarmeSoglia) === 0 && Number(conto.rimanenteSoglia) === 0);
 
                 return (
-                  <React.Fragment key={conto.id || conto.categoria || index}>
+                  <div
+                    key={conto.id || conto.categoria || index}
+                    id={`conto-row-${conto.id || index}`}
+                    className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isSelected
+                      ? 'border-slate-400 dark:border-slate-500'
+                      : 'border-slate-50 dark:border-white/10 dark:hover:border-white/30'
+                      }`}
+                  >
                     <div
-                      id={`conto-row-${conto.id || index}`}
                       onClick={() => setSelectedConto(isSelected ? null : conto)}
-                      className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isSelected
-                        ? 'conto-row-selezionato border-amber-500 bg-amber-50/25'
-                        : 'border-slate-100 hover:border-slate-200 bg-white'
-                        }`}
+                      className="p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${hasSoglia
@@ -268,13 +368,13 @@ export default function Patrimonio() {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="conto-panel-espanso p-5 mt-1 mb-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800">
+                          <div className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-slate-200 dark:border-white/10 text-slate-800">
                             <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3">
                               <div>
                                 <h4 className="font-bold font-display text-sm text-slate-800">{conto.categoria}</h4>
                                 <p className="text-[10px] text-slate-500">Analisi approfondita disponibilità del conto</p>
                               </div>
-                              <span className="text-[10px] bg-amber-50 text-amber-600 font-bold px-2.5 py-0.5 rounded-full border border-amber-200/60">
+                              <span className="text-[10px] bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-white/10">
                                 CONTO SELEZIONATO
                               </span>
                             </div>
@@ -319,14 +419,14 @@ export default function Patrimonio() {
                             </div>
 
                             <div className="mt-4 pt-3.5 border-t border-slate-100 text-[10px] text-slate-500 flex items-center gap-1.5">
-                              <Info className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                              <Info className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
                               <span>Valori storici e saldi sincronizzati in tempo reale dal foglio di calcolo Google Sheets.</span>
                             </div>
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </React.Fragment>
+                  </div>
                 );
               })}
             </div>
@@ -348,10 +448,10 @@ export default function Patrimonio() {
             <div className="flex-1 min-h-0 mt-4 flex items-center gap-4">
               {splitCapitalData.length > 0 ? (
                 <>
-                  <div className="flex-1 h-full min-h-[120px] relative">
+                  <div className="flex-1 min-w-0 h-full min-h-[120px] relative">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Tooltip wrapperStyle={{ zIndex: 50 }} formatter={(value: any, name: any) => [formatEuro(Number(value)), name]} />
+                        <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
                         <Pie
                           data={splitCapitalData}
                           cx="50%"
@@ -406,10 +506,10 @@ export default function Patrimonio() {
             <div className="flex-1 min-h-0 mt-4 flex items-center gap-4">
               {engagedCapitalData.length > 0 ? (
                 <>
-                  <div className="flex-1 h-full min-h-[120px] relative">
+                  <div className="flex-1 min-w-0 h-full min-h-[120px] relative">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Tooltip wrapperStyle={{ zIndex: 50 }} formatter={(value: any, name: any) => [formatEuro(Number(value)), name]} />
+                        <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
                         <Pie
                           data={engagedCapitalData}
                           cx="50%"
@@ -459,16 +559,27 @@ export default function Patrimonio() {
             <TrendingUp className="w-5 h-5 text-amber-500" />
             <div>
               <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Andamento Finanziario</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Analisi storica e cumulativa del patrimonio netto</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Analisi storica e cumulativa del patrimonio netto
+                {isPointerFine && <span className="hidden sm:inline"> · trascina sul grafico per zoomare</span>}
+              </p>
             </div>
           </div>
           {/* Legend indicator */}
           <div className="flex flex-wrap items-center gap-2">
+            {zoomDomain && (
+              <button
+                onClick={() => setZoomDomain(null)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-400/30 dark:hover:bg-amber-400/20 transition-all"
+              >
+                Reset zoom
+              </button>
+            )}
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, netto: !prev.netto }))}
               className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.netto
-                ? 'bg-slate-100 text-slate-800 border-slate-300 shadow-2xs'
-                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-slate-50 opacity-60'
+                ? 'bg-slate-100 text-slate-800 border-slate-300 shadow-2xs dark:bg-white/10 dark:text-slate-100 dark:border-white/20'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 dark:border-white/10 opacity-60'
                 }`}
             >
               <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.netto ? 'bg-slate-500' : 'bg-slate-300'}`}></span>
@@ -477,8 +588,8 @@ export default function Patrimonio() {
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, risparmio: !prev.risparmio }))}
               className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.risparmio
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs'
-                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-emerald-50/20 opacity-60'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs dark:bg-emerald-400/10 dark:text-emerald-300 dark:border-emerald-400/30'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-emerald-50/20 dark:hover:bg-emerald-400/10 dark:border-white/10 opacity-60'
                 }`}
             >
               <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.risparmio ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
@@ -487,8 +598,8 @@ export default function Patrimonio() {
             <button
               onClick={() => setVisibleLines(prev => ({ ...prev, investito: !prev.investito }))}
               className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.investito
-                ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-2xs'
-                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-sky-50/20 opacity-60'
+                ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-2xs dark:bg-sky-400/10 dark:text-sky-300 dark:border-sky-400/30'
+                : 'bg-transparent text-slate-400 border-slate-200 hover:bg-sky-50/20 dark:hover:bg-sky-400/10 dark:border-white/10 opacity-60'
                 }`}
             >
               <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.investito ? 'bg-sky-500' : 'bg-slate-300'}`}></span>
@@ -503,8 +614,12 @@ export default function Patrimonio() {
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={cumulativeRisparmioData}
+                  data={chartData}
                   margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                  onMouseDown={handleChartMouseDown}
+                  onMouseMove={handleChartMouseMove}
+                  onMouseUp={handleChartMouseUp}
+                  style={isPointerFine ? { cursor: 'crosshair' } : undefined}
                 >
                   <defs>
                     <linearGradient id="colorNettoPatrimonio" x1="0" y1="0" x2="0" y2="1">
@@ -533,7 +648,7 @@ export default function Patrimonio() {
                     interval={0}
                     tick={{ fontSize: 10, fill: "#94a3b8" }}
                     tickFormatter={(value) => {
-                      const item = cumulativeRisparmioData.find(d => d.uniqueKey === value);
+                      const item = chartData.find(d => d.uniqueKey === value);
                       return item?.mese?.toLowerCase().includes("dic")
                         ? String(item.anno)
                         : "";
@@ -665,6 +780,17 @@ export default function Patrimonio() {
                     activeDot={false}
                     hide={!visibleLines.netto}
                   />
+
+                  {zoomSelection.left && zoomSelection.right && (
+                    <ReferenceArea
+                      yAxisId="left"
+                      x1={zoomSelection.left}
+                      x2={zoomSelection.right}
+                      strokeOpacity={0.3}
+                      fill="#f59e0b"
+                      fillOpacity={0.15}
+                    />
+                  )}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -677,10 +803,13 @@ export default function Patrimonio() {
             </div>
             <div className="h-44 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-slate-200">
               {[...sortedRisparmio].reverse().map((r, idx) => {
+                // Fallback su nomi di campo alternativi: righe più vecchie del
+                // foglio Google Sheets possono usare "risparmio"/"investiti"
+                // invece di "risparmioNetto"/"investito" (rinominati in seguito).
                 const rispVal = r.risparmioNetto ?? r.risparmio ?? 0;
                 const invVal = r.investito ?? r.investiti ?? 0;
                 return (
-                  <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs transition-all hover:bg-slate-100/70">
+                  <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs transition-all hover:bg-slate-100/70 dark:hover:bg-white/5">
                     <div>
                       <span className="font-bold text-slate-700 block">{r.mese}</span>
                       <span className="text-[10px] text-slate-400 font-medium block">{r.anno}</span>

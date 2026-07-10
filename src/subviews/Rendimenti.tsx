@@ -13,10 +13,21 @@ import {
   Tooltip,
   Cell,
 } from 'recharts';
+import DropdownMenu from '../components/DropdownMenu';
 import { rendColor, rendColorAlpha } from '../utils/format';
 import { kpiColor, kpiColorAlpha, median, type KpiRange } from '../utils/kpiColorScale';
 import { parseMeseStringToMonthYear } from '../hooks/useInvestimentiData';
 
+// Sotto-vista "Rendimenti" della pagina Investimenti: si concentra sull'andamento
+// del rendimento (plus/minusvalenza) del portafoglio nel tempo, in euro o in percentuale.
+// Dati usati: localRendimenti/activeRendimenti (righe mensili di rendimento), CRUSCOTTO_GENERALE
+// (totali cumulati di sempre), cruscottoRows (storico annuale) e globalInspectorRecord (il mese
+// selezionato nel filtro globale dell'header).
+// Contenuti principali:
+//  - 4 KPI (Portafoglio Attuale, Plusvalenza Cumulata, Rendimento Anno, Ultimo Mese)
+//  - 2 grafici affiancati: "Crescita Rendimento" (cumulato, area+linea) e "Rendimenti Mensili" (barre)
+//  - tabella "Registro Rendimenti" filtrabile per anno con colori in base a quanto un valore
+//    si discosta dalla mediana storica (vedi kpiColorScale)
 interface RendimentiProps {
   localRendimenti: any[];
   activeRendimenti: any[];
@@ -47,7 +58,6 @@ export default function Rendimenti({
   const [mensileRange, setMensileRange] = useState<TimeRange>('12mesi');
   const [valueMode, setValueMode] = useState<ValueMode>('euro');
   const [tableYear, setTableYear] = useState(globalSelectedYear);
-  const [isTableYearDropdownOpen, setIsTableYearDropdownOpen] = useState(false);
 
   useEffect(() => setTableYear(globalSelectedYear), [globalSelectedYear]);
 
@@ -73,6 +83,8 @@ export default function Rendimenti({
     [mensileRange, activeRendimenti, last12MonthsRendimenti]
   );
 
+  // Il toggle Euro/Percentuale sceglie quale campo del record diventa la serie principale
+  // dei grafici (crescitaKey/mensileKey) e quale diventa la serie secondaria in grigio tratteggiato.
   const crescitaKey = valueMode === 'euro' ? 'rendimentoCumulativoEuro' : 'rendimentoCumulativoPerc';
   const crescitaSecondaryKey = valueMode === 'euro' ? 'rendimentoCumulativoPerc' : 'rendimentoCumulativoEuro';
   const mensileKey = valueMode === 'euro' ? 'rendimentoMensileEuro' : 'rendimentoMensilePerc';
@@ -83,6 +95,7 @@ export default function Rendimenti({
     return [isPercentSeries ? formatPercent(value) : formatEuro(value), name];
   };
 
+  // Elenco degli anni con almeno una riga di dati, per popolare il dropdown "Esercizio" della tabella.
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     localRendimenti.forEach((r: any) => {
@@ -92,6 +105,8 @@ export default function Rendimenti({
     return Array.from(years).sort((a, b) => b - a);
   }, [localRendimenti]);
 
+  // Righe della tabella "Registro Rendimenti" filtrate per l'anno scelto nel dropdown (tableYear)
+  // e ordinate dal mese più recente al più vecchio.
   const tableRows = useMemo(() => {
     return localRendimenti
       .filter((r: any) => {
@@ -142,12 +157,16 @@ export default function Rendimenti({
   const monthlyUp = !previousMonthRecord || Number(globalInspectorRecord?.rendimentoMensileEuro || 0) >= Number(previousMonthRecord.rendimentoMensileEuro || 0);
   const monthlyDelta = Number(globalInspectorRecord?.rendimentoMensileEuro || 0) - Number(previousMonthRecord?.rendimentoMensileEuro || 0);
 
+  // Range (min/mediana/max) del rendimento mensile % nell'anno mostrato in tabella: usato da
+  // kpiColor per colorare ogni valore in base a quanto è buono/cattivo rispetto agli altri mesi.
   const mensilePercRange: KpiRange = useMemo(() => {
     const values = tableRows.map((r: any) => Number(r.rendimentoMensilePerc || 0)).filter(v => !isNaN(v));
     if (values.length === 0) return { min: -1, median: 0, max: 1 };
     return { min: Math.min(...values), median: median(values), max: Math.max(...values) };
   }, [tableRows]);
 
+  // Stesso concetto ma sul rendimento cumulativo %, calcolato su tutto lo storico (non solo l'anno
+  // in tabella), perché il cumulato va confrontato con l'andamento di sempre, non con un solo anno.
   const cumulativoPercRange: KpiRange = useMemo(() => {
     const values = localRendimenti.map((r: any) => Number(r.rendimentoCumulativoPerc || 0)).filter(v => !isNaN(v));
     if (values.length === 0) return { min: -1, median: 0, max: 1 };
@@ -551,39 +570,17 @@ export default function Rendimenti({
             <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             Registro Rendimenti
           </h3>
-          <div className="relative select-none shrink-0">
-            <button
-              onClick={() => setIsTableYearDropdownOpen(!isTableYearDropdownOpen)}
-              className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
-            >
-              <Database className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />
-              <span>
-                <span className="hidden md:inline">Esercizio: </span>
-                <strong className="text-blue-600 dark:text-blue-400">{tableYear}</strong>
-              </span>
-              <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
-            </button>
-
-            {isTableYearDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 w-32 bg-white dark:bg-[#0c1425] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-0.5 animate-fadeIn">
-                {availableYears.map((year) => (
-                  <button
-                    key={year}
-                    onClick={() => {
-                      setTableYear(String(year));
-                      setIsTableYearDropdownOpen(false);
-                    }}
-                    className={`px-3 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all cursor-pointer ${String(tableYear) === String(year)
-                      ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                  >
-                    {year}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <DropdownMenu
+            icon={Database}
+            label="Esercizio"
+            accent="blue"
+            value={String(tableYear)}
+            displayValue={String(tableYear)}
+            options={availableYears.map(String)}
+            onSelect={setTableYear}
+            align="right"
+            widthClass="w-28"
+          />
         </div>
 
         {tableRows.length === 0 ? (

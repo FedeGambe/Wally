@@ -1,7 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { Sparkles, Calendar, Search, Bell, Database, ChevronDown, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, Calendar, Search, Bell, Database, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { MESI_ITALIANI } from '../utils/date';
+import DropdownMenu from './DropdownMenu';
+
+/**
+ * Barra superiore dell'app (usata in App.tsx sopra il contenuto di ogni pagina).
+ * Mostra il saluto dinamico ("Buongiorno/Buonasera..."), il toggle della modalità
+ * incognito, e i due selettori (DropdownMenu) per anno ("Esercizio") e mese, che
+ * pilotano il filtro temporale globale usato da tutte le pagine (selectedYear/
+ * selectedMonth arrivano come props da App.tsx e vengono modificati da qui).
+ * Calcola anche quali anni/mesi hanno effettivamente dei dati, per disabilitare
+ * nel menu le opzioni "vuote".
+ */
 
 interface HeaderProps {
   key?: React.Key;
@@ -24,10 +35,11 @@ export default function Header({
   onGoToToday
 }: HeaderProps) {
   const { data, isIncognito, toggleIncognito } = useFinanceData();
-  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
-  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
   // Dynamic greeting based on the time of day
+  // useMemo evita di ricalcolare saluto+icona ad ogni render: viene ricalcolato solo
+  // se cambia `userEmail` (nota: l'ora del giorno non è tra le dipendenze, quindi il
+  // saluto resta fisso finché il componente non si re-renderizza per altri motivi).
   const { greeting, greetingIcon: GreetingIcon } = useMemo(() => {
     const hour = new Date().getHours();
     let name = 'Federico';
@@ -57,6 +69,10 @@ export default function Header({
   const localRisparmio = data.risparmio;
   const localEntrate = data.entrate;
 
+  // Costruisce l'elenco di anni da mostrare nel menu "Esercizio": l'anno corrente
+  // c'è sempre (anche senza dati, per poter navigare al mese in corso), più tutti
+  // gli anni per cui esiste almeno una riga in risparmio o entrate. Si usa un Set
+  // per evitare duplicati, poi si ordina dal più recente al più vecchio.
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     // Ensure current year is always available
@@ -71,6 +87,9 @@ export default function Header({
     return sortedYears.map(String);
   }, [localRisparmio, localEntrate]);
 
+  // True se l'anno selezionato ha almeno un dato (risparmio o entrate). Serve solo
+  // come "interruttore" per isMonthAvailable qui sotto: se l'anno è del tutto vuoto,
+  // non ha senso disabilitare i mesi (altrimenti risulterebbero tutti disabilitati).
   const hasAnyDataForSelectedYear = useMemo(() => {
     const yearNum = parseInt(selectedYear, 10);
     const hasRisparmio = localRisparmio?.some((r: any) => r.anno === yearNum);
@@ -78,6 +97,8 @@ export default function Header({
     return hasRisparmio || hasEntrate;
   }, [selectedYear, localRisparmio, localEntrate]);
 
+  // Determina se un dato mese (dell'anno selezionato) ha effettivamente dei dati,
+  // usata dal DropdownMenu del mese per disabilitare (in grigio) le voci senza dati.
   const isMonthAvailable = (monthName: string) => {
     if (!hasAnyDataForSelectedYear) return true; // fallback if year has no records
     const monthLower = monthName.toLowerCase().trim();
@@ -129,93 +150,32 @@ export default function Header({
         </button>
 
         {/* Year Selector Dropdown */}
-        <div className="relative select-none shrink-0">
-          <button
-            onClick={() => {
-              setIsYearDropdownOpen(!isYearDropdownOpen);
-              setIsMonthDropdownOpen(false);
-            }}
-            className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-100 hover:border-slate-200 hover:bg-slate-100 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 transition-all cursor-pointer"
-          >
-            <Database className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />
-            <span>
-              <span className="hidden md:inline">Esercizio: </span>
-              <strong className="text-blue-600">{selectedYear}</strong>
-            </span>
-            <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
-          </button>
-
-          {isYearDropdownOpen && (
-            <div className="absolute right-0 mt-1.5 w-32 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-0.5 animate-fadeIn">
-              {availableYears.map((year) => (
-                <button
-                  key={year}
-                  onClick={() => {
-                    setSelectedYear(year);
-                    setIsYearDropdownOpen(false);
-                  }}
-                  className={`px-3 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                    selectedYear === year
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <DropdownMenu
+          icon={Database}
+          label="Esercizio"
+          accent="blue"
+          value={selectedYear}
+          displayValue={selectedYear}
+          options={availableYears}
+          onSelect={setSelectedYear}
+          align="right"
+          widthClass="w-28"
+        />
 
         {/* Month Selector dropdown */}
-        <div className="relative select-none shrink-0">
-          <button
-            onClick={() => {
-              setIsMonthDropdownOpen(!isMonthDropdownOpen);
-              setIsYearDropdownOpen(false);
-            }}
-            className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-100 hover:border-slate-200 hover:bg-slate-100 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 transition-all cursor-pointer"
-          >
-            <Calendar className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />
-            <span>
-              <span className="hidden md:inline">Mese: </span>
-              <strong className="text-indigo-600 capitalize">
-                <span className="inline sm:hidden">{selectedMonth.substring(0, 3)}</span>
-                <span className="hidden sm:inline">{selectedMonth}</span>
-              </strong>
-            </span>
-            <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
-          </button>
-          
-          {isMonthDropdownOpen && (
-            <div className="absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 grid grid-cols-2 gap-1 animate-fadeIn">
-              {MESI_ITALIANI.map((m) => {
-                const available = isMonthAvailable(m);
-                return (
-                  <button
-                    key={m}
-                    disabled={!available}
-                    onClick={() => {
-                      if (available) {
-                        setSelectedMonth(m);
-                        setIsMonthDropdownOpen(false);
-                      }
-                    }}
-                    className={`px-2 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all ${
-                      !available
-                        ? 'text-slate-300 bg-slate-50/50 cursor-not-allowed opacity-50'
-                        : selectedMonth.toLowerCase() === m.toLowerCase()
-                        ? 'bg-indigo-50 text-indigo-700 cursor-pointer'
-                        : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <DropdownMenu
+          icon={Calendar}
+          label="Mese"
+          accent="indigo"
+          value={selectedMonth}
+          displayValue={selectedMonth}
+          options={MESI_ITALIANI}
+          disabledOptions={MESI_ITALIANI.filter(m => !isMonthAvailable(m))}
+          onSelect={setSelectedMonth}
+          align="right"
+          widthClass="w-48"
+          layout="grid-2"
+        />
 
         {/* Real Date Indicator - Click to set current Month/Year */}
         <button

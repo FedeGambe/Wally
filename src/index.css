@@ -71,18 +71,19 @@ body {
   background: linear-gradient(135deg, rgba(250, 204, 21, 0.11), rgba(255, 255, 255, 0.05)) !important;
 }
 
-/* Pannello conto espanso e riga conto selezionata (Sintesi Situazione Conti): sfumatura gialla più marcata, niente ombra */
-.glass-theme .conto-panel-espanso,
-.glass-theme .conto-row-selezionato {
-  background: linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(255, 255, 255, 0.04)) !important;
-  border-color: rgba(250, 204, 21, 0.2) !important;
-  backdrop-filter: blur(18px) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-  box-shadow: none !important;
+/* Dropdown menu panels (Header, filtri tabelle): niente classe bg-white cosi' non eredita
+   il glow/sfumatura gialla al hover del pannello intero (bubble-up da hover sui bottoni figli) */
+.dropdown-menu-panel {
+  background-color: #fff;
+  border-color: rgb(226 232 240);
 }
 
-.conto-panel-espanso,
-.conto-row-selezionato {
+.dark .dropdown-menu-panel {
+  background-color: #0c1425;
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.conto-panel-espanso {
   box-shadow: none !important;
 }
 

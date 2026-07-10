@@ -8,6 +8,11 @@ import { MESI_ITALIANI } from '../utils/date';
 const DEFAULT_RISPARMIO_HEADERS = SHEETS_CONFIG.find(s => s.dataKey === 'risparmio')?.headers || [];
 
 /**
+ * Hook usato dalla pagina Panoramica (src/pages/Panoramica.tsx), la dashboard
+ * riassuntiva. Prende in input l'anno/mese selezionati (stato condiviso con
+ * l'header, passato come props) e legge da useFinanceData() i fogli Risparmio
+ * e Patrimonio. Restituisce i KPI generali, il trend mensile per il grafico,
+ * le soglie di spesa dinamiche e lo stato/i gestori del drawer di dettaglio.
  * Aggregati, trend e drawer della pagina Panoramica, separati dal JSX per
  * isolare i bug numerici dal layout.
  */
@@ -86,6 +91,9 @@ export function usePanoramicaData(
     const targetIdx = index !== -1 ? index : chronologicalData.length - 1;
 
     // By default (or if the selected month is the latest month in chronologicalData), we show 6 months backward
+    // Se il mese selezionato e' l'ultimo disponibile non ci sono mesi futuri da mostrare,
+    // quindi la finestra si allarga all'indietro (6 mesi) invece di lasciare spazio vuoto
+    // a destra del grafico; altrimenti si centra la selezione con 2 mesi in avanti.
     const isLatest = targetIdx === chronologicalData.length - 1;
 
     const goBackward = isLatest ? 5 : 4;
@@ -105,6 +113,10 @@ export function usePanoramicaData(
   }, [data.risparmioHeaders]);
 
   // Retrieve current month record and previous month record for delta calculations (year-aware)
+  // Ricerca "a cascata": prova prima mese+anno esatti, poi solo il mese (in
+  // qualunque anno), poi l'ultimo record disponibile, e come ultima risorsa
+  // costruisce un record vuoto (tutti i valori undefined) cosi' la UI puo'
+  // comunque renderizzare senza dover gestire `undefined` in ogni punto.
   const currentMonthData = useMemo(() => {
     const yearToFind = selectedYear !== 'Tutti' ? parseInt(selectedYear, 10) : undefined;
 
@@ -168,7 +180,11 @@ export function usePanoramicaData(
 
     const matchedTx = data.uscite.filter((t: Transaction) => t.mese.toLowerCase() === formattedMonth && (selectedYear === 'Tutti' || t.data.includes(yearValue.toString())));
 
-    const savingRecord = chronologicalData.find(r => r.mese.toLowerCase() === formattedMonth && r.anno === yearValue);
+    const savingIdx = chronologicalData.findIndex(r => r.mese.toLowerCase() === formattedMonth && r.anno === yearValue);
+    const savingRecord = savingIdx !== -1 ? chronologicalData[savingIdx] : undefined;
+    const prevRecord = savingIdx > 0 ? chronologicalData[savingIdx - 1] : undefined;
+    const delta = (curr?: number, prev?: number) =>
+      (curr !== undefined && prev !== undefined && prev !== 0) ? ((curr - prev) / prev) * 100 : undefined;
 
     setDrawerTitle(`Dettaglio Finanziario - ${monthName} ${yearValue}`);
     setDrawerSubtitle(`Analisi dei flussi e delle transazioni registrate`);
@@ -176,7 +192,21 @@ export function usePanoramicaData(
     setDrawerStats({
       total: savingRecord ? savingRecord.speseTotali : matchedTx.reduce((sum, t) => sum + t.importo, 0),
       count: matchedTx.length,
-      primaryTotal: savingRecord ? savingRecord.spesePrimarie : undefined
+      primaryTotal: savingRecord ? savingRecord.spesePrimarie : undefined,
+      monthDetail: savingRecord ? {
+        entrate: savingRecord.entrate,
+        speseTotali: savingRecord.speseTotali,
+        spesePrimarie: savingRecord.spesePrimarie,
+        speseSecondarie: savingRecord.speseSecondarie,
+        investito: savingRecord.investito,
+        risparmioNetto: savingRecord.risparmioNetto,
+        entrateDelta: delta(savingRecord.entrate, prevRecord?.entrate),
+        speseTotaliDelta: delta(savingRecord.speseTotali, prevRecord?.speseTotali),
+        spesePrimarieDelta: delta(savingRecord.spesePrimarie, prevRecord?.spesePrimarie),
+        speseSecondarieDelta: delta(savingRecord.speseSecondarie, prevRecord?.speseSecondarie),
+        investitoDelta: delta(savingRecord.investito, prevRecord?.investito),
+        risparmioNettoDelta: delta(savingRecord.risparmioNetto, prevRecord?.risparmioNetto)
+      } : undefined
     });
     setDrawerOpen(true);
   };

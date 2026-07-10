@@ -8,6 +8,12 @@ import { getMonthIndex, getTransactionYear } from '../utils/date';
 const DEFAULT_RISPARMIO_HEADERS = SHEETS_CONFIG.find(s => s.dataKey === 'risparmio')?.headers || [];
 
 /**
+ * Hook usato dalla pagina Uscite (src/pages/Uscite.tsx). Prende in input
+ * l'anno/mese selezionati (stato condiviso con l'header, passato come props)
+ * e legge da useFinanceData() le transazioni di spesa e il foglio Risparmio.
+ * Restituisce i filtri di ricerca/categoria, i dati aggregati per i grafici
+ * (trend mensile, ripartizione per categoria), le soglie di spesa "sane"
+ * (es. non oltre il 35% del reddito) e lo stato/i gestori del drawer di dettaglio.
  * Tutto il calcolo dietro la pagina Uscite: filtri, aggregazioni per i grafici,
  * soglie dinamiche e stato del drawer di dettaglio. Separato dal JSX (Uscite.tsx)
  * cosi un bug nei numeri si debugga senza scorrere 700 righe di markup.
@@ -93,6 +99,9 @@ export function useUsciteData(
     return entrateVal > 0 ? (selectedRecord.speseSecondarie / entrateVal) * 100 : 0;
   }, [selectedRecord.speseSecondarie, entrateVal]);
 
+  // Estrae una soglia percentuale/numerica scritta dentro l'intestazione di una colonna
+  // del foglio Risparmio (es. header "Spese Primarie (35%)" -> 35). Se non trova nulla
+  // usa il valore di default passato come fallback.
   const parseThreshold = (headerString: string, fallback: number): number => {
     if (!headerString) return fallback;
     const pctMatch = headerString.match(/(\d+(?:[.,]\d+)?)\s*%/);
@@ -106,6 +115,11 @@ export function useUsciteData(
     return fallback;
   };
 
+  // Legge le soglie direttamente dalle intestazioni del foglio Google (cosi' se
+  // l'utente cambia le percentuali-obiettivo nello sheet, la UI si aggiorna da sola).
+  // Gli indici (4, 6, 9, ...) corrispondono alla posizione fissa di quelle colonne
+  // nel foglio Risparmio: vanno tenuti sincronizzati con SHEETS_CONFIG se l'ordine
+  // delle colonne cambia.
   const dynamicThresholds = useMemo(() => {
     const headers = data.risparmioHeaders?.length
       ? data.risparmioHeaders
@@ -115,6 +129,8 @@ export function useUsciteData(
     const secondarie = parseThreshold(headers[6], 15);
     const investiti = parseThreshold(headers[9], 15);
 
+    // La colonna "risparmio" nello sheet puo' trovarsi in posizione 11 oppure 10
+    // a seconda della versione del foglio dell'utente: si prova prima la piu' recente.
     let risparmio = 35;
     if (headers[11]) {
       risparmio = parseThreshold(headers[11], 35);

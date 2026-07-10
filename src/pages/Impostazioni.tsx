@@ -1,3 +1,12 @@
+/**
+ * Pagina "Impostazioni": permette di collegare lo Spreadsheet Google (ID salvato in localStorage,
+ * chiave "sf_spreadsheet_id"), avviare una sincronizzazione manuale e scegliere il tema (chiaro/scuro).
+ * Questa pagina NON possiede lo stato di tema/sincronizzazione/logout: li riceve come props da
+ * App.tsx (theme, setTheme, onRefreshData, isRefreshing, onLogout), che è il vero "proprietario"
+ * di questo stato applicativo (vedi CLAUDE.md: le UI-filter state vivono in App.tsx, non nel
+ * FinanceDataContext). L'ID dello spreadsheet è l'unico dato che questa pagina legge/scrive
+ * direttamente su localStorage (non è un dato finanziario, quindi non passa da saveToLocalStorage).
+ */
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -27,11 +36,14 @@ export default function Impostazioni({
   isRefreshing = false,
   onLogout
 }: ImpostazioniProps) {
+  // Stato iniziale letto una sola volta da localStorage (funzione lazy passata a useState);
+  // se non c'è ancora un ID salvato si usa lo spreadsheet di default del progetto.
   const [spreadsheetId, setSpreadsheetId] = useState(() => {
     return localStorage.getItem('sf_spreadsheet_id') || '1xfDnJX-Rx0F8d03ituBTY7HRp1Mw4FCjy4rEueTg9YA';
   });
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Salva l'ID inserito nel form e mostra per 3 secondi la spunta di conferma.
   const handleSaveSpreadsheet = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('sf_spreadsheet_id', spreadsheetId.trim());

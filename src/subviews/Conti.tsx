@@ -2,6 +2,14 @@ import { useMemo } from 'react';
 import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { rendColor } from '../utils/format';
 
+// Sotto-vista "Conti" della pagina Investimenti: mostra il dettaglio dei due
+// conti broker (Scalable Capital e Trade Republic), selezionabili con i tab in alto.
+// Dati usati: sortedFilteredRecords (righe mensili del broker attivo, già filtrate
+// per anno) e accountKPIs (valori di fallback quando non ci sono dati reali dal foglio).
+// Contenuti principali:
+//  - 3 KPI in alto (Saldo, Investito, Plusvalenza) calcolati dall'ultimo mese disponibile
+//  - per Trade Republic: 3 pannelli con interessi/saveback/dividendi accumulati e relativo storico
+//  - tabella "Registro Storico Mensile" con tutte le colonne del foglio Google per il broker attivo
 interface ContiProps {
   activeConto: 'scalable' | 'trade';
   setActiveConto: (conto: 'scalable' | 'trade') => void;
@@ -33,6 +41,9 @@ export default function Conti({
     let targetRecord = latestRecord;
     let isFallbackMonth = false;
 
+    // Se il mese più recente ha saldo zero (es. dato non ancora aggiornato sul foglio),
+    // torniamo indietro nel tempo finché non troviamo un mese con saldo reale, così i KPI
+    // non mostrano "0 €" solo perché manca l'ultima riga.
     if (latestRecord && Number(latestRecord.saldoConto || 0) === 0 && sortedFilteredRecords.length > 1) {
       // Find the first record going backwards that has a non-zero saldoConto
       for (let i = sortedFilteredRecords.length - 2; i >= 0; i--) {
@@ -62,6 +73,8 @@ export default function Conti({
       }
     }
 
+    // Se non c'è nessun dato utile (né reale né fallback) nel foglio, mostriamo
+    // i valori statici precalcolati in accountKPIs (dati mock/demo) invece che zero.
     // Fallback to the static mock-based KPIs
     return {
       saldo: accountKPIs[activeConto]?.saldo || 0,
@@ -74,6 +87,8 @@ export default function Conti({
   }, [latestRecord, sortedFilteredRecords, accountKPIs, activeConto]);
 
   // 3. Compute real metrics for Trade Republic widgets (Interessi, Savebacks, Bond/Dividends)
+  // I dividendi sono la somma di più colonne del foglio (iBonds + Amundi + generico "dividendi"),
+  // perché lo sheet storicamente ha aggiunto colonne separate per ogni fonte di dividendo.
   const realMetrics = useMemo(() => {
     let sumInteressi = 0;
     let sumSaveback = 0;
@@ -100,6 +115,8 @@ export default function Conti({
       ? (Number(latestRecord.dividendiIbonds || 0) + Number(latestRecord.dividendiAmundi || 0) + Number(latestRecord.dividendi || 0)) 
       : 0;
 
+    // Se non ci sono affatto righe dal foglio (utente nuovo, o filtro senza risultati),
+    // mostriamo valori di esempio invece di 0 €, per non dare l'idea che l'app sia rotta.
     // Elegant fallback to mock data if there is no real sheet record at all
     if (!hasRealData && sortedFilteredRecords.length === 0) {
       return {
@@ -123,6 +140,9 @@ export default function Conti({
   }, [sortedFilteredRecords, latestRecord]);
 
   // 4. Compute running totals for interests, saveback and dividends
+  // Calcola il totale progressivo (somma cumulativa mese su mese) per alimentare le liste
+  // "Progressione Storica" sotto ai 3 pannelli Trade Republic: ogni riga mostra il cumulato
+  // fino a quel mese, non solo il valore del singolo mese.
   const runningTotals = useMemo(() => {
     let cumInteressi = 0;
     let cumSaveback = 0;

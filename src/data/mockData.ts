@@ -1,3 +1,20 @@
+/**
+ * CACHE LOCALE + STATO IN-MEMORY (layer 2 dell'architettura dati).
+ *
+ * Questo file NON parla mai con Google Sheets direttamente: legge/scrive solo
+ * `localStorage` (chiavi `sf_*`) e mantiene in memoria gli array esportati
+ * (TRANSACTIONS, RISPARMIO_DATA, CONTI_PATRIMONIO, ecc.).
+ *
+ * Ogni array è inizializzato UNA VOLTA al caricamento del modulo leggendo da
+ * localStorage (le IIFE `(() => {...})()` qui sotto). Da quel momento in poi
+ * l'unico modo corretto di modificarli è `saveToLocalStorage()`, che scrive su
+ * localStorage E aggiorna l'array in memoria "sul posto" (`arr.length = 0;
+ * arr.push(...)`) così che i riferimenti già esportati restino validi altrove
+ * nell'app. Nessuna pagina deve scrivere su localStorage direttamente.
+ *
+ * Il punto di lettura per la UI è `getExportableData()` in fondo al file,
+ * richiamata da FinanceDataContext (vedi src/context/FinanceDataContext.tsx).
+ */
 import {
   DEMO_TRANSACTIONS,
   DEMO_ENTRATE_LIST,
@@ -87,6 +104,10 @@ export interface ConsumoAutoWeek {
   costoExtra: number;
 }
 
+// Pattern ripetuto per ogni array esportato in questo file: una IIFE (funzione
+// auto-invocata) legge la chiave localStorage corrispondente UNA VOLTA al
+// caricamento del modulo. Se la chiave non esiste o il JSON è corrotto, si
+// ricade su un valore vuoto/di default invece di far crashare l'app.
 export const CAPITALE_IMPEGNATO: CapitaleImpegnato[] = (() => {
   try {
     const val = localStorage.getItem('sf_capitale_impegnato');
@@ -320,7 +341,13 @@ export const RISPARMIO_HEADERS_STATE: string[] = (() => {
   }
 })();
 
-// Helper to save all data back to localStorage and update in-memory arrays in-place
+// UNICO PUNTO DI SCRITTURA dati finanza. Per ogni chiave presente in `data`:
+// 1) la persiste in localStorage come JSON
+// 2) svuota e ripopola l'array in-memory corrispondente (arr.length = 0; arr.push(...))
+// così i moduli che hanno già importato quell'array (es. `TRANSACTIONS`) vedono
+// i nuovi dati senza bisogno di re-importare nulla. Dopo aver chiamato questa
+// funzione va sempre chiamato bumpVersion() dal FinanceDataContext, altrimenti
+// la UI non si aggiorna (il suo `data` è un useMemo cacheato su refreshVersion).
 export const saveToLocalStorage = (data: {
   uscite?: Transaction[];
   risparmio?: RisparmioMese[];

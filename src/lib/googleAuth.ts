@@ -1,3 +1,17 @@
+/**
+ * Login con Google via Firebase Auth, e gestione del token OAuth usato per
+ * chiamare l'API di Google Sheets (src/lib/sheetsService.tsx).
+ *
+ * Punti chiave da tenere a mente:
+ *  - Firebase gestisce SOLO l'identità (chi sei); l'`accessToken` OAuth per
+ *    Sheets/Drive è un dato separato ottenuto dallo stesso popup di login e
+ *    tenuto in `cachedAccessToken` (variabile di modulo, si perde al reload).
+ *  - "Ricorda questo dispositivo" salva token+email in localStorage per 7
+ *    giorni, MA il token Google scade comunque dopo ~1 ora: per questo ogni
+ *    controllo qui usa una finestra di 50 minuti (isWithinRememberPeriod)
+ *    per decidere se il token salvato è ancora considerato valido, forzando
+ *    un nuovo login altrimenti.
+ */
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
 

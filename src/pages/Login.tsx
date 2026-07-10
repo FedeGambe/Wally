@@ -1,3 +1,11 @@
+/**
+ * Pagina "Login": schermata di accesso mostrata quando l'utente non è ancora autenticato.
+ * Non gestisce sessione/token: al click su "Accedi con Google" chiama googleSignIn()
+ * (src/lib/googleAuth.ts, basato su Firebase Auth con provider Google) e, se l'accesso va a buon
+ * fine, passa email/token/foto/nome al callback onLogin ricevuto da App.tsx, che è il vero
+ * proprietario dello stato di autenticazione (dove viene anche eventualmente salvato il
+ * "ricorda dispositivo" per il login automatico nei successivi 7 giorni).
+ */
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ShieldCheck, LogIn, Mail, Sparkles } from 'lucide-react';
@@ -12,6 +20,10 @@ export default function Login({ onLogin }: LoginProps) {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errMessage, setErrMessage] = useState<string | null>(null);
 
+  // Avvia il popup di login Google (Firebase). googleSignIn() ritorna null se l'utente chiude/annulla
+  // il popup (non è un errore), altrimenti restituisce l'utente Firebase + l'accessToken OAuth di
+  // Google necessario per leggere/scrivere lo spreadsheet (vedi googleAuth.ts: questo token scade
+  // dopo ~1h e viene ri-verificato altrove con una finestra di validità di 50 minuti).
   const handleLoginClick = async () => {
     setIsLoggingIn(true);
     setErrMessage(null);
@@ -118,7 +130,10 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
           )}
 
-          {/* Opzione Ricorda Dispositivo */}
+          {/* Opzione Ricorda Dispositivo.
+              Attiva/disattiva subito il flag "sf_device_remembered" in localStorage (checkbox
+              spuntata di default): se deselezionata, ripulisce anche email/token/timestamp del
+              dispositivo ricordato, così al prossimo avvio l'app richiederà di nuovo il login. */}
           <div className="flex items-center gap-2 px-1 mb-5 text-left">
             <input
               id="remember_me"

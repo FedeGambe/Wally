@@ -1,6 +1,27 @@
+/**
+ * UNICO PUNTO DI LETTURA dati finanza per la UI (layer 3 dell'architettura).
+ *
+ * Ogni pagina legge i dati tramite l'hook `useFinanceData()` invece di
+ * importare direttamente gli array di src/data/mockData.ts. Questo componente
+ * (`FinanceDataProvider`) va messo una volta in alto nell'albero (vedi
+ * App.tsx) e fornisce a tutti i figli, tramite React Context:
+ *  - `data`: l'oggetto con tutti i dati (reali o demo se incognito è attivo)
+ *  - lo stato di sincronizzazione con Google Sheets (refresh/errori)
+ *  - lo stato della modalità incognito
+ *
+ * `refreshVersion` è un contatore che si incrementa ogni volta che i dati
+ * sottostanti cambiano (dopo un salvataggio, un refresh da Sheets, o un
+ * toggle incognito). `data` è un useMemo che dipende da `refreshVersion`:
+ * è il meccanismo con cui il resto della UI "si accorge" che i dati sono
+ * cambiati, dato che gli array in mockData.ts sono mutati in-place e non
+ * genererebbero da soli un nuovo render.
+ */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getExportableData, isIncognitoModeEnabled, setIncognitoModeEnabled } from '../data/mockData';
 
+// Il tipo dei dati finanza è "derivato" dal valore di ritorno di getExportableData,
+// invece di essere riscritto a mano: se quella funzione cambia forma, questo
+// tipo si aggiorna da solo (utility TypeScript: ReturnType<typeof fn>).
 type FinanceData = ReturnType<typeof getExportableData>;
 
 interface FinanceDataContextValue {
@@ -27,6 +48,8 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  // Forza il ricalcolo di `data` (vedi useMemo più sotto). Va chiamata da chiunque
+  // scriva dati finanza (dopo saveToLocalStorage, dopo un refresh da Sheets, ecc.).
   const bumpVersion = useCallback(() => {
     setRefreshVersion(prev => prev + 1);
   }, []);

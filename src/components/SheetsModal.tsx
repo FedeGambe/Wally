@@ -17,6 +17,19 @@ import { createSpreadsheet, fetchSpreadsheetData, pushSpreadsheetData } from '..
 import { getExportableData, saveToLocalStorage } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
 
+/**
+ * Modale "Integrazione Google Sheets" (apribile dalla Sidebar/Impostazioni).
+ * È il punto in cui l'utente collega il proprio Google Sheet all'app, oppure
+ * ne crea uno nuovo, e da cui può forzare manualmente un caricamento (push)
+ * o uno scaricamento (pull) dei dati.
+ *
+ * ATTENZIONE: questo componente tocca la logica di sincronizzazione dati più
+ * delicata dell'app (push/pull verso il foglio Google reale). I commenti qui
+ * spiegano COSA fa il codice, ma non ne cambiano il comportamento: ogni
+ * push/pull usa sempre `getExportableData()`/`saveToLocalStorage()` come
+ * previsto dall'architettura (vedi CLAUDE.md), quindi i dati demo/incognito
+ * non possono mai finire sul foglio reale.
+ */
 interface SheetsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,10 +50,15 @@ export default function SheetsModal({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Il push (caricamento sul foglio) sovrascrive i dati remoti: per questo motivo
+  // non parte subito al click, ma prima mostra un banner di conferma (showConfirmPush).
+  // Stessa logica per lo scollegamento (showConfirmDisconnect).
   const [showConfirmPush, setShowConfirmPush] = useState<boolean>(false);
   const [showConfirmDisconnect, setShowConfirmDisconnect] = useState<boolean>(false);
 
-  // Sync state on load
+  // Ogni volta che il modale viene aperto (isOpen passa a true), rilegge da
+  // localStorage l'ID del foglio già collegato (se c'è) e resetta messaggi/conferme
+  // residui di una precedente apertura, cosi' il modale riparte "pulito".
   useEffect(() => {
     if (isOpen) {
       const savedId = localStorage.getItem('sf_spreadsheet_id') || '';
@@ -58,10 +76,15 @@ export default function SheetsModal({
   }, [isOpen]);
 
   // Extract ID from URL if user pastes a full Google Sheet link
+  // Permette all'utente di incollare sia il solo ID sia l'intero URL del foglio
+  // (es. "https://docs.google.com/spreadsheets/d/ABC123/edit"): l'espressione
+  // regolare cerca il segmento "/d/<ID>" tipico degli URL di Google Sheets ed
+  // estrae solo l'ID. Se non è un URL riconoscibile, restituisce il testo così
+  // com'è (si assume che l'utente abbia incollato direttamente l'ID).
   const extractId = (urlOrId: string): string => {
     const clean = urlOrId.trim();
     if (!clean) return '';
-    
+
     // Check if it's a URL
     if (clean.includes('docs.google.com/spreadsheets')) {
       const matches = clean.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -92,16 +115,21 @@ export default function SheetsModal({
     try {
       // Test read to see if it's accessible and correct (will automatically create missing tabs)
       const data = await fetchSpreadsheetData(accessToken, targetId);
-      
+
       // If it exists, save the ID
       localStorage.setItem('sf_spreadsheet_id', targetId);
       setSheetId(targetId);
-      
+
       // Check if the remote spreadsheet is completely empty
       const isEmpty = (!data.uscite || data.uscite.length === 0) &&
                       (!data.risparmio || data.risparmio.length === 0) &&
                       (!data.patrimonio || data.patrimonio.length === 0);
-      
+
+      // Collegamento a un foglio vuoto (es. appena creato manualmente dall'utente su
+      // Google Drive) vs collegamento a un foglio che ha già dei dati: nel primo caso
+      // si "semina" il foglio remoto con i dati locali correnti (push); nel secondo
+      // si considera il foglio remoto come sorgente di verità e si scaricano i suoi
+      // dati in locale (pull), sovrascrivendo localStorage tramite saveToLocalStorage.
       if (isEmpty) {
         // Automatically upload current local dashboard state to populate the new sheet
         const currentLocalData = getExportableData();
@@ -110,7 +138,7 @@ export default function SheetsModal({
       } else {
         // Pull existing data to local storage
         saveToLocalStorage(data);
-        bumpVersion();
+        bumpVersion(); // segnala al resto dell'app (FinanceDataContext) di rileggere i dati aggiornati
         setSuccessMsg('Foglio Google collegato correttamente! Dati sincronizzati.');
       }
 
@@ -136,11 +164,15 @@ export default function SheetsModal({
     try {
       // 1. Create Spreadsheet
       const newId = await createSpreadsheet(accessToken);
-      
+
       // 2. Initial Export of local state to the new sheet
+      // getExportableData() senza argomenti usa il default incognito=false: qui va
+      // sempre bene, perché anche se l'utente sta guardando i dati demo, questo è un
+      // push reale verso un foglio Google reale e deve contenere i dati veri (vedi
+      // nota in CLAUDE.md: questo default NON va mai cambiato o reso automatico).
       const currentLocalData = getExportableData();
       await pushSpreadsheetData(accessToken, newId, currentLocalData);
-      
+
       // 3. Save the spreadsheet ID
       localStorage.setItem('sf_spreadsheet_id', newId);
       setSheetId(newId);
@@ -171,6 +203,9 @@ export default function SheetsModal({
       return;
     }
 
+    // Non esegue subito il push: apre solo il banner di conferma "Attenzione
+    // Sovrascrittura" (vedi JSX più sotto). L'upload vero parte da executePushData,
+    // chiamata solo dopo che l'utente conferma esplicitamente.
     setShowConfirmPush(true);
     setShowConfirmDisconnect(false);
   };
@@ -227,6 +262,9 @@ export default function SheetsModal({
     setShowConfirmPush(false);
   };
 
+  // Scollegare NON cancella nulla sul foglio Google né in localStorage (sf_transactions
+  // ecc.): rimuove solo il riferimento sf_spreadsheet_id, cioè l'app "dimentica" a
+  // quale foglio era collegata. I dati locali già scaricati restano intatti.
   const executeDisconnect = () => {
     localStorage.removeItem('sf_spreadsheet_id');
     setSheetId('');

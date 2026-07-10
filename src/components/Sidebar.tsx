@@ -15,6 +15,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+/**
+ * Barra di navigazione laterale (usata in App.tsx, visibile solo da tablet in su:
+ * su mobile la navigazione è gestita altrove). Elenca le pagine dell'app
+ * (Panoramica, Entrate, Uscite, ecc.), mostra il profilo utente in basso col
+ * pulsante di logout, e un pulsante per forzare il refresh dei dati da Google
+ * Sheets. Gestisce anche lo stato "collassata/espansa" (icone soltanto vs icone
+ * + testo) e, su tablet, il comportamento "a cassetto" (overlay) descritto sotto.
+ */
 interface SidebarProps {
   activeView: string;
   setActiveView: (view: string) => void;
@@ -61,6 +69,8 @@ export default function Sidebar({
     { id: 'impostazioni', label: 'Impostazioni', icon: Settings },
   ];
 
+  // Colore di sfondo del pulsante quando la sua voce di menu è quella attiva
+  // (un colore diverso per pagina, per riconoscerle a colpo d'occhio).
   const activeClassMap: { [key: string]: string } = {
     panoramica: 'bg-blue-600 text-white shadow-xs',
     entrate: 'bg-emerald-600 text-white shadow-xs',
@@ -71,6 +81,9 @@ export default function Sidebar({
     impostazioni: 'bg-indigo-600 text-white shadow-xs'
   };
 
+  // Ricava l'iniziale da mostrare nell'avatar quando l'utente non ha una foto profilo.
+  // L'email personale dello sviluppatore è gestita come caso speciale ("F" fisso)
+  // perché il suo indirizzo Gmail non segue lo schema "nome.cognome@dominio".
   const getProfileInitials = (email: string) => {
     if (email === 'federico.gamberini.fg@gmail.com') return 'F';
     if (!email) return 'F';
@@ -78,6 +91,8 @@ export default function Sidebar({
     return namePart[0].toUpperCase();
   };
 
+  // Ricava un nome "leggibile" dall'indirizzo email (prima parte prima del punto,
+  // con iniziale maiuscola), con lo stesso caso speciale di getProfileInitials sopra.
   const getDisplayName = (email: string) => {
     if (email === 'federico.gamberini.fg@gmail.com') return 'Federico';
     const namePart = email.split('@')[0];

@@ -2,9 +2,14 @@
  * Formattatori condivisi per valori monetari e percentuali (locale it-IT).
  * Centralizzati qui perché erano duplicati (con piccole differenze) in 8 file:
  * un fix di formattazione va fatto in un solo posto, non in otto.
+ * formatEuro/formatPercent sono usati da quasi tutte le pagine (Entrate, Uscite,
+ * Patrimonio, Panoramica, Drawer, FinanceKpiCard...). rendColor/rendColorAlpha
+ * sono usati solo dalle viste Investimenti (Conti.tsx, Rendimenti.tsx) per colorare
+ * i rendimenti % in base a quanto sono positivi o negativi.
  */
 
 export function formatEuro(value: unknown): string {
+  // Valore mancante/non numerico: mostriamo "***" invece di un numero errato tipo "0€" o "NaN".
   if (value === undefined || value === null || value === '' || isNaN(Number(value))) {
     return '***';
   }
@@ -19,6 +24,7 @@ interface FormatPercentOptions {
 }
 
 export function formatPercent(value: unknown, { minDecimals = 1, signed = false }: FormatPercentOptions = {}): string {
+  // Stessa logica di formatEuro: valore non valido -> placeholder "***%" invece di un numero fasullo.
   if (value === undefined || value === null || value === '' || isNaN(Number(value))) {
     return '***%';
   }

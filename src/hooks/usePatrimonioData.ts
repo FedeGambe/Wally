@@ -4,6 +4,13 @@ import { useFinanceData } from '../context/FinanceDataContext';
 import { MESI_ITALIANI, getMonthIndex } from '../utils/date';
 
 /**
+ * Hook usato dalla pagina Patrimonio (src/pages/Patrimonio.tsx). Non riceve
+ * filtri anno/mese come props: legge direttamente da useFinanceData() i fogli
+ * Patrimonio, Risparmio, Rendimenti Investimenti e Capitale Impegnato.
+ * Restituisce i totali per le card (capitale totale/disponibile/investito/
+ * impegnato) e le serie storiche mensili usate dal grafico di andamento
+ * (risparmio cumulato, investito, netto), incluse due proiezioni stimate
+ * (ottimistica/pessimistica) per i mesi non ancora coperti dai dati reali.
  * Aggregati e serie storiche della pagina Patrimonio (conti, capitale impegnato,
  * andamento netto/risparmio/investito), separati dal JSX per isolare i bug numerici.
  */
@@ -51,7 +58,16 @@ export function usePatrimonioData() {
   }, [localRisparmio]);
 
   // Cumulative savings sum + monthly investments from Rendimenti (Somma attuale / valoreAttualePortafoglio)
+  // Costruisce la serie mensile per il grafico "andamento patrimonio": per ogni
+  // mese calcola il risparmio accumulato fino a quel punto (somma progressiva),
+  // l'importo investito (preso dal foglio Rendimenti se c'e' un mese corrispondente,
+  // altrimenti dal foglio Risparmio) e il "netto" come somma dei due + una costante.
+  // Dove i dati reali finiscono (perche' lo sheet non e' ancora aggiornato), la
+  // funzione prosegue la linea con due proiezioni tratteggiate ottimistica/
+  // pessimistica, calcolate applicando il rendimento % migliore/peggiore osservato
+  // nello storico.
   const cumulativeRisparmioData = useMemo(() => {
+    // Estrae l'anno (a 2 o 4 cifre) da una stringa mese libera tipo "Ott 25" o "ottobre 2025".
     const getYearFromStr = (yStr: string): number => {
       const clean = yStr.toLowerCase().trim();
       const matches = clean.match(/\b\d{2,4}\b/g);
@@ -62,6 +78,9 @@ export function usePatrimonioData() {
       }
       return -1;
     };
+    // BASE e il +1500 piu' sotto sono offset fissi concordati con l'utente (es. saldi
+    // di partenza non tracciati nello sheet) per far combaciare il grafico coi valori
+    // reali dei conti; non sono derivati da alcun calcolo, sono costanti "a mano".
     const BASE = 5560.86;
     let runningSavings = 0;
     const rawData = sortedRisparmio.map(r => {

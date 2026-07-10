@@ -2,6 +2,8 @@
  * Scala colore continua per confrontare un valore KPI contro il suo storico (min/mediana/max).
  * Rosso (peggio) -> arancio -> ambra -> giallo-verde (mediana) -> verde smeraldo (meglio).
  * Va oltre le 3 fasce discrete: il colore è interpolato punto per punto sul valore reale.
+ * Usato da Panoramica.tsx (colora le card KPI) e da Rendimenti.tsx/AnalisiConsumi.tsx
+ * (colora badge e celle tabella in base a quanto un valore è buono/cattivo).
  */
 
 interface ColorStop {
@@ -38,6 +40,16 @@ export interface KpiRange {
   higherIsBetter?: boolean;
 }
 
+/**
+ * Range simmetrico ±spread punti attorno a una soglia (es. dynamicThresholds), non min/max storici.
+ * Serve perché con un range ampio (es. 0-100) i valori restano quasi sempre vicini alla mediana
+ * (lime, "così così") anche appena oltre la soglia: qui lo scostamento satura in fretta verso
+ * rosso/verde non appena si oltrepassa la soglia, invece di richiedere di avvicinarsi a 0 o max.
+ */
+export function thresholdRange(threshold: number, spread = 10, higherIsBetter = true): KpiRange {
+  return { min: threshold - spread, median: threshold, max: threshold + spread, higherIsBetter };
+}
+
 export function kpiColorRGB(value: number, range: KpiRange): [number, number, number] {
   const { min, median, max, higherIsBetter = true } = range;
   const lo = higherIsBetter ? min : max;
@@ -55,11 +67,13 @@ export function kpiColorRGB(value: number, range: KpiRange): [number, number, nu
   return interpolateStops(t);
 }
 
+/** Colore pieno (senza trasparenza), pronto da usare in uno style CSS. */
 export function kpiColor(value: number, range: KpiRange): string {
   const [r, g, b] = kpiColorRGB(value, range);
   return `rgb(${r} ${g} ${b})`;
 }
 
+/** Come kpiColor ma con canale alpha, per sfondi semi-trasparenti (badge, celle tabella). */
 export function kpiColorAlpha(value: number, range: KpiRange, alpha: number): string {
   const [r, g, b] = kpiColorRGB(value, range);
   return `rgb(${r} ${g} ${b} / ${alpha})`;
@@ -73,6 +87,10 @@ export function kpiTextColor(value: number, range: KpiRange): string {
   return `rgb(${Math.round(r * darken)} ${Math.round(g * darken)} ${Math.round(b * darken)})`;
 }
 
+/**
+ * Mediana di un array di numeri: dispari -> valore centrale, pari -> media dei due centrali.
+ * Si ordina prima una copia dell'array (sort muta l'originale, per questo [...values]).
+ */
 export function median(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);

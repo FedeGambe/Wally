@@ -1,3 +1,27 @@
+/**
+ * SORGENTE DI VERITA' per la mappatura ogni scheda (tab) del Google Sheet
+ * verso i campi/tipi usati nell'app.
+ *
+ * Per aggiungere o modificare una scheda del foglio Google (nuova colonna,
+ * nuovo tab, rinominare un'intestazione, ...) si modifica SOLO l'array
+ * SHEETS_CONFIG qui sotto: src/lib/sheetsService.tsx legge questo array e
+ * cicla su di esso dinamicamente (fetchSpreadsheetData / pushSpreadsheetData),
+ * non serve toccare quel file.
+ *
+ * Ogni voce di SHEETS_CONFIG dice:
+ *  - `title`/`range`: nome del tab e intervallo di celle da leggere in Sheets
+ *  - `fields`: nomi delle proprietà nell'oggetto JS (es. 'importo')
+ *  - `headers`: intestazioni umane attese nella riga 1 del foglio (es. 'Importo')
+ *    `fields[i]` e `headers[i]` sono allineati per indice.
+ *  - `numberFields`/`booleanFields`: quali campi vanno convertiti da stringa
+ *    a numero/booleano quando si legge dal foglio
+ *  - `dataKey`: la chiave sotto cui questi dati finiscono nell'oggetto dati
+ *    dell'app (lo stesso `dataKey` usato in getExportableData in mockData.ts)
+ *
+ * Le schede "Scalable" e "Trade Republic" (broker di investimento) hanno in
+ * più delle colonne "dinamiche" che NON sono elencate qui: vengono scoperte a
+ * runtime leggendo le righe 1-2 del foglio (vedi fetchSpreadsheetData).
+ */
 import {
   TARGET_PRIMARIE,
   TARGET_SECONDARIE,

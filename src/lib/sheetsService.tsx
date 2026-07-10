@@ -1,3 +1,21 @@
+/**
+ * PONTE tra l'app e l'API di Google Sheets (layer 1 dell'architettura dati).
+ * File più delicato del progetto: un bug qui può corrompere silenziosamente
+ * cifre finanziarie (numeri o date interpretati male). Ogni funzione qui
+ * chiama direttamente `fetch()` verso `sheets.googleapis.com` usando
+ * l'`accessToken` OAuth di Google (ottenuto in src/lib/googleAuth.ts).
+ *
+ * Le due funzioni pubbliche principali:
+ *  - `fetchSpreadsheetData`: legge (PULL) tutte le schede del foglio Google e
+ *    le converte in oggetti JS, secondo la mappatura di SHEETS_CONFIG.
+ *  - `pushSpreadsheetData`: fa l'inverso (PUSH), scrive gli oggetti JS
+ *    dell'app come righe nel foglio Google.
+ *
+ * `parseLocalizedNumber` e `parseDateString` meritano attenzione extra: il
+ * foglio Google può contenere numeri in formato italiano (1.234,56) o
+ * americano (1,234.56), e date in vari formati testuali o come "numero
+ * seriale" di Google Sheets.
+ */
 import { SHEETS_CONFIG, REQUIRED_SHEETS_TITLES } from '../config/sheetsConfig';
 import { toValidFieldName } from '../utils/sheetsUtils';
 import { computeCruscottoData } from '../utils/cruscottoInvestimenti';
@@ -132,7 +150,12 @@ const parseDateString = (dateStr: any): Date | null => {
   return isNaN(parsed.getTime()) ? null : parsed;
 };
 
-// Convert sheet rows back to arrays of objects using dynamic header column lookup
+// Converte le righe grezze del foglio (array di array) in array di oggetti JS.
+// Non assume che le colonne del foglio siano nell'ordine di `fieldsOnObject`:
+// cerca per ogni campo la colonna giusta guardando l'intestazione reale nella
+// riga 1 del foglio (match esatto, poi per nome del campo, poi "contains"
+// case-insensitive). Questo rende l'app tollerante se l'utente riordina le
+// colonne nel foglio Google, a patto che le intestazioni restino riconoscibili.
 const mapFromRowsWithHeaders = (
   rows: any[][],
   fieldsOnObject: string[],
@@ -281,6 +304,11 @@ export const ensureSheetsExist = async (accessToken: string, spreadsheetId: stri
   }
 };
 
+// PULL: legge tutte le schede del foglio Google in un'unica chiamata batch e
+// restituisce un oggetto con una chiave per ogni `dataKey` di SHEETS_CONFIG
+// (es. `uscite`, `entrate`, `patrimonio`, ...), più alcuni campi calcolati
+// (es. `cruscottoInvestimenti`, `scalableInstruments`) che non vengono letti
+// da un tab dedicato ma derivati dagli altri dati.
 export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: string): Promise<SheetsData> => {
   await ensureSheetsExist(accessToken, spreadsheetId);
 
@@ -510,6 +538,10 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   return outputData as SheetsData;
 };
 
+// PUSH: scrive lo stato attuale dell'app nel foglio Google, un tab alla
+// volta, secondo la stessa mappatura fields/headers di SHEETS_CONFIG.
+// Sovrascrive interamente il contenuto di ogni tab (values:batchUpdate con
+// range "A1" e i dati completi) — non fa un merge riga per riga.
 export const pushSpreadsheetData = async (
   accessToken: string,
   spreadsheetId: string,

@@ -26,6 +26,16 @@ import {
   YAxis,
 } from 'recharts';
 
+// Sotto-vista "Cruscotto Generale" della pagina Investimenti: è la panoramica
+// riassuntiva di tutto il portafoglio investimenti (Scalable + Trade Republic insieme).
+// Dati usati: CRUSCOTTO_GENERALE (totali cumulati di sempre), CRUSCOTTO_ANNO (totali
+// dell'anno selezionato), cruscottoRows (uno storico riga-per-anno) e nestedPieData
+// (aggregazione asset class/strumenti calcolata da src/utils/cruscottoInvestimenti.ts).
+// Contenuti principali:
+//  - 4 KPI card (Portafoglio Attuale, Plusvalenza Cumulata, Rendimento Anno, Contributo Anno)
+//  - grafico a torta annidato (asset class all'interno, singoli strumenti all'esterno)
+//  - grafico ad area "Investito vs Valore Portafoglio" nel tempo
+//  - inspector del mese selezionato + tabella "Distribuzione Asset Class per Anno"
 interface CruscottoGeneraleProps {
   CRUSCOTTO_GENERALE: any;
   CRUSCOTTO_ANNO: any;
@@ -71,6 +81,8 @@ export default function CruscottoGenerale({
   lastValidRendimento,
 }: CruscottoGeneraleProps) {
   // Confronto con l'anno precedente per i triangolini di Rendimento/Contributo
+  // Se non esiste una riga per l'anno precedente (es. primo anno di dati), il triangolino
+  // resta "su" di default (annualUp = true) invece di dare un falso segnale negativo.
   const previousYearRow = cruscottoRows.find((r: any) => Number(r.anno) === Number(globalSelectedYear) - 1);
   const annualUp = !previousYearRow || Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= Number(previousYearRow.rendimentoAnnualeEuro || 0);
   const isAnnualPositive = Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= 0;
@@ -97,6 +109,8 @@ export default function CruscottoGenerale({
     },
   };
 
+  // Aggiunge/rimuove una asset class dal filtro attivo (click sui tile o sulle fette della torta interna):
+  // aggiorna selectedMacroCategories, che a sua volta filtra sia i tile che filteredDetailData (torta esterna).
   const toggleMacroCategory = (cat: 'Azioni' | 'Obbligazioni' | 'Monetari') => {
     setSelectedMacroCategories(
       selectedMacroCategories.includes(cat)
@@ -105,6 +119,8 @@ export default function CruscottoGenerale({
     );
   };
 
+  // Contributo Anno = somma dei versamenti (non del rendimento) nelle 3 asset class
+  // per l'anno selezionato, confrontato con lo stesso totale dell'anno precedente.
   const currentContributoTotale = Number(CRUSCOTTO_ANNO.azioniInvestitoAnno || 0) + Number(CRUSCOTTO_ANNO.obbligazioniInvestitoAnno || 0) + Number(CRUSCOTTO_ANNO.monetariInvestitoAnno || 0);
   const previousContributoTotale = previousYearRow
     ? Number(previousYearRow.azioniInvestitoAnno || 0) + Number(previousYearRow.obbligazioniInvestitoAnno || 0) + Number(previousYearRow.monetariInvestitoAnno || 0)
@@ -136,6 +152,9 @@ export default function CruscottoGenerale({
                 </div>
               </div>
               <div className="mt-2">
+                {/* Valore attuale del portafoglio = capitale versato in ogni asset class (cumulato di sempre)
+                    + la plusvalenza/minusvalenza cumulata. Non è un valore letto direttamente dal foglio,
+                    ma ricostruito sommando questi pezzi. */}
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
                   {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
                 </span>
@@ -253,6 +272,9 @@ export default function CruscottoGenerale({
           </div>
 
           {/* Custom compact Tooltip for Recharts */}
+          {/* Tooltip personalizzato: Recharts di default non permette di calcolare la percentuale
+              sul totale, quindi la calcoliamo qui a mano dividendo il valore della fetta per
+              totalAssetAllocation (il totale investito in tutte le asset class). */}
           {(() => {
             const CustomTooltip = ({ active, payload }: any) => {
               if (active && payload && payload.length) {
@@ -300,6 +322,7 @@ export default function CruscottoGenerale({
                       {nestedPieData.macroData.map((item, idx) => {
                         const value = item.value;
                         const percentage = totalAssetAllocation > 0 ? (value / totalAssetAllocation) * 105 : 0; // Wait, total allocation %
+                        // Percentuale reale della asset class sul totale investito (quella mostrata a schermo).
                         const actualPercent = totalAssetAllocation > 0 ? (value / totalAssetAllocation) * 100 : 0;
                         const categoryKey = item.name as 'Azioni' | 'Obbligazioni' | 'Monetari';
                         const isSelected = selectedMacroCategories.includes(categoryKey);
@@ -648,6 +671,8 @@ export default function CruscottoGenerale({
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">
                   {cruscottoRows.map((row: any) => {
                     const isCorrente = Number(row.anno) === Number(cruscottoRows[0]?.anno);
+                    // Stessa formula del box "Portafoglio Attuale" sopra, mese per mese storico:
+                    // capitale cumulato investito nelle 3 asset class + plusvalenza cumulata a fine anno.
                     const valuationSum = Number(row.azioniInvestitoCum || 0) +
                       Number(row.obbligazioniInvestitoCum || 0) +
                       Number(row.monetariInvestitoCum || 0) +

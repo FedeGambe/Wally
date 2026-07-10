@@ -52,6 +52,12 @@ function parseMese(meseStr: string): MonthYear | null {
   return { month, year };
 }
 
+/**
+ * Calcola, per ogni anno presente nei fogli Scalable/Trade Republic/Rendimenti, il riepilogo
+ * annuale investito e rendimento (in € e %). Usato da useInvestimentiData.ts (pagina
+ * Investimenti) e da sheetsService.tsx quando prepara i dati da inviare al foglio Google.
+ * Ritorna un array con un elemento per anno, ordinato dal più recente al più vecchio.
+ */
 export function computeCruscottoData(sheetsData: any): any[] {
   const scalable = sheetsData.scalable || [];
   const tradeRepublic = sheetsData.tradeRepublic || [];
@@ -244,6 +250,15 @@ export function computeCruscottoData(sheetsData: any): any[] {
   return sortedResult;
 }
 
+/**
+ * Calcola l'allocazione reale del patrimonio investito (quanto in Azioni/Obbligazioni/Monetari,
+ * per singolo strumento e aggregato) guardando solo l'ULTIMA riga disponibile di Scalable e
+ * Trade Republic (la fotografia più recente, non uno storico). Usato da useInvestimentiData.ts
+ * per il grafico a torta dell'allocazione nella pagina Investimenti.
+ * Nota: la logica di parsing del mese (parseMeseLocal) è una copia di parseMese qui sopra;
+ * è duplicata volutamente per tenere questa funzione indipendente, non è un refactor da fare
+ * "al volo" qui.
+ */
 export function computeRealAssetAllocation(sheetsData: any): { macroData: any[]; detailData: any[] } {
   if (!sheetsData) {
     return { macroData: [], detailData: [] };

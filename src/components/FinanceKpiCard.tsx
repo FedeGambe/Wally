@@ -1,6 +1,14 @@
 import React from 'react';
 import { formatEuro } from '../utils/format';
 
+/**
+ * Card riassuntiva per un singolo indicatore finanziario (KPI), es. "Disponibile",
+ * "Investito", "Impegnato", "Totale". Mostra un titolo, un valore in euro (grande),
+ * un'icona e una riga di dettaglio libera (`detail`, passata da chi usa il componente,
+ * es. un confronto col mese precedente). Il colore della card cambia in base a `type`
+ * (vedi `typeConfigs` sotto) per dare un colpo d'occhio immediato sul tipo di dato.
+ * Componente puramente di presentazione: non calcola nulla, riceve già tutto pronto.
+ */
 export type FinanceKpiCardType = 'disponibile' | 'investito' | 'impegnato' | 'totale';
 
 interface FinanceKpiCardProps {
@@ -56,6 +64,9 @@ export default function FinanceKpiCard({
         }
     };
 
+    // Se `type` non corrisponde a nessuna chiave nota (non dovrebbe succedere, ma
+    // TypeScript non lo garantisce a runtime), si usa lo stile "totale" come fallback
+    // neutro invece di far crashare il rendering.
     const config = typeConfigs[type] || typeConfigs.totale;
 
     return (

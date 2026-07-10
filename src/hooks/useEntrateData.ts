@@ -2,6 +2,15 @@ import { useState, useMemo, useEffect } from 'react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { MESI_ITALIANI } from '../utils/date';
 
+/**
+ * Hook usato dalla pagina Entrate (src/pages/Entrate.tsx).
+ * Prende in input l'anno/mese correntemente selezionati (stato condiviso con
+ * l'header dell'app) tramite props, e legge i dati grezzi dei fogli "Entrate"
+ * e "Risparmio" da useFinanceData(). Restituisce i dati gia' filtrati e
+ * aggregati per i grafici e le card della pagina (trend storico, ripartizione
+ * per categoria/conto, confronto col mese precedente), oltre allo stato e ai
+ * gestori del drawer di dettaglio che si apre cliccando un punto del grafico.
+ */
 const monthsOrder = MESI_ITALIANI;
 
 // Funzione helper per estrarre mese e anno a 4 cifre da stringhe del tipo "ottobre 25" o "gennaio 22"
@@ -221,6 +230,9 @@ export function useEntrateData(
   }, [chronologicalData, selectedRecord]);
 
   // 6. Calcola le entrate dell'anno corrente selezionato
+  // Nota: l'anno si prende da selectedRecord.anno (non da selectedYear) perche' se
+  // selectedYear e' "Tutti" o non ha match, selectedRecord contiene gia' l'anno
+  // effettivamente risolto (con fallback all'anno corrente).
   const totalIncomeForSelectedYear = useMemo(() => {
     const targetYear = selectedRecord ? selectedRecord.anno : new Date().getFullYear();
     const yearIncomes = normalizedEntrate.filter(e => e.anno === targetYear);
@@ -231,7 +243,10 @@ export function useEntrateData(
     return yearRisparmio.reduce((sum, r) => sum + r.entrate, 0);
   }, [selectedRecord, normalizedEntrate, normalizedRisparmio]);
 
-  // Calcola la media mensile dell'anno selezionato
+  // Calcola la media mensile dell'anno selezionato: si divide il totale annuo per il
+  // numero di mesi che hanno effettivamente un'entrata registrata (non sempre 12,
+  // es. per l'anno in corso non ancora concluso); se non c'e' alcun mese valido si
+  // usa /12 come fallback prudenziale per evitare una media gonfiata.
   const avgMonthlyIncome = useMemo(() => {
     const targetYear = selectedRecord ? selectedRecord.anno : new Date().getFullYear();
     const yearRisparmio = chronologicalData.filter(r => r.anno === targetYear && r.entrate > 0);
@@ -312,6 +327,9 @@ export function useEntrateData(
 
     const mappedTx = monthIncomes.map((e) => ({
       id: e.id,
+      // Fallback grezzo se la riga non ha una data propria: assume che il mese sia
+      // giugno o maggio (unico caso gestito). Va bene solo perche' finora i dati
+      // reali hanno sempre una data; se compaiono altri mesi senza data, va estesa.
       data: e.data || `01/${monthName === 'Giugno' ? '06' : '05'}/${yearValue}`,
       mese: e.meseNorm.toLowerCase(),
       descrizione: e.categoria || 'Entrata generica',

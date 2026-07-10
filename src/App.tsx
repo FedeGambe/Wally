@@ -3,6 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * Componente radice dell'app. Contiene due cose distinte:
+ *  1) `App`: gestisce login/logout, tema chiaro/scuro, e lo stato di
+ *     filtro (anno/mese selezionati) che va passato "a mano" (via props)
+ *     alle pagine perché non fa parte di FinanceDataContext (vedi CLAUDE.md).
+ *  2) `DashboardShell`: la UI vera e propria una volta loggati (sidebar,
+ *     header, pagina attiva). E' un componente separato perché deve stare
+ *     DENTRO <FinanceDataProvider> per poter leggere i dati con
+ *     useFinanceData() — se il codice fosse tutto in App non potrebbe farlo,
+ *     dato che il provider dei dati è renderizzato da App stesso.
+ *
+ * Per chi non conosce React: uno `useState` crea una variabile di stato che,
+ * quando cambia, fa ridisegnare (re-render) il componente; uno `useEffect`
+ * esegue del codice quando il componente viene montato o quando cambiano le
+ * variabili elencate nell'array delle dipendenze `[...]` alla fine.
+ * Vedi docs/GUIDA-REACT-TS.md per una spiegazione più estesa.
+ */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {

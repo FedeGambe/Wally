@@ -1,11 +1,21 @@
 /**
+ * Utility per interpretare la struttura "grezza" di un foglio Google Sheet (righe di header)
+ * e trasformarla in nomi di campo validi in JS/TS, più il riconoscimento delle colonne
+ * "dinamiche" (Azioni/Obbligazioni/Monetari) dei fogli broker Scalable e Trade Republic.
+ * Usato da src/config/sheetsConfig.tsx e da src/lib/sheetsService.tsx, cioè dal cuore della
+ * lettura/scrittura dati verso il foglio: attenzione a non rompere il parsing qui.
+ */
+
+/**
  * Converts a raw Google Sheets column header name to a valid, clean camelCase field name for TypeScript/JavaScript objects.
  * Handles spaces, special characters (&, %, -, +), accents, and ensures it doesn't start with a number.
  */
 export function toValidFieldName(str: string): string {
   if (!str) return 'column';
 
-  // Replace common characters with words or clean equivalents
+  // Sostituisce simboli comuni con parole equivalenti, poi rimuove gli accenti:
+  // .normalize('NFD') scompone es. "\u00e0" in "a" + accento separato, e la regex successiva
+  // elimina il carattere di accento (categoria unicode combining diacritical marks).
   let cleaned = str
     .replace(/&/g, 'And')
     .replace(/%/g, 'Pct')
@@ -66,8 +76,11 @@ export function parseSheetColumns(row1: any[], row2: any[]): DetectedColumns {
     const row2Val = row2 && row2[colIdx] ? String(row2[colIdx]).trim() : '';
     const row2Lower = row2Val.toLowerCase();
 
-    // Check if it's a dynamic column
-    const isDynamic = 
+    // Colonna "dinamica" = il suo nome/categoria non è fisso nel foglio (a differenza di
+    // colonne come "Data" o "Liquidità"): sono le colonne asset dei broker (Scalable/Trade
+    // Republic), la cui categoria (Azioni/Obbligazioni/Monetari) è scritta nella riga 2
+    // del foglio invece che essere nota a priori nel codice.
+    const isDynamic =
       row2Lower.includes('azioni') || 
       row2Lower.includes('obbligazione') || 
       row2Lower.includes('obbligazioni') || 

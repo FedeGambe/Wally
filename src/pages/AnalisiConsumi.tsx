@@ -1,3 +1,14 @@
+/**
+ * Pagina "Analisi Consumi": tracking dei rifornimenti/consumi dell'auto.
+ * Legge i dati grezzi da useFinanceData() (foglio "AnalisiConsumi" del Google Sheet, chiave data.analisiConsumi)
+ * e li trasforma in record settimanali con calcoli di km/litro, costo per 100km, km "persi" per
+ * guida inefficiente, ecc. Ogni riga del foglio rappresenta una settimana/rifornimento.
+ * Usa calcolaEsitiSettimanali (src/utils/esitoSettimanale.ts) per assegnare un giudizio testuale
+ * a ciascuna settimana e kpiColorScale (src/utils/kpiColorScale.ts) per colorare le card KPI
+ * in base alla posizione del valore rispetto alla mediana storica.
+ * Mostra: riepilogo della settimana selezionata, grafici storici (km/lt, costo/100km, prezzo
+ * carburante, costo extra, km persi) tutti cliccabili per cambiare la settimana selezionata.
+ */
 import React, { useState, useMemo, useEffect } from 'react';
 import { Car, AlertOctagon, Gauge, Calendar, ChevronDown } from 'lucide-react';
 import {
@@ -160,6 +171,10 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   const { data } = useFinanceData();
 
   // 1. Process and normalize the finance data
+  // Tutti i valori numerici arrivano dal foglio come stringhe (o vuoti): qui li convertiamo con
+  // Number(...) e usiamo "|| 0" come fallback per le celle mancanti. L'unica eccezione è
+  // kmAlLitroAuto (vedi commento sotto), dove 0 è ambiguo e va trattato come "nessun dato".
+  // Il ricalcolo avviene solo quando cambia data.analisiConsumi (nuova sincronizzazione dal foglio).
   const consumiRecords: RecordConsumo[] = useMemo(() => {
     const rawList = data.analisiConsumi || [];
 
@@ -211,6 +226,9 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   const [selectedWeekState, setSelectedWeekState] = useState<RecordConsumo | null>(null);
   const [isWeekDropdownOpen, setIsWeekDropdownOpen] = useState(false);
 
+  // Ogni volta che consumiRecords cambia (nuova sincronizzazione dal foglio) riallinea la settimana
+  // selezionata: se la settimana che era selezionata esiste ancora nei nuovi dati la ritrova (stesso
+  // data+settimana, per oggetto aggiornato), altrimenti seleziona di default l'ultima settimana disponibile.
   useEffect(() => {
     if (consumiRecords.length > 0) {
       setSelectedWeekState(prev => {

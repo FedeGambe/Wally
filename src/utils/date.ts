@@ -1,4 +1,12 @@
 /**
+ * Utility per gestire mesi e anni delle transazioni/date del foglio Google Sheet.
+ * Usato da App.tsx, Header.tsx e dagli hook di pagina (useEntrateData, useUsciteData,
+ * usePatrimonioData, usePanoramicaData, useInvestimentiData) per popolare i filtri
+ * anno/mese e per interpretare le date scritte nel foglio (che possono arrivare in
+ * formati diversi: nome mese esteso, abbreviato, italiano o inglese).
+ */
+
+/**
  * Nomi dei mesi in italiano, in ordine calendario. Era duplicato alla lettera
  * in 6 file (App, Header, Entrate, Investimenti, Panoramica, Patrimonio).
  */
@@ -36,20 +44,27 @@ export function getMonthIndex(mese: string): number {
  */
 export function getTransactionYear(t: { data?: string }): number {
   if (!t.data) return new Date().getFullYear();
+  // Divide la stringa su "/" o "-": ci aspettiamo gg/mm/aaaa oppure aaaa-mm-gg.
   const parts = t.data.split(/[\/\-]/);
   if (parts.length === 3) {
+    // L'anno può stare in ultima posizione (gg/mm/aaaa) o in prima (aaaa-mm-gg):
+    // capiamo quale dei due pezzi è l'anno guardando quale ha 4 cifre.
     const yearPart = parts[2].length === 4 ? parts[2] : parts[0].length === 4 ? parts[0] : parts[2];
     const parsedYear = parseInt(yearPart, 10);
     if (!isNaN(parsedYear)) {
+      // Anno a 2 cifre (es. "24") -> assumiamo 20xx (non gestiamo il 1900).
       if (parsedYear < 100) return 2000 + parsedYear;
       return parsedYear;
     }
   }
+  // Fallback 1: cerca un anno a 4 cifre tipo "20xx" ovunque nella stringa.
   const match = t.data.match(/\b(20\d{2})\b/);
   if (match) return parseInt(match[1], 10);
 
+  // Fallback 2: cerca "/aa" finale (es. "12/24") e assume 20aa.
   const match2 = t.data.match(/\/(\d{2})$/);
   if (match2) return 2000 + parseInt(match2[1], 10);
 
+  // Fallback finale: se proprio non si riesce a interpretare, usa l'anno corrente.
   return new Date().getFullYear();
 }

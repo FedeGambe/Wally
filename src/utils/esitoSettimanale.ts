@@ -1,3 +1,9 @@
+/**
+ * Calcola un "voto" testuale (Migliore/Ottima/.../Peggiore) per ogni settimana registrata
+ * nella pagina Analisi Consumi (consumo carburante auto), confrontando ogni settimana con
+ * tutto lo storico: non c'è una soglia fissa, il giudizio è sempre relativo alle altre
+ * settimane registrate. Usato da src/pages/AnalisiConsumi.tsx.
+ */
 export type EsitoSettimana = 'Migliore' | 'Ottima' | 'Buona' | 'Nella media' | 'Non buona' | 'Scarsa' | 'Peggiore';
 
 interface RigaConsumo {
@@ -43,6 +49,11 @@ export function calcolaEsitiSettimanali<T extends RigaConsumo>(records: T[]): Es
     } else if (rank === n - 1) {
       esiti[index] = 'Peggiore';
     } else {
+      // Tutte le settimane "di mezzo" (escluse Migliore/Peggiore) vengono divise in 5 fasce
+      // uguali in base alla loro posizione in classifica (percentile), non al valore assoluto
+      // dello score: posizioneRelativa va da 0 (appena dopo la migliore) a 1 (appena prima
+      // della peggiore). Math.min(4, ...) evita che un arrotondamento porti bucket a 5
+      // (fuori dai 5 elementi validi dell'array, indici 0-4).
       const posizioneRelativa = (rank - 1) / (n - 2);
       const bucket = Math.min(4, Math.floor(posizioneRelativa * 5));
       esiti[index] = BUCKET_INTERMEDI[bucket];
