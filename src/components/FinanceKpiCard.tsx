@@ -72,7 +72,7 @@ export default function FinanceKpiCard({
     return (
         <div
             id={id}
-            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-36 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
+            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-24 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
         >
             {/* Top row with Title and small Icon Container */}
             <div className="flex justify-between items-start z-10">
@@ -91,8 +91,9 @@ export default function FinanceKpiCard({
                 </h3>
             </div>
 
-            {/* Separator line + Detail description below */}
-            <div className={`border-t ${config.borderT} pt-2 mt-2 z-10`}>
+            {/* Separator line + Detail description below: nascosto su mobile per
+                risparmiare spazio (solo l'importo resta visibile) */}
+            <div className={`hidden sm:block border-t ${config.borderT} pt-2 mt-2 z-10`}>
                 <div className={`text-[11px] sm:text-xs ${config.textColor} flex items-center gap-2 font-bold`}>
                     {detail}
                 </div>
