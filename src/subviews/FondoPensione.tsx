@@ -12,6 +12,9 @@ import {
   Cell,
 } from 'recharts';
 import { TrendingUp, Shield, Coins, Wallet, Landmark } from 'lucide-react';
+import EuroAmount from '../components/EuroAmount';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { formatAxisCompact } from '../utils/format';
 
 // Sotto-vista "Fondo Pensione" della pagina Investimenti: mostra l'andamento del
 // fondo pensione complementare (TFR + contributo dipendente + contributo azienda).
@@ -93,6 +96,8 @@ export default function FondoPensione({
   selectedMonthName,
   selectedYearStr,
 }: FondoPensioneProps) {
+  const isMobile = useIsMobile();
+
   // Normalize data to support both mock keys and Google Sheets keys dynamically
   // Questo blocco "appiattisce" le righe grezze in una forma unica (mese, tfr, contrBase,
   // contrVolont, contrAzienda, totMensile, totCumulativo), indipendentemente dal fatto che
@@ -185,6 +190,13 @@ export default function FondoPensione({
         return true;
       });
   }, [FONDO_PENSIONE_DATA]);
+
+  // Massimo assoluto della serie disegnata: decide se l'asse Y può usare la
+  // notazione compatta "k" su mobile (vedi formatAxisCompact in utils/format.ts).
+  const yAxisMaxAbs = useMemo(
+    () => normalizedData.reduce((m: number, r: any) => Math.max(m, Math.abs(Number(r.totCumulativo) || 0)), 0),
+    [normalizedData]
+  );
 
   // Derive key indicators dynamically
   // Trova la riga da usare per i KPI in base al mese/anno selezionati globalmente nell'header:
@@ -309,7 +321,7 @@ export default function FondoPensione({
             <Landmark className="w-4 h-4 text-slate-400 dark:text-slate-400" />
           </div>
           <span className="text-2xl font-black font-display text-slate-800 dark:text-white block mt-1">
-            {formatEuro(lastAccumulated)}
+            <EuroAmount value={lastAccumulated} />
           </span>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Capitale complessivo accumulato comprensivo di TFR</p>
         </div>
@@ -321,7 +333,7 @@ export default function FondoPensione({
             <Coins className="w-4 h-4 text-slate-400 dark:text-slate-400" />
           </div>
           <span className="text-2xl font-black font-display text-slate-800 dark:text-white block mt-1">
-            {formatEuro(avgMonthly)}
+            <EuroAmount value={avgMonthly} />
           </span>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">PAC integrato con contributo datore e TFR</p>
         </div>
@@ -333,7 +345,7 @@ export default function FondoPensione({
             <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <span className="text-2xl font-black font-display text-emerald-600 dark:text-emerald-400 block mt-1">
-            {formatEuro(activeCompanyContrib)}
+            <EuroAmount value={activeCompanyContrib} />
           </span>
           <p className="text-[10px] text-emerald-600 dark:text-emerald-500/80 font-medium mt-1">Ultimo versamento base datoriale sbloccato</p>
         </div>
@@ -421,7 +433,7 @@ export default function FondoPensione({
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={normalizedData}
-                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
               >
                 <defs>
                   <linearGradient id="colorFondoAccumulato" x1="0" y1="0" x2="0" y2="1">
@@ -442,7 +454,10 @@ export default function FondoPensione({
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT')}`}
+                  width={isMobile ? 42 : 60}
+                  tickFormatter={(val) => isMobile
+                    ? formatAxisCompact(val, yAxisMaxAbs)
+                    : `€${Number(val).toLocaleString('it-IT')}`}
                 />
                 <Tooltip
                   formatter={(value: any) => formatEuro(value)}

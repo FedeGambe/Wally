@@ -18,6 +18,7 @@
 //  7. Drawer laterale con il dettaglio movimenti quando si apre un mese
 // ============================================================================
 import React from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
 import {
   TrendingUp,
   Coins,
@@ -38,6 +39,7 @@ import {
 import Drawer from '../components/Drawer';
 import FinanceKpiCard from '../components/FinanceKpiCard';
 import DataTable from '../components/DataTable';
+import EuroAmount from '../components/EuroAmount';
 import { formatEuro, formatPercent } from '../utils/format';
 import { kpiColor, thresholdRange } from '../utils/kpiColorScale';
 import { usePanoramicaData } from '../hooks/usePanoramicaData';
@@ -55,6 +57,7 @@ export default function Panoramica({
   selectedMonth,
   setSelectedMonth
 }: PanoramicaProps) {
+  const isMobile = useIsMobile();
   const {
     localSelectedMonth,
     drawerOpen, setDrawerOpen,
@@ -134,7 +137,11 @@ export default function Panoramica({
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left">
         <h3 className="text-base font-bold text-slate-800 font-display mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-indigo-605 text-indigo-600" />
-          Mese Corrente in Evidenza: <span className="text-indigo-600 font-extrabold capitalize">{currentMonthData.mese} {currentMonthData.anno}</span>
+          <span className="hidden md:inline">Mese Corrente in Evidenza:</span>
+          <span className="md:hidden">Mese Corrente:</span>
+          <span className="text-indigo-600 font-extrabold capitalize">
+            {currentMonthData.mese} <span className="hidden md:inline">{currentMonthData.anno}</span><span className="md:hidden">{String(currentMonthData.anno).slice(2)}</span>
+          </span>
         </h3>
 
         {/* Nota sul verso dei confronti con la soglia: per Risparmio e
@@ -148,86 +155,104 @@ export default function Panoramica({
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Risparmio</span>
               <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                {formatEuro(currentMonthData.risparmioNetto)}
+                <EuroAmount value={currentMonthData.risparmioNetto} />
               </span>
             </div>
             <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(rispPerc)}</strong></span>
+              <span className="hidden md:inline text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(rispPerc)}</strong></span>
               {rispPerc >= dynamicThresholds.risparmio ? (
-                <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Target {dynamicThresholds.risparmio}% OK ✓
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Sotto Target {dynamicThresholds.risparmio}% ✗
                 </span>
               )}
+              <span className={`md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPerc >= dynamicThresholds.risparmio ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                {formatPercent(rispPerc)} {rispPerc >= dynamicThresholds.risparmio ? '✓' : '✗'}
+              </span>
             </div>
           </div>
 
           {/* Investito */}
           <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75 flex flex-col justify-between h-32 transition-all duration-300 hover:bg-slate-50">
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Capitale Investito</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Investito</span>
               <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                {formatEuro(currentMonthData.investito)}
+                <EuroAmount value={currentMonthData.investito} />
               </span>
             </div>
             <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(invPerc)}</strong></span>
+              <span className="hidden md:inline text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(invPerc)}</strong></span>
               {invPerc >= dynamicThresholds.investiti ? (
-                <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Target {dynamicThresholds.investiti}% OK ✓
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Sotto Target {dynamicThresholds.investiti}% ✗
                 </span>
               )}
+              <span className={`md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPerc >= dynamicThresholds.investiti ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                {formatPercent(invPerc)} {invPerc >= dynamicThresholds.investiti ? '✓' : '✗'}
+              </span>
             </div>
           </div>
 
           {/* Spese Primarie */}
           <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75 flex flex-col justify-between h-32 transition-all duration-300 hover:bg-slate-50">
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Primarie</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                <span className="md:hidden">Spese Prim.</span>
+                <span className="hidden md:inline">Spese Primarie</span>
+              </span>
               <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                {formatEuro(currentMonthData.spesePrimarie)}
+                <EuroAmount value={currentMonthData.spesePrimarie} />
               </span>
             </div>
             <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(primPerc)}</strong></span>
+              <span className="hidden md:inline text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(primPerc)}</strong></span>
               {primPerc <= dynamicThresholds.primarie ? (
-                <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Sotto Soglia {dynamicThresholds.primarie}% ✓
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Sopra Soglia {dynamicThresholds.primarie}% ✗
                 </span>
               )}
+              <span className={`md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPerc <= dynamicThresholds.primarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                {formatPercent(primPerc)} {primPerc <= dynamicThresholds.primarie ? '✓' : '✗'}
+              </span>
             </div>
           </div>
 
           {/* Spese Secondarie */}
           <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75 flex flex-col justify-between h-32 transition-all duration-300 hover:bg-slate-50">
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Secondarie</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                <span className="md:hidden">Spese Sec.</span>
+                <span className="hidden md:inline">Spese Secondarie</span>
+              </span>
               <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                {formatEuro(currentMonthData.speseSecondarie)}
+                <EuroAmount value={currentMonthData.speseSecondarie} />
               </span>
             </div>
             <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(secPerc)}</strong></span>
+              <span className="hidden md:inline text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(secPerc)}</strong></span>
               {secPerc <= dynamicThresholds.secondarie ? (
-                <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Sotto Soglia {dynamicThresholds.secondarie}% ✓
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                <span className="hidden md:inline-flex items-center gap-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 text-[9px] font-bold px-2 py-0.5 rounded-full">
                   Sopra Soglia {dynamicThresholds.secondarie}% ✗
                 </span>
               )}
+              <span className={`md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPerc <= dynamicThresholds.secondarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                {formatPercent(secPerc)} {secPerc <= dynamicThresholds.secondarie ? '✓' : '✗'}
+              </span>
             </div>
           </div>
         </div>
@@ -274,10 +299,13 @@ export default function Panoramica({
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left lg:col-span-2 transition-all duration-300 hover:shadow-md">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-bold text-slate-800 font-display text-base">Trend Consumi & Risparmio Mensile</h3>
+              <h3 className="font-bold text-slate-800 font-display text-base">
+                <span className="md:hidden">Trend Risparmio</span>
+                <span className="hidden md:inline">Trend Consumi & Risparmio Mensile</span>
+              </h3>
               <p className="text-xs text-slate-400 mt-1">Confronto tra flussi di risparmio e quota investimenti</p>
             </div>
-            <div className="flex items-center gap-3 text-xs">
+            <div className="hidden md:flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1.5 text-slate-500 font-semibold">
                 <span className="w-3 h-1.5 bg-indigo-600 rounded-full" /> Risparmio
               </span>
@@ -287,11 +315,21 @@ export default function Panoramica({
             </div>
           </div>
 
-          <div className="h-68">
+          {/* Legenda - solo mobile, sopra al grafico e sotto ai testi */}
+          <div className="md:hidden flex items-center gap-3 text-xs mb-4">
+            <span className="flex items-center gap-1.5 text-slate-500 font-semibold">
+              <span className="w-3 h-1.5 bg-indigo-600 rounded-full" /> Risparmio
+            </span>
+            <span className="flex items-center gap-1.5 text-slate-500 font-semibold">
+              <span className="w-3 h-1.5 bg-fuchsia-500 rounded-full" /> Investito
+            </span>
+          </div>
+
+          <div className="h-68 pointer-events-none md:pointer-events-auto">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={chartData}
-                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                 onClick={handleChartClick}
               >
                 <defs>
@@ -326,6 +364,7 @@ export default function Panoramica({
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
+                  width={isMobile ? 44 : 60}
                   tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
                 />
                 <Tooltip
@@ -421,7 +460,7 @@ export default function Panoramica({
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
               <span className="text-slate-200 font-bold">Risparmio Netto:</span>
-              <span className="text-base font-black font-display text-emerald-400">{formatEuro(currentMonthData.risparmioNetto)}</span>
+              <span className="text-base font-black font-display text-emerald-400"><EuroAmount value={currentMonthData.risparmioNetto} /></span>
             </div>
           </div>
 
@@ -460,7 +499,13 @@ export default function Panoramica({
           columns={[
             {
               header: 'Mese / Anno',
-              render: (r) => <span className="font-semibold text-slate-800 capitalize">{r.mese} {r.anno}</span>
+              className: 'w-40',
+              render: (r) => (
+                <span className="font-semibold text-slate-800 capitalize whitespace-nowrap">
+                  <span className="hidden md:inline">{r.mese} {r.anno}</span>
+                  <span className="md:hidden">{r.mese?.slice(0, 3)} '{String(r.anno).slice(2)}</span>
+                </span>
+              )
             },
             {
               header: 'Entrate',

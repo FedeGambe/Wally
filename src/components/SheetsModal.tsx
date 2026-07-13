@@ -178,7 +178,7 @@ export default function SheetsModal({
       setSheetId(newId);
       setInputUrl(`https://docs.google.com/spreadsheets/d/${newId}/edit`);
       
-      setSuccessMsg('Nuovo foglio di lavoro "StarFinance" creato con successo nel tuo Google Drive!');
+      setSuccessMsg('Nuovo foglio di lavoro "Wally" creato con successo nel tuo Google Drive!');
       bumpVersion();
       onRefreshCompleted();
     } catch (err: any) {
@@ -338,7 +338,7 @@ export default function SheetsModal({
                     </span>
                     <h4 className="text-sm font-semibold text-slate-800 mt-2 flex items-center gap-1.5 font-display">
                       <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-500" />
-                      StarFinance - Dashboard Economica
+                      Wally - Dashboard Economica
                     </h4>
                     <p className="text-[11px] text-slate-400 font-mono mt-1 select-all truncate max-w-xs sm:max-w-md">
                       ID: {sheetId}
@@ -474,7 +474,7 @@ export default function SheetsModal({
                   Creazione Automatica Rapida
                 </h4>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Crea un nuovo foglio StarFinance formattato ed esporta all'istante i dati di esempio correnti per iniziare subito.
+                  Crea un nuovo foglio Wally formattato ed esporta all'istante i dati di esempio correnti per iniziare subito.
                 </p>
                 <button
                   type="button"
@@ -541,7 +541,7 @@ export default function SheetsModal({
 
         {/* Footer info banner */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-          <span>StarFinance Engine v2</span>
+          <span>Wally Engine v2</span>
           <span>Google Drive API v3</span>
         </div>
       </motion.div>

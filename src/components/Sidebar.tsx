@@ -125,7 +125,7 @@ export default function Sidebar({
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">
               <span className="font-semibold font-display text-slate-800 text-base leading-tight tracking-tight truncate">
-                Asseta
+                Wally
               </span>
               <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase truncate">
                 Dashboard Finanze

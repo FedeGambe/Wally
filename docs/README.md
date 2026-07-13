@@ -1,4 +1,4 @@
-# Documentazione Assetta
+# Documentazione Wally
 Questa cartella spiega come è fatto il progetto, per chi lo deve mantenere ma non conosce bene React, TSX o TypeScript.
 
 Ordine di lettura consigliato:
@@ -7,7 +7,7 @@ Ordine di lettura consigliato:
 2. **[ARCHITETTURA.md](./ARCHITETTURA.md)** — come si muovono i dati nell'app: da Google Sheet, a localStorage, alla schermata. È il documento più importante per capire *dove* mettere le mani quando qualcosa non torna nei numeri.
 3. **[STRUTTURA-PROGETTO.md](./STRUTTURA-PROGETTO.md)** — mappa cartella per cartella, file per file: cosa fa ciascun file e quando ti serve aprirlo.
 
-## Cos'è Assetta in due righe
+## Cos'è Wally in due righe
 
 Una dashboard di finanza personale, per un solo utente, tutta in italiano. Non ha un server/database proprio: legge e scrive tutti i dati in un **Google Sheet** che appartiene all'utente. React si occupa solo di mostrare quei dati e di permettere di modificarli comodamente.
 

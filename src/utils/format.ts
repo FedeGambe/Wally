@@ -60,3 +60,33 @@ export function rendColorAlpha(perc: number, alpha: number, maxAbs = 4): string 
   const [r, g, b] = rendColorRGB(perc, maxAbs);
   return `rgb(${r} ${g} ${b} / ${alpha})`;
 }
+
+// Stesso algoritmo "nice number" usato da d3/Recharts per scegliere lo step tra un
+// tick e l'altro di un asse numerico (1/2/5 * potenza di 10): serve a prevedere,
+// senza aspettare il rendering, se i tick generati saranno tutti multipli di mille.
+function niceAxisStep(maxAbs: number, tickCount = 5): number {
+  if (!isFinite(maxAbs) || maxAbs <= 0) return 1;
+  const rawStep = maxAbs / tickCount;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const residual = rawStep / magnitude;
+  if (residual > 5) return 10 * magnitude;
+  if (residual > 2) return 5 * magnitude;
+  if (residual > 1) return 2 * magnitude;
+  return magnitude;
+}
+
+/**
+ * Formatta un tick di un asse Y in versione compatta "k" (2000 -> "2k") su mobile,
+ * ma SOLO se tutti i tick non-zero dell'asse cadono in scala di migliaia (step tra
+ * un tick e l'altro >= 1000). Se la scala mescola centinaia e migliaia (es. step 250
+ * su un massimo di 1200), i numeri restano per intero: altrimenti "500" letto come
+ * "0,5k" confonderebbe più di quanto risparmi spazio.
+ */
+export function formatAxisCompact(value: unknown, maxAbsValue: number, prefix = '€'): string {
+  const num = Number(value);
+  if (isNaN(num)) return '';
+  if (niceAxisStep(Math.abs(maxAbsValue)) >= 1000) {
+    return `${prefix}${(num / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k`;
+  }
+  return `${prefix}${num.toLocaleString('it-IT', { useGrouping: true })}`;
+}

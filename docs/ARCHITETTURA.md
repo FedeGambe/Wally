@@ -1,6 +1,6 @@
 # Architettura: come si muovono i dati
 
-Assetta **non ha un backend/database proprio**. I dati vivono in tre livelli, e passano dall'uno all'altro così:
+Wally **non ha un backend/database proprio**. I dati vivono in tre livelli, e passano dall'uno all'altro così:
 
 ```
 Google Sheet  <──pull/push──>  localStorage  <──lettura/scrittura──>  Stato React (schermo)

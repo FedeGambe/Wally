@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatEuro } from '../utils/format';
+import EuroAmount from './EuroAmount';
 
 /**
  * Card riassuntiva per un singolo indicatore finanziario (KPI), es. "Disponibile",
@@ -72,7 +72,7 @@ export default function FinanceKpiCard({
     return (
         <div
             id={id}
-            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-32 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
+            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-36 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
         >
             {/* Top row with Title and small Icon Container */}
             <div className="flex justify-between items-start z-10">
@@ -87,7 +87,7 @@ export default function FinanceKpiCard({
             {/* Value */}
             <div className="z-10 mt-1">
                 <h3 className="text-2xl font-black font-display text-slate-800 dark:text-slate-100 block leading-none">
-                    {formatEuro(value)}
+                    <EuroAmount value={value} />
                 </h3>
             </div>
 

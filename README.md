@@ -1,4 +1,4 @@
-# StarFinance
+# Wally
 
 Dashboard di finanza personale (single-user), tutta in italiano. Nessun backend/database proprio: legge e scrive i dati direttamente su un **Google Sheet** di proprietà dell'utente.
 

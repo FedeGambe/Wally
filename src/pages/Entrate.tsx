@@ -16,6 +16,8 @@
 //  5. Drawer laterale con l'elenco delle transazioni quando si clicca un punto
 // ============================================================================
 import React from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { formatAxisCompact } from '../utils/format';
 import {
   CartesianGrid,
   Tooltip,
@@ -37,6 +39,7 @@ import {
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DataTable from '../components/DataTable';
+import EuroAmount from '../components/EuroAmount';
 import { formatEuro, formatPercent } from '../utils/format';
 import { useEntrateData } from '../hooks/useEntrateData';
 
@@ -53,6 +56,7 @@ export default function Entrate({
   selectedMonth,
   setSelectedMonth
 }: EntrateProps) {
+  const isMobile = useIsMobile();
   const {
     localSelectedMonth,
     drawerOpen, setDrawerOpen,
@@ -65,6 +69,10 @@ export default function Entrate({
     activeMonthEntries,
     handlePointClick
   } = useEntrateData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
+
+  // Massimo assoluto della serie disegnata: decide se l'asse Y può usare la
+  // notazione compatta "k" su mobile (vedi formatAxisCompact in utils/format.ts).
+  const yAxisMaxAbs = chartData.reduce((m: number, r: any) => Math.max(m, Math.abs(Number(r.entrate) || 0)), 0);
 
   // Badge con la variazione percentuale rispetto al mese precedente.
   // Per le entrate "di più" è positivo: se il mese corrente è più basso del
@@ -132,7 +140,7 @@ export default function Entrate({
             </span>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <h3 className="text-3xl font-extrabold font-display text-white leading-none">
-                {formatEuro(selectedRecord?.entrate || 0)}
+                <EuroAmount value={selectedRecord?.entrate || 0} />
               </h3>
               {renderDelta(selectedRecord?.entrate || 0, prevRecord?.entrate)}
             </div>
@@ -156,7 +164,7 @@ export default function Entrate({
             </span>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <h3 className="text-3xl font-extrabold font-display text-slate-800 leading-none">
-                {formatEuro(totalIncomeForSelectedYear)}
+                <EuroAmount value={totalIncomeForSelectedYear} />
               </h3>
             </div>
           </div>
@@ -191,7 +199,7 @@ export default function Entrate({
           </div>
         </div>
 
-        <div className="h-72 mt-6">
+        <div className="h-72 mt-6 pointer-events-none md:pointer-events-auto">
           {chartData.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center text-slate-400">
               <Calendar className="w-8 h-8 text-slate-300 mb-2" />
@@ -201,7 +209,7 @@ export default function Entrate({
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={chartData}
-                margin={{ top: 15, right: 15, left: 10, bottom: 0 }}
+                margin={{ top: 15, right: 15, left: isMobile ? 0 : 10, bottom: 0 }}
                 onClick={(chartEvent: any) => {
                   // Recharts v3 non passa più `activePayload` all'onClick: usiamo `activeLabel`
                   // (qui: uniqueKey, già univoco mese+anno) per risalire al record cliccato.
@@ -217,13 +225,13 @@ export default function Entrate({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="uniqueKey" 
-                  stroke="#94a3b8" 
-                  fontSize={11} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="uniqueKey"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  tickLine={false}
                   axisLine={false}
-                  interval={0}
+                  interval={isMobile ? 2 : 0}
                   tickFormatter={(val) => {
                     const parts = String(val).split(' ');
                     if (parts.length === 2) {
@@ -232,7 +240,16 @@ export default function Entrate({
                     return val;
                   }}
                 />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`} />
+                <YAxis
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  width={isMobile ? 44 : 60}
+                  tickFormatter={(val) => isMobile
+                    ? formatAxisCompact(val, yAxisMaxAbs)
+                    : `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
+                />
                 <Tooltip
                   formatter={(value: any) => [formatEuro(value), 'Entrate']}
                   contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
@@ -286,7 +303,7 @@ export default function Entrate({
               </div>
             ) : (
               <>
-                <div className="h-44 w-44 shrink-0">
+                <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -341,7 +358,7 @@ export default function Entrate({
               </div>
             ) : (
               <>
-                <div className="h-44 w-44 shrink-0">
+                <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -417,6 +434,7 @@ export default function Entrate({
               },
               {
                 header: 'Canale / Conto',
+                hideOnMobile: true,
                 render: (e) => (
                   <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 font-mono">
                     {e.conto || 'Altro'}

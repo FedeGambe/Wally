@@ -46,6 +46,16 @@ import FinanceKpiCard from '../components/FinanceKpiCard';
 import { formatEuro, formatPercent } from '../utils/format';
 import { usePatrimonioData } from '../hooks/usePatrimonioData';
 
+// Schiarisce un colore hex verso il bianco in base a `amount` (0 = colore originale, 1 = bianco).
+function shadeHex(hex: string, amount: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (channel: number) => Math.round(channel + (255 - channel) * amount);
+  const r = mix((n >> 16) & 255);
+  const g = mix((n >> 8) & 255);
+  const b = mix(n & 255);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 export default function Patrimonio() {
   const {
     selectedConto, setSelectedConto,
@@ -169,6 +179,215 @@ export default function Patrimonio() {
     { name: 'Accantonato', value: totalImpegnato, color: '#f59e0b' }
   ].filter(item => item.value > 0);
 
+  // Torta esterna sottile: per ogni fetta della torta interna (Disponibile/
+  // Investito/Accantonato) mostra come quella stessa categoria si ripartisce
+  // tra i conti, nello stesso ordine e con lo stesso angolo totale della
+  // fetta interna corrispondente (così le fette esterne "puntano" a quella
+  // interna). Colore = colore della categoria, sfumato più chiaro per ogni
+  // conto successivo così i conti restano distinguibili al passaggio del mouse.
+  const CATEGORY_FIELD: Record<string, 'capitaleDisponibile' | 'capitaleInvestito' | 'capitaleImpegnato'> = {
+    Disponibile: 'capitaleDisponibile',
+    Investito: 'capitaleInvestito',
+    Accantonato: 'capitaleImpegnato'
+  };
+  const contoCapitalData = splitCapitalData.flatMap(cat => {
+    const field = CATEGORY_FIELD[cat.name];
+    const contiInCategoria = localConti.filter(c => c[field] > 0);
+    return contiInCategoria.map((c, idx) => ({
+      name: `${c.categoria} · ${cat.name}`,
+      value: c[field],
+      color: shadeHex(cat.color, idx / Math.max(contiInCategoria.length, 1))
+    }));
+  });
+
+  // Singola card conto: estratta in funzione per essere riusata nelle due
+  // colonne della lista conti (primi 4 a sx, restanti a dx).
+  const renderContoCard = (conto: typeof localConti[number], index: number) => {
+    const isUnderThreshold = conto.capitaleTotale < conto.sogliaAllarme;
+    const limitRemaining = conto.sogliaAllarme - conto.capitaleTotale;
+    const isSelected = selectedConto
+      ? (conto.id && selectedConto.id === conto.id) || selectedConto.categoria === conto.categoria
+      : false;
+
+    // hasSoglia = true solo se il conto ha una soglia di allarme
+    // configurata sul foglio Google Sheets (campi allarmeSoglia/
+    // rimanenteSoglia validi e non entrambi a zero, che indica
+    // "soglia non impostata" più che "soglia raggiunta a zero").
+    // Se false, si usa il fallback più semplice isUnderThreshold
+    // (confronto diretto capitaleTotale vs sogliaAllarme fissa).
+    const hasSoglia =
+      conto.allarmeSoglia !== undefined &&
+      conto.allarmeSoglia !== null &&
+      !isNaN(conto.allarmeSoglia) &&
+      conto.rimanenteSoglia !== undefined &&
+      conto.rimanenteSoglia !== null &&
+      !isNaN(conto.rimanenteSoglia) &&
+      !(Number(conto.allarmeSoglia) === 0 && Number(conto.rimanenteSoglia) === 0);
+
+    return (
+      <div
+        key={conto.id || conto.categoria || index}
+        id={`conto-row-${conto.id || index}`}
+        className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isSelected
+          ? 'border-slate-400 dark:border-slate-500'
+          : 'border-slate-50 dark:border-white/10 dark:hover:border-white/30'
+          }`}
+      >
+        <div
+          onClick={() => setSelectedConto(isSelected ? null : conto)}
+          className="p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${hasSoglia
+              ? (conto.allarmeSoglia! > 100
+                ? 'bg-rose-50 text-rose-500'
+                : conto.allarmeSoglia! > 85
+                  ? 'bg-amber-50 text-amber-500'
+                  : 'bg-emerald-50 text-emerald-500')
+              : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-600')
+              }`}>
+              {hasSoglia && conto.allarmeSoglia! > 100 ? (
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
+              ) : (isUnderThreshold || (hasSoglia && conto.allarmeSoglia! > 85)) ? (
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              ) : (
+                <Coins className="w-5 h-5" />
+              )}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-slate-800">{conto.categoria}</p>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-slate-400 font-medium">
+                <span>Disponibile: <strong className="text-slate-600">{formatEuro(conto.capitaleDisponibile)}</strong></span>
+                {conto.capitaleInvestito > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>Investito: <strong className="text-slate-600">{formatEuro(conto.capitaleInvestito)}</strong></span>
+                  </>
+                )}
+                {conto.capitaleImpegnato > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>Vincolato: <strong className="text-slate-600">{formatEuro(conto.capitaleImpegnato)}</strong></span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-slate-50 pt-2.5 sm:border-t-0 sm:pt-0">
+            {/* Threshold warnings alerts */}
+            {hasSoglia ? (
+              <div className="flex items-center shrink-0">
+                {conto.allarmeSoglia! > 100 ? (
+                  <span className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                    Fuori Soglia
+                  </span>
+                ) : conto.allarmeSoglia! > 85 ? (
+                  <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Attenzione
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Sotto Soglia
+                  </span>
+                )}
+              </div>
+            ) : (
+              isUnderThreshold && (
+                <div className="text-right">
+                  <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    Sotto Soglia
+                  </span>
+                  <p className="text-[9px] text-slate-400 font-mono mt-0.5">Mancano {formatEuro(limitRemaining)}</p>
+                </div>
+              )
+            )}
+
+            <div className="text-right shrink-0">
+              <span className="text-slate-400 font-bold text-[9px] uppercase block">Capitale Totale</span>
+              <span className="text-sm font-bold text-slate-800 font-display block mt-0.5">
+                {formatEuro(conto.capitaleTotale)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Expandable account details inline directly below */}
+        <AnimatePresence initial={false}>
+          {isSelected && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-slate-200 dark:border-white/10 text-slate-800">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3">
+                  <div>
+                    <h4 className="font-bold font-display text-sm text-slate-800">{conto.categoria}</h4>
+                    <p className="text-[10px] text-slate-500">Analisi approfondita disponibilità del conto</p>
+                  </div>
+                  <span className="text-[10px] bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-white/10">
+                    CONTO SELEZIONATO
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-slate-500 font-medium">Saldo complessivo:</span>
+                      <span className="font-bold text-slate-800">{formatEuro(conto.capitaleTotale)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-slate-500 font-medium">Liquido disponibile:</span>
+                      <span className="font-bold text-emerald-600">{formatEuro(conto.capitaleDisponibile)}</span>
+                    </div>
+                    {hasSoglia && (
+                      <div className="flex justify-between border-b border-slate-100 pb-1.5">
+                        <span className="text-slate-500 font-medium">Allarme Soglia (%):</span>
+                        <span className={`font-bold ${conto.allarmeSoglia! > 100 ? 'text-rose-600' : conto.allarmeSoglia! > 85 ? 'text-amber-500' : 'text-emerald-600'}`}>
+                          {conto.allarmeSoglia}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-slate-500 font-medium">Quota investimenti:</span>
+                      <span className="font-bold text-sky-600">{formatEuro(conto.capitaleInvestito)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-slate-500 font-medium">Quota accantonamenti:</span>
+                      <span className="font-bold text-amber-600">{formatEuro(conto.capitaleImpegnato)}</span>
+                    </div>
+                    {hasSoglia && (
+                      <div className="flex justify-between border-b border-slate-100 pb-1.5">
+                        <span className="text-slate-500 font-medium">Rimanente Soglia:</span>
+                        <span className={`font-bold ${conto.allarmeSoglia !== undefined && conto.allarmeSoglia > 100 ? 'text-rose-600' : 'text-slate-700'}`}>
+                          {formatEuro(conto.rimanenteSoglia!)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3.5 border-t border-slate-100 text-[10px] text-slate-500 flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
+                  <span>Valori storici e saldi sincronizzati in tempo reale dal foglio di calcolo Google Sheets.</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Metrics Row */}
@@ -234,209 +453,26 @@ export default function Patrimonio() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[60fr_40fr] gap-6">
-        {/* Accounts Summary Cards List (Left, 65% width) */}
-        <div className="space-y-4">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
-            <h3 className="font-bold text-slate-800 font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <span>Sintesi Situazione Conti</span>
-              <span className="text-[10px] text-slate-400 font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
-            </h3>
+      {/* Accounts Summary Cards List - full width, 2 columns (primi 4 a sx, restanti a dx) */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+        <h3 className="font-bold text-slate-800 font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <span>Sintesi Situazione Conti</span>
+          <span className="text-[10px] text-slate-400 font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
+        </h3>
 
-            <div className="space-y-3">
-              {localConti.map((conto, index) => {
-                const isUnderThreshold = conto.capitaleTotale < conto.sogliaAllarme;
-                const limitRemaining = conto.sogliaAllarme - conto.capitaleTotale;
-                const isSelected = selectedConto
-                  ? (conto.id && selectedConto.id === conto.id) || selectedConto.categoria === conto.categoria
-                  : false;
-
-                // hasSoglia = true solo se il conto ha una soglia di allarme
-                // configurata sul foglio Google Sheets (campi allarmeSoglia/
-                // rimanenteSoglia validi e non entrambi a zero, che indica
-                // "soglia non impostata" più che "soglia raggiunta a zero").
-                // Se false, si usa il fallback più semplice isUnderThreshold
-                // (confronto diretto capitaleTotale vs sogliaAllarme fissa).
-                const hasSoglia =
-                  conto.allarmeSoglia !== undefined &&
-                  conto.allarmeSoglia !== null &&
-                  !isNaN(conto.allarmeSoglia) &&
-                  conto.rimanenteSoglia !== undefined &&
-                  conto.rimanenteSoglia !== null &&
-                  !isNaN(conto.rimanenteSoglia) &&
-                  !(Number(conto.allarmeSoglia) === 0 && Number(conto.rimanenteSoglia) === 0);
-
-                return (
-                  <div
-                    key={conto.id || conto.categoria || index}
-                    id={`conto-row-${conto.id || index}`}
-                    className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isSelected
-                      ? 'border-slate-400 dark:border-slate-500'
-                      : 'border-slate-50 dark:border-white/10 dark:hover:border-white/30'
-                      }`}
-                  >
-                    <div
-                      onClick={() => setSelectedConto(isSelected ? null : conto)}
-                      className="p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${hasSoglia
-                          ? (conto.allarmeSoglia! > 100
-                            ? 'bg-rose-50 text-rose-500'
-                            : conto.allarmeSoglia! > 85
-                              ? 'bg-amber-50 text-amber-500'
-                              : 'bg-emerald-50 text-emerald-500')
-                          : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-600')
-                          }`}>
-                          {hasSoglia && conto.allarmeSoglia! > 100 ? (
-                            <AlertTriangle className="w-5 h-5 text-rose-500" />
-                          ) : (isUnderThreshold || (hasSoglia && conto.allarmeSoglia! > 85)) ? (
-                            <AlertTriangle className="w-5 h-5 text-amber-500" />
-                          ) : (
-                            <Coins className="w-5 h-5" />
-                          )}
-                        </div>
-                        <div className="text-left">
-                          <p className="text-sm font-semibold text-slate-800">{conto.categoria}</p>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-slate-400 font-medium">
-                            <span>Disponibile: <strong className="text-slate-600">{formatEuro(conto.capitaleDisponibile)}</strong></span>
-                            {conto.capitaleInvestito > 0 && (
-                              <>
-                                <span>•</span>
-                                <span>Investito: <strong className="text-slate-600">{formatEuro(conto.capitaleInvestito)}</strong></span>
-                              </>
-                            )}
-                            {conto.capitaleImpegnato > 0 && (
-                              <>
-                                <span>•</span>
-                                <span>Vincolato: <strong className="text-slate-600">{formatEuro(conto.capitaleImpegnato)}</strong></span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-slate-50 pt-2.5 sm:border-t-0 sm:pt-0">
-                        {/* Threshold warnings alerts */}
-                        {hasSoglia ? (
-                          <div className="flex items-center shrink-0">
-                            {conto.allarmeSoglia! > 100 ? (
-                              <span className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                                Fuori Soglia
-                              </span>
-                            ) : conto.allarmeSoglia! > 85 ? (
-                              <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                Attenzione
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Sotto Soglia
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          isUnderThreshold && (
-                            <div className="text-right">
-                              <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">
-                                <ShieldAlert className="w-3.5 h-3.5" />
-                                Sotto Soglia
-                              </span>
-                              <p className="text-[9px] text-slate-400 font-mono mt-0.5">Mancano {formatEuro(limitRemaining)}</p>
-                            </div>
-                          )
-                        )}
-
-                        <div className="text-right shrink-0">
-                          <span className="text-slate-400 font-bold text-[9px] uppercase block">Capitale Totale</span>
-                          <span className="text-sm font-bold text-slate-800 font-display block mt-0.5">
-                            {formatEuro(conto.capitaleTotale)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Expandable account details inline directly below */}
-                    <AnimatePresence initial={false}>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-slate-200 dark:border-white/10 text-slate-800">
-                            <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3">
-                              <div>
-                                <h4 className="font-bold font-display text-sm text-slate-800">{conto.categoria}</h4>
-                                <p className="text-[10px] text-slate-500">Analisi approfondita disponibilità del conto</p>
-                              </div>
-                              <span className="text-[10px] bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-white/10">
-                                CONTO SELEZIONATO
-                              </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                              <div className="space-y-2.5">
-                                <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                  <span className="text-slate-500 font-medium">Saldo complessivo:</span>
-                                  <span className="font-bold text-slate-800">{formatEuro(conto.capitaleTotale)}</span>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                  <span className="text-slate-500 font-medium">Liquido disponibile:</span>
-                                  <span className="font-bold text-emerald-600">{formatEuro(conto.capitaleDisponibile)}</span>
-                                </div>
-                                {hasSoglia && (
-                                  <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span className="text-slate-500 font-medium">Allarme Soglia (%):</span>
-                                    <span className={`font-bold ${conto.allarmeSoglia! > 100 ? 'text-rose-600' : conto.allarmeSoglia! > 85 ? 'text-amber-500' : 'text-emerald-600'}`}>
-                                      {conto.allarmeSoglia}%
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="space-y-2.5">
-                                <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                  <span className="text-slate-500 font-medium">Quota investimenti:</span>
-                                  <span className="font-bold text-sky-600">{formatEuro(conto.capitaleInvestito)}</span>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                  <span className="text-slate-500 font-medium">Quota accantonamenti:</span>
-                                  <span className="font-bold text-amber-600">{formatEuro(conto.capitaleImpegnato)}</span>
-                                </div>
-                                {hasSoglia && (
-                                  <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                                    <span className="text-slate-500 font-medium">Rimanente Soglia:</span>
-                                    <span className={`font-bold ${conto.allarmeSoglia !== undefined && conto.allarmeSoglia > 100 ? 'text-rose-600' : 'text-slate-700'}`}>
-                                      {formatEuro(conto.rimanenteSoglia!)}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="mt-4 pt-3.5 border-t border-slate-100 text-[10px] text-slate-500 flex items-center gap-1.5">
-                              <Info className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
-                              <span>Valori storici e saldi sincronizzati in tempo reale dal foglio di calcolo Google Sheets.</span>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            {localConti.slice(0, 4).map(renderContoCard)}
+          </div>
+          <div className="space-y-3">
+            {localConti.slice(4).map(renderContoCard)}
           </div>
         </div>
+      </div>
 
-        {/* Analytical Widgets Column (Right, 35% width) */}
-        <div className="flex flex-col gap-6 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 0. Suddivisione Capitale (Disponibile / Investito / Accantonato) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col flex-1 min-h-0">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col">
             <div className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-amber-500" />
               <div>
@@ -445,13 +481,30 @@ export default function Patrimonio() {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 mt-4 flex items-center gap-4">
+            <div className="h-64 mt-4 flex items-stretch gap-4">
               {splitCapitalData.length > 0 ? (
                 <>
-                  <div className="flex-1 min-w-0 h-full min-h-[120px] relative">
+                  <div className="flex-1 min-w-0 h-full min-h-[120px] relative pointer-events-none md:pointer-events-auto">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
+                        {/* Torta esterna sottile: suddivisione per conto (dove sono i capitali) */}
+                        {contoCapitalData.length > 0 && (
+                          <Pie
+                            data={contoCapitalData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius="88%"
+                            outerRadius="95%"
+                            paddingAngle={1}
+                            stroke="none"
+                            dataKey="value"
+                          >
+                            {contoCapitalData.map((entry, index) => (
+                              <Cell key={`conto-cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                        )}
                         <Pie
                           data={splitCapitalData}
                           cx="50%"
@@ -473,7 +526,7 @@ export default function Patrimonio() {
                       <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 shrink-0 max-w-[30%]">
+                  <div className="flex flex-col gap-2 shrink-0 max-w-[30%] h-full pr-1">
                     {splitCapitalData.map((item, idx) => (
                       <div key={idx} className="flex items-start gap-1.5">
                         <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
@@ -483,6 +536,20 @@ export default function Patrimonio() {
                         </div>
                       </div>
                     ))}
+                    {contoCapitalData.length > 0 && (
+                      <div className="mt-1 pt-2 border-t border-slate-100 space-y-2 flex-1 min-h-0 overflow-y-auto">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Per conto</span>
+                        {contoCapitalData.map((item, idx) => (
+                          <div key={idx} className="flex items-start gap-1.5">
+                            <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
+                            <div className="min-w-0">
+                              <span className="text-slate-600 font-medium text-[10px] block truncate" title={item.name}>{item.name}</span>
+                              <span className="font-bold text-slate-800 text-[11px] block">{formatEuro(item.value)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -494,7 +561,7 @@ export default function Patrimonio() {
           </div>
 
           {/* 1. Dedicated Capitale Impegnato Box Widget */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col flex-1 min-h-0">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col">
             <div className="flex items-center gap-2">
               <Coins className="w-5 h-5 text-amber-500" />
               <div>
@@ -503,10 +570,10 @@ export default function Patrimonio() {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 mt-4 flex items-center gap-4">
+            <div className="h-64 mt-4 flex items-stretch gap-4">
               {engagedCapitalData.length > 0 ? (
                 <>
-                  <div className="flex-1 min-w-0 h-full min-h-[120px] relative">
+                  <div className="flex-1 min-w-0 h-full min-h-[120px] relative pointer-events-none md:pointer-events-auto">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
@@ -531,7 +598,7 @@ export default function Patrimonio() {
                       <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalImpegnato)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1.5 shrink-0 max-w-[30%] max-h-full overflow-y-auto pr-1">
+                  <div className="flex flex-col gap-1.5 shrink-0 max-w-[30%] h-full overflow-y-auto pr-1">
                     {engagedCapitalData.map((item, idx) => (
                       <div key={idx} className="flex items-start gap-1.5">
                         <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
@@ -551,7 +618,7 @@ export default function Patrimonio() {
             </div>
           </div>
         </div>
-      </div>
+
       {/* 2. Unified Dedicated Trend Card - 2/3 Area Chart with 3 Lines & 1/3 Monthly Summary */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6 border-b border-slate-100 pb-4">
@@ -611,11 +678,11 @@ export default function Patrimonio() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left 2/3 - Integrated Chart */}
           <div className="lg:col-span-2">
-            <div className="h-48">
+            <div className="h-72 pointer-events-none md:pointer-events-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={chartData}
-                  margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                  margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
                   onMouseDown={handleChartMouseDown}
                   onMouseMove={handleChartMouseMove}
                   onMouseUp={handleChartMouseUp}
@@ -649,9 +716,7 @@ export default function Patrimonio() {
                     tick={{ fontSize: 10, fill: "#94a3b8" }}
                     tickFormatter={(value) => {
                       const item = chartData.find(d => d.uniqueKey === value);
-                      return item?.mese?.toLowerCase().includes("dic")
-                        ? String(item.anno)
-                        : "";
+                      return item?.mese?.toLowerCase().includes("dic") ? String(item.anno) : "";
                     }}
                   />
                   <YAxis
@@ -660,6 +725,7 @@ export default function Patrimonio() {
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
+                    width={38}
                     tickFormatter={(value) =>
                       value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value
                     }
@@ -671,6 +737,7 @@ export default function Patrimonio() {
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
+                    width={38}
                     tickFormatter={(value) =>
                       value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value
                     }
@@ -801,7 +868,7 @@ export default function Patrimonio() {
             <div className="mb-2">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Riepilogo Mensile</span>
             </div>
-            <div className="h-44 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-slate-200">
+            <div className="h-72 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-slate-200">
               {[...sortedRisparmio].reverse().map((r, idx) => {
                 // Fallback su nomi di campo alternativi: righe più vecchie del
                 // foglio Google Sheets possono usare "risparmio"/"investiti"

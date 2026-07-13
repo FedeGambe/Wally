@@ -12,6 +12,7 @@ import {
   Activity,
   ChevronRight,
   Shield,
+  BarChart3,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -25,6 +26,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import EuroAmount from '../components/EuroAmount';
+import { toMeseCompatto } from '../utils/date';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { formatAxisCompact } from '../utils/format';
 
 // Sotto-vista "Cruscotto Generale" della pagina Investimenti: è la panoramica
 // riassuntiva di tutto il portafoglio investimenti (Scalable + Trade Republic insieme).
@@ -53,6 +58,7 @@ interface CruscottoGeneraleProps {
   timeRange: 'storico' | '12mesi';
   setTimeRange: (range: 'storico' | '12mesi') => void;
   chartData: any[];
+  localRendimenti: any[];
   globalInspectorRecord: any;
   cruscottoRows: any[];
   formatEuro: (val: any) => string;
@@ -74,6 +80,7 @@ export default function CruscottoGenerale({
   timeRange,
   setTimeRange,
   chartData,
+  localRendimenti,
   globalInspectorRecord,
   cruscottoRows,
   formatEuro,
@@ -87,9 +94,29 @@ export default function CruscottoGenerale({
   const annualUp = !previousYearRow || Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= Number(previousYearRow.rendimentoAnnualeEuro || 0);
   const isAnnualPositive = Number(CRUSCOTTO_ANNO.rendimentoAnnualeEuro || 0) >= 0;
 
-  const [isLegendCollapsed, setIsLegendCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  // Su mobile il widget "Dettaglio Strumenti" parte collassato di default: aperto,
+  // il contenuto non ci sta nell'altezza ridotta dello schermo e viene tagliato.
+  const [isLegendCollapsed, setIsLegendCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [areButtonsCollapsed, setAreButtonsCollapsed] = useState(false);
+  const [chartView, setChartView] = useState<'cumulato' | 'mensile'>('cumulato');
   const sortedFilteredDetailData = [...filteredDetailData].sort((a, b) => b.value - a.value);
+
+  // Per l'investimento mensile il versamento è noto subito (a differenza della
+  // valutazione di portafoglio, disponibile solo a fine mese): includiamo quindi
+  // anche il mese corrente se il bonifico risulta già registrato, invece di
+  // fermarci al penultimo mese come fa la vista "cumulato".
+  const activeRendimentiMensili = localRendimenti.filter(
+    (r: any) => r && typeof r.importoMensileInvestito === 'number' && r.importoMensileInvestito > 0
+  );
+  const chartDataMensile = timeRange === '12mesi' ? activeRendimentiMensili.slice(-12) : activeRendimentiMensili;
+  const activeChartData = chartView === 'mensile' ? chartDataMensile : chartData;
+  // Massimo assoluto delle serie effettivamente disegnate: decide se l'asse Y può
+  // usare la notazione compatta "k" (vedi formatAxisCompact in utils/format.ts).
+  const yAxisMaxAbs = activeChartData.reduce((max: number, row: any) => {
+    const keys = chartView === 'mensile' ? ['importoMensileInvestito'] : ['importoInvestitoCumulato', 'valoreAttualePortafoglio'];
+    return keys.reduce((m, k) => Math.max(m, Math.abs(Number(row[k]) || 0)), max);
+  }, 0);
 
   const CATEGORY_STYLES: Record<string, { base: string; title: string; glow: string }> = {
     Azioni: {
@@ -127,6 +154,54 @@ export default function CruscottoGenerale({
     : 0;
   const contributoUp = !previousYearRow || currentContributoTotale >= previousContributoTotale;
 
+  // Contenuto del widget "Filtro Mese Selezionato": renderizzato due volte, una sola
+  // volta visibile a seconda del breakpoint (vedi sotto), per spostarlo subito dopo
+  // i 4 KPI card su mobile mantenendolo in fondo (accanto alla tabella) su desktop.
+  const inspectorWidgetBody = globalInspectorRecord ? (
+    <>
+      <div>
+        <span className="text-[10px] text-slate-450 font-bold uppercase tracking-wider block">Filtro Mese Selezionato</span>
+        <h3 className="text-xl font-bold font-display text-slate-800 capitalize mt-2 flex items-center justify-between">
+          <span>{globalInspectorRecord.mese}</span>
+          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${globalInspectorRecord.rendimentoMensileEuro >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+            }`}>
+            {formatPercent(globalInspectorRecord.rendimentoMensilePerc)}
+          </span>
+        </h3>
+        <p className="text-xs text-slate-400 mt-1.5 font-medium">Sintesi dei movimenti del portafoglio nel mese</p>
+      </div>
+
+      <div className="my-6 space-y-3 border-t border-b border-slate-200 py-4 font-semibold text-xs text-slate-600">
+        <div className="flex justify-between">
+          <span>Valore Portafoglio:</span>
+          <span className="text-slate-800 font-bold font-mono">{formatEuro(globalInspectorRecord.valoreAttualePortafoglio)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Importo Investito Mese:</span>
+          <span className="text-slate-850 font-bold font-mono">{formatEuro(globalInspectorRecord.importoMensileInvestito)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Risultato Netto (€):</span>
+          <span className={`font-bold font-mono ${globalInspectorRecord.rendimentoMensileEuro >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+            {formatEuro(globalInspectorRecord.rendimentoMensileEuro)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>Plusvalenza Cumulata:</span>
+          <span className="text-sky-600 font-bold font-mono">{formatEuro(globalInspectorRecord.rendimentoCumulativoEuro)}</span>
+        </div>
+      </div>
+
+      <div className="text-[10px] text-slate-400 font-medium">
+        * Mostra il mese selezionato globalmente o quello precedente se è selezionato il mese corrente.
+      </div>
+    </>
+  ) : (
+    <div className="flex items-center justify-center h-full text-xs text-slate-400">
+      Nessun dato disponibile per il periodo selezionato.
+    </div>
+  );
+
   return (
     <div className="space-y-6 text-left animate-fadeIn">
       {/* Key KPI grouped section */}
@@ -144,7 +219,7 @@ export default function CruscottoGenerale({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Portafoglio Attuale Box */}
-            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-900 dark:border-sky-900 shadow-[0_0_15px_rgba(14,165,233,0.12)] flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.3)] hover:border-sky-900/30 dark:hover:border-sky-800/25 hover:scale-[1.01]">
+            <div className="bg-gradient-to-br from-sky-950 via-slate-900 to-sky-900 text-white p-3 sm:p-5 rounded-2xl border border-sky-900 dark:border-sky-900 shadow-[0_0_15px_rgba(14,165,233,0.12)] flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.3)] hover:border-sky-900/30 dark:hover:border-sky-800/25 hover:scale-[1.01]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg">
@@ -156,7 +231,7 @@ export default function CruscottoGenerale({
                     + la plusvalenza/minusvalenza cumulata. Non è un valore letto direttamente dal foglio,
                     ma ricostruito sommando questi pezzi. */}
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
-                  {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
+                  <EuroAmount value={CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
                 </span>
               </div>
               <div className="border-t border-sky-800/60 pt-2 mt-2">
@@ -165,7 +240,7 @@ export default function CruscottoGenerale({
             </div>
 
             {/* Plusvalenza Cumulata Box */}
-            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 ${CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
+            <div className={`p-3 sm:p-5 rounded-2xl border flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 ${CRUSCOTTO_GENERALE.rendimentoCumulativoEuro >= 0
                 ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_25px_rgba(16,185,129,0.32)] hover:border-emerald-500/15 dark:hover:border-emerald-500/10'
                 : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/60 shadow-xs hover:shadow-md'
               }`}>
@@ -178,7 +253,7 @@ export default function CruscottoGenerale({
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-extrabold font-display text-emerald-600 dark:text-emerald-400 block flex items-center gap-0.5">
                   <ChevronUp className="w-5 h-5 shrink-0" />
-                  {formatEuro(CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
+                  <EuroAmount value={CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
                 </span>
               </div>
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px]">
@@ -204,7 +279,7 @@ export default function CruscottoGenerale({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {/* Rendimento Annuo Box */}
-            <div className="bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-700">
+            <div className="bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-700">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg">
@@ -216,7 +291,7 @@ export default function CruscottoGenerale({
                   }`}>
                   <span className="flex items-center gap-0.5">
                     {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
-                    {formatEuro(CRUSCOTTO_ANNO.rendimentoAnnualeEuro)}
+                    <EuroAmount value={CRUSCOTTO_ANNO.rendimentoAnnualeEuro} />
                   </span>
                   <span className={`text-xs font-semibold ${isAnnualPositive ? 'text-emerald-300' : 'text-rose-300'}`}>
                     ({formatPercent(calculatedRendimentoAnnuo)})
@@ -230,7 +305,7 @@ export default function CruscottoGenerale({
             </div>
 
             {/* Contributo Anno Box */}
-            <div className="bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col justify-between h-28 sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-700">
+            <div className="bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-700">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
                 <div className="bg-sky-950/50 p-1 rounded-lg">
@@ -244,7 +319,7 @@ export default function CruscottoGenerale({
                   ) : (
                     <ChevronDown className="w-5 h-5 shrink-0 text-slate-500" />
                   )}
-                  {formatEuro(CRUSCOTTO_ANNO.azioniInvestitoAnno + CRUSCOTTO_ANNO.obbligazioniInvestitoAnno + (CRUSCOTTO_ANNO.monetariInvestitoAnno || 0))}
+                  <EuroAmount value={CRUSCOTTO_ANNO.azioniInvestitoAnno + CRUSCOTTO_ANNO.obbligazioniInvestitoAnno + (CRUSCOTTO_ANNO.monetariInvestitoAnno || 0)} />
                 </span>
               </div>
               <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
@@ -258,9 +333,14 @@ export default function CruscottoGenerale({
         </div>
       </div>
 
+      {/* Filtro Mese Selezionato: solo mobile, subito dopo i 4 KPI card in alto (su desktop resta in fondo, vedi sotto) */}
+      <div className="lg:hidden bg-slate-50 p-6 rounded-3xl border border-slate-200 flex flex-col justify-between transition-all duration-300 hover:shadow-md">
+        {inspectorWidgetBody}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Doppio Grafico a Torta (Nested Pie Chart) */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md h-[540px]">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md h-auto md:h-[540px]">
           <div>
             <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-1.5 mb-1">
               <Briefcase className="w-5 h-5 text-sky-600" />
@@ -304,7 +384,7 @@ export default function CruscottoGenerale({
             };
 
             return (
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden mt-3">
+              <div className="flex-1 flex flex-col md:min-h-0 overflow-visible md:overflow-hidden mt-3">
                 {/* 1. Macro Data Legend Tiles (Interactive buttons) - FULL WIDTH */}
                 <div className="mb-4 shrink-0">
                   <div className="flex items-center justify-between mb-1.5">
@@ -369,7 +449,7 @@ export default function CruscottoGenerale({
                 </div>
 
                 {/* Chart/Legend Split Grid: legend collapses to a thin rail on the right, chart expands and stays centered */}
-                <div className={`flex-1 grid grid-cols-1 gap-6 items-center min-h-0 overflow-hidden transition-all duration-300 ${isLegendCollapsed ? 'md:grid-cols-[1fr_auto]' : 'md:grid-cols-2'}`}>
+                <div className={`flex-1 grid grid-cols-1 gap-6 items-start md:items-center md:min-h-0 overflow-visible md:overflow-hidden transition-all duration-300 ${isLegendCollapsed ? 'md:grid-cols-[1fr_auto]' : 'md:grid-cols-2'}`}>
                   {/* Pie Chart Column */}
                   <div className="h-full min-h-[240px] md:min-h-[260px] flex items-center justify-center relative">
                     <ResponsiveContainer width="100%" height="100%">
@@ -425,7 +505,7 @@ export default function CruscottoGenerale({
                   </div>
 
                   {/* Micro Data Legend Column - collapses to a narrow rail on the right, title stays visible */}
-                  <div className={`h-full flex flex-col min-h-0 overflow-hidden pb-1 transition-all duration-300 ${isLegendCollapsed ? 'md:max-w-[150px]' : 'w-full'}`}>
+                  <div className={`h-auto md:h-full flex flex-col md:min-h-0 overflow-visible md:overflow-hidden pb-1 transition-all duration-300 ${isLegendCollapsed ? 'md:max-w-[150px]' : 'w-full'}`}>
                     <div className="flex items-center justify-between mb-1.5 shrink-0 gap-2 w-full">
                       <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider truncate">
                         Dettaglio Strumenti {selectedMacroCategories.length < 3 && `(${selectedMacroCategories.join(', ')})`}
@@ -449,7 +529,7 @@ export default function CruscottoGenerale({
                       </div>
                     </div>
                     {!isLegendCollapsed && (
-                      <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
+                      <div className="md:flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
                         {sortedFilteredDetailData.map((item, idx) => {
                           const itemPerc = totalAssetAllocation > 0 ? (item.value / totalAssetAllocation) * 100 : 0;
                           return (
@@ -474,127 +554,179 @@ export default function CruscottoGenerale({
           })()}
         </div>
 
-        {/* Investito vs Valore Portafoglio Widget */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md h-[540px]">
-          <div>
-            <div className="flex flex-col gap-3 mb-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-1.5">
-                  <Activity className="w-5 h-5 text-sky-600" />
-                  Investito vs Valore Portafoglio
-                </h3>
+        {/* Investito vs Valore Portafoglio Widget: layout ricalcato 1:1 da Rendimenti.tsx (widget "Andamento Rendimenti") */}
+        <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-1.5">
+              <Activity className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+              Andamento Investimenti
+            </h3>
+            <div className="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
+              <button
+                onClick={() => { setChartView('cumulato'); setTimeRange('storico'); }}
+                className={`flex items-center gap-1 text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${chartView === 'cumulato' ? 'bg-sky-700 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-sky-700'
+                  }`}
+              >
+                Cumulato
+              </button>
+              <button
+                onClick={() => { setChartView('mensile'); setTimeRange('12mesi'); }}
+                className={`flex items-center gap-1 text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${chartView === 'mensile' ? 'bg-sky-700 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-sky-700'
+                  }`}
+              >
+                Mensile
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 font-medium">
+            Andamento del portafoglio nel tempo, {chartView === 'mensile' ? 'importo versato ogni mese' : 'capitale investito confrontato con il valore di mercato'}.
+          </p>
 
-                {/* Time Range Selector */}
-                <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5 border border-slate-200 select-none">
-                  <button
-                    onClick={() => setTimeRange('storico')}
-                    className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === 'storico'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'text-slate-500 hover:text-sky-600'
-                      }`}
-                  >
-                    Storico
-                  </button>
-                  <button
-                    onClick={() => setTimeRange('12mesi')}
-                    className={`text-[9px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === '12mesi'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'text-slate-500 hover:text-sky-600'
-                      }`}
-                  >
-                    Ultimi 12 Mesi
-                  </button>
-                </div>
+          <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-900/20 border border-slate-200/70 dark:border-slate-800/60">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-1.5">
+                {chartView === 'mensile' ? <BarChart3 className="w-4 h-4 text-sky-600 dark:text-sky-400" /> : <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
+                {chartView === 'mensile' ? 'Investimento Mensile' : 'Investimento Cumulato'}
+              </h4>
+              <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
+                <button
+                  onClick={() => setTimeRange('storico')}
+                  className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+                    }`}
+                >
+                  Storico
+                </button>
+                <button
+                  onClick={() => setTimeRange('12mesi')}
+                  className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+                    }`}
+                >
+                  <span className="sm:hidden">Ultimi 12 M.</span>
+                  <span className="hidden sm:inline">Ultimi 12 Mesi</span>
+                </button>
               </div>
             </div>
-            <p className="text-xs text-slate-400 mb-4 font-medium">
-              Confronto storico tra il capitale depositato e l'attuale valore di mercato.
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-2 font-medium">
+              {chartView === 'mensile'
+                ? 'Importo versato mese per mese sui conti di investimento.'
+                : "Confronto storico tra il capitale depositato e l'attuale valore di mercato."}
             </p>
-          </div>
-
-          {/* Single Unified Chart Area */}
-          <div className="flex-1 flex flex-col justify-between gap-3 overflow-hidden">
-            <div className="flex-1 min-h-[280px] flex flex-col justify-between">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">
-                  {timeRange === '12mesi' ? "Focus Periodo (Ultimi 12 Mesi)" : "Storico Completo"}
-                </span>
-                <span className="text-xs font-bold font-mono text-sky-600">
-                  {chartData.length > 0 ? (
-                    <span className="text-[10px] text-slate-500">
-                      {chartData[0]?.mese} - {chartData[chartData.length - 1]?.mese}
-                    </span>
-                  ) : ''}
-                </span>
-              </div>
-
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorInvestitoValore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01} />
-                      </linearGradient>
-                      <linearGradient id="colorValorePortafoglio" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.01} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT')}`} />
-                    <Tooltip
-                      formatter={(value: any) => formatEuro(value)}
-                      contentStyle={{
-                        background: '#1e293b',
-                        border: 'none',
-                        borderRadius: '12px',
-                        color: '#fff',
-                        fontSize: '11px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                      }}
-                      itemStyle={{ color: '#fff' }}
-                      labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                    />
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">
+                {timeRange === '12mesi' ? 'Focus Periodo (Ultimi 12 Mesi)' : 'Storico Completo'}
+              </span>
+              <span className="text-[10px] text-slate-500">
+                {activeChartData.length > 0 ? `${activeChartData[0]?.mese} - ${activeChartData[activeChartData.length - 1]?.mese}` : ''}
+              </span>
+            </div>
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activeChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorInvestitoValore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01} />
+                    </linearGradient>
+                    <linearGradient id="colorValorePortafoglio" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.01} />
+                    </linearGradient>
+                    <linearGradient id="colorInvestitoMensile" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="strokeInvestitoMensile" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#38bdf8" />
+                      <stop offset="100%" stopColor="#075985" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis
+                    stroke="#94a3b8"
+                    fontSize={9}
+                    tickLine={false}
+                    axisLine={false}
+                    width={isMobile ? 42 : 60}
+                    tickFormatter={(val) => isMobile
+                      ? formatAxisCompact(val, yAxisMaxAbs)
+                      : `€${Number(val).toLocaleString('it-IT')}`}
+                  />
+                  <Tooltip
+                    formatter={(value: any) => formatEuro(value)}
+                    contentStyle={{
+                      background: '#1e293b',
+                      border: 'none',
+                      borderRadius: '12px',
+                      color: '#fff',
+                      fontSize: '11px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                    }}
+                    itemStyle={{ color: '#fff' }}
+                    labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
+                  />
+                  {chartView === 'mensile' ? (
                     <Area
                       type="monotone"
-                      name="Capitale Investito"
-                      dataKey="importoInvestitoCumulato"
-                      stroke="#94a3b8"
+                      name="Investimento Mensile"
+                      dataKey="importoMensileInvestito"
+                      stroke="url(#strokeInvestitoMensile)"
                       strokeWidth={3}
                       fillOpacity={1}
-                      fill="url(#colorInvestitoValore)"
-                      dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 1.5, stroke: '#94a3b8', fill: '#fff' } : false}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Area
-                      type="monotone"
-                      name="Valore Portafoglio"
-                      dataKey="valoreAttualePortafoglio"
-                      stroke="#0ea5e9"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#colorValorePortafoglio)"
-                      dot={timeRange === '12mesi' ? { r: 3.5, strokeWidth: 2, stroke: '#0ea5e9', fill: '#fff' } : false}
+                      fill="url(#colorInvestitoMensile)"
+                      dot={false}
                       activeDot={{ r: 6 }}
                     />
-                  </AreaChart>
-                </ResponsiveContainer>
+                  ) : (
+                    <>
+                      <Area
+                        type="monotone"
+                        name="Capitale Investito"
+                        dataKey="importoInvestitoCumulato"
+                        stroke="#64748b"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorInvestitoValore)"
+                        dot={false}
+                        activeDot={{ r: 5 }}
+                      />
+                      <Area
+                        type="monotone"
+                        name="Valore Portafoglio"
+                        dataKey="valoreAttualePortafoglio"
+                        stroke="#0ea5e9"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorValorePortafoglio)"
+                        dot={false}
+                        activeDot={{ r: 6 }}
+                      />
+                    </>
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 flex justify-between items-center shrink-0">
+              <div>
+                <span className="block text-[9px] uppercase text-slate-400 font-bold">Inizio Range</span>
+                <span className="text-slate-800 dark:text-slate-100 font-bold font-mono">
+                  <span className="sm:hidden">{activeChartData[0]?.mese ? toMeseCompatto(activeChartData[0].mese) : 'N/D'}</span>
+                  <span className="hidden sm:inline">{activeChartData[0]?.mese || 'N/D'}</span>
+                </span>
               </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500 flex justify-between items-center h-10 shrink-0">
-            <div>
-              <span className="block text-[9px] uppercase text-slate-400 font-bold">Inizio Range</span>
-              <span className="text-slate-800 font-bold font-mono">{chartData[0]?.mese || 'N/D'}</span>
-            </div>
-            <div className="text-right">
-              <span className="block text-[9px] uppercase text-slate-400 font-bold">Fine Range</span>
-              <span className="font-bold font-mono text-sky-600">
-                {chartData[chartData.length - 1]?.mese || 'N/D'} ({formatEuro(chartData[chartData.length - 1]?.valoreAttualePortafoglio || 0)})
-              </span>
+              <div className="text-right">
+                <span className="block text-[9px] uppercase text-slate-400 font-bold">Fine Range</span>
+                <span className="font-bold font-mono text-slate-800 dark:text-slate-100">
+                  <span className="sm:hidden">{activeChartData[activeChartData.length - 1]?.mese ? toMeseCompatto(activeChartData[activeChartData.length - 1].mese) : 'N/D'}</span>
+                  <span className="hidden sm:inline">{activeChartData[activeChartData.length - 1]?.mese || 'N/D'}</span> (
+                  <span className="text-sky-600 dark:text-sky-400">
+                    {formatEuro(chartView === 'mensile'
+                      ? activeChartData[activeChartData.length - 1]?.importoMensileInvestito || 0
+                      : activeChartData[activeChartData.length - 1]?.valoreAttualePortafoglio || 0)}
+                  </span>
+                  )
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -602,52 +734,9 @@ export default function CruscottoGenerale({
 
       {/* Grid containing Monthly returns inspector card on the left, and Distribuzione Asset Class table on the right */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
-        {/* Left Column: Inspector widget */}
-        <div className="lg:col-span-1 bg-slate-50 p-6 rounded-3xl border border-slate-200 flex flex-col justify-between transition-all duration-300 hover:shadow-md">
-          {globalInspectorRecord ? (
-            <>
-              <div>
-                <span className="text-[10px] text-slate-450 font-bold uppercase tracking-wider block">Filtro Mese Selezionato</span>
-                <h3 className="text-xl font-bold font-display text-slate-800 capitalize mt-2 flex items-center justify-between">
-                  <span>{globalInspectorRecord.mese}</span>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg ${globalInspectorRecord.rendimentoMensileEuro >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                    {formatPercent(globalInspectorRecord.rendimentoMensilePerc)}
-                  </span>
-                </h3>
-                <p className="text-xs text-slate-400 mt-1.5 font-medium">Sintesi dei movimenti del portafoglio nel mese</p>
-              </div>
-
-              <div className="my-6 space-y-3 border-t border-b border-slate-200 py-4 font-semibold text-xs text-slate-600">
-                <div className="flex justify-between">
-                  <span>Valore Portafoglio:</span>
-                  <span className="text-slate-800 font-bold font-mono">{formatEuro(globalInspectorRecord.valoreAttualePortafoglio)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Importo Investito Mese:</span>
-                  <span className="text-slate-850 font-bold font-mono">{formatEuro(globalInspectorRecord.importoMensileInvestito)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Risultato Netto (€):</span>
-                  <span className={`font-bold font-mono ${globalInspectorRecord.rendimentoMensileEuro >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                    {formatEuro(globalInspectorRecord.rendimentoMensileEuro)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Plusvalenza Cumulata:</span>
-                  <span className="text-sky-600 font-bold font-mono">{formatEuro(globalInspectorRecord.rendimentoCumulativoEuro)}</span>
-                </div>
-              </div>
-
-              <div className="text-[10px] text-slate-400 font-medium">
-                * Mostra il mese selezionato globalmente o quello precedente se è selezionato il mese corrente.
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full text-xs text-slate-400">
-              Nessun dato disponibile per il periodo selezionato.
-            </div>
-          )}
+        {/* Left Column: Inspector widget (desktop only qui, su mobile è duplicato subito dopo i KPI in alto) */}
+        <div className="hidden lg:flex lg:col-span-1 bg-slate-50 p-6 rounded-3xl border border-slate-200 flex-col justify-between transition-all duration-300 hover:shadow-md">
+          {inspectorWidgetBody}
         </div>
 
         {/* Right Column: Distribuzione Asset Class per Anno */}

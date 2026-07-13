@@ -108,7 +108,7 @@ export default function DropdownMenu({
       <button
         ref={triggerRef}
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+        className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
       >
         <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
         <span className="truncate max-w-[10rem]">
@@ -141,7 +141,7 @@ export default function DropdownMenu({
                   onSelect(opt);
                   setOpen(false);
                 }}
-                className={`appearance-none border-0 px-3 py-1.5 text-left text-[11px] rounded-lg transition-all ${isDisabled
+                className={`appearance-none border-0 px-3 py-2 text-left text-xs rounded-lg transition-all ${isDisabled
                   ? 'text-slate-400 dark:text-slate-600 opacity-40 pointer-events-none cursor-not-allowed'
                   : isSelected
                     ? `font-bold cursor-pointer ${accentCls.selected}`

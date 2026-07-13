@@ -13,6 +13,9 @@ interface Column<T> {
   header: string;
   align?: 'left' | 'right';
   className?: string;
+  // Nasconde l'intera colonna sotto il breakpoint md (mobile), per liberare spazio
+  // quando la colonna è secondaria e affianco ad altre rischia di sovrapporsi.
+  hideOnMobile?: boolean;
   // Funzione che, data la riga e il suo indice, restituisce cosa mostrare nella cella.
   // Questo permette a chi usa <DataTable> di personalizzare il contenuto (testo, icone, badge...)
   // senza che il componente debba conoscere la struttura esatta dei dati.
@@ -31,11 +34,11 @@ interface DataTableProps<T> {
 export default function DataTable<T>({ columns, data, keyExtractor }: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse table-fixed">
+      <table className="w-full text-left border-collapse table-auto md:table-fixed">
         <thead>
           <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
             {columns.map((col, i) => (
-              <th key={i} className={`py-3 px-4 ${col.align === 'right' ? 'text-right' : ''} ${i > 0 ? 'w-36' : ''}`}>
+              <th key={i} className={`py-3 px-4 ${col.align === 'right' ? 'text-right' : ''} ${i > 0 ? 'w-36' : ''} ${col.hideOnMobile ? 'hidden md:table-cell' : ''} ${col.className || ''}`}>
                 {col.header}
               </th>
             ))}
@@ -45,7 +48,7 @@ export default function DataTable<T>({ columns, data, keyExtractor }: DataTableP
           {data.map((row, idx) => (
             <tr key={keyExtractor ? keyExtractor(row, idx) : idx} className="hover:bg-slate-50/60 transition-colors">
               {columns.map((col, i) => (
-                <td key={i} className={`py-3.5 px-4 ${col.align === 'right' ? 'text-right' : ''} ${col.className || ''}`}>
+                <td key={i} className={`py-3.5 px-4 ${col.align === 'right' ? 'text-right' : ''} ${col.className || ''} ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}>
                   {col.render(row, idx)}
                 </td>
               ))}

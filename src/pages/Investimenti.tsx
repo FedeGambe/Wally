@@ -123,6 +123,7 @@ export default function Investimenti({
           timeRange={timeRange}
           setTimeRange={setTimeRange}
           chartData={chartData}
+          localRendimenti={localRendimenti}
           globalInspectorRecord={globalInspectorRecord}
           cruscottoRows={cruscottoRows}
           formatEuro={formatEuro}

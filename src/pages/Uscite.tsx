@@ -18,6 +18,8 @@
 //  5. Drawer laterale con il dettaglio movimenti quando si apre un mese
 // ============================================================================
 import React, { useEffect, useRef, useState } from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { formatAxisCompact } from '../utils/format';
 import {
   XAxis,
   YAxis,
@@ -42,6 +44,7 @@ import {
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DropdownMenu from '../components/DropdownMenu';
+import EuroAmount from '../components/EuroAmount';
 import { formatEuro, formatPercent } from '../utils/format';
 import { useUsciteData } from '../hooks/useUsciteData';
 
@@ -58,6 +61,7 @@ export default function Uscite({
   selectedMonth,
   setSelectedMonth
 }: UsciteProps) {
+  const isMobile = useIsMobile();
   const {
     localSelectedMonth,
     searchTerm, setSearchTerm,
@@ -78,6 +82,15 @@ export default function Uscite({
     macroCategoryDistribution, microCategoryDistribution,
     handleChartClick, handleOpenMonthDetail
   } = useUsciteData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
+
+  // Massimo assoluto delle serie effettivamente disegnate (dipende dal filtro
+  // primarie/secondarie/all): decide se l'asse Y può usare la notazione compatta
+  // "k" su mobile (vedi formatAxisCompact in utils/format.ts).
+  const yAxisMaxAbs = rolling12MonthsData.reduce((m: number, r: any) => {
+    const keys = activeChartFilter === 'all' ? ['spesePrimarie', 'speseSecondarie']
+      : activeChartFilter === 'primarie' ? ['spesePrimarie'] : ['speseSecondarie'];
+    return keys.reduce((mm, k) => Math.max(mm, Math.abs(Number(r[k]) || 0)), m);
+  }, 0);
 
   // Selezionare una fetta nella torta Macro porta il focus (scroll + ring) sulla torta Micro,
   // che si aggiorna già filtrata sulla macro categoria scelta.
@@ -234,7 +247,7 @@ export default function Uscite({
             <div className="mt-3 text-left">
               <div className="flex items-center gap-2.5">
                 <h3 className="text-3xl font-extrabold font-display text-white leading-none">
-                  {formatEuro(selectedRecord.speseTotali)}
+                  <EuroAmount value={selectedRecord.speseTotali} />
                 </h3>
                 {prevRecord?.speseTotali && (
                   <div className="flex flex-col items-start leading-none mt-1">
@@ -299,17 +312,18 @@ export default function Uscite({
           }`}>
             <CheckCircle className="w-6 h-6" />
           </div>
-          <div className="z-10 text-left">
+          <div className="z-10 text-left pr-14 md:pr-0">
             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-              Spese Primarie
+              <span className="md:hidden">Spese Prim.</span>
+              <span className="hidden md:inline">Spese Primarie</span>
             </span>
-            <span className="text-[10px] text-slate-400 font-normal block mt-0.5 lowercase">
+            <span className="hidden md:block text-[10px] text-slate-400 font-normal mt-0.5 lowercase">
               (essenziali)
             </span>
             <div className="mt-3 text-left">
               <div className="flex items-center flex-wrap gap-2.5">
                 <h3 className="text-3xl font-extrabold font-display leading-none text-slate-800">
-                  {formatEuro(selectedRecord.spesePrimarie)}
+                  <EuroAmount value={selectedRecord.spesePrimarie} />
                 </h3>
                 {prevRecord?.spesePrimarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
@@ -323,7 +337,7 @@ export default function Uscite({
 
           {/* Progress bar compared to Entrate */}
           <div className="mt-4 pt-3 border-t border-slate-100 w-full z-10">
-            <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
+            <div className="hidden md:flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
               <span>Rapporto Entrate</span>
               <span className={primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                 {formatPercent(primaryPctOfIncome)}
@@ -331,7 +345,7 @@ export default function Uscite({
             </div>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
-                <div 
+                <div
                   className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-500 to-orange-700`}
                   style={{ width: `${Math.min((primaryPctOfIncome / (dynamicThresholds.primarie + 5)) * 100, 100)}%` }}
                 />
@@ -340,8 +354,11 @@ export default function Uscite({
             </div>
             <div className="flex justify-between items-center text-[9px] text-slate-400 mt-1">
               <span>Soglia: {dynamicThresholds.primarie}% delle entrate</span>
-              <span className={primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}>
+              <span className={`hidden md:inline ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
                 {primaryPctOfIncome > dynamicThresholds.primarie ? 'Soglia superata' : 'Nei limiti'}
+              </span>
+              <span className={`md:hidden ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
+                {primaryPctOfIncome > dynamicThresholds.primarie ? 'Non OK' : 'OK'}
               </span>
             </div>
           </div>
@@ -363,17 +380,18 @@ export default function Uscite({
           }`}>
             <XCircle className="w-6 h-6" />
           </div>
-          <div className="z-10 text-left">
+          <div className="z-10 text-left pr-14 md:pr-0">
             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-              Spese Secondarie
+              <span className="md:hidden">Spese Sec.</span>
+              <span className="hidden md:inline">Spese Secondarie</span>
             </span>
-            <span className="text-[10px] text-slate-400 font-normal block mt-0.5 lowercase">
+            <span className="hidden md:block text-[10px] text-slate-400 font-normal mt-0.5 lowercase">
               (discrezionali)
             </span>
             <div className="mt-3 text-left">
               <div className="flex items-center flex-wrap gap-2.5">
                 <h3 className="text-3xl font-extrabold font-display leading-none text-slate-800">
-                  {formatEuro(selectedRecord.speseSecondarie)}
+                  <EuroAmount value={selectedRecord.speseSecondarie} />
                 </h3>
                 {prevRecord?.speseSecondarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
@@ -387,7 +405,7 @@ export default function Uscite({
 
           {/* Progress bar compared to Entrate */}
           <div className="mt-4 pt-3 border-t border-slate-100 w-full z-10">
-            <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
+            <div className="hidden md:flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
               <span>Rapporto Entrate</span>
               <span className={secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                 {formatPercent(secondaryPctOfIncome)}
@@ -395,7 +413,7 @@ export default function Uscite({
             </div>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
-                <div 
+                <div
                   className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-300 to-orange-400`}
                   style={{ width: `${Math.min((secondaryPctOfIncome / (dynamicThresholds.secondarie + 5)) * 100, 100)}%` }}
                 />
@@ -404,8 +422,11 @@ export default function Uscite({
             </div>
             <div className="flex justify-between items-center text-[9px] text-slate-400 mt-1">
               <span>Soglia: {dynamicThresholds.secondarie}% delle entrate</span>
-              <span className={secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}>
+              <span className={`hidden md:inline ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
                 {secondaryPctOfIncome > dynamicThresholds.secondarie ? 'Soglia superata' : 'Nei limiti'}
+              </span>
+              <span className={`md:hidden ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
+                {secondaryPctOfIncome > dynamicThresholds.secondarie ? 'Non OK' : 'OK'}
               </span>
             </div>
           </div>
@@ -455,11 +476,11 @@ export default function Uscite({
             </button>
           </div>
         </div>
-        <div className="h-72 mt-6">
+        <div className="h-72 mt-6 pointer-events-none md:pointer-events-auto">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={rolling12MonthsData}
-              margin={{ top: 15, right: 15, left: 10, bottom: 0 }}
+              margin={{ top: 15, right: 15, left: isMobile ? 0 : 10, bottom: 0 }}
               onClick={handleChartClick}
             >
               <defs>
@@ -473,18 +494,28 @@ export default function Uscite({
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="mese" 
-                stroke="#94a3b8" 
-                fontSize={11} 
-                tickLine={false} 
+              <XAxis
+                dataKey="mese"
+                stroke="#94a3b8"
+                fontSize={11}
+                tickLine={false}
                 axisLine={false}
+                interval={isMobile ? 2 : 0}
                 tickFormatter={(val) => {
                   const match = rolling12MonthsData.find(d => d.mese === val);
                   return match ? `${val} '${String(match.anno).slice(2)}` : val;
                 }}
               />
-              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`} />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                width={isMobile ? 44 : 60}
+                tickFormatter={(val) => isMobile
+                  ? formatAxisCompact(val, yAxisMaxAbs)
+                  : `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
+              />
               <Tooltip content={renderAreaTooltip} />
               <Legend verticalAlign="top" height={36} content={renderAreaLegend} />
               {(activeChartFilter === 'all' || activeChartFilter === 'primarie') && (
@@ -557,7 +588,7 @@ export default function Uscite({
           <p className="text-xs text-slate-400 mt-1">Sottodivisione in base alle voci principali in euro</p>
           
           <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
-            <div className="h-44 w-44 shrink-0">
+            <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -654,7 +685,7 @@ export default function Uscite({
           <p className="text-xs text-slate-400 mt-1">Sottodivisione in base alle categorie delle transazioni del mese</p>
           
           <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
-            <div className="h-44 w-44 shrink-0">
+            <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

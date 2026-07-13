@@ -13,10 +13,12 @@ import {
   Tooltip,
   Cell,
 } from 'recharts';
+import EuroAmount from '../components/EuroAmount';
 import DropdownMenu from '../components/DropdownMenu';
-import { rendColor, rendColorAlpha } from '../utils/format';
+import { rendColor, rendColorAlpha, formatAxisCompact } from '../utils/format';
 import { kpiColor, kpiColorAlpha, median, type KpiRange } from '../utils/kpiColorScale';
 import { parseMeseStringToMonthYear } from '../hooks/useInvestimentiData';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // Sotto-vista "Rendimenti" della pagina Investimenti: si concentra sull'andamento
 // del rendimento (plus/minusvalenza) del portafoglio nel tempo, in euro o in percentuale.
@@ -58,6 +60,7 @@ export default function Rendimenti({
   const [mensileRange, setMensileRange] = useState<TimeRange>('12mesi');
   const [valueMode, setValueMode] = useState<ValueMode>('euro');
   const [tableYear, setTableYear] = useState(globalSelectedYear);
+  const isMobile = useIsMobile();
 
   useEffect(() => setTableYear(globalSelectedYear), [globalSelectedYear]);
 
@@ -88,7 +91,24 @@ export default function Rendimenti({
   const crescitaKey = valueMode === 'euro' ? 'rendimentoCumulativoEuro' : 'rendimentoCumulativoPerc';
   const crescitaSecondaryKey = valueMode === 'euro' ? 'rendimentoCumulativoPerc' : 'rendimentoCumulativoEuro';
   const mensileKey = valueMode === 'euro' ? 'rendimentoMensileEuro' : 'rendimentoMensilePerc';
-  const axisFormatter = (val: any) => (valueMode === 'euro' ? `€${Number(val).toLocaleString('it-IT')}` : `${Number(val).toLocaleString('it-IT')}%`);
+  // Massimo assoluto per ciascun asse: decide se può usare la notazione compatta
+  // "k" su mobile (vedi formatAxisCompact in utils/format.ts), uno per grafico
+  // perché "Crescita" e "Rendimenti Mensili" hanno scale indipendenti.
+  const crescitaMaxAbs = useMemo(
+    () => crescitaData.reduce((m: number, r: any) => Math.max(m, Math.abs(Number(r[crescitaKey]) || 0)), 0),
+    [crescitaData, crescitaKey]
+  );
+  const mensileMaxAbs = useMemo(
+    () => mensileData.reduce((m: number, r: any) => Math.max(m, Math.abs(Number(r[mensileKey]) || 0)), 0),
+    [mensileData, mensileKey]
+  );
+  const makeAxisFormatter = (maxAbs: number) => (val: any) => {
+    if (valueMode !== 'euro') return `${Number(val).toLocaleString('it-IT')}%`;
+    if (isMobile) return formatAxisCompact(val, maxAbs);
+    return `€${Number(val).toLocaleString('it-IT')}`;
+  };
+  const crescitaAxisFormatter = makeAxisFormatter(crescitaMaxAbs);
+  const mensileAxisFormatter = makeAxisFormatter(mensileMaxAbs);
   const tooltipFormatter = (value: any) => (valueMode === 'euro' ? formatEuro(value) : formatPercent(value));
   const crescitaTooltipFormatter = (value: any, name: any) => {
     const isPercentSeries = name === 'Cumulato %';
@@ -246,7 +266,7 @@ export default function Rendimenti({
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
-                  {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
+                  <EuroAmount value={CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
                 </span>
               </div>
               <div className="border-t border-sky-800/60 pt-2 mt-2">
@@ -268,7 +288,7 @@ export default function Rendimenti({
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-extrabold font-display text-emerald-600 dark:text-emerald-400 block flex items-center gap-0.5">
                   <ChevronUp className="w-5 h-5 shrink-0" />
-                  {formatEuro(CRUSCOTTO_GENERALE.rendimentoCumulativoEuro)}
+                  <EuroAmount value={CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
                 </span>
               </div>
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px]">
@@ -303,7 +323,7 @@ export default function Rendimenti({
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(normalizeAnnual(Number(tableYearRow.rendimentoAnnualeEuro || 0)), 1) }}>
                   {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
-                  {formatEuro(tableYearRow.rendimentoAnnualeEuro)}
+                  <EuroAmount value={tableYearRow.rendimentoAnnualeEuro} />
                 </span>
                 {previousYearRow && (
                   <span className={`text-[10px] font-bold block mt-2 ${annualDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -337,7 +357,7 @@ export default function Rendimenti({
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange) }}>
                   {monthlyUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
-                  {formatEuro(globalInspectorRecord?.rendimentoMensileEuro)}
+                  <EuroAmount value={globalInspectorRecord?.rendimentoMensileEuro} />
                 </span>
                 {previousMonthRecord && (
                   <span className={`text-[9px] font-bold block mt-2 ${monthlyDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -402,17 +422,18 @@ export default function Rendimenti({
               <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
                 <button
                   onClick={() => setCrescitaRange('storico')}
-                  className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${crescitaRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+                  className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${crescitaRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
                     }`}
                 >
                   Storico
                 </button>
                 <button
                   onClick={() => setCrescitaRange('12mesi')}
-                  className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${crescitaRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+                  className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${crescitaRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
                     }`}
                 >
-                  Ultimi 12 Mesi
+                  <span className="sm:hidden">Ultimi 12 M.</span>
+                  <span className="hidden sm:inline">Ultimi 12 Mesi</span>
                 </button>
               </div>
             </div>
@@ -448,7 +469,7 @@ export default function Rendimenti({
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis yAxisId="left" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={axisFormatter} />
+                  <YAxis yAxisId="left" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} width={isMobile ? 42 : 60} tickFormatter={crescitaAxisFormatter} />
                   <YAxis yAxisId="right" orientation="right" hide domain={['auto', 'auto']} />
                   <Tooltip
                     formatter={crescitaTooltipFormatter}
@@ -504,17 +525,18 @@ export default function Rendimenti({
               <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
                 <button
                   onClick={() => setMensileRange('storico')}
-                  className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${mensileRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+                  className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${mensileRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
                     }`}
                 >
                   Storico
                 </button>
                 <button
                   onClick={() => setMensileRange('12mesi')}
-                  className={`text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${mensileRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+                  className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${mensileRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
                     }`}
                 >
-                  Ultimi 12 Mesi
+                  <span className="sm:hidden">Ultimi 12 M.</span>
+                  <span className="hidden sm:inline">Ultimi 12 Mesi</span>
                 </button>
               </div>
             </div>
@@ -534,7 +556,7 @@ export default function Rendimenti({
                 <BarChart data={mensileData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="mese" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={axisFormatter} />
+                  <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} width={isMobile ? 42 : 60} tickFormatter={mensileAxisFormatter} />
                   <Tooltip
                     formatter={(value: any) => [tooltipFormatter(value), 'Rendimento Mese']}
                     contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '11px' }}

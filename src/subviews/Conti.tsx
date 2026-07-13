@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { rendColor } from '../utils/format';
+import EuroAmount from '../components/EuroAmount';
 
 // Sotto-vista "Conti" della pagina Investimenti: mostra il dettaglio dei due
 // conti broker (Scalable Capital e Trade Republic), selezionabili con i tab in alto.
@@ -202,7 +203,7 @@ export default function Conti({
         <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Saldo Attuale Portafoglio</span>
           <span className="text-2xl font-black font-display text-slate-800 dark:text-slate-100 block mt-1">
-            {formatEuro(topKPIs.saldo)}
+            <EuroAmount value={topKPIs.saldo} />
           </span>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
             {topKPIs.isReal 
@@ -214,7 +215,7 @@ export default function Conti({
         <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
           <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Totale Capitale Investito</span>
           <span className="text-2xl font-black font-display text-slate-800 dark:text-slate-100 block mt-1">
-            {formatEuro(topKPIs.investito)}
+            <EuroAmount value={topKPIs.investito} />
           </span>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
             {topKPIs.isReal ? `Capitale totale investito al mese di ${topKPIs.mese}` : 'Versato cumulativo netto'}
@@ -235,7 +236,7 @@ export default function Conti({
             ) : (
               <span className="text-lg shrink-0">-</span>
             )}
-            {formatEuro(Math.abs(topKPIs.plusvalenza))}
+            <EuroAmount value={Math.abs(topKPIs.plusvalenza)} />
           </span>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 truncate">
             {topKPIs.isReal ? `Rendimento cumulativo registrato al mese di ${topKPIs.mese}` : `Contributore principale: ${accountKPIs[activeConto]?.topContributor || 'SToxx 600'}`}
@@ -266,7 +267,7 @@ export default function Conti({
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
-                    {formatEuro(realMetrics.annualInteressi)}
+                    <EuroAmount value={realMetrics.annualInteressi} />
                   </span>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
                     Totale maturato nell'anno
@@ -304,7 +305,7 @@ export default function Conti({
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
-                    {formatEuro(realMetrics.annualSaveback)}
+                    <EuroAmount value={realMetrics.annualSaveback} />
                   </span>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
                     Totale accreditato nell'anno
@@ -342,7 +343,7 @@ export default function Conti({
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-display block">
-                    {formatEuro(realMetrics.annualDividendi)}
+                    <EuroAmount value={realMetrics.annualDividendi} />
                   </span>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
                     Totale pagato nell'anno

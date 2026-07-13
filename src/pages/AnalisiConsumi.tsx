@@ -10,6 +10,7 @@
  * carburante, costo extra, km persi) tutti cliccabili per cambiare la settimana selezionata.
  */
 import React, { useState, useMemo, useEffect } from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { Car, AlertOctagon, Gauge, Calendar, ChevronDown } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -26,6 +27,7 @@ import {
 import { useFinanceData } from '../context/FinanceDataContext';
 import { calcolaEsitiSettimanali, EsitoSettimana } from '../utils/esitoSettimanale';
 import { formatEuro } from '../utils/format';
+import EuroAmount from '../components/EuroAmount';
 import { kpiColorAlpha, kpiTextColor, median, KpiRange } from '../utils/kpiColorScale';
 
 const MESI_ABBR = [
@@ -260,6 +262,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   const [costoExtraChartRange, setCostoExtraChartRange] = useState<TimeRange>('storico');
   const [kmPersiChartRange, setKmPersiChartRange] = useState<TimeRange>('storico');
   const [extraMode, setExtraMode] = useState<ExtraMode>('accumulato');
+  const isMobile = useIsMobile();
 
   const kmChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, kmChartRange), [consumiRecords, kmChartRange]);
   const kmLtChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, kmLtChartRange), [consumiRecords, kmLtChartRange]);
@@ -494,7 +497,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
             >
               <div className="col-span-2 h-full flex flex-col justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider block">Costo / 100 Km</span>
-                <span className="text-xl font-bold font-display block">{formatEuro(selectedWeek.euroPer100Km)}</span>
+                <span className="text-xl font-bold font-display block"><EuroAmount value={selectedWeek.euroPer100Km} /></span>
               </div>
               <div className="text-right">
                 <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.euroPer100Km, stats.costo100, false)}>{cost100Label}</span>
@@ -526,7 +529,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
             >
               <div className="col-span-2 h-full flex flex-col justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider block">Costo Extra</span>
-                <span className="text-xl font-bold font-display block">{formatEuro(selectedWeek.costoExtra)}</span>
+                <span className="text-xl font-bold font-display block"><EuroAmount value={selectedWeek.costoExtra} /></span>
               </div>
               <div className="text-right">
                 <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.costoExtra, stats.costoExtra, false)}>{costoExtraLabel}</span>
@@ -563,7 +566,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart
                     data={kmLtChartData}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                     onClick={handleChartClick}
                   >
                     <defs>
@@ -574,7 +577,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                     <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin - 0.75), (dataMax: number) => dataMax + 0.75]} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin - 0.75), (dataMax: number) => dataMax + 0.75]} />
                     <Tooltip content={<KmLtTooltip />} />
                     <Line type="monotone" dataKey="kmAlLitroAuto" stroke="#94a3b8" strokeOpacity={0.6} strokeWidth={2} strokeDasharray="4 4" dot={false} activeDot={false} connectNulls={false} />
                     <Area type="monotone" dataKey="kmAlLitro" stroke="url(#colorKmAlLitro)" strokeWidth={2.5} fill="url(#colorKmAlLitro)" fillOpacity={0.18} dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
@@ -598,7 +601,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={euro100ChartData}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                     onClick={handleChartClick}
                   >
                     <defs>
@@ -609,7 +612,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                     <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}
@@ -646,7 +649,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={kmChartData}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                     onClick={handleChartClick}
                   >
                     <defs>
@@ -657,7 +660,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                     <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}
@@ -695,7 +698,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={prezzoChartData}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                     onClick={handleChartClick}
                   >
                     <defs>
@@ -706,7 +709,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                     <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}
@@ -750,7 +753,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={costoExtraChartData}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                     onClick={handleChartClick}
                   >
                     <defs>
@@ -761,7 +764,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                     <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}
@@ -794,7 +797,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={kmPersiChartData}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                     onClick={handleChartClick}
                   >
                     <defs>
@@ -805,7 +808,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                     <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                       labelStyle={{ color: '#fff', fontWeight: 'bold' }}

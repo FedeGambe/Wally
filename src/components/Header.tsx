@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Sparkles, Calendar, Search, Bell, Database, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Database, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { MESI_ITALIANI } from '../utils/date';
 import DropdownMenu from './DropdownMenu';
 
 /**
  * Barra superiore dell'app (usata in App.tsx sopra il contenuto di ogni pagina).
- * Mostra il saluto dinamico ("Buongiorno/Buonasera..."), il toggle della modalità
- * incognito, e i due selettori (DropdownMenu) per anno ("Esercizio") e mese, che
+ * Mostra l'icona dell'ora del giorno (e scorciatoia mobile alle Impostazioni), il
+ * toggle della modalità incognito, e i due selettori (DropdownMenu) per anno e mese, che
  * pilotano il filtro temporale globale usato da tutte le pagine (selectedYear/
  * selectedMonth arrivano come props da App.tsx e vengono modificati da qui).
  * Calcola anche quali anni/mesi hanno effettivamente dei dati, per disabilitare
@@ -16,7 +16,6 @@ import DropdownMenu from './DropdownMenu';
 
 interface HeaderProps {
   key?: React.Key;
-  userEmail: string;
   selectedYear: string;
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
@@ -26,7 +25,6 @@ interface HeaderProps {
 }
 
 export default function Header({
-  userEmail,
   selectedYear,
   setSelectedYear,
   selectedMonth,
@@ -36,35 +34,15 @@ export default function Header({
 }: HeaderProps) {
   const { data, isIncognito, toggleIncognito } = useFinanceData();
 
-  // Dynamic greeting based on the time of day
-  // useMemo evita di ricalcolare saluto+icona ad ogni render: viene ricalcolato solo
-  // se cambia `userEmail` (nota: l'ora del giorno non è tra le dipendenze, quindi il
-  // saluto resta fisso finché il componente non si re-renderizza per altri motivi).
-  const { greeting, greetingIcon: GreetingIcon } = useMemo(() => {
+  // Saluto testuale + icona in base all'ora del giorno (Sole/Nuvola/Luna), mostrato
+  // solo su desktop/tablet. Su mobile non c'è spazio: si mostra solo l'icona
+  // Impostazioni come scorciatoia per aprirle.
+  const { GreetingIcon, greeting } = useMemo(() => {
     const hour = new Date().getHours();
-    let name = 'Federico';
-    if (userEmail && userEmail !== 'federico.gamberini.fg@gmail.com') {
-      const namePart = userEmail.split('@')[0];
-      const firstWord = namePart.split('.')[0];
-      name = firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
-    }
-
-    let base = 'Buongiorno';
-    let icon = Sun;
-
-    if (hour >= 13 && hour < 18) {
-      base = 'Buon pomeriggio';
-      icon = CloudSun;
-    } else if (hour >= 18 && hour < 24) {
-      base = 'Buonasera';
-      icon = Moon;
-    } else if (hour >= 0 && hour < 6) {
-      base = 'Buonanotte';
-      icon = Moon;
-    }
-
-    return { greeting: `${base}, ${name}!`, greetingIcon: icon };
-  }, [userEmail]);
+    if (hour >= 13 && hour < 18) return { GreetingIcon: CloudSun, greeting: 'Buon pomeriggio' };
+    if (hour >= 18 || hour < 6) return { GreetingIcon: Moon, greeting: 'Buonasera' };
+    return { GreetingIcon: Sun, greeting: 'Buongiorno' };
+  }, []);
 
   const localRisparmio = data.risparmio;
   const localEntrate = data.entrate;
@@ -121,16 +99,22 @@ export default function Header({
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex flex-row items-center justify-between px-3 sm:px-6 md:px-8 gap-2 sticky top-0 z-40 shrink-0 w-full">
-      {/* Dynamic Greeting based on time of day - on mobile, doubles as shortcut to Impostazioni */}
+      {/* Saluto testuale con icona - desktop/tablet */}
+      <div className="hidden md:flex items-center gap-2 min-w-0">
+        <GreetingIcon className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
+        <span className="text-sm font-semibold text-slate-700 truncate">
+          {greeting} <span className="text-indigo-600">Federico</span>
+        </span>
+      </div>
+
+      {/* Icona Impostazioni - solo mobile */}
       <button
         type="button"
         onClick={onOpenMobileSettings}
-        className="flex items-center gap-2 text-left min-w-0 cursor-pointer md:cursor-default md:pointer-events-none"
+        title="Impostazioni"
+        className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-50 cursor-pointer shrink-0"
       >
-        <GreetingIcon className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
-        <span className="text-xs sm:text-sm font-extrabold font-display text-slate-850 tracking-tight">
-          {greeting}
-        </span>
+        <Sliders className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
       </button>
 
       {/* Action controls */}
@@ -139,7 +123,7 @@ export default function Header({
         <button
           onClick={() => toggleIncognito(!isIncognito)}
           title={isIncognito ? 'Disattiva modalità incognito (torna ai dati reali)' : 'Attiva modalità incognito (mostra dati fittizi)'}
-          className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold transition-all cursor-pointer border ${
+          className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 text-xs font-bold transition-all cursor-pointer border ${
             isIncognito
               ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700'
               : 'bg-slate-50 border-slate-100 hover:border-slate-200 hover:bg-slate-100 text-slate-600'
@@ -152,7 +136,7 @@ export default function Header({
         {/* Year Selector Dropdown */}
         <DropdownMenu
           icon={Database}
-          label="Esercizio"
+          label="Anno"
           accent="blue"
           value={selectedYear}
           displayValue={selectedYear}

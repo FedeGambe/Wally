@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**StarFinance** — a personal-finance dashboard (single-user) that reads and writes all its data from a user-owned **Google Sheet**. React 19 + TypeScript + Vite 6, styled with Tailwind CSS 4, charts via Recharts, animations via Motion, auth via Firebase (Google Sign-In). Originally scaffolded from Google AI Studio. The entire UI is in **Italian** — keep it that way (labels, toasts, comments are Italian).
+**Wally** — a personal-finance dashboard (single-user) that reads and writes all its data from a user-owned **Google Sheet**. React 19 + TypeScript + Vite 6, styled with Tailwind CSS 4, charts via Recharts, animations via Motion, auth via Firebase (Google Sign-In). Originally scaffolded from Google AI Studio. The entire UI is in **Italian** — keep it that way (labels, toasts, comments are Italian).
 
 ## Commands
 

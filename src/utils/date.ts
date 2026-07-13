@@ -38,6 +38,20 @@ export function getMonthIndex(mese: string): number {
   return -1;
 }
 
+const MESI_ABBREVIATI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+/**
+ * Comprime un valore "mese" (es. "Giugno 2026" o "Giu 26") nel formato compatto
+ * "Giu 26", usato su mobile per recuperare spazio orizzontale.
+ */
+export function toMeseCompatto(mese: string): string {
+  const idx = getMonthIndex(mese);
+  if (idx === -1) return mese;
+  const yearMatch = String(mese).match(/(\d{4}|\d{2})/);
+  const yearShort = yearMatch ? yearMatch[1].slice(-2) : '';
+  return yearShort ? `${MESI_ABBREVIATI[idx]} ${yearShort}` : MESI_ABBREVIATI[idx];
+}
+
 /**
  * Estrae l'anno da una data transazione in formato gg/mm/aaaa o simili,
  * con fallback su pattern "20xx" nella stringa o anno corrente.

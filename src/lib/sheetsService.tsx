@@ -250,7 +250,7 @@ export const createSpreadsheet = async (accessToken: string): Promise<string> =>
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      properties: { title: 'StarFinance - Dashboard Economica' },
+      properties: { title: 'Wally - Dashboard Economica' },
       sheets: REQUIRED_SHEETS_TITLES.map(title => ({ properties: { title } })) // Dinamico!
     })
   });
