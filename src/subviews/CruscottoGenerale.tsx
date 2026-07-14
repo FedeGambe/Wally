@@ -588,35 +588,34 @@ export default function CruscottoGenerale({
                       </div>
                     </div>
                     {!isLegendCollapsed && (
-                      <>
-                        <div className="md:flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
-                          {legendRows.map((row, idx) => {
-                            const rowPerc = totalAssetAllocation > 0 ? (row.value / totalAssetAllocation) * 100 : 0;
-                            return (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between font-semibold py-1 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]"
-                              >
-                                <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
-                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
-                                  <span className="text-slate-500 truncate uppercase font-bold" title={row.name}>{row.name}</span>
-                                </div>
-                                <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                                  <span className="text-slate-500 font-extrabold text-[10px]">({rowPerc.toFixed(1)}%)</span>
-                                  <span className="text-slate-880 font-bold">{formatEuro(row.value)}</span>
-                                </div>
+                      <div className="md:flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
+                        {legendRows.map((row, idx) => {
+                          const rowPerc = totalAssetAllocation > 0 ? (row.value / totalAssetAllocation) * 100 : 0;
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between font-semibold py-1 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]"
+                            >
+                              <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
+                                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                                <span className="text-slate-500 truncate uppercase font-bold" title={row.name}>{row.name}</span>
                               </div>
-                            );
-                          })}
-                        </div>
-                        <button
-                          onClick={() => setShowDetailDrawer(true)}
-                          className="mt-2 shrink-0 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-white/5 dark:hover:bg-indigo-950/30 transition-colors cursor-pointer"
-                        >
-                          Dettaglio strumenti
-                        </button>
-                      </>
+                              <div className="flex items-center gap-2 font-mono text-right shrink-0">
+                                <span className="text-slate-500 font-extrabold text-[10px]">({rowPerc.toFixed(1)}%)</span>
+                                <span className="text-slate-880 font-bold">{formatEuro(row.value)}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
+                    {/* Sempre visibile, anche a legenda collassata (su mobile parte collassata di default) */}
+                    <button
+                      onClick={() => setShowDetailDrawer(true)}
+                      className="mt-2 shrink-0 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-white/5 dark:hover:bg-indigo-950/30 transition-colors cursor-pointer"
+                    >
+                      Dettaglio strumenti
+                    </button>
                   </div>
                 </div>
               </div>
