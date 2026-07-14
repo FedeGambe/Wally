@@ -107,10 +107,38 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     };
   }, []);
 
+  // Se lo sheet ha un tab "Cruscotto" gia' compilato lo usiamo cosi' com'e';
+  // altrimenti lo calcoliamo al volo dai fogli Scalable/Trade Republic. Spostato qui (prima di
+  // localRendimenti) perché computeCruscottoData calcola anche le commissioni cumulate per
+  // anno, che servono per correggere importoInvestitoCumulato qui sotto.
+  const localCruscotto = useMemo(() => {
+    if (data.cruscottoInvestimenti?.length > 0) {
+      return data.cruscottoInvestimenti;
+    }
+    const computed = computeCruscottoData(data);
+    return computed;
+  }, [data]);
+
+  // Le commissioni cumulate (Scalable + Trade Republic, colonna "Commissioni comulative") sono
+  // soldi usciti dalla tasca ma non allocati in nessuna asset class: vanno sommate a
+  // importoInvestitoCumulato (capitale investito), ma NON al rendimento/valutazione (che nel
+  // foglio Rendimenti è già calcolato al netto di queste, quindi sommarle lì sarebbe doppio
+  // conteggio). Sono per-anno (computeCruscottoData le calcola riga per riga in localCruscotto),
+  // non un unico totale "ultimo valore" spalmato su tutto lo storico.
   const localRendimenti = useMemo(() => {
     const raw = data.rendimentiInvestimenti;
-    return raw.filter((item: any) => item && item.mese && String(item.mese).trim() !== '');
-  }, [data.rendimentiInvestimenti]);
+    return raw
+      .filter((item: any) => item && item.mese && String(item.mese).trim() !== '')
+      .map((item: any) => {
+        const parsed = parseMeseStringToMonthYear(item.mese);
+        const yearRow = parsed ? localCruscotto.find((r: any) => Number(r.anno) === parsed.year) : null;
+        const commissioniCum = Number(yearRow?.commissioniInvestitoCum || 0);
+        return {
+          ...item,
+          importoInvestitoCumulato: Number(item.importoInvestitoCumulato || 0) + commissioniCum
+        };
+      });
+  }, [data.rendimentiInvestimenti, localCruscotto]);
 
   // 1.5 Active records with non-zero portfolio value
   const activeRendimenti = useMemo(() => {
@@ -208,16 +236,6 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return timeRange === '12mesi' ? globalFocusRendimenti : activeRendimenti;
   }, [timeRange, globalFocusRendimenti, activeRendimenti]);
 
-  // Se lo sheet ha un tab "Cruscotto" gia' compilato lo usiamo cosi' com'e';
-  // altrimenti lo calcoliamo al volo dai fogli Scalable/Trade Republic.
-  const localCruscotto = useMemo(() => {
-    if (data.cruscottoInvestimenti?.length > 0) {
-      return data.cruscottoInvestimenti;
-    }
-    const computed = computeCruscottoData(data);
-    return computed;
-  }, [data]);
-
   // KPI generali (card in alto nel tab Cruscotto). isLoaded distingue "nessuno
   // spreadsheet collegato ancora" (mostra tutto vuoto/undefined, niente numeri
   // finti) da "spreadsheet collegato ma senza righe cruscotto" (qui invece si
@@ -263,7 +281,8 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
         rendimentoCumulativoPerc: rendCumPerc || 13.8,
         rendimentoMedioMensilePerc: Number(lastRow.rendimentoMedioMensilePerc !== undefined ? lastRow.rendimentoMedioMensilePerc : 1.15),
         rendimentoAnnuoStimatoPerc: Number(lastRow.rendimentoAnnuoStimatoPerc !== undefined ? lastRow.rendimentoAnnuoStimatoPerc : 7.8),
-          liquidiConto: liquidiContoComputed
+          liquidiConto: liquidiContoComputed,
+          commissioniCum: Number(lastRow.commissioniInvestitoCum || 0)
       };
     }
 
@@ -280,7 +299,8 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
         rendimentoCumulativoPerc: undefined as any,
         rendimentoMedioMensilePerc: undefined as any,
         rendimentoAnnuoStimatoPerc: undefined as any,
-        liquidiConto: undefined as any
+        liquidiConto: undefined as any,
+        commissioniCum: undefined as any
       };
     }
 
@@ -296,7 +316,8 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
       rendimentoCumulativoPerc: 13.8,
       rendimentoMedioMensilePerc: 1.15,
       rendimentoAnnuoStimatoPerc: 7.8,
-      liquidiConto: 5290.30
+      liquidiConto: 5290.30,
+      commissioniCum: 0
     };
   }, [localCruscotto, data]);
 
@@ -622,9 +643,12 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     };
   }, [localScalableInstruments, localTradeRepublicInstruments]);
 
+  // Somma delle fette (asset class) + commissioni cumulate: le commissioni non sono una fetta
+  // a sé (non compaiono nella torta né nella legenda), ma vanno contate nel totale "Investito"
+  // mostrato al centro, quindi le percentuali delle singole fette non sommano più esattamente a 100%.
   const totalAssetAllocation = useMemo(() => {
-    return nestedPieData.macroData.reduce((acc, m) => acc + m.value, 0);
-  }, [nestedPieData]);
+    return nestedPieData.macroData.reduce((acc, m) => acc + m.value, 0) + (CRUSCOTTO_GENERALE.commissioniCum || 0);
+  }, [nestedPieData, CRUSCOTTO_GENERALE.commissioniCum]);
 
   const filteredDetailData = useMemo(() => {
     return nestedPieData.detailData.filter(item => (selectedMacroCategories as string[]).includes(item.tipo));

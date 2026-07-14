@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Database,
   Wallet,
@@ -13,6 +14,7 @@ import {
   ChevronRight,
   Shield,
   BarChart3,
+  X,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -41,6 +43,56 @@ import { formatAxisCompact } from '../utils/format';
 //  - grafico a torta annidato (asset class all'interno, singoli strumenti all'esterno)
 //  - grafico ad area "Investito vs Valore Portafoglio" nel tempo
 //  - inspector del mese selezionato + tabella "Distribuzione Asset Class per Anno"
+interface LegendRow {
+  kind: 'single' | 'group';
+  name: string;
+  value: number;
+  color: string;
+  items?: { name: string; value: number; color: string }[];
+}
+
+// Regole di raggruppamento SOLO per la legenda "Dettaglio Strumenti" (vedi nota
+// sopra la chiamata a groupLegendRows nel componente). L'ordine conta: le regole
+// più specifiche (value factor, small cap, all-world/acwi) vanno prima di "world",
+// altrimenti "world value factor" finirebbe nel gruppo sbagliato.
+const LEGEND_GROUP_RULES: { label: string; match: (nameLower: string) => boolean }[] = [
+  { label: 'Globale Value Factor', match: n => n.includes('value factor') },
+  { label: 'Globale Small Cap', match: n => n.includes('small cap') },
+  { label: 'Globale (sviluppati + emergenti)', match: n => n.includes('all-world') || n.includes('all world') || n.includes('acwi') },
+  { label: 'Europa', match: n => n.includes('europe 600') || n.includes('europa 600') || n.includes('stoxx europe') },
+  { label: 'America', match: n => n.includes('s&p 500') || n.includes('sp 500') || n.includes('sp500') },
+  { label: 'Globale (sviluppati)', match: n => n.includes('world sri') || n.includes('world') },
+];
+
+function groupLegendRows(sortedItems: { name: string; value: number; color: string }[]): LegendRow[] {
+  const groups = new Map<string, LegendRow>();
+  const singles: LegendRow[] = [];
+
+  sortedItems.forEach(item => {
+    const nameLower = String(item.name || '').toLowerCase();
+    const rule = LEGEND_GROUP_RULES.find(r => r.match(nameLower));
+    if (!rule) {
+      singles.push({ kind: 'single', name: item.name, value: item.value, color: item.color });
+      return;
+    }
+    const existing = groups.get(rule.label);
+    if (existing) {
+      existing.value += item.value;
+      existing.items!.push({ name: item.name, value: item.value, color: item.color });
+    } else {
+      groups.set(rule.label, {
+        kind: 'group',
+        name: rule.label,
+        value: item.value,
+        color: item.color,
+        items: [{ name: item.name, value: item.value, color: item.color }],
+      });
+    }
+  });
+
+  return [...groups.values(), ...singles].sort((a, b) => b.value - a.value);
+}
+
 interface CruscottoGeneraleProps {
   CRUSCOTTO_GENERALE: any;
   CRUSCOTTO_ANNO: any;
@@ -100,7 +152,14 @@ export default function CruscottoGenerale({
   const [isLegendCollapsed, setIsLegendCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [areButtonsCollapsed, setAreButtonsCollapsed] = useState(false);
   const [chartView, setChartView] = useState<'cumulato' | 'mensile'>('cumulato');
+  // Drawer unico col dettaglio di tutti gli strumenti (aperto dal bottone sotto la legenda).
+  const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const sortedFilteredDetailData = [...filteredDetailData].sort((a, b) => b.value - a.value);
+
+  // Raggruppamento SOLO per la legenda "Dettaglio Strumenti" (la torta esterna resta
+  // per singolo strumento, invariata). Prova: se non convince si toglie questo blocco
+  // e si torna a renderizzare sortedFilteredDetailData direttamente.
+  const legendRows = groupLegendRows(sortedFilteredDetailData);
 
   // Per l'investimento mensile il versamento è noto subito (a differenza della
   // valutazione di portafoglio, disponibile solo a fine mese): includiamo quindi
@@ -235,7 +294,7 @@ export default function CruscottoGenerale({
                 </span>
               </div>
               <div className="border-t border-sky-800/60 pt-2 mt-2">
-                <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}</span></p>
+                <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0) + (CRUSCOTTO_GENERALE.commissioniCum || 0))}</span></p>
               </div>
             </div>
 
@@ -325,7 +384,7 @@ export default function CruscottoGenerale({
               <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
                 <span>Contributo Totale</span>
                 <span className="text-[12px] font-extrabold text-sky-400 font-mono">
-                  {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0))}
+                  {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0) + (CRUSCOTTO_GENERALE.commissioniCum || 0))}
                 </span>
               </div>
             </div>
@@ -529,23 +588,34 @@ export default function CruscottoGenerale({
                       </div>
                     </div>
                     {!isLegendCollapsed && (
-                      <div className="md:flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
-                        {sortedFilteredDetailData.map((item, idx) => {
-                          const itemPerc = totalAssetAllocation > 0 ? (item.value / totalAssetAllocation) * 100 : 0;
-                          return (
-                            <div key={idx} className="flex items-center justify-between font-semibold py-1 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]">
-                              <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
-                                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                                <span className="text-slate-500 truncate uppercase font-bold" title={item.name}>{item.name}</span>
+                      <>
+                        <div className="md:flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
+                          {legendRows.map((row, idx) => {
+                            const rowPerc = totalAssetAllocation > 0 ? (row.value / totalAssetAllocation) * 100 : 0;
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between font-semibold py-1 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]"
+                              >
+                                <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
+                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                                  <span className="text-slate-500 truncate uppercase font-bold" title={row.name}>{row.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2 font-mono text-right shrink-0">
+                                  <span className="text-slate-500 font-extrabold text-[10px]">({rowPerc.toFixed(1)}%)</span>
+                                  <span className="text-slate-880 font-bold">{formatEuro(row.value)}</span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                                <span className="text-slate-500 font-extrabold text-[10px]">({itemPerc.toFixed(1)}%)</span>
-                                <span className="text-slate-880 font-bold">{formatEuro(item.value)}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={() => setShowDetailDrawer(true)}
+                          className="mt-2 shrink-0 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-white/5 dark:hover:bg-indigo-950/30 transition-colors cursor-pointer"
+                        >
+                          Dettaglio strumenti
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -553,6 +623,79 @@ export default function CruscottoGenerale({
             );
           })()}
         </div>
+
+        {/* Drawer unico con il dettaglio di TUTTI gli strumenti (raggruppati per macro-gruppo
+            di legenda, es. "Globale (sviluppati)" -> World, World SRI). */}
+        <AnimatePresence>
+          {showDetailDrawer && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.35 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowDetailDrawer(false)}
+                className="fixed inset-0 bg-slate-900 z-40"
+              />
+              <motion.div
+                initial={{ opacity: 0, x: '100%' }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-[#0b0f19]/95 backdrop-blur-xl shadow-2xl z-50 flex flex-col h-full border-l border-slate-200 dark:border-white/10"
+              >
+                <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display">Dettaglio Strumenti</h3>
+                    <p className="text-xs text-slate-400 mt-1">{formatEuro(totalAssetAllocation)} totali</p>
+                  </div>
+                  <button
+                    onClick={() => setShowDetailDrawer(false)}
+                    className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {legendRows.map((row, idx) => {
+                    const rowPerc = totalAssetAllocation > 0 ? (row.value / totalAssetAllocation) * 100 : 0;
+                    return (
+                      <div key={idx}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                            <span className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider truncate" title={row.name}>{row.name}</span>
+                          </div>
+                          <span className="text-slate-500 dark:text-slate-400 text-[10px] font-mono font-bold shrink-0">
+                            ({rowPerc.toFixed(1)}%) {formatEuro(row.value)}
+                          </span>
+                        </div>
+                        {row.kind === 'group' && (
+                          <div className="space-y-1.5 pl-3.5">
+                            {row.items!.map((sub, subIdx) => {
+                              const subPerc = row.value > 0 ? (sub.value / row.value) * 100 : 0;
+                              return (
+                                <div key={subIdx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+                                  <div className="flex items-center gap-2 truncate">
+                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: sub.color }} />
+                                    <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold truncate" title={sub.name}>{sub.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 font-mono text-right shrink-0">
+                                    <span className="text-slate-400 text-[10px] font-bold">({subPerc.toFixed(1)}%)</span>
+                                    <span className="text-slate-700 dark:text-slate-100 text-xs font-bold">{formatEuro(sub.value)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* Investito vs Valore Portafoglio Widget: layout ricalcato 1:1 da Rendimenti.tsx (widget "Andamento Rendimenti") */}
         <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
@@ -760,8 +903,10 @@ export default function CruscottoGenerale({
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">
                   {cruscottoRows.map((row: any) => {
                     const isCorrente = Number(row.anno) === Number(cruscottoRows[0]?.anno);
-                    // Stessa formula del box "Portafoglio Attuale" sopra, mese per mese storico:
+                    // Stessa formula del box "Portafoglio Attuale" sopra, anno per anno storico:
                     // capitale cumulato investito nelle 3 asset class + plusvalenza cumulata a fine anno.
+                    // Le commissioni NON si sommano qui: il rendimento (foglio Rendimenti) è già
+                    // calcolato al netto di quelle, sommarle di nuovo sarebbe doppio conteggio.
                     const valuationSum = Number(row.azioniInvestitoCum || 0) +
                       Number(row.obbligazioniInvestitoCum || 0) +
                       Number(row.monetariInvestitoCum || 0) +

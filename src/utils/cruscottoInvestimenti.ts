@@ -128,10 +128,30 @@ export function computeCruscottoData(sheetsData: any): any[] {
     return a.month - b.month;
   });
 
+  // Stesso ordinamento cronologico per Scalable/Trade Republic, serve al fallback a ritroso
+  // delle commissioni cumulate (colonna "Commissioni comulative"): se l'ultima riga dell'anno
+  // ha quella cella vuota (mese in corso non ancora aggiornato), si retrocede fino a trovare
+  // l'ultimo valore valorizzato, stesso pattern usato sopra per rendimentoCumulativoEuro.
+  const allSortedScalable = [...scalableWithDate].sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month));
+  const allSortedTradeRepublic = [...tradeRepublicWithDate].sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month));
+
+  const lastCommissioniCumulativeUpTo = (allSorted: any[], year: number, month: number): number => {
+    for (let i = allSorted.length - 1; i >= 0; i--) {
+      const r = allSorted[i];
+      if (r.year > year || (r.year === year && r.month > month)) continue;
+      const val = r.commissioniomulative;
+      if (val !== null && val !== undefined && val !== '' && Number(val) !== 0) {
+        return Number(val);
+      }
+    }
+    return 0;
+  };
+
   // Memorizziamo i valori cumulati dell'anno precedente per calcolare la differenza annuale
   let prevAzioniCum = 0;
   let prevObbligazioniCum = 0;
   let prevMonetariCum = 0;
+  let prevCommissioniCum = 0;
 
   sortedYears.forEach((year, idx) => {
     // Trova l'ultimo record dell'anno in Scalable
@@ -168,13 +188,21 @@ export function computeCruscottoData(sheetsData: any): any[] {
     const obbligazioniInvestitoAnno = idx === 0 ? obbligazioniInvestitoCum : Math.max(0, obbligazioniInvestitoCum - prevObbligazioniCum);
     const monetariInvestitoAnno = idx === 0 ? monetariInvestitoCum : Math.max(0, monetariInvestitoCum - prevMonetariCum);
 
+    // Commissioni cumulate (Scalable + Trade Republic) a fine anno: sono soldi usciti dalla
+    // tasca ma non allocati in nessuna asset class, quindi si sommano solo all'investito, non
+    // al rendimento/valutazione (che nel foglio Rendimenti è già calcolato al netto di queste).
+    const commissioniInvestitoCum = lastCommissioniCumulativeUpTo(allSortedScalable, year, 12) +
+      lastCommissioniCumulativeUpTo(allSortedTradeRepublic, year, 12);
+    const commissioniInvestitoAnno = idx === 0 ? commissioniInvestitoCum : Math.max(0, commissioniInvestitoCum - prevCommissioniCum);
+
     // Salviamo i cumulati correnti per il prossimo anno nel ciclo
     prevAzioniCum = azioniInvestitoCum;
     prevObbligazioniCum = obbligazioniInvestitoCum;
     prevMonetariCum = monetariInvestitoCum;
+    prevCommissioniCum = commissioniInvestitoCum;
 
-    const investitoCumulativo = azioniInvestitoCum + obbligazioniInvestitoCum + monetariInvestitoCum;
-    const investitoAnnuale = azioniInvestitoAnno + obbligazioniInvestitoAnno + monetariInvestitoAnno;
+    const investitoCumulativo = azioniInvestitoCum + obbligazioniInvestitoCum + monetariInvestitoCum + commissioniInvestitoCum;
+    const investitoAnnuale = azioniInvestitoAnno + obbligazioniInvestitoAnno + monetariInvestitoAnno + commissioniInvestitoAnno;
 
     // --- Calcolo Rendimenti ---
     const rendimentiOfYear = rendimentiWithDate.filter(r => r.year === year);
@@ -235,6 +263,8 @@ export function computeCruscottoData(sheetsData: any): any[] {
       obbligazioniInvestitoAnno,
       monetariInvestitoCum,
       monetariInvestitoAnno,
+      commissioniInvestitoCum,
+      commissioniInvestitoAnno,
       investitoCumulativo,
       investitoAnnuale,
       rendimentoCumulativoEuro,

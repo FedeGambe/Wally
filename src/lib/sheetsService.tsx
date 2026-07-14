@@ -181,9 +181,11 @@ const mapFromRowsWithHeaders = (
     // 3. Fallback: loose case-insensitive contains match
     if (colIdx === -1) {
       colIdx = actualHeaders.findIndex(h => {
-        let cleanH = h.replace(/[^a-z0-9]/g, '').toLowerCase().replace(/comulativo/g, 'cumulativo');
-        let cleanExpected = expectedHeader.replace(/[^a-z0-9]/g, '').toLowerCase().replace(/comulativo/g, 'cumulativo');
-        let cleanField = field.toLowerCase().replace(/[^a-z0-9]/g, '').toLowerCase().replace(/comulativo/g, 'cumulativo');
+        // "comulativ..." copre sia "comulativo" che "comulative" (i due fogli Scalable/Trade
+        // Republic hanno lo stesso refuso scritto con desinenze diverse nell'header reale).
+        let cleanH = h.replace(/[^a-z0-9]/g, '').toLowerCase().replace(/comulativ/g, 'cumulativ');
+        let cleanExpected = expectedHeader.replace(/[^a-z0-9]/g, '').toLowerCase().replace(/comulativ/g, 'cumulativ');
+        let cleanField = field.toLowerCase().replace(/[^a-z0-9]/g, '').toLowerCase().replace(/comulativ/g, 'cumulativ');
         
         // Exact normalized match is safe and preferred
         if (cleanH === cleanExpected || cleanH === cleanField) {
