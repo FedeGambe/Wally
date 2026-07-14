@@ -612,7 +612,7 @@ export default function CruscottoGenerale({
                     {/* Sempre visibile, anche a legenda collassata (su mobile parte collassata di default) */}
                     <button
                       onClick={() => setShowDetailDrawer(true)}
-                      className="mt-2 shrink-0 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-white/5 dark:hover:bg-indigo-950/30 transition-colors cursor-pointer"
+                      className="mt-2 shrink-0 text-[10px] font-bold text-white uppercase tracking-wider py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 dark:bg-sky-600 dark:hover:bg-sky-500 transition-all cursor-pointer md:hover:scale-[1.03]"
                     >
                       Dettaglio strumenti
                     </button>
@@ -633,19 +633,19 @@ export default function CruscottoGenerale({
                 animate={{ opacity: 0.35 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setShowDetailDrawer(false)}
-                className="fixed inset-0 bg-slate-900 z-40"
+                className="fixed inset-0 bg-slate-900 z-[55]"
               />
               <motion.div
                 initial={{ opacity: 0, x: '100%' }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-[#0b0f19]/95 backdrop-blur-xl shadow-2xl z-50 flex flex-col h-full border-l border-slate-200 dark:border-white/10"
+                className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-[#0b0f19]/95 backdrop-blur-xl shadow-2xl z-[60] flex flex-col h-full border-l border-slate-200 dark:border-white/10"
               >
                 <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display">Dettaglio Strumenti</h3>
-                    <p className="text-xs text-slate-400 mt-1">{formatEuro(totalAssetAllocation)} totali</p>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display">Capitale Investito per Strumento</h3>
+                    <p className="text-xs text-slate-400 mt-1">{formatEuro(totalAssetAllocation)} investiti (non riflette il valore attuale)</p>
                   </div>
                   <button
                     onClick={() => setShowDetailDrawer(false)}
@@ -654,17 +654,17 @@ export default function CruscottoGenerale({
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-28 md:pb-6">
                   {legendRows.map((row, idx) => {
                     const rowPerc = totalAssetAllocation > 0 ? (row.value / totalAssetAllocation) * 100 : 0;
                     return (
                       <div key={idx}>
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2 truncate">
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
-                            <span className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider truncate" title={row.name}>{row.name}</span>
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                            <span className="text-slate-800 dark:text-white text-xs font-bold truncate" title={row.name}>{row.name}</span>
                           </div>
-                          <span className="text-slate-500 dark:text-slate-400 text-[10px] font-mono font-bold shrink-0">
+                          <span className="text-slate-800 dark:text-white text-xs font-mono font-bold shrink-0">
                             ({rowPerc.toFixed(1)}%) {formatEuro(row.value)}
                           </span>
                         </div>
@@ -673,14 +673,14 @@ export default function CruscottoGenerale({
                             {row.items!.map((sub, subIdx) => {
                               const subPerc = row.value > 0 ? (sub.value / row.value) * 100 : 0;
                               return (
-                                <div key={subIdx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+                                <div key={subIdx} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
                                   <div className="flex items-center gap-2 truncate">
                                     <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: sub.color }} />
-                                    <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold truncate" title={sub.name}>{sub.name}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium truncate" title={sub.name}>{sub.name}</span>
                                   </div>
                                   <div className="flex items-center gap-2 font-mono text-right shrink-0">
                                     <span className="text-slate-400 text-[10px] font-bold">({subPerc.toFixed(1)}%)</span>
-                                    <span className="text-slate-700 dark:text-slate-100 text-xs font-bold">{formatEuro(sub.value)}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">{formatEuro(sub.value)}</span>
                                   </div>
                                 </div>
                               );

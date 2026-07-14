@@ -83,7 +83,7 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     range: 'Risparmio!A:P',
     fields: ['mese', 'entrate', 'speseTotali', 'spesePrimarie', `prim${TARGET_PRIMARIE}`, 'speseSecondarie', `sec${TARGET_SECONDARIE}`, 'spendibile', 'investiti', `inv${TARGET_INVESTIMENTI}`, 'risparmio', `risp${TARGET_RISPARMIO}`, 'nettoTotale', `netto${TARGET_NETTO}`, 'andamentoRisparmio', 'andamentoNetto'],
     headers: ['Mese', 'Entrate', 'Spese Totali', 'Spese Primarie', `${TARGET_PRIMARIE}%`, 'Spese Secondarie', `${TARGET_SECONDARIE}%`, 'Spendibile', 'Investiti', `${TARGET_INVESTIMENTI}% Inv`, 'Risparmio', `${TARGET_RISPARMIO}% Risp`, 'Netto Totale', `Netto ${TARGET_NETTO}%`, 'Andamento Risparmio', 'Andamento Netto'],
-    numberFields: ['entrate', 'speseTotali', 'spesePrimarie', 'speseSecondarie', 'investiti', 'risparmio', 'andamentoRisparmio', 'andamentoNetto'],
+    numberFields: ['entrate', 'speseTotali', 'spesePrimarie', 'speseSecondarie', 'spendibile', 'investiti', 'risparmio', 'andamentoRisparmio', 'andamentoNetto'],
     dataKey: 'risparmio'
   },
   {

@@ -54,6 +54,7 @@ export interface RisparmioMese {
   risparmioNetto: number;
   investiti?: number;
   risparmio?: number;
+  spendibile?: number;
   andamentoRisparmio?: number;
   andamentoNetto?: number;
 }

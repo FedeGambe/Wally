@@ -57,6 +57,7 @@ export function usePanoramicaData(
 
       const investito = Number(r.investiti !== undefined ? r.investiti : (r.investito !== undefined ? r.investito : 0));
       const risparmioNetto = Number(r.risparmio !== undefined ? r.risparmio : (r.risparmioNetto !== undefined ? r.risparmioNetto : 0));
+      const spendibile = Number(r.spendibile || 0);
 
       return {
         ...r,
@@ -66,7 +67,8 @@ export function usePanoramicaData(
         speseSecondarie,
         speseTotali,
         investito,
-        risparmioNetto
+        risparmioNetto,
+        spendibile
       };
     });
   }, [data]);
@@ -141,6 +143,7 @@ export function usePanoramicaData(
       speseSecondarie: undefined,
       investito: undefined,
       risparmioNetto: undefined,
+      spendibile: undefined,
       andamentoRisparmio: undefined
     };
   }, [chronologicalData, localSelectedMonth, selectedYear]);
@@ -239,6 +242,13 @@ export function usePanoramicaData(
     ? (currentMonthData.risparmioNetto / currentMonthData.entrate) * 100
     : undefined;
 
+  // Quanto resta ancora da spendere questo mese: colonna "Spendibile" del
+  // foglio Risparmio (budget mensile per le spese secondarie) meno quanto
+  // già speso in secondarie.
+  const spendibileResiduo = (currentMonthData && currentMonthData.spendibile !== undefined && currentMonthData.speseSecondarie !== undefined)
+    ? currentMonthData.spendibile - currentMonthData.speseSecondarie
+    : undefined;
+
   return {
     localSelectedMonth,
     drawerOpen, setDrawerOpen,
@@ -250,6 +260,6 @@ export function usePanoramicaData(
     patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
     handleChartClick, handleOpenMonthDetail,
     entrateDelta, speseDelta, spesePrimDelta, speseSecDelta,
-    primPerc, secPerc, invPerc, rispPerc
+    primPerc, secPerc, invPerc, rispPerc, spendibileResiduo
   };
 }
