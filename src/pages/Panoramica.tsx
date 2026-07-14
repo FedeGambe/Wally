@@ -224,13 +224,13 @@ export default function Panoramica({
         {/* Spendibile residuo: colonna "Spendibile" del foglio Risparmio meno
             le spese secondarie già sostenute nel mese, cioè quanto resta
             ancora da spendere ora. */}
-        <div className={`mb-5 p-4 rounded-2xl border flex items-center justify-between gap-4 ${spendibileResiduo !== undefined && spendibileResiduo < 0 ? 'bg-rose-50 border-rose-200/70' : 'bg-emerald-50 border-emerald-200/70'}`}>
+        <div className="mb-5 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Ancora Spendibile questo Mese</span>
-            <span className="text-xs text-slate-400 mt-0.5 block">Spendibile ({formatEuro(currentMonthData.spendibile)}) − Spese Secondarie ({formatEuro(currentMonthData.speseSecondarie)})</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Ancora Spendibile questo Mese</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 block">Spendibile − Spese Secondarie</span>
           </div>
-          <span className={`text-2xl font-black font-display shrink-0 ${spendibileResiduo !== undefined && spendibileResiduo < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-            {formatEuro(spendibileResiduo)}
+          <span className={`text-2xl font-black font-display shrink-0 ${spendibileResiduo !== undefined && spendibileResiduo < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-100'}`}>
+            {formatEuro(spendibileResiduo)} <span className="text-sm text-slate-400 dark:text-slate-500 font-bold">/ {formatEuro(currentMonthData.spendibile)}</span>
           </span>
         </div>
 
@@ -241,9 +241,9 @@ export default function Panoramica({
             (sotto la soglia = verde, sopra = allerta rossa). */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
           {/* Widget Risparmio & Investito */}
-          <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75">
+          <div className="p-5 rounded-2xl border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Risparmio & Investito</span>
+              <span className="text-sm text-slate-300 font-bold">Risparmio & Investito</span>
               <div className="text-right">
                 <span className="font-extrabold font-display text-slate-800 block">{formatEuro(rispInvTotale)}</span>
                 <span className={`text-[10px] font-bold ${rispInvPerc !== undefined && rispInvPerc >= rispInvSoglia ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -251,31 +251,35 @@ export default function Panoramica({
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6">
               {/* Risparmio */}
-              <div className="p-3 rounded-xl bg-white border border-slate-200/75">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Risparmio</span>
-                <span className="text-base font-extrabold font-display text-slate-800 mt-1 block">
-                  <EuroAmount value={currentMonthData.risparmioNetto} />
-                </span>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(rispPerc)}</strong></span>
-                  <span className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${rispPerc >= dynamicThresholds.risparmio ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {dynamicThresholds.risparmio}% {rispPerc >= dynamicThresholds.risparmio ? '✓' : '✗'}
+              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Risparmio</span>
+                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
+                    <EuroAmount value={currentMonthData.risparmioNetto} />
+                  </span>
+                </div>
+                <div className="mt-auto flex items-center justify-between pt-2">
+                  <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(rispPerc)}</strong></span>
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPerc >= dynamicThresholds.risparmio ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {rispPerc >= dynamicThresholds.risparmio ? `Sotto Soglia ✓ ${formatPercent(rispPerc)}` : `Fuori Soglia ✗ ${formatPercent(rispPerc)}`}
                   </span>
                 </div>
               </div>
 
               {/* Investito */}
-              <div className="p-3 rounded-xl bg-white border border-slate-200/75">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Investito</span>
-                <span className="text-base font-extrabold font-display text-slate-800 mt-1 block">
-                  <EuroAmount value={currentMonthData.investito} />
-                </span>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(invPerc)}</strong></span>
-                  <span className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${invPerc >= dynamicThresholds.investiti ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {dynamicThresholds.investiti}% {invPerc >= dynamicThresholds.investiti ? '✓' : '✗'}
+              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Investito</span>
+                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
+                    <EuroAmount value={currentMonthData.investito} />
+                  </span>
+                </div>
+                <div className="mt-auto flex items-center justify-between pt-2">
+                  <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(invPerc)}</strong></span>
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPerc >= dynamicThresholds.investiti ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {invPerc >= dynamicThresholds.investiti ? `Sotto Soglia ✓ ${formatPercent(invPerc)}` : `Fuori Soglia ✗ ${formatPercent(invPerc)}`}
                   </span>
                 </div>
               </div>
@@ -283,9 +287,9 @@ export default function Panoramica({
           </div>
 
           {/* Widget Spese */}
-          <div className="p-5 rounded-2xl bg-slate-50/55 border border-slate-200/75">
+          <div className="p-5 rounded-2xl border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Spese</span>
+              <span className="text-sm text-slate-300 font-bold">Spese</span>
               <div className="text-right">
                 <span className="font-extrabold font-display text-slate-800 block">{formatEuro(speseTotaleWidget)}</span>
                 <span className={`text-[10px] font-bold ${spesePerc !== undefined && spesePerc <= speseSoglia ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -293,31 +297,35 @@ export default function Panoramica({
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6">
               {/* Spese Primarie */}
-              <div className="p-3 rounded-xl bg-white border border-slate-200/75">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Primarie</span>
-                <span className="text-base font-extrabold font-display text-slate-800 mt-1 block">
-                  <EuroAmount value={currentMonthData.spesePrimarie} />
-                </span>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(primPerc)}</strong></span>
-                  <span className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${primPerc <= dynamicThresholds.primarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {dynamicThresholds.primarie}% {primPerc <= dynamicThresholds.primarie ? '✓' : '✗'}
+              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Primarie</span>
+                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
+                    <EuroAmount value={currentMonthData.spesePrimarie} />
+                  </span>
+                </div>
+                <div className="mt-auto flex items-center justify-between pt-2">
+                  <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(primPerc)}</strong></span>
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPerc <= dynamicThresholds.primarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {primPerc <= dynamicThresholds.primarie ? `Sotto Soglia ✓ ${formatPercent(primPerc)}` : `Fuori Soglia ✗ ${formatPercent(primPerc)}`}
                   </span>
                 </div>
               </div>
 
               {/* Spese Secondarie */}
-              <div className="p-3 rounded-xl bg-white border border-slate-200/75">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Secondarie</span>
-                <span className="text-base font-extrabold font-display text-slate-800 mt-1 block">
-                  <EuroAmount value={currentMonthData.speseSecondarie} />
-                </span>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(secPerc)}</strong></span>
-                  <span className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${secPerc <= dynamicThresholds.secondarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {dynamicThresholds.secondarie}% {secPerc <= dynamicThresholds.secondarie ? '✓' : '✗'}
+              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Secondarie</span>
+                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
+                    <EuroAmount value={currentMonthData.speseSecondarie} />
+                  </span>
+                </div>
+                <div className="mt-auto flex items-center justify-between pt-2">
+                  <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(secPerc)}</strong></span>
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPerc <= dynamicThresholds.secondarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {secPerc <= dynamicThresholds.secondarie ? `Sotto Soglia ✓ ${formatPercent(secPerc)}` : `Fuori Soglia ✗ ${formatPercent(secPerc)}`}
                   </span>
                 </div>
               </div>

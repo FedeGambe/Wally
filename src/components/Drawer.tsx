@@ -84,7 +84,7 @@ export default function Drawer({
             animate={{ opacity: 0.35 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900 z-40 transition-opacity"
+            className="fixed inset-0 bg-slate-900 z-[55] transition-opacity"
           />
 
           {/* Drawer Container Panel */}
@@ -93,7 +93,7 @@ export default function Drawer({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[#0b0f19]/80 backdrop-blur-xl shadow-2xl z-50 flex flex-col h-full border-l border-white/10"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[#0b0f19]/80 backdrop-blur-xl shadow-2xl z-[60] flex flex-col h-full border-l border-white/10"
           >
             {/* Header */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
@@ -115,7 +115,7 @@ export default function Drawer({
                 2) stats presente ma senza monthDetail -> riepilogo semplice (totale + conteggio)
                 3) nessuno dei due -> si passa direttamente all'elenco transazioni qui sotto */}
             {stats?.monthDetail ? (
-              <div className="p-6 border-b border-white/10 flex-1 overflow-y-auto space-y-5">
+              <div className="p-6 pb-28 md:pb-6 border-b border-white/10 flex-1 overflow-y-auto space-y-5">
                 {(() => {
                   // IIFE (funzione auto-invocata): serve solo per poter definire delle
                   // variabili locali (m, pct, pieData...) prima del `return` del JSX,
@@ -269,7 +269,7 @@ export default function Drawer({
                 un riepilogo mensile (monthDetail), per non duplicare informazioni:
                 nella vista mensile la torta+mini-card bastano come riepilogo. */}
             {!stats?.monthDetail && (
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 pb-28 md:pb-6 space-y-4">
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Dettaglio Movimenti
               </h4>
