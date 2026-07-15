@@ -58,3 +58,20 @@ export interface PresetUscita {
 }
 
 export const PRESET_USCITE_SEED: PresetUscita[] = [];
+
+/**
+ * Preset per trasferimenti ricorrenti collegati a un'uscita ricorrente (es.
+ * bonifico verso un conto di accantonamento quando si paga una rata). `categoria`
+ * deve combaciare col `nome` di un PresetUscita per far scattare il flag "aggiungi
+ * anche il trasferimento" e il pallino lampeggiante nel form Aggiungi Uscita.
+ * Seed vuoto di proposito, stesso motivo di PRESET_USCITE_SEED.
+ */
+export interface PresetTrasferimento {
+  id: string;
+  categoria: string;
+  contoOrdinante: string;
+  contoBeneficiario: string;
+  importo: number;
+}
+
+export const PRESET_TRASFERIMENTI_SEED: PresetTrasferimento[] = [];

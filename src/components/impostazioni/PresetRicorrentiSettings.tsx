@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronRight, Repeat, ArrowLeftRight, TrendingUp, PiggyBank } from 'lucide-react';
 import Modal from '../Modal';
 import UsciteRicorrentiEditor from './UsciteRicorrentiEditor';
+import TrasferimentiRicorrentiEditor from './TrasferimentiRicorrentiEditor';
 import InArrivoPlaceholder from './InArrivoPlaceholder';
 
 type Voce = 'usciteRicorrenti' | 'trasferimentiRicorrenti' | 'investimentiRicorrenti' | 'fondoPensione' | null;
@@ -23,9 +24,10 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
 /**
  * Card "Preset Uscite Ricorrenti" di Impostazioni: menu con 4 voci per i
  * valori che si ripetono quasi identici ogni mese (Fase 2 del piano,
- * docs/PIANO-INSERIMENTO-DATI.md). Solo "Uscite Ricorrenti" ha un editor
- * vero (UsciteRicorrentiEditor, il preset già usato da AggiungiUscitaForm);
- * gli altri 3 sono ancora da costruire.
+ * docs/PIANO-INSERIMENTO-DATI.md). "Uscite Ricorrenti" e "Trasferimenti
+ * Ricorrenti" hanno un editor vero (usati anche da AggiungiUscitaForm per il
+ * flag "aggiungi anche il trasferimento"); Investimenti Ricorrenti e Quota
+ * Fondo Pensione sono ancora da costruire.
  */
 export default function PresetRicorrentiSettings() {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
@@ -65,7 +67,7 @@ export default function PresetRicorrentiSettings() {
 
       <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>
         {voceAperta === 'usciteRicorrenti' && <UsciteRicorrentiEditor />}
-        {voceAperta === 'trasferimentiRicorrenti' && <InArrivoPlaceholder label="Trasferimenti Ricorrenti" />}
+        {voceAperta === 'trasferimentiRicorrenti' && <TrasferimentiRicorrentiEditor />}
         {voceAperta === 'investimentiRicorrenti' && <InArrivoPlaceholder label="Investimenti Ricorrenti" />}
         {voceAperta === 'fondoPensione' && <InArrivoPlaceholder label="Quota Fondo Pensione" />}
       </Modal>

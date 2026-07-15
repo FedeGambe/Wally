@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { useSaveAndPush } from './useSaveAndPush';
-import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita } from '../data/mockData';
+import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita, PresetTrasferimento } from '../data/mockData';
 
 /**
  * Hook usato da Impostazioni (per editare conti/categorie/preset) e dai form
@@ -22,6 +22,7 @@ export function useDatiBase() {
     categorieEntrate?: string[];
     conti?: string[];
     presetUscite?: PresetUscita[];
+    presetTrasferimenti?: PresetTrasferimento[];
   }) => {
     saveAndPush(() => {
       saveToLocalStorage(update);
@@ -33,6 +34,7 @@ export function useDatiBase() {
     categorieEntrate: data.categorieEntrate,
     conti: data.conti,
     presetUscite: data.presetUscite,
+    presetTrasferimenti: data.presetTrasferimenti,
     updateDatiBase,
     isSaving,
     error

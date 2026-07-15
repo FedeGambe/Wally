@@ -97,6 +97,14 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     dataKey: 'presetUsciteRows'
   },
   {
+    title: 'Preset Trasferimenti Ricorrenti',
+    range: 'Preset Trasferimenti Ricorrenti!A:D',
+    fields: ['categoria', 'contoOrdinante', 'contoBeneficiario', 'importo'],
+    headers: ['Categoria', 'Conto ordinante', 'Conto beneficiario', 'Importo'],
+    numberFields: ['importo'],
+    dataKey: 'presetTrasferimentiRows'
+  },
+  {
     title: 'Uscite',
     range: 'Uscite!A:I',
     fields: ['data', 'mese', 'descrizione', 'macroCategoria', 'categoria', 'icon', 'conto', 'importo', 'primaria'],

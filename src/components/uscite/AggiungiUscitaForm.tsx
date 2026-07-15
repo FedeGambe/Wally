@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Repeat, Grid, Tag, CreditCard } from 'lucide-react';
+import { Grid, Tag, CreditCard } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
-import { saveToLocalStorage, Transaction } from '../../data/mockData';
+import { saveToLocalStorage, Transaction, Trasferimento } from '../../data/mockData';
 import { iconPerMacroCategoria } from '../../data/datiBase';
 import { MESI_ITALIANI } from '../../utils/date';
+import { formatEuro } from '../../utils/format';
 import DropdownMenu from '../DropdownMenu';
 
 const toInputDate = (d: Date) => {
@@ -30,7 +31,7 @@ interface AggiungiUscitaFormProps {
  */
 export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps) {
   const { data } = useFinanceData();
-  const { macroCategorieUscite, conti, presetUscite } = useDatiBase();
+  const { macroCategorieUscite, conti, presetUscite, presetTrasferimenti } = useDatiBase();
   const { saveAndPush, isSaving, error } = useSaveAndPush();
 
   const [dataStr, setDataStr] = useState(() => toInputDate(new Date()));
@@ -40,6 +41,8 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
   const [conto, setConto] = useState(conti[0] || '');
   const [importo, setImporto] = useState('');
   const [primaria, setPrimaria] = useState(true);
+  const [presetSelezionatoId, setPresetSelezionatoId] = useState<string | null>(null);
+  const [ancheTrasferimento, setAncheTrasferimento] = useState(false);
 
   // Applica un preset ricorrente (Impostazioni → Preset Uscite Ricorrenti):
   // precompila i campi, l'utente resta libero di modificarli prima di salvare.
@@ -52,13 +55,25 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
     setImporto(String(preset.importo));
     setDescrizione(preset.descrizione);
     setPrimaria(preset.primaria);
+    setPresetSelezionatoId(presetId);
+    setAncheTrasferimento(false);
   };
 
   const macroSelezionata = macroCategorieUscite.find(m => m.nome === macroCategoria);
   const categorieDisponibili = macroSelezionata?.categorie || [];
   const macroNomiList = macroCategorieUscite.map(m => m.nome);
   const macroIconByNome = Object.fromEntries(macroCategorieUscite.map(m => [m.nome, m.icon]));
-  const presetNomiById = Object.fromEntries(presetUscite.map(p => [p.id, p.nome]));
+
+  // Mese/anno "target" = quelli della data scelta nel form (di default oggi),
+  // usati per capire quali preset ricorrenti mancano ancora in quel mese.
+  const [targetAnnoStr, targetMeseStr] = dataStr.split('-');
+  const targetMese = MESI_ITALIANI[parseInt(targetMeseStr, 10) - 1];
+  const targetAnno = parseInt(targetAnnoStr, 10);
+  const usciteDelMese = data.uscite.filter(t => t.mese === targetMese && t.data.split('/')[2] === targetAnnoStr);
+  const presetMancanti = presetUscite.filter(p => !usciteDelMese.some(t => t.descrizione === p.descrizione));
+  const hasTrasferimentoCollegato = (nomePreset: string) => presetTrasferimenti.some(pt => pt.categoria === nomePreset);
+  const presetSelezionato = presetUscite.find(p => p.id === presetSelezionatoId);
+  const selezionatoHaTrasferimento = presetSelezionato ? hasTrasferimentoCollegato(presetSelezionato.nome) : false;
 
   const handleMacroChange = (nome: string) => {
     setMacroCategoria(nome);
@@ -85,8 +100,23 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
       primaria
     };
 
+    const presetTrasf = ancheTrasferimento && presetSelezionato
+      ? presetTrasferimenti.find(pt => pt.categoria === presetSelezionato.nome)
+      : undefined;
+
     const ok = await saveAndPush(() => {
       saveToLocalStorage({ uscite: [...data.uscite, nuovaTransazione] });
+      if (presetTrasf) {
+        const nuovoTrasferimento: Trasferimento = {
+          id: `manual-${Date.now()}-t`,
+          mese: targetMese,
+          anno: targetAnno,
+          contoOrdinante: presetTrasf.contoOrdinante,
+          contoBeneficiario: presetTrasf.contoBeneficiario,
+          importo: presetTrasf.importo
+        };
+        saveToLocalStorage({ trasferimenti: [...data.trasferimenti, nuovoTrasferimento] });
+      }
     });
     if (ok) onSaved();
   };
@@ -102,20 +132,48 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
     <form onSubmit={handleSubmit} className="space-y-4">
       {presetUscite.length > 0 && (
         <div>
-          <label className={labelClass}>Preset ricorrente (opzionale)</label>
-          <DropdownMenu
-            icon={Repeat}
-            label="Preset"
-            accent="orange"
-            fullWidth
-            hideLabel
-            placeholder="Nessuno, compilo a mano"
-            value=""
-            displayValue=""
-            options={presetUscite.map(p => p.id)}
-            getOptionLabel={id => presetNomiById[id] || id}
-            onSelect={applicaPreset}
-          />
+          <label className={labelClass}>Uscite ricorrenti da inserire — {targetMese} {targetAnno}</label>
+          {presetMancanti.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {presetMancanti.map(p => {
+                const collegato = hasTrasferimentoCollegato(p.nome);
+                const selezionato = presetSelezionatoId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => applicaPreset(p.id)}
+                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      selezionato
+                        ? 'bg-orange-700 text-white border-orange-700'
+                        : 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30 hover:bg-orange-100 dark:hover:bg-orange-500/20'
+                    }`}
+                  >
+                    {collegato && (
+                      <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5" title="Ha un trasferimento ricorrente collegato">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500" />
+                      </span>
+                    )}
+                    {p.nome} · {formatEuro(p.importo)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 mb-2">Nessuna uscita ricorrente ancora da inserire.</p>
+          )}
+          {presetSelezionato && selezionatoHaTrasferimento && (
+            <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={ancheTrasferimento}
+                onChange={e => setAncheTrasferimento(e.target.checked)}
+                className="cursor-pointer"
+              />
+              Aggiungi anche il trasferimento ricorrente collegato
+            </label>
+          )}
         </div>
       )}
 

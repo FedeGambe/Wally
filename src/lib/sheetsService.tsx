@@ -32,6 +32,7 @@ export interface SheetsData {
   categorieEntrate?: string[];
   macroCategorieUscite?: any[];
   presetUscite?: any[];
+  presetTrasferimenti?: any[];
   capitaleImpegnato?: any[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -559,7 +560,20 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
       descrizione: r.descrizione || r.nome,
       primaria: Boolean(r.primaria)
     }));
+  if (presetUsciteDaSheet.length > 0) outputData.presetUscite = presetUsciteDaSheet;
   delete outputData.presetUsciteRows;
+
+  const presetTrasferimentiDaSheet = (outputData.presetTrasferimentiRows || [])
+    .filter((r: any) => r.categoria)
+    .map((r: any, idx: number) => ({
+      id: `preset-trasf-sheet-${idx}`,
+      categoria: r.categoria,
+      contoOrdinante: r.contoOrdinante || '',
+      contoBeneficiario: r.contoBeneficiario,
+      importo: Number(r.importo || 0)
+    }));
+  if (presetTrasferimentiDaSheet.length > 0) outputData.presetTrasferimenti = presetTrasferimentiDaSheet;
+  delete outputData.presetTrasferimentiRows;
 
   // Intestazioni per il Risparmio
   const risparmioRows = getValueRangeForSheet('Risparmio');
@@ -675,6 +689,12 @@ export const pushSpreadsheetData = async (
     descrizione: p.descrizione,
     primaria: p.primaria
   }));
+  const presetTrasferimentiRows = (data.presetTrasferimenti || []).map((p: any) => ({
+    categoria: p.categoria,
+    contoOrdinante: p.contoOrdinante,
+    contoBeneficiario: p.contoBeneficiario,
+    importo: p.importo
+  }));
 
   const computedCruscotto = computeCruscottoData(data);
   const dataMapForPush: Record<string, any[]> = {
@@ -689,6 +709,7 @@ export const pushSpreadsheetData = async (
     categorieEntrateRows,
     categorieUsciteRows,
     presetUsciteRows,
+    presetTrasferimentiRows,
     capitaleImpegnato: data.capitaleImpegnato || [],
     cruscottoInvestimenti: computedCruscotto.length > 0 ? computedCruscotto : (data.cruscottoInvestimenti || []),
     scalable: data.scalable || [],
