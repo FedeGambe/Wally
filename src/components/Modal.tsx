@@ -13,9 +13,12 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  /** Popup a tutto schermo invece che centrato in una card piccola — per
+   * editor più ampi (es. Impostazioni → Dati Base) dove il form breve non basta. */
+  fullScreen?: boolean;
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, fullScreen = false }: ModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -27,16 +30,23 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             onClick={onClose}
             className="fixed inset-0 bg-slate-900 z-[70]"
           />
-          <div className="fixed inset-0 z-[71] flex items-center justify-center p-4" onClick={onClose}>
+          <div
+            className={`fixed inset-0 z-[71] ${fullScreen ? '' : 'flex items-center justify-center p-4'}`}
+            onClick={onClose}
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={fullScreen ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
+              animate={fullScreen ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={fullScreen ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10"
+              className={
+                fullScreen
+                  ? 'w-full h-full bg-white dark:bg-[#0b0f19] flex flex-col'
+                  : 'w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10'
+              }
             >
-              <div className="p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between sticky top-0 bg-white dark:bg-[#0b0f19] rounded-t-3xl">
+              <div className={`p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-white dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
                 <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">{title}</h3>
                 <button
                   onClick={onClose}
@@ -45,7 +55,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="p-5">{children}</div>
+              <div className={`p-5 ${fullScreen ? 'flex-1 overflow-y-auto' : ''}`}>{children}</div>
             </motion.div>
           </div>
         </>
