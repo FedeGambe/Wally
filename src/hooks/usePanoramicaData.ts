@@ -107,6 +107,26 @@ export function usePanoramicaData(
     return chronologicalData.slice(startIdx, endIdx + 1);
   }, [chronologicalData, localSelectedMonth, selectedYear]);
 
+  // Vista "Cumulato" del grafico Trend: stessa finestra di mesi di chartData, ma
+  // il valore di ogni punto è la somma progressiva di risparmio/investito dall'inizio
+  // di TUTTO lo storico disponibile (chronologicalData), non solo della finestra
+  // visibile — altrimenti il cumulato ripartirebbe da zero al bordo sinistro del grafico.
+  const cumulativeChartData = useMemo(() => {
+    let runningRisparmio = 0;
+    let runningInvestito = 0;
+    const cumByKey = new Map<string, { risparmioCumulato: number; investitoCumulato: number }>();
+    chronologicalData.forEach(r => {
+      runningRisparmio += r.risparmioNetto || 0;
+      runningInvestito += r.investito || 0;
+      cumByKey.set(r.uniqueKey, { risparmioCumulato: runningRisparmio, investitoCumulato: runningInvestito });
+    });
+    return chartData.map(r => ({
+      ...r,
+      risparmioCumulato: cumByKey.get(r.uniqueKey)?.risparmioCumulato ?? 0,
+      investitoCumulato: cumByKey.get(r.uniqueKey)?.investitoCumulato ?? 0
+    }));
+  }, [chronologicalData, chartData]);
+
   const dynamicThresholds = useMemo(() => {
     const headers = data.risparmioHeaders?.length
       ? data.risparmioHeaders
@@ -255,6 +275,7 @@ export function usePanoramicaData(
     drawerTitle, drawerSubtitle, drawerTransactions, drawerStats,
     filteredRisparmio,
     chartData,
+    cumulativeChartData,
     dynamicThresholds,
     currentMonthData, prevMonthData,
     patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
