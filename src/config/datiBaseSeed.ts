@@ -20,7 +20,7 @@ export interface MacroCategoriaUscita {
 export const MACRO_CATEGORIE_USCITE_SEED: MacroCategoriaUscita[] = [
   { nome: 'Automobile', icon: '🚘', categorie: ['Automobile', 'Assicurazione', 'Rifornimento', 'Manutenzione', 'Varie'] },
   { nome: 'Cibo', icon: '🍕', categorie: ['Bar', 'Ristorante', 'Spesa'] },
-  { nome: 'Shopping', icon: '🛍️', categorie: ['vestiti', 'Beni Personali', 'Scarpe'] },
+  { nome: 'Shopping', icon: '🛍️', categorie: ['Vestiti', 'Beni Personali', 'Scarpe'] },
   { nome: 'Sport', icon: '🚴', categorie: ['Bici', 'Running', 'Svago'] },
   { nome: 'Svago', icon: '🎳', categorie: ['Cinema', 'Svago', 'Eventi', 'Bowling'] },
   { nome: 'Trasporti', icon: '🚌', categorie: ['TPL', 'Treni', 'Parcheggio', 'Bike Sharing', 'Autostrada', 'Benzina'] },
@@ -28,10 +28,10 @@ export const MACRO_CATEGORIE_USCITE_SEED: MacroCategoriaUscita[] = [
   { nome: 'Tasse', icon: '🏦', categorie: ['Bollo Auto', 'Bollo Titoli', 'Bollo Conto', 'Revisione', 'Conto Deposito', 'Tasse'] },
   { nome: 'Istruzione', icon: '📚', categorie: [] },
   { nome: 'Regalo', icon: '🎁', categorie: [] },
-  { nome: 'Tecnologia', icon: '💻', categorie: ['telefono', 'giochi', 'Computer', 'Varie', 'Tecnologia'] },
+  { nome: 'Tecnologia', icon: '💻', categorie: ['Telefono', 'Giochi', 'Computer', 'Varie', 'Tecnologia'] },
   { nome: 'Vacanze', icon: '🏝️', categorie: ['Viaggio', 'Benzina', 'Bar', 'Ristorante', 'Spesa', 'TPL', 'Treni', 'Taxi', 'Alloggio', 'Bici'] },
   { nome: 'Abbonamenti', icon: '🔁', categorie: ['Bici', 'Spotify', 'Sito web', 'iCloud'] },
-  { nome: 'Salute', icon: '🩺', categorie: ['medicine', 'Visita Medica', 'Parcheggio'] }
+  { nome: 'Salute', icon: '🩺', categorie: ['Medicine', 'Visita Medica', 'Parcheggio'] }
 ];
 
 export const CATEGORIE_ENTRATE_SEED: string[] = ['Nonna Anna', 'Nonna Lina', 'Nonno Ago', 'Stipendio', 'Dividendi', 'Interessi'];
