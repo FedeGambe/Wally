@@ -5,7 +5,7 @@ import { useDatiBase } from '../../hooks/useDatiBase';
 /** Editor "Categorie Uscite" (macro + sotto-categorie), dentro il popup
  * fullscreen di Impostazioni → Dati Base. */
 export default function CategorieUsciteEditor() {
-  const { macroCategorieUscite, updateDatiBase } = useDatiBase();
+  const { macroCategorieUscite, updateDatiBase, error } = useDatiBase();
 
   const [newMacroNome, setNewMacroNome] = useState('');
   const [newMacroIcon, setNewMacroIcon] = useState('💸');
@@ -106,6 +106,7 @@ export default function CategorieUsciteEditor() {
           <Plus className="w-4 h-4" /> Aggiungi
         </button>
       </div>
+      {error && <p className="text-xs text-rose-600 font-semibold mt-3">{error}</p>}
     </div>
   );
 }

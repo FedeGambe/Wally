@@ -28,6 +28,10 @@ export interface SheetsData {
   rendimentiInvestimenti: any[];
   entrate?: any[];
   trasferimenti?: any[];
+  conti?: string[];
+  categorieEntrate?: string[];
+  macroCategorieUscite?: any[];
+  presetUscite?: any[];
   capitaleImpegnato?: any[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -490,6 +494,49 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
     return obj;
   });
 
+  // Post-processing Dati Base (Conti, Categorie, Preset Uscite Ricorrenti):
+  // le tab sono righe piatte, ma l'app se le aspetta in forma più comoda
+  // (liste semplici, macro categorie raggruppate con le loro sotto-categorie).
+  outputData.conti = (outputData.contiRows || [])
+    .map((r: any) => String(r.nome || '').trim())
+    .filter(Boolean);
+  delete outputData.contiRows;
+
+  outputData.categorieEntrate = (outputData.categorieEntrateRows || [])
+    .map((r: any) => String(r.nome || '').trim())
+    .filter(Boolean);
+  delete outputData.categorieEntrateRows;
+
+  // Una riga per (macro, sotto-categoria); le macro "a inserimento libero"
+  // (nessuna sotto-categoria) hanno una riga sola con categoria vuota, solo
+  // per non perdere macro+icona.
+  const macroMap = new Map<string, { nome: string; icon: string; categorie: string[] }>();
+  (outputData.categorieUsciteRows || []).forEach((r: any) => {
+    const macro = String(r.macro || '').trim();
+    if (!macro) return;
+    if (!macroMap.has(macro)) {
+      macroMap.set(macro, { nome: macro, icon: String(r.icon || '').trim() || '💸', categorie: [] });
+    }
+    const categoria = String(r.categoria || '').trim();
+    if (categoria) macroMap.get(macro)!.categorie.push(categoria);
+  });
+  outputData.macroCategorieUscite = Array.from(macroMap.values());
+  delete outputData.categorieUsciteRows;
+
+  outputData.presetUscite = (outputData.presetUsciteRows || [])
+    .filter((r: any) => r.nome)
+    .map((r: any, idx: number) => ({
+      id: `preset-sheet-${idx}`,
+      nome: r.nome,
+      macroCategoria: r.macroCategoria,
+      categoria: r.categoria,
+      conto: r.conto,
+      importo: Number(r.importo || 0),
+      descrizione: r.descrizione || r.nome,
+      primaria: Boolean(r.primaria)
+    }));
+  delete outputData.presetUsciteRows;
+
   // Intestazioni per il Risparmio
   const risparmioRows = getValueRangeForSheet('Risparmio');
   outputData.risparmioHeaders = risparmioRows.length > 0 ? risparmioRows[0] : [];
@@ -584,6 +631,27 @@ export const pushSpreadsheetData = async (
     risparmio: r.risparmioNetto ?? r.risparmio
   }));
 
+  // Dati Base (Conti, Categorie, Preset Uscite Ricorrenti): l'app li tiene in
+  // forma comoda (liste semplici, macro categorie raggruppate), le tab Sheet
+  // vogliono righe piatte — stessa conversione fatta al contrario in
+  // fetchSpreadsheetData.
+  const contiRows = (data.conti || []).map(nome => ({ nome }));
+  const categorieEntrateRows = (data.categorieEntrate || []).map(nome => ({ nome }));
+  const categorieUsciteRows = (data.macroCategorieUscite || []).flatMap((m: any) =>
+    m.categorie.length > 0
+      ? m.categorie.map((categoria: string) => ({ macro: m.nome, icon: m.icon, categoria }))
+      : [{ macro: m.nome, icon: m.icon, categoria: '' }]
+  );
+  const presetUsciteRows = (data.presetUscite || []).map((p: any) => ({
+    nome: p.nome,
+    macroCategoria: p.macroCategoria,
+    categoria: p.categoria,
+    conto: p.conto,
+    importo: p.importo,
+    descrizione: p.descrizione,
+    primaria: p.primaria
+  }));
+
   const computedCruscotto = computeCruscottoData(data);
   const dataMapForPush: Record<string, any[]> = {
     uscite: data.uscite,
@@ -593,6 +661,10 @@ export const pushSpreadsheetData = async (
     analisiConsumi: data.analisiConsumi,
     entrate: data.entrate || [],
     trasferimenti: data.trasferimenti || [],
+    contiRows,
+    categorieEntrateRows,
+    categorieUsciteRows,
+    presetUsciteRows,
     capitaleImpegnato: data.capitaleImpegnato || [],
     cruscottoInvestimenti: computedCruscotto.length > 0 ? computedCruscotto : (data.cruscottoInvestimenti || []),
     scalable: data.scalable || [],

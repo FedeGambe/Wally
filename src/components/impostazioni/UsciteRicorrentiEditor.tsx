@@ -14,7 +14,7 @@ const emptyForm = { nome: '', macroCategoria: '', categoria: '', conto: '', impo
  * form — non inseriscono nulla da soli.
  */
 export default function UsciteRicorrentiEditor() {
-  const { presetUscite, macroCategorieUscite, conti, updateDatiBase } = useDatiBase();
+  const { presetUscite, macroCategorieUscite, conti, updateDatiBase, error } = useDatiBase();
   const [form, setForm] = useState(emptyForm);
 
   const macroSelezionata = macroCategorieUscite.find(m => m.nome === form.macroCategoria);
@@ -144,6 +144,7 @@ export default function UsciteRicorrentiEditor() {
           <Plus className="w-4 h-4" /> Aggiungi Preset
         </button>
       </div>
+      {error && <p className="text-xs text-rose-600 font-semibold mt-3">{error}</p>}
     </div>
   );
 }

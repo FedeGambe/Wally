@@ -62,6 +62,36 @@ export function createDynamicSheetDefinition(
 
 export const SHEETS_CONFIG: SheetDefinition[] = [
   {
+    title: 'Conti',
+    range: 'Conti!A:A',
+    fields: ['nome'],
+    headers: ['Conto'],
+    dataKey: 'contiRows'
+  },
+  {
+    title: 'Categorie Entrate',
+    range: 'Categorie Entrate!A:A',
+    fields: ['nome'],
+    headers: ['Categoria'],
+    dataKey: 'categorieEntrateRows'
+  },
+  {
+    title: 'Categorie Uscite',
+    range: 'Categorie Uscite!A:C',
+    fields: ['macro', 'icon', 'categoria'],
+    headers: ['Macro Categoria', 'Icona', 'Categoria'],
+    dataKey: 'categorieUsciteRows'
+  },
+  {
+    title: 'Preset Uscite Ricorrenti',
+    range: 'Preset Uscite Ricorrenti!A:G',
+    fields: ['nome', 'macroCategoria', 'categoria', 'conto', 'importo', 'descrizione', 'primaria'],
+    headers: ['Nome', 'Macro Categoria', 'Categoria', 'Conto', 'Importo', 'Descrizione', 'Primaria'],
+    booleanFields: ['primaria'],
+    numberFields: ['importo'],
+    dataKey: 'presetUsciteRows'
+  },
+  {
     title: 'Uscite',
     range: 'Uscite!A:I',
     fields: ['data', 'mese', 'descrizione', 'macroCategoria', 'categoria', 'icon', 'conto', 'importo', 'primaria'],

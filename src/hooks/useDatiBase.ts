@@ -1,45 +1,40 @@
-import { useCallback, useEffect, useState } from 'react';
-import { MACRO_CATEGORIE_USCITE, CATEGORIE_ENTRATE, CONTI, PRESET_USCITE, saveDatiBase, MacroCategoriaUscita, PresetUscita } from '../data/datiBase';
-
-// Gli array di datiBase.ts sono mutati sul posto (arr.length = 0; arr.push(...)),
-// come TRANSACTIONS/RISPARMIO_DATA in mockData.ts: un componente che li ha già
-// letti non si accorge da solo che sono cambiati. Qui basta un semplice pub/sub
-// (niente Context, sono letti solo da Impostazioni e dai form di inserimento)
-// per forzare un re-render dei componenti in ascolto dopo ogni saveDatiBase().
-type Listener = () => void;
-const listeners = new Set<Listener>();
-const notify = () => listeners.forEach(l => l());
+import { useCallback } from 'react';
+import { useFinanceData } from '../context/FinanceDataContext';
+import { useSaveAndPush } from './useSaveAndPush';
+import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita } from '../data/mockData';
 
 /**
- * Hook usato da Impostazioni (per editare conti/categorie) e dai form
- * "Aggiungi Uscita/Entrata" (per popolare i dropdown). Restituisce le liste
- * correnti e `updateDatiBase`, l'unico modo per modificarle: chiama
- * saveDatiBase() e notifica tutti gli altri componenti in ascolto.
+ * Hook usato da Impostazioni (per editare conti/categorie/preset) e dai form
+ * "Aggiungi Uscita/Entrata/Trasferimento" (per popolare i dropdown). Conti/
+ * Categorie/Preset sono ormai parte del ciclo standard di sync (pull/push su
+ * Google Sheet, tab "Conti"/"Categorie Entrate"/"Categorie Uscite"/"Preset
+ * Uscite Ricorrenti" — vedi sheetsConfig.tsx), quindi si legge da
+ * useFinanceData() come qualsiasi altro dato finanziario, e si scrive con lo
+ * stesso saveAndPush (salva in locale, poi pusha) usato dai form di
+ * inserimento — non serve più un pub/sub separato.
  */
 export function useDatiBase() {
-  const [, forceRender] = useState(0);
+  const { data } = useFinanceData();
+  const { saveAndPush, isSaving, error } = useSaveAndPush();
 
-  useEffect(() => {
-    const listener: Listener = () => forceRender(v => v + 1);
-    listeners.add(listener);
-    return () => { listeners.delete(listener); };
-  }, []);
-
-  const updateDatiBase = useCallback((data: {
+  const updateDatiBase = useCallback((update: {
     macroCategorieUscite?: MacroCategoriaUscita[];
     categorieEntrate?: string[];
     conti?: string[];
     presetUscite?: PresetUscita[];
   }) => {
-    saveDatiBase(data);
-    notify();
-  }, []);
+    saveAndPush(() => {
+      saveToLocalStorage(update);
+    });
+  }, [saveAndPush]);
 
   return {
-    macroCategorieUscite: MACRO_CATEGORIE_USCITE,
-    categorieEntrate: CATEGORIE_ENTRATE,
-    conti: CONTI,
-    presetUscite: PRESET_USCITE,
-    updateDatiBase
+    macroCategorieUscite: data.macroCategorieUscite,
+    categorieEntrate: data.categorieEntrate,
+    conti: data.conti,
+    presetUscite: data.presetUscite,
+    updateDatiBase,
+    isSaving,
+    error
   };
 }

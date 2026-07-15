@@ -4,7 +4,7 @@ import { useDatiBase } from '../../hooks/useDatiBase';
 
 /** Editor "Categorie Entrate" (dentro il popup fullscreen di Impostazioni → Dati Base). */
 export default function CategorieEntrateEditor() {
-  const { categorieEntrate, updateDatiBase } = useDatiBase();
+  const { categorieEntrate, updateDatiBase, error } = useDatiBase();
   const [newCategoria, setNewCategoria] = useState('');
 
   const addCategoria = () => {
@@ -44,6 +44,7 @@ export default function CategorieEntrateEditor() {
           <Plus className="w-4 h-4" /> Aggiungi
         </button>
       </div>
+      {error && <p className="text-xs text-rose-600 font-semibold mt-3">{error}</p>}
     </div>
   );
 }

@@ -29,6 +29,16 @@ import {
   DEMO_FONDO_PENSIONE_DATA,
   DEMO_RISPARMIO_HEADERS
 } from './demoData';
+import {
+  MacroCategoriaUscita,
+  PresetUscita,
+  MACRO_CATEGORIE_USCITE_SEED,
+  CATEGORIE_ENTRATE_SEED,
+  CONTI_SEED,
+  PRESET_USCITE_SEED
+} from '../config/datiBaseSeed';
+
+export type { MacroCategoriaUscita, PresetUscita };
 
 export interface Transaction {
   id: string;
@@ -249,6 +259,52 @@ export const TRASFERIMENTI_LIST: Trasferimento[] = (() => {
   }
 })();
 
+// "Dati Base" (Conti, Categorie, Preset Uscite Ricorrenti): a differenza degli
+// altri dati qui sopra hanno un seed di default (src/config/datiBaseSeed.ts)
+// invece di partire vuoti — usato solo finché l'utente/il foglio non hanno
+// ancora nulla. Stesse chiavi localStorage già usate da src/data/datiBase.ts
+// prima che questi dati entrassero nel ciclo di sync standard.
+export const CONTI: string[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_conti_lista');
+    return val ? JSON.parse(val) : CONTI_SEED;
+  } catch {
+    return CONTI_SEED;
+  }
+})();
+
+export const CATEGORIE_ENTRATE: string[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_categorie_entrate');
+    return val ? JSON.parse(val) : CATEGORIE_ENTRATE_SEED;
+  } catch {
+    return CATEGORIE_ENTRATE_SEED;
+  }
+})();
+
+export const MACRO_CATEGORIE_USCITE: MacroCategoriaUscita[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_macro_categorie_uscite');
+    return val ? JSON.parse(val) : MACRO_CATEGORIE_USCITE_SEED;
+  } catch {
+    return MACRO_CATEGORIE_USCITE_SEED;
+  }
+})();
+
+export const PRESET_USCITE: PresetUscita[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_preset_uscite');
+    return val ? JSON.parse(val) : PRESET_USCITE_SEED;
+  } catch {
+    return PRESET_USCITE_SEED;
+  }
+})();
+
+/** Ritrova l'icona della macro categoria di un'uscita, per popolarla in automatico al salvataggio. */
+export function iconPerMacroCategoria(macroCategoria: string): string {
+  return MACRO_CATEGORIE_USCITE.find(m => m.nome === macroCategoria)?.icon || '💸';
+}
+
 // Helper to aggregate Entrate records into Risparmio monthly records
 const applyEntrateAggregation = (baseRisparmio: RisparmioMese[], currentEntrate: EntrataRecord[]): RisparmioMese[] => {
   const aggregated: { [key: string]: number } = {};
@@ -398,6 +454,10 @@ export const saveToLocalStorage = (data: {
   analisiConsumi?: ConsumoAutoWeek[];
   entrate?: EntrataRecord[];
   trasferimenti?: Trasferimento[];
+  conti?: string[];
+  categorieEntrate?: string[];
+  macroCategorieUscite?: MacroCategoriaUscita[];
+  presetUscite?: PresetUscita[];
   capitaleImpegnato?: CapitaleImpegnato[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -436,6 +496,26 @@ export const saveToLocalStorage = (data: {
     safeSetItem('sf_trasferimenti_list', JSON.stringify(data.trasferimenti));
     TRASFERIMENTI_LIST.length = 0;
     TRASFERIMENTI_LIST.push(...data.trasferimenti);
+  }
+  if (data.conti) {
+    safeSetItem('sf_conti_lista', JSON.stringify(data.conti));
+    CONTI.length = 0;
+    CONTI.push(...data.conti);
+  }
+  if (data.categorieEntrate) {
+    safeSetItem('sf_categorie_entrate', JSON.stringify(data.categorieEntrate));
+    CATEGORIE_ENTRATE.length = 0;
+    CATEGORIE_ENTRATE.push(...data.categorieEntrate);
+  }
+  if (data.macroCategorieUscite) {
+    safeSetItem('sf_macro_categorie_uscite', JSON.stringify(data.macroCategorieUscite));
+    MACRO_CATEGORIE_USCITE.length = 0;
+    MACRO_CATEGORIE_USCITE.push(...data.macroCategorieUscite);
+  }
+  if (data.presetUscite) {
+    safeSetItem('sf_preset_uscite', JSON.stringify(data.presetUscite));
+    PRESET_USCITE.length = 0;
+    PRESET_USCITE.push(...data.presetUscite);
   }
   if (data.uscite) {
     safeSetItem('sf_transactions', JSON.stringify(data.uscite));
@@ -520,6 +600,10 @@ const getDemoExportableData = () => ({
   analisiConsumi: DEMO_HISTORICAL_CAR_MEASUREMENTS,
   entrate: DEMO_ENTRATE_LIST,
   trasferimenti: [],
+  conti: CONTI_SEED,
+  categorieEntrate: CATEGORIE_ENTRATE_SEED,
+  macroCategorieUscite: MACRO_CATEGORIE_USCITE_SEED,
+  presetUscite: PRESET_USCITE_SEED,
   capitaleImpegnato: DEMO_CAPITALE_IMPEGNATO,
   risparmioHeaders: DEMO_RISPARMIO_HEADERS,
   cruscottoInvestimenti: DEMO_CRUSCOTTO_DATA,
@@ -609,6 +693,10 @@ export const getExportableData = (incognito: boolean = false) => {
     analisiConsumi: HISTORICAL_CAR_MEASUREMENTS,
     entrate: ENTRATE_LIST,
     trasferimenti: TRASFERIMENTI_LIST,
+    conti: CONTI,
+    categorieEntrate: CATEGORIE_ENTRATE,
+    macroCategorieUscite: MACRO_CATEGORIE_USCITE,
+    presetUscite: PRESET_USCITE,
     capitaleImpegnato: CAPITALE_IMPEGNATO,
     risparmioHeaders: RISPARMIO_HEADERS_STATE,
     cruscottoInvestimenti: CRUSCOTTO_DATA,

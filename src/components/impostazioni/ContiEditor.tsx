@@ -4,7 +4,7 @@ import { useDatiBase } from '../../hooks/useDatiBase';
 
 /** Editor "Conti" (dentro il popup fullscreen di Impostazioni → Dati Base). */
 export default function ContiEditor() {
-  const { conti, updateDatiBase } = useDatiBase();
+  const { conti, updateDatiBase, error } = useDatiBase();
   const [newConto, setNewConto] = useState('');
 
   const addConto = () => {
@@ -43,6 +43,7 @@ export default function ContiEditor() {
           <Plus className="w-4 h-4" /> Aggiungi
         </button>
       </div>
+      {error && <p className="text-xs text-rose-600 font-semibold mt-3">{error}</p>}
     </div>
   );
 }
