@@ -27,6 +27,7 @@ export interface SheetsData {
   analisiConsumi: any[];
   rendimentiInvestimenti: any[];
   entrate?: any[];
+  trasferimenti?: any[];
   capitaleImpegnato?: any[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -591,6 +592,7 @@ export const pushSpreadsheetData = async (
     rendimentiInvestimenti: data.rendimentiInvestimenti,
     analisiConsumi: data.analisiConsumi,
     entrate: data.entrate || [],
+    trasferimenti: data.trasferimenti || [],
     capitaleImpegnato: data.capitaleImpegnato || [],
     cruscottoInvestimenti: computedCruscotto.length > 0 ? computedCruscotto : (data.cruscottoInvestimenti || []),
     scalable: data.scalable || [],

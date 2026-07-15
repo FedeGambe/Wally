@@ -143,10 +143,18 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     dataKey: 'cruscottoInvestimenti'
   },
   {
+    title: 'Trasferimenti',
+    range: 'Trasferimenti!A:E',
+    fields: ['mese', 'anno', 'contoOrdinante', 'contoBeneficiario', 'importo'],
+    headers: ['Mese', 'Anno', 'Conto Ordinante', 'Conto Beneficiario', 'Importo'],
+    numberFields: ['anno', 'importo'],
+    dataKey: 'trasferimenti'
+  },
+  {
     title: 'Analisi consumi',
     range: 'Analisi consumi!A:P',
     fields: ['data', 'costo', 'quantitaLitri', 'prezzoAlLitro', 'kmFinali', 'kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'kmAlLitroAuto', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'esitoSettimana', 'efficienzaPercentuale'],
-    headers: ['Data', 'Costo', 'Quantità (Lt)', '€/Lt', 'Km finali', 'Km effettuati', 'Litri precedenti', 'Km/lt', 'Km/lt (auto)', '€/100km', 'Lt/100km', 'Km persi', 'km persi mediani', 'Costo extra', 'Esito settimana', 'Efficenza'],
+    headers: ['Data', 'Costo', 'Quantità (Lt)', '€/Lt', 'Km finali', 'Km effettuati', 'Litri precedenti', 'Km/lt', 'Km/lt (auto)', '€/100km', 'Lt/100km', 'Km persi', 'km persi mediani', 'Costo extra', 'Esito settimana', 'Efficienza'],
     numberFields: ['costo', 'quantitaLitri', 'prezzoAlLitro', 'kmFinali', 'kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'kmAlLitroAuto', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'efficienzaPercentuale'],
     dataKey: 'analisiConsumi'
   }

@@ -4,8 +4,9 @@ import Modal from './Modal';
 import AggiungiUscitaForm from './uscite/AggiungiUscitaForm';
 import AggiungiEntrataForm from './entrate/AggiungiEntrataForm';
 import AggiungiConsumoForm from './consumi/AggiungiConsumoForm';
+import AggiungiTrasferimentoForm from './AggiungiTrasferimentoForm';
 
-type TipoDato = 'entrata' | 'uscita' | 'consumo' | null;
+type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | null;
 
 interface AggiungiDatoModalProps {
   isOpen: boolean;
@@ -15,7 +16,8 @@ interface AggiungiDatoModalProps {
 const TITOLI: Record<Exclude<TipoDato, null>, string> = {
   entrata: 'Aggiungi Entrata',
   uscita: 'Aggiungi Uscita',
-  consumo: 'Aggiungi Consumo'
+  consumo: 'Aggiungi Consumo',
+  trasferimento: 'Aggiungi Trasferimento'
 };
 
 /**
@@ -66,18 +68,18 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           </button>
           <button
             type="button"
-            disabled
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 opacity-40 cursor-not-allowed"
+            onClick={() => setTipo('trasferimento')}
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-300 dark:hover:border-blue-500/40 transition-all cursor-pointer"
           >
             <ArrowLeftRight className="w-6 h-6 text-blue-600" />
             <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Trasferimento</span>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Presto disponibile</span>
           </button>
         </div>
       )}
       {tipo === 'entrata' && <AggiungiEntrataForm onSaved={handleClose} />}
       {tipo === 'uscita' && <AggiungiUscitaForm onSaved={handleClose} />}
       {tipo === 'consumo' && <AggiungiConsumoForm onSaved={handleClose} />}
+      {tipo === 'trasferimento' && <AggiungiTrasferimentoForm onSaved={handleClose} />}
     </Modal>
   );
 }

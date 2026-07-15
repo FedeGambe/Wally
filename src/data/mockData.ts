@@ -227,6 +227,28 @@ export const ENTRATE_LIST: EntrataRecord[] = (() => {
   }
 })();
 
+// Fase 5 del piano (docs/PIANO-INSERIMENTO-DATI.md): tipo dato nuovo, log puro
+// dei movimenti tra conti. Non aggiorna i saldi di CONTI_PATRIMONIO (che resta
+// uno snapshot letto dal foglio Google, non derivato dai movimenti) — deciso
+// così per evitare doppio conteggio finché non si decide una logica di sync.
+export interface Trasferimento {
+  id: string;
+  mese: string;
+  anno: number;
+  contoOrdinante: string;
+  contoBeneficiario: string;
+  importo: number;
+}
+
+export const TRASFERIMENTI_LIST: Trasferimento[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_trasferimenti_list');
+    return val ? JSON.parse(val) : [];
+  } catch {
+    return [];
+  }
+})();
+
 // Helper to aggregate Entrate records into Risparmio monthly records
 const applyEntrateAggregation = (baseRisparmio: RisparmioMese[], currentEntrate: EntrataRecord[]): RisparmioMese[] => {
   const aggregated: { [key: string]: number } = {};
@@ -375,6 +397,7 @@ export const saveToLocalStorage = (data: {
   rendimentiInvestimenti?: RendimentoInvestimenti[];
   analisiConsumi?: ConsumoAutoWeek[];
   entrate?: EntrataRecord[];
+  trasferimenti?: Trasferimento[];
   capitaleImpegnato?: CapitaleImpegnato[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -408,6 +431,11 @@ export const saveToLocalStorage = (data: {
     safeSetItem('sf_entrate_list', JSON.stringify(data.entrate));
     ENTRATE_LIST.length = 0;
     ENTRATE_LIST.push(...data.entrate);
+  }
+  if (data.trasferimenti) {
+    safeSetItem('sf_trasferimenti_list', JSON.stringify(data.trasferimenti));
+    TRASFERIMENTI_LIST.length = 0;
+    TRASFERIMENTI_LIST.push(...data.trasferimenti);
   }
   if (data.uscite) {
     safeSetItem('sf_transactions', JSON.stringify(data.uscite));
@@ -491,6 +519,7 @@ const getDemoExportableData = () => ({
   rendimentiInvestimenti: DEMO_RENDIMENTI_MENSILI,
   analisiConsumi: DEMO_HISTORICAL_CAR_MEASUREMENTS,
   entrate: DEMO_ENTRATE_LIST,
+  trasferimenti: [],
   capitaleImpegnato: DEMO_CAPITALE_IMPEGNATO,
   risparmioHeaders: DEMO_RISPARMIO_HEADERS,
   cruscottoInvestimenti: DEMO_CRUSCOTTO_DATA,
@@ -579,6 +608,7 @@ export const getExportableData = (incognito: boolean = false) => {
     rendimentiInvestimenti: RENDIMENTI_MENSILI,
     analisiConsumi: HISTORICAL_CAR_MEASUREMENTS,
     entrate: ENTRATE_LIST,
+    trasferimenti: TRASFERIMENTI_LIST,
     capitaleImpegnato: CAPITALE_IMPEGNATO,
     risparmioHeaders: RISPARMIO_HEADERS_STATE,
     cruscottoInvestimenti: CRUSCOTTO_DATA,
