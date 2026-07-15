@@ -25,8 +25,10 @@ import {
   PiggyBank,
   ChevronRight,
   BarChart3,
-  Calendar
+  Calendar,
+  Plus
 } from 'lucide-react';
+import AggiungiDatoModal from '../components/AggiungiDatoModal';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -165,8 +167,19 @@ export default function Panoramica({
     </div>
   );
 
+  const [showAddDataModal, setShowAddDataModal] = useState(false);
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowAddDataModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+        >
+          <Plus className="w-4 h-4" /> Aggiungi Dato
+        </button>
+      </div>
+
       {/* Top row Wealth widget */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {/* Wealth card 1 - Capitale Disponibile (Indigo) */}
@@ -685,6 +698,8 @@ export default function Panoramica({
         stats={drawerStats}
         dynamicThresholds={dynamicThresholds}
       />
+
+      <AggiungiDatoModal isOpen={showAddDataModal} onClose={() => setShowAddDataModal(false)} />
     </div>
   );
 }
