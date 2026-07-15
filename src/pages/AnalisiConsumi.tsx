@@ -9,11 +9,14 @@
  *  - ConsumiCostoExtraKmPersi: grafici Costo Extra e Km Persi per inefficienza
  * Tutti i grafici sono cliccabili per cambiare la settimana selezionata.
  */
-import React from 'react';
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import Modal from '../components/Modal';
 import ConsumiRiepilogoSettimanale from '../components/consumi/ConsumiRiepilogoSettimanale';
 import ConsumiEfficienzaMarcia from '../components/consumi/ConsumiEfficienzaMarcia';
 import ConsumiPercorrenzaPrezzo from '../components/consumi/ConsumiPercorrenzaPrezzo';
 import ConsumiCostoExtraKmPersi from '../components/consumi/ConsumiCostoExtraKmPersi';
+import AggiungiConsumoForm from '../components/consumi/AggiungiConsumoForm';
 import { useAnalisiConsumiData } from '../hooks/useAnalisiConsumiData';
 
 interface AnalisiConsumiProps {
@@ -39,8 +42,19 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
     handleChartClick
   } = useAnalisiConsumiData(goToTodaySignal);
 
+  const [showAddModal, setShowAddModal] = useState(false);
+
   return (
     <div className="space-y-6 animate-fadeIn">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+        >
+          <Plus className="w-4 h-4" /> Aggiungi Consumo
+        </button>
+      </div>
+
       <ConsumiRiepilogoSettimanale
         selectedWeek={selectedWeek}
         previousWeek={previousWeek}
@@ -92,6 +106,10 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
         setExtraMode={setExtraMode}
         handleChartClick={handleChartClick}
       />
+
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Consumo">
+        <AggiungiConsumoForm onSaved={() => setShowAddModal(false)} />
+      </Modal>
     </div>
   );
 }

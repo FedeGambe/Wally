@@ -272,6 +272,30 @@ export const createSpreadsheet = async (accessToken: string): Promise<string> =>
   return result.spreadsheetId;
 };
 
+// Legge le FORMULE (non i valori calcolati) di una singola riga di un range,
+// es. "Analisi consumi!A15:P15". Usata da Analisi Consumi per copiare e
+// shiftare (src/utils/formulaShift.ts) la formula della riga precedente su un
+// nuovo record aggiunto da webapp, invece di reimplementare da zero i calcoli
+// del foglio (Km effettuati, €/100km, ecc.) — vedi docs/PIANO-INSERIMENTO-DATI.md.
+export const fetchRowFormulas = async (accessToken: string, spreadsheetId: string, range: string): Promise<string[]> => {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMULA`;
+  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      const errBody = await response.json();
+      errorMsg = errBody?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile leggere le formule dal foglio: ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
+  const result = await response.json();
+  return (result.values && result.values[0]) || [];
+};
+
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
   const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
   const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${accessToken}` } });

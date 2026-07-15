@@ -41,6 +41,11 @@ interface FinanceDataContextValue {
    */
   pushToSheet: () => Promise<boolean>;
   isPushing: boolean;
+  /** Token OAuth corrente (o null) e ID del foglio collegato — servono ai form
+   * che devono chiamare direttamente l'API Sheets (es. leggere una formula in
+   * Analisi Consumi, Fase 3 del piano) invece di limitarsi a push/pull. */
+  accessToken: string | null;
+  spreadsheetId: string | null;
 }
 
 const FinanceDataContext = createContext<FinanceDataContextValue | null>(null);
@@ -168,8 +173,10 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
     syncError,
     bumpVersion,
     pushToSheet,
-    isPushing
-  }), [data, isIncognito, toggleIncognito, refreshData, isRefreshing, syncError, bumpVersion, pushToSheet, isPushing]);
+    isPushing,
+    accessToken,
+    spreadsheetId: localStorage.getItem('sf_spreadsheet_id')
+  }), [data, isIncognito, toggleIncognito, refreshData, isRefreshing, syncError, bumpVersion, pushToSheet, isPushing, accessToken]);
 
   return (
     <FinanceDataContext.Provider value={value}>
