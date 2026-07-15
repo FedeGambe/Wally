@@ -21,6 +21,7 @@ import {
   LogOut
 } from 'lucide-react';
 import DatiBaseSettings from '../components/impostazioni/DatiBaseSettings';
+import PresetUsciteSettings from '../components/impostazioni/PresetUsciteSettings';
 
 interface ImpostazioniProps {
   theme: 'dark' | 'light';
@@ -245,6 +246,7 @@ export default function Impostazioni({
       </div>
 
       <DatiBaseSettings />
+      <PresetUsciteSettings />
     </div>
   );
 }

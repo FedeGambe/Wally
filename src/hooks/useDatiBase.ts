@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { MACRO_CATEGORIE_USCITE, CATEGORIE_ENTRATE, CONTI, saveDatiBase, MacroCategoriaUscita } from '../data/datiBase';
+import { MACRO_CATEGORIE_USCITE, CATEGORIE_ENTRATE, CONTI, PRESET_USCITE, saveDatiBase, MacroCategoriaUscita, PresetUscita } from '../data/datiBase';
 
 // Gli array di datiBase.ts sono mutati sul posto (arr.length = 0; arr.push(...)),
 // come TRANSACTIONS/RISPARMIO_DATA in mockData.ts: un componente che li ha già
@@ -29,6 +29,7 @@ export function useDatiBase() {
     macroCategorieUscite?: MacroCategoriaUscita[];
     categorieEntrate?: string[];
     conti?: string[];
+    presetUscite?: PresetUscita[];
   }) => {
     saveDatiBase(data);
     notify();
@@ -38,6 +39,7 @@ export function useDatiBase() {
     macroCategorieUscite: MACRO_CATEGORIE_USCITE,
     categorieEntrate: CATEGORIE_ENTRATE,
     conti: CONTI,
+    presetUscite: PRESET_USCITE,
     updateDatiBase
   };
 }

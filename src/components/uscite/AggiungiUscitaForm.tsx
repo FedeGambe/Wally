@@ -25,7 +25,7 @@ interface AggiungiUscitaFormProps {
  */
 export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps) {
   const { data } = useFinanceData();
-  const { macroCategorieUscite, conti } = useDatiBase();
+  const { macroCategorieUscite, conti, presetUscite } = useDatiBase();
   const { saveAndPush, isSaving, error } = useSaveAndPush();
 
   const [dataStr, setDataStr] = useState(() => toInputDate(new Date()));
@@ -35,6 +35,19 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
   const [conto, setConto] = useState(conti[0] || '');
   const [importo, setImporto] = useState('');
   const [primaria, setPrimaria] = useState(true);
+
+  // Applica un preset ricorrente (Impostazioni → Preset Uscite Ricorrenti):
+  // precompila i campi, l'utente resta libero di modificarli prima di salvare.
+  const applicaPreset = (presetId: string) => {
+    const preset = presetUscite.find(p => p.id === presetId);
+    if (!preset) return;
+    setMacroCategoria(preset.macroCategoria);
+    setCategoria(preset.categoria);
+    setConto(preset.conto);
+    setImporto(String(preset.importo));
+    setDescrizione(preset.descrizione);
+    setPrimaria(preset.primaria);
+  };
 
   const macroSelezionata = macroCategorieUscite.find(m => m.nome === macroCategoria);
   const categorieDisponibili = macroSelezionata?.categorie || [];
@@ -75,6 +88,22 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {presetUscite.length > 0 && (
+        <div>
+          <label className={labelClass}>Preset ricorrente (opzionale)</label>
+          <select
+            defaultValue=""
+            onChange={e => e.target.value && applicaPreset(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Nessuno, compilo a mano</option>
+            {presetUscite.map(p => (
+              <option key={p.id} value={p.id}>{p.nome}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div>
         <label className={labelClass}>Data</label>
         <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={inputClass} required />
