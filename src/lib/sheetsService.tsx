@@ -497,14 +497,24 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   // Post-processing Dati Base (Conti, Categorie, Preset Uscite Ricorrenti):
   // le tab sono righe piatte, ma l'app se le aspetta in forma più comoda
   // (liste semplici, macro categorie raggruppate con le loro sotto-categorie).
-  outputData.conti = (outputData.contiRows || [])
+  //
+  // Tab appena creata da ensureSheetsExist = vuota (nessuna riga, nemmeno
+  // l'header) finché l'utente non salva qualcosa da Impostazioni facendo
+  // scattare il primo push. Se qui scrivessimo comunque un array vuoto,
+  // saveToLocalStorage lo tratterebbe come dato vero (un array vuoto è
+  // "presente" in JS) e cancellerebbe il seed di default già caricato —
+  // per questo, a differenza di Uscite/Entrate, il valore letto dal foglio
+  // sostituisce il locale SOLO se il foglio contiene davvero qualcosa.
+  const contiDaSheet = (outputData.contiRows || [])
     .map((r: any) => String(r.nome || '').trim())
     .filter(Boolean);
+  if (contiDaSheet.length > 0) outputData.conti = contiDaSheet;
   delete outputData.contiRows;
 
-  outputData.categorieEntrate = (outputData.categorieEntrateRows || [])
+  const categorieEntrateDaSheet = (outputData.categorieEntrateRows || [])
     .map((r: any) => String(r.nome || '').trim())
     .filter(Boolean);
+  if (categorieEntrateDaSheet.length > 0) outputData.categorieEntrate = categorieEntrateDaSheet;
   delete outputData.categorieEntrateRows;
 
   // Una riga per (macro, sotto-categoria); le macro "a inserimento libero"
@@ -520,10 +530,10 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
     const categoria = String(r.categoria || '').trim();
     if (categoria) macroMap.get(macro)!.categorie.push(categoria);
   });
-  outputData.macroCategorieUscite = Array.from(macroMap.values());
+  if (macroMap.size > 0) outputData.macroCategorieUscite = Array.from(macroMap.values());
   delete outputData.categorieUsciteRows;
 
-  outputData.presetUscite = (outputData.presetUsciteRows || [])
+  const presetUsciteDaSheet = (outputData.presetUsciteRows || [])
     .filter((r: any) => r.nome)
     .map((r: any, idx: number) => ({
       id: `preset-sheet-${idx}`,
