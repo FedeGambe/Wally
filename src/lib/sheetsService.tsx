@@ -59,7 +59,7 @@ const mapToRows = (header: string[], items: any[], fieldsOnObject: string[]) => 
 };
 
 // Helper to safely parse numbers supporting both Italian/European (1.234,56 or 123,45) and US (1,234.56 or 123.45) formatting
-const parseLocalizedNumber = (val: any): number => {
+export const parseLocalizedNumber = (val: any): number => {
   if (typeof val === 'number') return val;
   if (val === undefined || val === null) return 0;
   
@@ -110,7 +110,7 @@ const parseLocalizedNumber = (val: any): number => {
 };
 
 // Helper to parse date strings in DD/MM/YYYY, YYYY-MM-DD or Google Sheets serial formats
-const parseDateString = (dateStr: any): Date | null => {
+export const parseDateString = (dateStr: any): Date | null => {
   if (!dateStr) return null;
   const str = String(dateStr).trim();
   if (!str) return null;

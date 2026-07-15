@@ -49,13 +49,15 @@ interface PanoramicaProps {
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
+  setActiveView?: (view: string) => void;
 }
 
 export default function Panoramica({
   selectedYear,
   setSelectedYear,
   selectedMonth,
-  setSelectedMonth
+  setSelectedMonth,
+  setActiveView
 }: PanoramicaProps) {
   const isMobile = useIsMobile();
   const {
@@ -253,7 +255,10 @@ export default function Panoramica({
             </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-6">
               {/* Risparmio */}
-              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+              <div
+                onClick={() => setActiveView?.('patrimonio')}
+                className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+              >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Risparmio</span>
                   <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
@@ -262,14 +267,17 @@ export default function Panoramica({
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(rispPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPerc >= dynamicThresholds.risparmio ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {rispPerc >= dynamicThresholds.risparmio ? `Sotto Soglia ✓ ${formatPercent(rispPerc)}` : `Fuori Soglia ✗ ${formatPercent(rispPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPerc !== undefined && rispPerc >= dynamicThresholds.risparmio ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {rispPerc !== undefined && rispPerc >= dynamicThresholds.risparmio ? `Sotto Soglia ✓ ${formatPercent(rispPerc)}` : `Fuori Soglia ✗ ${formatPercent(rispPerc)}`}
                   </span>
                 </div>
               </div>
 
               {/* Investito */}
-              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+              <div
+                onClick={() => setActiveView?.('investimenti')}
+                className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+              >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Investito</span>
                   <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
@@ -278,8 +286,8 @@ export default function Panoramica({
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(invPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPerc >= dynamicThresholds.investiti ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {invPerc >= dynamicThresholds.investiti ? `Sotto Soglia ✓ ${formatPercent(invPerc)}` : `Fuori Soglia ✗ ${formatPercent(invPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPerc !== undefined && invPerc >= dynamicThresholds.investiti ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {invPerc !== undefined && invPerc >= dynamicThresholds.investiti ? `Sotto Soglia ✓ ${formatPercent(invPerc)}` : `Fuori Soglia ✗ ${formatPercent(invPerc)}`}
                   </span>
                 </div>
               </div>
@@ -299,7 +307,10 @@ export default function Panoramica({
             </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-6">
               {/* Spese Primarie */}
-              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+              <div
+                onClick={() => setActiveView?.('uscite')}
+                className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+              >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Primarie</span>
                   <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
@@ -308,14 +319,17 @@ export default function Panoramica({
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(primPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPerc <= dynamicThresholds.primarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {primPerc <= dynamicThresholds.primarie ? `Sotto Soglia ✓ ${formatPercent(primPerc)}` : `Fuori Soglia ✗ ${formatPercent(primPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPerc !== undefined && primPerc <= dynamicThresholds.primarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {primPerc !== undefined && primPerc <= dynamicThresholds.primarie ? `Sotto Soglia ✓ ${formatPercent(primPerc)}` : `Fuori Soglia ✗ ${formatPercent(primPerc)}`}
                   </span>
                 </div>
               </div>
 
               {/* Spese Secondarie */}
-              <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32">
+              <div
+                onClick={() => setActiveView?.('uscite')}
+                className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+              >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Secondarie</span>
                   <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
@@ -324,8 +338,8 @@ export default function Panoramica({
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(secPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPerc <= dynamicThresholds.secondarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {secPerc <= dynamicThresholds.secondarie ? `Sotto Soglia ✓ ${formatPercent(secPerc)}` : `Fuori Soglia ✗ ${formatPercent(secPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPerc !== undefined && secPerc <= dynamicThresholds.secondarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {secPerc !== undefined && secPerc <= dynamicThresholds.secondarie ? `Sotto Soglia ✓ ${formatPercent(secPerc)}` : `Fuori Soglia ✗ ${formatPercent(secPerc)}`}
                   </span>
                 </div>
               </div>
@@ -343,26 +357,26 @@ export default function Panoramica({
           <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-slate-500 dark:text-slate-400 font-semibold">Entrate:</span>
-              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${entrateDelta >= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
-                {entrateDelta >= 0 ? '+' : ''}{formatPercent(entrateDelta)}
+              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${entrateDelta !== undefined && entrateDelta >= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
+                {entrateDelta !== undefined && entrateDelta >= 0 ? '+' : ''}{formatPercent(entrateDelta)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-slate-500 dark:text-slate-400 font-semibold">Uscite Totali:</span>
-              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${speseDelta <= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
-                {speseDelta >= 0 ? '+' : ''}{formatPercent(speseDelta)}
+              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${speseDelta !== undefined && speseDelta <= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
+                {speseDelta !== undefined && speseDelta >= 0 ? '+' : ''}{formatPercent(speseDelta)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-slate-500 dark:text-slate-400 font-semibold">Spese Primarie:</span>
-              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${spesePrimDelta <= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
-                {spesePrimDelta >= 0 ? '+' : ''}{formatPercent(spesePrimDelta)}
+              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${spesePrimDelta !== undefined && spesePrimDelta <= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
+                {spesePrimDelta !== undefined && spesePrimDelta >= 0 ? '+' : ''}{formatPercent(spesePrimDelta)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-slate-500 dark:text-slate-400 font-semibold">Spese Secondarie:</span>
-              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${speseSecDelta <= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
-                {speseSecDelta >= 0 ? '+' : ''}{formatPercent(speseSecDelta)}
+              <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${speseSecDelta !== undefined && speseSecDelta <= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"}`}>
+                {speseSecDelta !== undefined && speseSecDelta >= 0 ? '+' : ''}{formatPercent(speseSecDelta)}
               </span>
             </div>
           </div>

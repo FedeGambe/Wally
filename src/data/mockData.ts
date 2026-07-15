@@ -342,6 +342,20 @@ export const RISPARMIO_HEADERS_STATE: string[] = (() => {
   }
 })();
 
+// Scrive su localStorage tollerando quota superata (5MB) o storage disabilitato
+// (es. modalità privata di alcuni browser): logga e segnala la chiave fallita
+// invece di lanciare un'eccezione che interromperebbe a metà saveToLocalStorage,
+// lasciando gli array in-memory disallineati da quelli già scritti.
+const failedSaveKeys: string[] = [];
+const safeSetItem = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (err) {
+    console.error(`Impossibile salvare '${key}' in localStorage:`, err);
+    failedSaveKeys.push(key);
+  }
+};
+
 // UNICO PUNTO DI SCRITTURA dati finanza. Per ogni chiave presente in `data`:
 // 1) la persiste in localStorage come JSON
 // 2) svuota e ripopola l'array in-memory corrispondente (arr.length = 0; arr.push(...))
@@ -349,6 +363,11 @@ export const RISPARMIO_HEADERS_STATE: string[] = (() => {
 // i nuovi dati senza bisogno di re-importare nulla. Dopo aver chiamato questa
 // funzione va sempre chiamato bumpVersion() dal FinanceDataContext, altrimenti
 // la UI non si aggiorna (il suo `data` è un useMemo cacheato su refreshVersion).
+//
+// Gli array in-memory vengono aggiornati anche se la persistenza su localStorage
+// fallisce (spazio esaurito), così la sessione corrente resta coerente; in quel
+// caso viene lanciato un errore alla fine con le chiavi non salvate, da mostrare
+// all'utente (i dati non sopravvivranno a un reload finché non si libera spazio).
 export const saveToLocalStorage = (data: {
   uscite?: Transaction[];
   risparmio?: RisparmioMese[];
@@ -369,79 +388,84 @@ export const saveToLocalStorage = (data: {
   tradeRepublicColumnCategories?: Record<string, string>;
   fondoPensione?: any[];
 }) => {
+  failedSaveKeys.length = 0;
   if (data.cruscottoInvestimenti) {
-    localStorage.setItem('sf_cruscotto_data', JSON.stringify(data.cruscottoInvestimenti));
+    safeSetItem('sf_cruscotto_data', JSON.stringify(data.cruscottoInvestimenti));
     CRUSCOTTO_DATA.length = 0;
     CRUSCOTTO_DATA.push(...data.cruscottoInvestimenti);
   }
   if (data.risparmioHeaders) {
-    localStorage.setItem('sf_risparmio_headers', JSON.stringify(data.risparmioHeaders));
+    safeSetItem('sf_risparmio_headers', JSON.stringify(data.risparmioHeaders));
     RISPARMIO_HEADERS_STATE.length = 0;
     RISPARMIO_HEADERS_STATE.push(...data.risparmioHeaders);
   }
   if (data.capitaleImpegnato) {
-    localStorage.setItem('sf_capitale_impegnato', JSON.stringify(data.capitaleImpegnato));
+    safeSetItem('sf_capitale_impegnato', JSON.stringify(data.capitaleImpegnato));
     CAPITALE_IMPEGNATO.length = 0;
     CAPITALE_IMPEGNATO.push(...data.capitaleImpegnato);
   }
   if (data.entrate) {
-    localStorage.setItem('sf_entrate_list', JSON.stringify(data.entrate));
+    safeSetItem('sf_entrate_list', JSON.stringify(data.entrate));
     ENTRATE_LIST.length = 0;
     ENTRATE_LIST.push(...data.entrate);
   }
   if (data.uscite) {
-    localStorage.setItem('sf_transactions', JSON.stringify(data.uscite));
+    safeSetItem('sf_transactions', JSON.stringify(data.uscite));
     TRANSACTIONS.length = 0;
     TRANSACTIONS.push(...data.uscite);
   }
   if (data.risparmio) {
     // Override raw 'entrate' values with the dynamic aggregate before saving/pushing memory state
     const processedRisparmio = applyEntrateAggregation(data.risparmio, data.entrate || ENTRATE_LIST);
-    localStorage.setItem('sf_risparmio_data', JSON.stringify(processedRisparmio));
+    safeSetItem('sf_risparmio_data', JSON.stringify(processedRisparmio));
     RISPARMIO_DATA.length = 0;
     RISPARMIO_DATA.push(...processedRisparmio);
   }
   if (data.patrimonio) {
-    localStorage.setItem('sf_conti_patrimonio', JSON.stringify(data.patrimonio));
+    safeSetItem('sf_conti_patrimonio', JSON.stringify(data.patrimonio));
     CONTI_PATRIMONIO.length = 0;
     CONTI_PATRIMONIO.push(...data.patrimonio);
   }
   if (data.rendimentiInvestimenti) {
-    localStorage.setItem('sf_rendimenti_mensili', JSON.stringify(data.rendimentiInvestimenti));
+    safeSetItem('sf_rendimenti_mensili', JSON.stringify(data.rendimentiInvestimenti));
     RENDIMENTI_MENSILI.length = 0;
     RENDIMENTI_MENSILI.push(...data.rendimentiInvestimenti);
   }
   if (data.analisiConsumi) {
-    localStorage.setItem('sf_historical_car_measurements', JSON.stringify(data.analisiConsumi));
+    safeSetItem('sf_historical_car_measurements', JSON.stringify(data.analisiConsumi));
     HISTORICAL_CAR_MEASUREMENTS.length = 0;
     HISTORICAL_CAR_MEASUREMENTS.push(...data.analisiConsumi);
   }
   if (data.scalable) {
-    localStorage.setItem('sf_scalable', JSON.stringify(data.scalable));
+    safeSetItem('sf_scalable', JSON.stringify(data.scalable));
   }
   if (data.tradeRepublic) {
-    localStorage.setItem('sf_trade_republic', JSON.stringify(data.tradeRepublic));
+    safeSetItem('sf_trade_republic', JSON.stringify(data.tradeRepublic));
   }
   if (data.scalableFields) {
-    localStorage.setItem('sf_scalable_fields', JSON.stringify(data.scalableFields));
+    safeSetItem('sf_scalable_fields', JSON.stringify(data.scalableFields));
   }
   if (data.scalableHeaders) {
-    localStorage.setItem('sf_scalable_headers', JSON.stringify(data.scalableHeaders));
+    safeSetItem('sf_scalable_headers', JSON.stringify(data.scalableHeaders));
   }
   if (data.tradeRepublicFields) {
-    localStorage.setItem('sf_trade_republic_fields', JSON.stringify(data.tradeRepublicFields));
+    safeSetItem('sf_trade_republic_fields', JSON.stringify(data.tradeRepublicFields));
   }
   if (data.tradeRepublicHeaders) {
-    localStorage.setItem('sf_trade_republic_headers', JSON.stringify(data.tradeRepublicHeaders));
+    safeSetItem('sf_trade_republic_headers', JSON.stringify(data.tradeRepublicHeaders));
   }
   if (data.scalableColumnCategories) {
-    localStorage.setItem('sf_scalable_column_categories', JSON.stringify(data.scalableColumnCategories));
+    safeSetItem('sf_scalable_column_categories', JSON.stringify(data.scalableColumnCategories));
   }
   if (data.tradeRepublicColumnCategories) {
-    localStorage.setItem('sf_trade_republic_column_categories', JSON.stringify(data.tradeRepublicColumnCategories));
+    safeSetItem('sf_trade_republic_column_categories', JSON.stringify(data.tradeRepublicColumnCategories));
   }
   if (data.fondoPensione) {
-    localStorage.setItem('sf_fondo_pensione', JSON.stringify(data.fondoPensione));
+    safeSetItem('sf_fondo_pensione', JSON.stringify(data.fondoPensione));
+  }
+
+  if (failedSaveKeys.length > 0) {
+    throw new Error(`Spazio locale esaurito: impossibile salvare ${failedSaveKeys.join(', ')}. Libera spazio o esporta i dati.`);
   }
 };
 

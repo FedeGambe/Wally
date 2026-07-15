@@ -20,7 +20,7 @@
  * variabili elencate nell'array delle dipendenze `[...]` alla fine.
  * Vedi docs/GUIDA-REACT-TS.md per una spiegazione più estesa.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   CheckCircle2,
@@ -38,14 +38,26 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './pages/Login';
 import SheetsModal from './components/SheetsModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
-import Panoramica from './pages/Panoramica';
-import Entrate from './pages/Entrate';
-import Uscite from './pages/Uscite';
-import Patrimonio from './pages/Patrimonio';
-import Investimenti from './pages/Investimenti';
-import AnalisiConsumi from './pages/AnalisiConsumi';
-import Impostazioni from './pages/Impostazioni';
+// ponytail: spinner minimale, non serve altro per il breve gap del lazy-load pagina
+function PageLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center h-full w-full py-24">
+      <div className="w-8 h-8 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
+    </div>
+  );
+}
+
+// Pagine caricate on-demand (React.lazy): l'utente vede solo una vista alla volta
+// tramite activeView, non serve scaricarle tutte nel bundle iniziale.
+const Panoramica = lazy(() => import('./pages/Panoramica'));
+const Entrate = lazy(() => import('./pages/Entrate'));
+const Uscite = lazy(() => import('./pages/Uscite'));
+const Patrimonio = lazy(() => import('./pages/Patrimonio'));
+const Investimenti = lazy(() => import('./pages/Investimenti'));
+const AnalisiConsumi = lazy(() => import('./pages/AnalisiConsumi'));
+const Impostazioni = lazy(() => import('./pages/Impostazioni'));
 
 import { initAuth, logout } from './lib/googleAuth';
 import { getExportableData, isIncognitoModeEnabled } from './data/mockData';
@@ -197,6 +209,7 @@ export default function App() {
   };
 
   return (
+    <ErrorBoundary>
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#060a13] text-slate-100' : 'bg-slate-50 text-slate-800'} antialiased font-sans relative overflow-hidden transition-colors duration-300`}>
       {/* Colorful Floating Blurry Blobs for Glassmorphism depth in Dark theme only */}
       {theme === 'dark' && (
@@ -254,6 +267,7 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </ErrorBoundary>
   );
 }
 
@@ -345,6 +359,7 @@ function DashboardShell({
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
+            setActiveView={setActiveView}
           />
         );
       case 'entrate':
@@ -396,6 +411,7 @@ function DashboardShell({
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
+            setActiveView={setActiveView}
           />
         );
     }
@@ -440,7 +456,9 @@ function DashboardShell({
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.25 }}
             >
-              {renderActiveView()}
+              <Suspense fallback={<PageLoadingFallback />}>
+                {renderActiveView()}
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </main>
