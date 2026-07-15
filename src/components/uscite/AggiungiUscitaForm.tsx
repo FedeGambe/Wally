@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { Repeat, Grid, Tag, CreditCard } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage, Transaction } from '../../data/mockData';
 import { iconPerMacroCategoria } from '../../data/datiBase';
 import { MESI_ITALIANI } from '../../utils/date';
+import DropdownMenu from '../DropdownMenu';
 
 const toInputDate = (d: Date) => {
   const y = d.getFullYear();
@@ -18,10 +20,13 @@ interface AggiungiUscitaFormProps {
 }
 
 /**
- * Form "Aggiungi Uscita" — usato dal bottone dedicato in Uscite.tsx e (in
- * futuro, Fase 1b) dal popup generale di Panoramica. Categorie/conto vengono
- * da useDatiBase() (Impostazioni → Dati Base); mese e icon si derivano da
- * data/macroCategoria, l'utente non li compila a mano.
+ * Form "Aggiungi Uscita" — usato dal bottone dedicato in Uscite.tsx e dal
+ * popup generale di Panoramica. Categorie/conto vengono da useDatiBase()
+ * (Impostazioni → Dati Base); mese e icon si derivano da data/macroCategoria,
+ * l'utente non li compila a mano. I dropdown usano DropdownMenu (lo stesso
+ * componente dei filtri della pagina) invece del <select> nativo del browser,
+ * il cui popup non è stilizzabile e in tema scuro risultava testo bianco su
+ * sfondo bianco.
  */
 export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps) {
   const { data } = useFinanceData();
@@ -51,6 +56,9 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
   const macroSelezionata = macroCategorieUscite.find(m => m.nome === macroCategoria);
   const categorieDisponibili = macroSelezionata?.categorie || [];
+  const macroNomiList = macroCategorieUscite.map(m => m.nome);
+  const macroIconByNome = Object.fromEntries(macroCategorieUscite.map(m => [m.nome, m.icon]));
+  const presetNomiById = Object.fromEntries(presetUscite.map(p => [p.id, p.nome]));
 
   const handleMacroChange = (nome: string) => {
     setMacroCategoria(nome);
@@ -84,6 +92,10 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
   };
 
   const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
+  // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
+  // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS
+  // (funziona su Chrome/Edge/Safari, gli unici che espongono questo pseudo-elemento).
+  const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
   const labelClass = "block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider";
 
   return (
@@ -91,22 +103,25 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
       {presetUscite.length > 0 && (
         <div>
           <label className={labelClass}>Preset ricorrente (opzionale)</label>
-          <select
-            defaultValue=""
-            onChange={e => e.target.value && applicaPreset(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Nessuno, compilo a mano</option>
-            {presetUscite.map(p => (
-              <option key={p.id} value={p.id}>{p.nome}</option>
-            ))}
-          </select>
+          <DropdownMenu
+            icon={Repeat}
+            label="Preset"
+            accent="orange"
+            fullWidth
+            hideLabel
+            placeholder="Nessuno, compilo a mano"
+            value=""
+            displayValue=""
+            options={presetUscite.map(p => p.id)}
+            getOptionLabel={id => presetNomiById[id] || id}
+            onSelect={applicaPreset}
+          />
         </div>
       )}
 
       <div>
         <label className={labelClass}>Data</label>
-        <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={inputClass} required />
+        <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
       </div>
 
       <div>
@@ -123,12 +138,18 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
       <div>
         <label className={labelClass}>Macro Categoria</label>
-        <select value={macroCategoria} onChange={e => handleMacroChange(e.target.value)} className={inputClass} required>
-          <option value="" disabled>Scegli...</option>
-          {macroCategorieUscite.map(m => (
-            <option key={m.nome} value={m.nome}>{m.icon} {m.nome}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          icon={Grid}
+          label="Macro"
+          accent="orange"
+          fullWidth
+          hideLabel
+          value={macroCategoria}
+          displayValue={macroCategoria ? `${macroIconByNome[macroCategoria] || ''} ${macroCategoria}` : ''}
+          options={macroNomiList}
+          getOptionLabel={nome => `${macroIconByNome[nome] || ''} ${nome}`}
+          onSelect={handleMacroChange}
+        />
       </div>
 
       <div>
@@ -145,23 +166,33 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
             required
           />
         ) : (
-          <select value={categoria} onChange={e => setCategoria(e.target.value)} disabled={!macroCategoria} className={`${inputClass} disabled:opacity-50`} required>
-            <option value="" disabled>Scegli...</option>
-            {categorieDisponibili.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+          <DropdownMenu
+            icon={Tag}
+            label="Categoria"
+            accent="orange"
+            fullWidth
+            hideLabel
+            value={categoria}
+            displayValue={categoria}
+            options={categorieDisponibili}
+            onSelect={setCategoria}
+          />
         )}
       </div>
 
       <div>
         <label className={labelClass}>Conto Utilizzato</label>
-        <select value={conto} onChange={e => setConto(e.target.value)} className={inputClass} required>
-          <option value="" disabled>Scegli...</option>
-          {conti.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          icon={CreditCard}
+          label="Conto"
+          accent="orange"
+          fullWidth
+          hideLabel
+          value={conto}
+          displayValue={conto}
+          options={conti}
+          onSelect={setConto}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

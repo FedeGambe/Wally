@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Repeat } from 'lucide-react';
+import { Trash2, Plus, Repeat, Grid, Tag, CreditCard } from 'lucide-react';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { formatEuro } from '../../utils/format';
 import type { PresetUscita } from '../../data/datiBase';
+import DropdownMenu from '../DropdownMenu';
 
 const emptyForm = { nome: '', macroCategoria: '', categoria: '', conto: '', importo: '', descrizione: '', primaria: false };
 
@@ -77,14 +78,19 @@ export default function PresetUsciteSettings() {
           placeholder="Nome preset (es. Accantonamento Auto)"
           className={`${inputClass} sm:col-span-2`}
         />
-        <select
+        <DropdownMenu
+          icon={Grid}
+          label="Macro categoria"
+          accent="orange"
+          fullWidth
+          hideLabel
+          placeholder="Macro categoria..."
           value={form.macroCategoria}
-          onChange={e => setForm(f => ({ ...f, macroCategoria: e.target.value, categoria: '' }))}
-          className={inputClass}
-        >
-          <option value="">Macro categoria...</option>
-          {macroCategorieUscite.map(m => <option key={m.nome} value={m.nome}>{m.icon} {m.nome}</option>)}
-        </select>
+          displayValue={form.macroCategoria ? `${macroCategorieUscite.find(m => m.nome === form.macroCategoria)?.icon || ''} ${form.macroCategoria}` : ''}
+          options={macroCategorieUscite.map(m => m.nome)}
+          getOptionLabel={nome => `${macroCategorieUscite.find(m => m.nome === nome)?.icon || ''} ${nome}`}
+          onSelect={nome => setForm(f => ({ ...f, macroCategoria: nome, categoria: '' }))}
+        />
         {form.macroCategoria && categorieDisponibili.length === 0 ? (
           <input
             value={form.categoria}
@@ -93,24 +99,31 @@ export default function PresetUsciteSettings() {
             className={inputClass}
           />
         ) : (
-          <select
+          <DropdownMenu
+            icon={Tag}
+            label="Categoria"
+            accent="orange"
+            fullWidth
+            hideLabel
+            placeholder="Categoria..."
             value={form.categoria}
-            onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
-            disabled={!form.macroCategoria}
-            className={`${inputClass} disabled:opacity-50`}
-          >
-            <option value="">Categoria...</option>
-            {categorieDisponibili.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+            displayValue={form.categoria}
+            options={categorieDisponibili}
+            onSelect={cat => setForm(f => ({ ...f, categoria: cat }))}
+          />
         )}
-        <select
+        <DropdownMenu
+          icon={CreditCard}
+          label="Conto"
+          accent="orange"
+          fullWidth
+          hideLabel
+          placeholder="Conto..."
           value={form.conto}
-          onChange={e => setForm(f => ({ ...f, conto: e.target.value }))}
-          className={inputClass}
-        >
-          <option value="">Conto...</option>
-          {conti.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+          displayValue={form.conto}
+          options={conti}
+          onSelect={c => setForm(f => ({ ...f, conto: c }))}
+        />
         <input
           type="number"
           step="0.01"

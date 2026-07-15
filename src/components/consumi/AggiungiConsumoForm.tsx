@@ -94,6 +94,9 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   };
 
   const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500";
+  // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
+  // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS.
+  const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
   const labelClass = "block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider";
   const busy = isSaving || isPreparing;
 
@@ -101,7 +104,7 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className={labelClass}>Data</label>
-        <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={inputClass} required />
+        <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

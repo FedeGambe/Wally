@@ -12,7 +12,7 @@ import { ChevronDown } from 'lucide-react';
  * "portal" (vedi commento più sotto) per evitare problemi di stile/hover
  * con il contenitore in cui il bottone si trova.
  */
-export type DropdownAccent = 'blue' | 'indigo' | 'orange';
+export type DropdownAccent = 'blue' | 'indigo' | 'orange' | 'emerald' | 'rose';
 
 const ACCENT_STYLES: Record<DropdownAccent, { value: string; selected: string }> = {
   blue: {
@@ -26,6 +26,14 @@ const ACCENT_STYLES: Record<DropdownAccent, { value: string; selected: string }>
   orange: {
     value: 'text-orange-600 dark:text-orange-400',
     selected: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400'
+  },
+  emerald: {
+    value: 'text-emerald-600 dark:text-emerald-400',
+    selected: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
+  },
+  rose: {
+    value: 'text-rose-600 dark:text-rose-400',
+    selected: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
   }
 };
 
@@ -42,6 +50,15 @@ interface DropdownMenuProps {
   widthClass?: string;
   align?: 'left' | 'right';
   layout?: 'list' | 'grid-2';
+  /** Bottone a piena larghezza invece che sagomato sul contenuto — per usarlo
+   * come campo di un form (label sopra, come gli altri input) invece che come
+   * pillola compatta di filtro (es. Header, barre filtri tabelle). */
+  fullWidth?: boolean;
+  /** Nasconde il prefisso "Label: " nel bottone, mostra solo il valore — per
+   * quando la label è già resa a parte sopra il campo (form), evitando la
+   * ripetizione "Categoria: Categoria: Cibo". */
+  hideLabel?: boolean;
+  placeholder?: string;
 }
 
 export default function DropdownMenu({
@@ -56,7 +73,10 @@ export default function DropdownMenu({
   disabledOptions = [],
   widthClass = 'w-44',
   align = 'left',
-  layout = 'list'
+  layout = 'list',
+  fullWidth = false,
+  hideLabel = false,
+  placeholder = 'Scegli...'
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   // Coordinate (in pixel, relative alla viewport) a cui posizionare il pannello
@@ -104,15 +124,22 @@ export default function DropdownMenu({
   }, [open]);
 
   return (
-    <div className="relative select-none shrink-0">
+    <div className={`relative select-none ${fullWidth ? 'w-full' : 'shrink-0'}`}>
       <button
+        type="button"
         ref={triggerRef}
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+        className={`flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer ${
+          fullWidth ? 'w-full justify-between px-3 py-2.5' : 'px-2 py-1'
+        }`}
       >
         <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-        <span className="truncate max-w-[10rem]">
-          {label}: <strong className={accentCls.value}>{displayValue}</strong>
+        <span className={`truncate ${fullWidth ? 'flex-1 text-left' : 'max-w-[10rem]'}`}>
+          {hideLabel ? (
+            <strong className={accentCls.value}>{displayValue || placeholder}</strong>
+          ) : (
+            <>{label}: <strong className={accentCls.value}>{displayValue}</strong></>
+          )}
         </span>
         <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
       </button>
@@ -126,7 +153,7 @@ export default function DropdownMenu({
         <div
           ref={panelRef}
           style={{ top: position.top, left: position.left, right: position.right }}
-          className={`dropdown-menu-panel fixed ${widthClass} border rounded-2xl shadow-xl z-50 p-1.5 ${layout === 'grid-2' ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-0.5'
+          className={`dropdown-menu-panel fixed ${widthClass} border rounded-2xl shadow-xl z-[80] p-1.5 ${layout === 'grid-2' ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-0.5'
             } max-h-64 overflow-y-auto animate-fadeIn`}
         >
           {options.map(opt => {

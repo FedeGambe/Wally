@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Calendar, CreditCard, ArrowRight } from 'lucide-react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { useDatiBase } from '../hooks/useDatiBase';
 import { useSaveAndPush } from '../hooks/useSaveAndPush';
 import { saveToLocalStorage, Trasferimento } from '../data/mockData';
 import { MESI_ITALIANI } from '../utils/date';
+import DropdownMenu from './DropdownMenu';
 
 interface AggiungiTrasferimentoFormProps {
   onSaved: () => void;
@@ -65,11 +67,17 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
         </div>
         {useMeseDiverso ? (
           <div className="grid grid-cols-2 gap-3">
-            <select value={meseIdx} onChange={e => setMeseIdx(Number(e.target.value))} className={inputClass}>
-              {MESI_ITALIANI.map((m, idx) => (
-                <option key={m} value={idx}>{m}</option>
-              ))}
-            </select>
+            <DropdownMenu
+              icon={Calendar}
+              label="Mese"
+              accent="blue"
+              fullWidth
+              hideLabel
+              value={MESI_ITALIANI[meseIdx]}
+              displayValue={MESI_ITALIANI[meseIdx]}
+              options={MESI_ITALIANI}
+              onSelect={m => setMeseIdx(MESI_ITALIANI.indexOf(m))}
+            />
             <input type="number" value={anno} onChange={e => setAnno(Number(e.target.value))} className={inputClass} />
           </div>
         ) : (
@@ -81,22 +89,32 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
 
       <div>
         <label className={labelClass}>Conto Ordinante</label>
-        <select value={contoOrdinante} onChange={e => setContoOrdinante(e.target.value)} className={inputClass} required>
-          <option value="" disabled>Scegli...</option>
-          {conti.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          icon={CreditCard}
+          label="Conto Ordinante"
+          accent="blue"
+          fullWidth
+          hideLabel
+          value={contoOrdinante}
+          displayValue={contoOrdinante}
+          options={conti}
+          onSelect={setContoOrdinante}
+        />
       </div>
 
       <div>
         <label className={labelClass}>Conto Beneficiario</label>
-        <select value={contoBeneficiario} onChange={e => setContoBeneficiario(e.target.value)} className={inputClass} required>
-          <option value="" disabled>Scegli...</option>
-          {conti.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          icon={ArrowRight}
+          label="Conto Beneficiario"
+          accent="blue"
+          fullWidth
+          hideLabel
+          value={contoBeneficiario}
+          displayValue={contoBeneficiario}
+          options={conti}
+          onSelect={setContoBeneficiario}
+        />
         {contoOrdinante && contoBeneficiario && contoOrdinante === contoBeneficiario && (
           <p className="text-[11px] text-rose-600 font-semibold mt-1">Conto ordinante e beneficiario devono essere diversi.</p>
         )}

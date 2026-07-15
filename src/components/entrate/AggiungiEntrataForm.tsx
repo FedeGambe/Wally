@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Calendar, Tag, CreditCard } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage, EntrataRecord } from '../../data/mockData';
 import { MESI_ITALIANI } from '../../utils/date';
+import DropdownMenu from '../DropdownMenu';
 
 interface AggiungiEntrataFormProps {
   onSaved: () => void;
@@ -67,11 +69,17 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
         </div>
         {useMeseDiverso ? (
           <div className="grid grid-cols-2 gap-3">
-            <select value={meseIdx} onChange={e => setMeseIdx(Number(e.target.value))} className={inputClass}>
-              {MESI_ITALIANI.map((m, idx) => (
-                <option key={m} value={idx}>{m}</option>
-              ))}
-            </select>
+            <DropdownMenu
+              icon={Calendar}
+              label="Mese"
+              accent="emerald"
+              fullWidth
+              hideLabel
+              value={MESI_ITALIANI[meseIdx]}
+              displayValue={MESI_ITALIANI[meseIdx]}
+              options={MESI_ITALIANI}
+              onSelect={m => setMeseIdx(MESI_ITALIANI.indexOf(m))}
+            />
             <input type="number" value={anno} onChange={e => setAnno(Number(e.target.value))} className={inputClass} />
           </div>
         ) : (
@@ -83,22 +91,32 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
 
       <div>
         <label className={labelClass}>Categoria</label>
-        <select value={categoria} onChange={e => setCategoria(e.target.value)} className={inputClass} required>
-          <option value="" disabled>Scegli...</option>
-          {categorieEntrate.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          icon={Tag}
+          label="Categoria"
+          accent="emerald"
+          fullWidth
+          hideLabel
+          value={categoria}
+          displayValue={categoria}
+          options={categorieEntrate}
+          onSelect={setCategoria}
+        />
       </div>
 
       <div>
         <label className={labelClass}>Conto</label>
-        <select value={conto} onChange={e => setConto(e.target.value)} className={inputClass} required>
-          <option value="" disabled>Scegli...</option>
-          {conti.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          icon={CreditCard}
+          label="Conto"
+          accent="emerald"
+          fullWidth
+          hideLabel
+          value={conto}
+          displayValue={conto}
+          options={conti}
+          onSelect={setConto}
+        />
       </div>
 
       <div>
