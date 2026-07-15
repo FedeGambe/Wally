@@ -85,15 +85,24 @@ export default function PresetUsciteSettings() {
           <option value="">Macro categoria...</option>
           {macroCategorieUscite.map(m => <option key={m.nome} value={m.nome}>{m.icon} {m.nome}</option>)}
         </select>
-        <select
-          value={form.categoria}
-          onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
-          disabled={!form.macroCategoria}
-          className={`${inputClass} disabled:opacity-50`}
-        >
-          <option value="">Categoria...</option>
-          {categorieDisponibili.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        {form.macroCategoria && categorieDisponibili.length === 0 ? (
+          <input
+            value={form.categoria}
+            onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
+            placeholder="Scrivi la categoria..."
+            className={inputClass}
+          />
+        ) : (
+          <select
+            value={form.categoria}
+            onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
+            disabled={!form.macroCategoria}
+            className={`${inputClass} disabled:opacity-50`}
+          >
+            <option value="">Categoria...</option>
+            {categorieDisponibili.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
         <select
           value={form.conto}
           onChange={e => setForm(f => ({ ...f, conto: e.target.value }))}

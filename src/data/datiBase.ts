@@ -15,24 +15,29 @@ export interface MacroCategoriaUscita {
 }
 
 // Seed di default: usato solo se l'utente non ha ancora personalizzato nulla
-// in Impostazioni. Ricalca le categorie già viste nei dati demo dell'app.
+// in Impostazioni. Liste reali fornite da Federico (liste.txt). Le macro con
+// categorie: [] sono "inserimento libero" (Istruzione, Regalo) — il form
+// mostra un campo di testo invece del dropdown quando la lista è vuota.
 export const MACRO_CATEGORIE_USCITE_SEED: MacroCategoriaUscita[] = [
-  { nome: 'Cibo', icon: '🍕', categorie: ['Spesa', 'Ristorante'] },
-  { nome: 'Automobile', icon: '🚘', categorie: ['Rifornimento', 'Rata', 'Manutenzione', 'Bollo/Assicurazione'] },
-  { nome: 'Casa', icon: '🏠', categorie: ['Affitto/Mutuo', 'Bollette', 'Manutenzione'] },
-  { nome: 'Salute', icon: '🩺', categorie: ['Visita Medica', 'Medicine'] },
-  { nome: 'Sport', icon: '🚴', categorie: ['Abbonamento', 'Attrezzatura'] },
-  { nome: 'Abbonamenti', icon: '🔁', categorie: ['Streaming', 'Software/App'] },
-  { nome: 'Shopping', icon: '🛍️', categorie: ['Beni Personali', 'Regalo'] },
-  { nome: 'Svago', icon: '🕺', categorie: ['Cinema', 'Uscite'] },
-  { nome: 'Vacanze', icon: '🏝️', categorie: ['Viaggio'] },
-  { nome: 'Tasse', icon: '🏦', categorie: ['Bollo', 'Imposte'] },
-  { nome: 'Altro', icon: '💸', categorie: ['Varie'] }
+  { nome: 'Automobile', icon: '🚘', categorie: ['Automobile', 'Assicurazione', 'Rifornimento', 'Manutenzione', 'Varie'] },
+  { nome: 'Cibo', icon: '🍕', categorie: ['Bar', 'Ristorante', 'Spesa'] },
+  { nome: 'Shopping', icon: '🛍️', categorie: ['vestiti', 'Beni Personali', 'Scarpe'] },
+  { nome: 'Sport', icon: '🚴', categorie: ['Bici', 'Running', 'Svago'] },
+  { nome: 'Svago', icon: '🎳', categorie: ['Cinema', 'Svago', 'Eventi', 'Bowling'] },
+  { nome: 'Trasporti', icon: '🚌', categorie: ['TPL', 'Treni', 'Parcheggio', 'Bike Sharing', 'Autostrada', 'Benzina'] },
+  { nome: 'Movimenti', icon: '📈', categorie: ['PAC', 'Azioni', 'ETF', 'Obbligazioni'] },
+  { nome: 'Tasse', icon: '🏦', categorie: ['Bollo Auto', 'Bollo Titoli', 'Bollo Conto', 'Revisione', 'Conto Deposito', 'Tasse'] },
+  { nome: 'Istruzione', icon: '📚', categorie: [] },
+  { nome: 'Regalo', icon: '🎁', categorie: [] },
+  { nome: 'Tecnologia', icon: '💻', categorie: ['telefono', 'giochi', 'Computer', 'Varie', 'Tecnologia'] },
+  { nome: 'Vacanze', icon: '🏝️', categorie: ['Viaggio', 'Benzina', 'Bar', 'Ristorante', 'Spesa', 'TPL', 'Treni', 'Taxi', 'Alloggio', 'Bici'] },
+  { nome: 'Abbonamenti', icon: '🔁', categorie: ['Bici', 'Spotify', 'Sito web', 'iCloud'] },
+  { nome: 'Salute', icon: '🩺', categorie: ['medicine', 'Visita Medica', 'Parcheggio'] }
 ];
 
-export const CATEGORIE_ENTRATE_SEED: string[] = ['Stipendio', 'Bonus', 'Rimborso', 'Altro'];
+export const CATEGORIE_ENTRATE_SEED: string[] = ['Nonna Anna', 'Nonna Lina', 'Nonno Ago', 'Stipendio', 'Dividendi', 'Interessi'];
 
-export const CONTI_SEED: string[] = ['Conto Corrente', 'Conto Deposito', 'Carta Prepagata', 'Contanti'];
+export const CONTI_SEED: string[] = ['Contanti', 'Unicredit', 'Unicredit prepagata', 'Trade Republic', 'Scalable', 'Santander', 'Santander Vincolato'];
 
 /**
  * Preset per uscite ricorrenti quasi identiche ogni mese (Fase 2 del piano:

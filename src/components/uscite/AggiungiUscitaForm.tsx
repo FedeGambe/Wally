@@ -133,12 +133,25 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
       <div>
         <label className={labelClass}>Categoria</label>
-        <select value={categoria} onChange={e => setCategoria(e.target.value)} disabled={!macroCategoria} className={`${inputClass} disabled:opacity-50`} required>
-          <option value="" disabled>Scegli...</option>
-          {categorieDisponibili.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        {macroCategoria && categorieDisponibili.length === 0 ? (
+          // Macro a "inserimento libero" (es. Istruzione, Regalo): nessuna
+          // lista predefinita, la categoria si scrive a mano.
+          <input
+            type="text"
+            value={categoria}
+            onChange={e => setCategoria(e.target.value)}
+            placeholder="Scrivi la categoria..."
+            className={inputClass}
+            required
+          />
+        ) : (
+          <select value={categoria} onChange={e => setCategoria(e.target.value)} disabled={!macroCategoria} className={`${inputClass} disabled:opacity-50`} required>
+            <option value="" disabled>Scegli...</option>
+            {categorieDisponibili.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div>
