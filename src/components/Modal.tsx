@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 
@@ -19,7 +20,15 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, fullScreen = false }: ModalProps) {
-  return (
+  // Reso in portal su document.body (come DropdownMenu): se non lo facessimo,
+  // aprendo il popup da dentro una card "bg-white" (es. Impostazioni) il tema
+  // scuro applica una regola CSS pensata per box ANNIDATI dentro altri box
+  // bianchi (.glass-theme .bg-white .bg-white — sfumatura gialla, quasi
+  // trasparente): il popup risultava piccolo e giallastro invece che a schermo
+  // intero. Il fullscreen usa in più colori "arbitrari" (bg-[#...]) invece dei
+  // nomi semantici bg-white/bg-slate-50, che quelle regole CSS globali
+  // (index.css, tutte con !important) intercettano per nome di classe.
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -42,11 +51,11 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
               onClick={(e) => e.stopPropagation()}
               className={
                 fullScreen
-                  ? 'w-full h-full bg-white dark:bg-[#0b0f19] flex flex-col'
+                  ? 'w-full h-full bg-[#ffffff] dark:bg-[#0b0f19] flex flex-col'
                   : 'w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10'
               }
             >
-              <div className={`p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-white dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
+              <div className={`p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
                 <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">{title}</h3>
                 <button
                   onClick={onClose}
@@ -60,6 +69,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
           </div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
