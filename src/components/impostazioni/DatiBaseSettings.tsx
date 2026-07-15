@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronRight, Wallet, ArrowDownCircle, Tags, Percent } from 'lucide-react';
+import { ChevronRight, Wallet, ArrowDownCircle, Tags, Percent, RotateCcw } from 'lucide-react';
 import Modal from '../Modal';
 import ContiEditor from './ContiEditor';
 import CategorieEntrateEditor from './CategorieEntrateEditor';
 import CategorieUsciteEditor from './CategorieUsciteEditor';
 import InArrivoPlaceholder from './InArrivoPlaceholder';
+import { useDatiBase } from '../../hooks/useDatiBase';
+import { CONTI_SEED, CATEGORIE_ENTRATE_SEED, MACRO_CATEGORIE_USCITE_SEED } from '../../data/datiBase';
 
 type Voce = 'conti' | 'categorieEntrate' | 'categorieUscite' | 'soglie' | null;
 
@@ -31,6 +33,16 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
  */
 export default function DatiBaseSettings() {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
+  const { updateDatiBase } = useDatiBase();
+
+  const ripristinaDefault = () => {
+    if (!window.confirm('Sovrascrivere conti e categorie (anche sul foglio Google) con i valori di default? Le modifiche fatte finora andranno perse.')) return;
+    updateDatiBase({
+      conti: CONTI_SEED,
+      categorieEntrate: CATEGORIE_ENTRATE_SEED,
+      macroCategorieUscite: MACRO_CATEGORIE_USCITE_SEED
+    });
+  };
 
   return (
     <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm">
@@ -63,6 +75,13 @@ export default function DatiBaseSettings() {
           );
         })}
       </div>
+
+      <button
+        onClick={ripristinaDefault}
+        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors"
+      >
+        <RotateCcw className="w-3.5 h-3.5" /> Ripristina valori di default
+      </button>
 
       <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>
         {voceAperta === 'conti' && <ContiEditor />}
