@@ -1,10 +1,10 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../data/mockData';
 import { formatEuro, formatPercent } from '../utils/format';
 import { kpiColor, kpiColorAlpha, thresholdRange } from '../utils/kpiColorScale';
+import SlideOverPanel from './SlideOverPanel';
 
 /**
  * Pannello laterale scorrevole (drawer) usato dalle pagine (es. Panoramica,
@@ -73,42 +73,17 @@ export default function Drawer({
   dynamicThresholds
 }: DrawerProps) {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop Overlay: leggero, il buio "vero" lo dà il pannello (bg scuro
-              translucido + backdrop-blur), altrimenti un overlay quasi opaco dietro
-              annullava l'effetto vetro facendo vedere solo un blur di colore piatto */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.35 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900 z-[55] transition-opacity"
-          />
-
-          {/* Drawer Container Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[#0b0f19]/80 backdrop-blur-xl shadow-2xl z-[60] flex flex-col h-full border-l border-white/10"
-          >
-            {/* Header */}
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-slate-100 font-display">{title}</h3>
-                {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
-              </div>
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+    <SlideOverPanel
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      subtitle={subtitle}
+      footer={
+        <div className="p-4 bg-white/5 border-t border-white/10 text-center text-[10px] text-slate-400 font-mono">
+          Dashboard Finanze • Sincronia Google Sheet
+        </div>
+      }
+    >
             {/* Quick stats summarizing this scope */}
             {/* Il drawer ha due "modalità" di contenuto, mutuamente esclusive:
                 1) stats.monthDetail presente -> riepilogo mensile completo (6 mini-card + torta)
@@ -332,14 +307,6 @@ export default function Drawer({
               )}
             </div>
             )}
-
-            {/* Footer warning */}
-            <div className="p-4 bg-white/5 border-t border-white/10 text-center text-[10px] text-slate-400 font-mono">
-              Dashboard Finanze • Sincronia Google Sheet
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </SlideOverPanel>
   );
 }
