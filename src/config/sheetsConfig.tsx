@@ -40,6 +40,11 @@ export interface SheetDefinition {
   headers: string[];
   numberFields?: string[];
   booleanFields?: string[];
+  // Campi data: scritti in ISO YYYY-MM-DD al push, l'unico formato che Google
+  // Sheets interpreta sempre allo stesso modo indipendentemente dal locale del
+  // foglio (DD/MM/YYYY viene letto come MM/DD/YYYY o rifiutato come testo su
+  // un foglio con locale US se il giorno supera 12).
+  dateFields?: string[];
   dataKey: string; // La chiave corrispondente nell'oggetto SheetsData
 }
 
@@ -98,6 +103,7 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     headers: ['Data', 'Mese', 'Descrizione della transazione', 'Macro categoria', 'Categoria della transazione', 'Icon', 'Conto utilizzato', 'Importo', 'Primarie'],
     booleanFields: ['primaria'],
     numberFields: ['importo'],
+    dateFields: ['data'],
     dataKey: 'uscite'
   },
   {
@@ -186,6 +192,7 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     fields: ['data', 'costo', 'quantitaLitri', 'prezzoAlLitro', 'kmFinali', 'kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'kmAlLitroAuto', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'esitoSettimana', 'efficienzaPercentuale'],
     headers: ['Data', 'Costo', 'Quantità (Lt)', '€/Lt', 'Km finali', 'Km effettuati', 'Litri precedenti', 'Km/lt', 'Km/lt (auto)', '€/100km', 'Lt/100km', 'Km persi', 'km persi mediani', 'Costo extra', 'Esito settimana', 'Efficienza'],
     numberFields: ['costo', 'quantitaLitri', 'prezzoAlLitro', 'kmFinali', 'kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'kmAlLitroAuto', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'efficienzaPercentuale'],
+    dateFields: ['data'],
     dataKey: 'analisiConsumi'
   }
 ];

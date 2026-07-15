@@ -48,14 +48,28 @@ export interface SheetsData {
   fondoPensione?: any[];
 }
 
+// Formatta una data in ISO YYYY-MM-DD: unico formato che Google Sheets legge
+// allo stesso modo a prescindere dal locale del foglio (vedi commento su
+// SheetDefinition.dateFields in sheetsConfig.tsx). Se non è una data valida,
+// lascia il valore originale invece di scriverci una stringa vuota.
+const formatDateForSheet = (val: any): any => {
+  const date = parseDateString(val);
+  if (!date) return val;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 // Convert arrays of objects to row arrays for Google Sheets
-const mapToRows = (header: string[], items: any[], fieldsOnObject: string[]) => {
+const mapToRows = (header: string[], items: any[], fieldsOnObject: string[], dateFields: string[] = []) => {
   const rows = [header];
   items.forEach(item => {
     const row = fieldsOnObject.map(field => {
       const val = item[field];
       if (val === undefined || val === null) return '';
       if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+      if (dateFields.includes(field)) return formatDateForSheet(val);
       return val;
     });
     rows.push(row);
@@ -696,7 +710,7 @@ export const pushSpreadsheetData = async (
       headers = data.tradeRepublicHeaders;
     }
 
-    const rows = mapToRows(headers, targetData, fields);
+    const rows = mapToRows(headers, targetData, fields, sheet.dateFields);
     return {
       range: `${sheet.title}!A1`,
       values: rows
