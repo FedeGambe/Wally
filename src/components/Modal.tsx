@@ -59,7 +59,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
                 <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">{title}</h3>
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>

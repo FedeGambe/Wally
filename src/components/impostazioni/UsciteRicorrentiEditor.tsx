@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Repeat, Grid, Tag, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Grid, Tag, CreditCard } from 'lucide-react';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { formatEuro } from '../../utils/format';
 import type { PresetUscita } from '../../data/datiBase';
@@ -8,11 +8,12 @@ import DropdownMenu from '../DropdownMenu';
 const emptyForm = { nome: '', macroCategoria: '', categoria: '', conto: '', importo: '', descrizione: '', primaria: false };
 
 /**
- * Card "Preset Uscite Ricorrenti" (Fase 2 del piano): template per uscite
- * quasi identiche ogni mese (es. accantonamento). Usati da AggiungiUscitaForm
- * per precompilare il form — non inseriscono nulla da soli.
+ * Editor "Uscite Ricorrenti" (dentro il popup fullscreen di Impostazioni →
+ * Preset Uscite Ricorrenti): template per uscite quasi identiche ogni mese
+ * (es. accantonamento). Usati da AggiungiUscitaForm per precompilare il
+ * form — non inseriscono nulla da soli.
  */
-export default function PresetUsciteSettings() {
+export default function UsciteRicorrentiEditor() {
   const { presetUscite, macroCategorieUscite, conti, updateDatiBase } = useDatiBase();
   const [form, setForm] = useState(emptyForm);
 
@@ -39,15 +40,11 @@ export default function PresetUsciteSettings() {
 
   const removePreset = (id: string) => updateDatiBase({ presetUscite: presetUscite.filter(p => p.id !== id) });
 
-  const inputClass = "px-3 py-2 rounded-xl text-xs border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
+  const inputClass = "px-3 py-2 rounded-xl text-xs border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-      <div className="flex items-center gap-2 mb-1">
-        <Repeat className="w-5 h-5 text-orange-600" />
-        <h3 className="font-bold text-lg font-display text-slate-800">Preset Uscite Ricorrenti</h3>
-      </div>
-      <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+    <div>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
         Per uscite quasi identiche ogni mese (es. accantonamento). Scegli il preset nel form
         "Aggiungi Uscita": precompila i campi, tu confermi o modifichi prima di salvare — nessun
         inserimento automatico.
@@ -56,9 +53,9 @@ export default function PresetUsciteSettings() {
       {presetUscite.length > 0 && (
         <div className="space-y-2 mb-5">
           {presetUscite.map(p => (
-            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/60">
+            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/5">
               <div className="min-w-0">
-                <span className="text-sm font-bold text-slate-700 block truncate">{p.nome}</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block truncate">{p.nome}</span>
                 <span className="text-[11px] text-slate-400">
                   {p.macroCategoria} → {p.categoria} · {p.conto} · {formatEuro(p.importo)}
                 </span>
@@ -71,7 +68,7 @@ export default function PresetUsciteSettings() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl border border-dashed border-slate-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl border border-dashed border-slate-200 dark:border-white/15">
         <input
           value={form.nome}
           onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}

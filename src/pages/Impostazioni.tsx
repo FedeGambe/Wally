@@ -21,7 +21,7 @@ import {
   LogOut
 } from 'lucide-react';
 import DatiBaseSettings from '../components/impostazioni/DatiBaseSettings';
-import PresetUsciteSettings from '../components/impostazioni/PresetUsciteSettings';
+import PresetRicorrentiSettings from '../components/impostazioni/PresetRicorrentiSettings';
 
 interface ImpostazioniProps {
   theme: 'dark' | 'light';
@@ -245,8 +245,10 @@ export default function Impostazioni({
         </div>
       </div>
 
-      <DatiBaseSettings />
-      <PresetUsciteSettings />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DatiBaseSettings />
+        <PresetRicorrentiSettings />
+      </div>
     </div>
   );
 }
