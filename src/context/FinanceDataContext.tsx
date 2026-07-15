@@ -32,6 +32,15 @@ interface FinanceDataContextValue {
   isRefreshing: boolean;
   syncError: string | null;
   bumpVersion: () => void;
+  /**
+   * Pusha lo stato attuale (getExportableData, MAI incognito) su Google Sheet.
+   * Usata dai form "Aggiungi ..." dopo un saveToLocalStorage: dato che il push
+   * sovrascrive sempre l'intera tab, basta richiamare questa subito dopo aver
+   * salvato in locale, senza costruire a mano il payload da inviare.
+   * Ritorna true se il push è andato a buon fine.
+   */
+  pushToSheet: () => Promise<boolean>;
+  isPushing: boolean;
 }
 
 const FinanceDataContext = createContext<FinanceDataContextValue | null>(null);
@@ -46,6 +55,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
   const [isIncognito, setIsIncognito] = useState<boolean>(() => isIncognitoModeEnabled());
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
   // Forza il ricalcolo di `data` (vedi useMemo più sotto). Va chiamata da chiunque
@@ -99,6 +109,47 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
   }, [accessToken, onAuthError, bumpVersion]);
 
   // Sincronizzazione automatica al login (quando accessToken diventa disponibile)
+  const pushToSheet = useCallback(async (): Promise<boolean> => {
+    const savedId = localStorage.getItem('sf_spreadsheet_id');
+    if (!savedId) {
+      setSyncError('Nessun foglio Google collegato. Collega un foglio da Impostazioni prima di aggiungere dati.');
+      setTimeout(() => setSyncError(null), 6000);
+      return false;
+    }
+    if (!accessToken) {
+      setSyncError('Autenticazione scaduta. Per favore effettua di nuovo l\'accesso.');
+      setTimeout(() => setSyncError(null), 5000);
+      onAuthError();
+      return false;
+    }
+
+    setIsPushing(true);
+    setSyncError(null);
+    try {
+      const { pushSpreadsheetData } = await import('../lib/sheetsService');
+      // getExportableData() senza argomenti = SEMPRE dati reali, mai demo/incognito
+      // (stesso motivo per cui SheetsModal la chiama così, vedi mockData.ts).
+      await pushSpreadsheetData(accessToken, savedId, getExportableData());
+      setIsPushing(false);
+      return true;
+    } catch (err: any) {
+      console.error(err);
+      const isUnauth = err?.message?.includes('UNAUTHENTICATED') ||
+                       err?.message?.toLowerCase().includes('authentication credentials') ||
+                       err?.message?.includes('401');
+      if (isUnauth) {
+        setSyncError('La sessione di Google è scaduta. Effettua nuovamente il login per ricollegare il tuo account.');
+        setTimeout(() => setSyncError(null), 8000);
+        onAuthError();
+      } else {
+        setSyncError(`Impossibile salvare su Google Sheets: ${err?.message || 'verifica permessi'}`);
+        setTimeout(() => setSyncError(null), 6000);
+      }
+      setIsPushing(false);
+      return false;
+    }
+  }, [accessToken, onAuthError]);
+
   useEffect(() => {
     if (accessToken) {
       refreshData();
@@ -115,8 +166,10 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
     refreshData,
     isRefreshing,
     syncError,
-    bumpVersion
-  }), [data, isIncognito, toggleIncognito, refreshData, isRefreshing, syncError, bumpVersion]);
+    bumpVersion,
+    pushToSheet,
+    isPushing
+  }), [data, isIncognito, toggleIncognito, refreshData, isRefreshing, syncError, bumpVersion, pushToSheet, isPushing]);
 
   return (
     <FinanceDataContext.Provider value={value}>

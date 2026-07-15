@@ -23,13 +23,16 @@ import {
   Filter,
   Search,
   Grid,
-  CreditCard
+  CreditCard,
+  Plus
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DropdownMenu from '../components/DropdownMenu';
+import Modal from '../components/Modal';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
 import UsciteTrendChart from '../components/uscite/UsciteTrendChart';
+import AggiungiUscitaForm from '../components/uscite/AggiungiUscitaForm';
 import { formatEuro } from '../utils/format';
 import { useUsciteData } from '../hooks/useUsciteData';
 
@@ -71,6 +74,7 @@ export default function Uscite({
   // che si aggiorna già filtrata sulla macro categoria scelta.
   const microPanelRef = useRef<HTMLDivElement>(null);
   const [microFocused, setMicroFocused] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     if (selectedMacroCat === 'Tutte') return;
@@ -82,6 +86,15 @@ export default function Uscite({
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-orange-700 hover:bg-orange-800 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+        >
+          <Plus className="w-4 h-4" /> Aggiungi Uscita
+        </button>
+      </div>
+
       <UsciteKpiCards
         selectedRecord={selectedRecord}
         prevRecord={prevRecord}
@@ -344,6 +357,10 @@ export default function Uscite({
         transactions={drawerTransactions}
         stats={drawerStats}
       />
+
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Uscita">
+        <AggiungiUscitaForm onSaved={() => setShowAddModal(false)} />
+      </Modal>
     </div>
   );
 }

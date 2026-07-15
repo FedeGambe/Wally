@@ -15,7 +15,7 @@
 //  4. Tabella con il dettaglio dei singoli movimenti del mese selezionato
 //  5. Drawer laterale con l'elenco delle transazioni quando si clicca un punto
 // ============================================================================
-import React from 'react';
+import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { formatAxisCompact } from '../utils/format';
 import {
@@ -35,11 +35,14 @@ import {
   TrendingUp,
   Calendar,
   Grid,
-  CreditCard
+  CreditCard,
+  Plus
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DataTable from '../components/DataTable';
 import EuroAmount from '../components/EuroAmount';
+import Modal from '../components/Modal';
+import AggiungiEntrataForm from '../components/entrate/AggiungiEntrataForm';
 import { formatEuro, formatPercent } from '../utils/format';
 import { useEntrateData } from '../hooks/useEntrateData';
 
@@ -125,8 +128,19 @@ export default function Entrate({
     );
   };
 
+  const [showAddModal, setShowAddModal] = useState(false);
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+        >
+          <Plus className="w-4 h-4" /> Aggiungi Entrata
+        </button>
+      </div>
+
       {/* Bento box contatori */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Box Entrate Mensili */}
@@ -458,6 +472,10 @@ export default function Entrate({
         transactions={drawerTransactions}
         stats={drawerStats}
       />
+
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Entrata">
+        <AggiungiEntrataForm onSaved={() => setShowAddModal(false)} />
+      </Modal>
     </div>
   );
 }
