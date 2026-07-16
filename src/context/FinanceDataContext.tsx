@@ -89,10 +89,25 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
     setIsRefreshing(true);
     setSyncError(null);
     try {
-      const { fetchSpreadsheetData } = await import('../lib/sheetsService');
+      const { fetchSpreadsheetData, fetchDatiBaseFromConfigSheet } = await import('../lib/sheetsService');
       const { saveToLocalStorage } = await import('../data/mockData');
       const remoteData = await fetchSpreadsheetData(accessToken, savedId);
       saveToLocalStorage(remoteData);
+
+      // Dati Base (Conti, Categorie Entrate/Uscite, Soglie) dal foglio di configurazione,
+      // se collegato: fatto automaticamente ad ogni sync invece di richiedere il bottone
+      // manuale "Importa da foglio di configurazione" in Impostazioni. Fallisce in
+      // silenzio (solo log) se il foglio di configurazione non è raggiungibile: non deve
+      // bloccare il resto della sync, che ha già i suoi dati aggiornati.
+      const configId = localStorage.getItem('sf_config_spreadsheet_id');
+      if (configId) {
+        try {
+          const datiBase = await fetchDatiBaseFromConfigSheet(accessToken, configId);
+          saveToLocalStorage(datiBase);
+        } catch (configErr) {
+          console.error('Errore importazione Dati Base dal foglio di configurazione:', configErr);
+        }
+      }
 
       setIsRefreshing(false);
       bumpVersion();

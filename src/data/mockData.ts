@@ -249,6 +249,7 @@ export interface Trasferimento {
   id: string;
   mese: string;
   anno: number;
+  categoria?: string;
   contoOrdinante: string;
   contoBeneficiario: string;
   importo: number;

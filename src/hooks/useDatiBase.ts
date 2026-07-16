@@ -1,23 +1,25 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useFinanceData } from '../context/FinanceDataContext';
-import { useSaveAndPush } from './useSaveAndPush';
 import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita, PresetTrasferimento, Soglia } from '../data/mockData';
 
 /**
  * Hook usato da Impostazioni (per editare conti/categorie/preset) e dai form
- * "Aggiungi Uscita/Entrata/Trasferimento" (per popolare i dropdown). Conti/
- * Categorie/Preset sono ormai parte del ciclo standard di sync (pull/push su
- * Google Sheet, tab "Conti"/"Categorie Entrate"/"Categorie Uscite"/"Preset
- * Uscite Ricorrenti" — vedi sheetsConfig.tsx), quindi si legge da
- * useFinanceData() come qualsiasi altro dato finanziario, e si scrive con lo
- * stesso saveAndPush (salva in locale, poi pusha) usato dai form di
- * inserimento — non serve più un pub/sub separato.
+ * "Aggiungi Uscita/Entrata/Trasferimento" (per popolare i dropdown).
+ *
+ * Conti, Categorie Entrate/Uscite e Soglie sono curati sul foglio di
+ * configurazione ("finanza_data_config", sf_config_spreadsheet_id): editarli
+ * qui scrive lì (pushDatiBaseToConfigSheet), non sul foglio principale —
+ * altrimenti il pull automatico di finanza_data_config ad ogni sync (vedi
+ * FinanceDataContext.refreshData) sovrascriverebbe la modifica al giro dopo.
+ * Preset Uscite/Trasferimenti Ricorrenti restano invece sul ciclo standard
+ * (foglio principale, come qualsiasi altro dato finanza).
  */
 export function useDatiBase() {
-  const { data } = useFinanceData();
-  const { saveAndPush, isSaving, error } = useSaveAndPush();
+  const { data, accessToken, bumpVersion, pushToSheet } = useFinanceData();
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const updateDatiBase = useCallback((update: {
+  const updateDatiBase = useCallback(async (update: {
     macroCategorieUscite?: MacroCategoriaUscita[];
     categorieEntrate?: string[];
     conti?: string[];
@@ -25,10 +27,34 @@ export function useDatiBase() {
     presetTrasferimenti?: PresetTrasferimento[];
     soglie?: Soglia[];
   }) => {
-    saveAndPush(() => {
+    setIsSaving(true);
+    setError(null);
+    try {
       saveToLocalStorage(update);
-    });
-  }, [saveAndPush]);
+      bumpVersion();
+
+      const { conti, categorieEntrate, macroCategorieUscite, soglie, presetUscite, presetTrasferimenti } = update;
+      const hasConfigFields = conti !== undefined || categorieEntrate !== undefined ||
+        macroCategorieUscite !== undefined || soglie !== undefined;
+      const hasMainFields = presetUscite !== undefined || presetTrasferimenti !== undefined;
+
+      if (hasConfigFields) {
+        const configId = localStorage.getItem('sf_config_spreadsheet_id');
+        if (configId && accessToken) {
+          const { pushDatiBaseToConfigSheet } = await import('../lib/sheetsService');
+          await pushDatiBaseToConfigSheet(accessToken, configId, { conti, categorieEntrate, macroCategorieUscite, soglie });
+        }
+      }
+
+      if (hasMainFields) {
+        await pushToSheet();
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Errore durante il salvataggio.');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [accessToken, bumpVersion, pushToSheet]);
 
   return {
     macroCategorieUscite: data.macroCategorieUscite,

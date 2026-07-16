@@ -196,9 +196,9 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
   },
   {
     title: 'Trasferimenti',
-    range: 'Trasferimenti!A:E',
-    fields: ['mese', 'anno', 'contoOrdinante', 'contoBeneficiario', 'importo'],
-    headers: ['Mese', 'Anno', 'Conto Ordinante', 'Conto Beneficiario', 'Importo'],
+    range: 'Trasferimenti!A:F',
+    fields: ['mese', 'anno', 'categoria', 'contoOrdinante', 'contoBeneficiario', 'importo'],
+    headers: ['Mese', 'Anno', 'Categoria', 'Conto ordinante', 'Conto beneficiario', 'Importo'],
     numberFields: ['anno', 'importo'],
     dataKey: 'trasferimenti'
   },
@@ -213,4 +213,19 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
   }
 ];
 
-export const REQUIRED_SHEETS_TITLES = SHEETS_CONFIG.map(s => s.title);
+// Tab che ensureSheetsExist NON deve creare automaticamente sul foglio principale:
+// Conti/Categorie arrivano dal foglio di configurazione (vedi
+// fetchDatiBaseFromConfigSheet), Preset e Fondo Pensione sono a scelta
+// dell'utente — crearli vuoti su ogni push sarebbe rumore indesiderato.
+const TAB_NON_AUTOCREABILI = [
+  'Conti',
+  'Categorie Entrate',
+  'Categorie Uscite',
+  'Preset Uscite Ricorrenti',
+  'Preset Trasferimenti Ricorrenti',
+  'Fondo Pensione'
+];
+
+export const REQUIRED_SHEETS_TITLES = SHEETS_CONFIG
+  .map(s => s.title)
+  .filter(title => !TAB_NON_AUTOCREABILI.includes(title));

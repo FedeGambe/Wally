@@ -367,6 +367,16 @@ export function computeRealAssetAllocation(
   const sumFieldUpToTarget = (rows: any[], fieldName: string): number =>
     rowsUpToTarget(rows).reduce((sum, r) => sum + Number(r[fieldName] || 0), 0);
 
+  // Riga più recente (fino al target) per ciascun broker: usata per sapere quali
+  // strumenti hanno avuto un versamento nell'ultimo mese disponibile (pallino
+  // pulsante nella legenda/drawer "Ripartizione Asset e Strumenti").
+  const lastRowUpToTarget = (rows: any[]): any | null => {
+    const sorted = [...rowsUpToTarget(rows)].sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month));
+    return sorted.length > 0 ? sorted[sorted.length - 1] : null;
+  };
+  const ultimaRigaScalable = lastRowUpToTarget(scalableWithDate);
+  const ultimaRigaTradeRepublic = lastRowUpToTarget(tradeRepublicWithDate);
+
   const detailList: any[] = [];
 
   const getCategoryForField = (fieldName: string, categoriesMap: Record<string, string>): string | null => {
@@ -399,7 +409,8 @@ export function computeRealAssetAllocation(
           detailList.push({
             nome: header,
             tipo: category === 'azioni' ? 'Azioni' : (category === 'obbligazioni' ? 'Obbligazioni' : 'Monetari'),
-            importoInvestito: val
+            importoInvestito: val,
+            investitoUltimoMese: Number(ultimaRigaScalable?.[fieldName] || 0) > 0
           });
         }
       }
@@ -417,7 +428,8 @@ export function computeRealAssetAllocation(
           detailList.push({
             nome: header,
             tipo: category === 'azioni' ? 'Azioni' : (category === 'obbligazioni' ? 'Obbligazioni' : 'Monetari'),
-            importoInvestito: val
+            importoInvestito: val,
+            investitoUltimoMese: Number(ultimaRigaTradeRepublic?.[fieldName] || 0) > 0
           });
         }
       }
@@ -425,16 +437,18 @@ export function computeRealAssetAllocation(
   }
 
   // Merge instruments with the exact same name and type
-  const mergedDetails: Record<string, { nome: string; tipo: string; importoInvestito: number }> = {};
+  const mergedDetails: Record<string, { nome: string; tipo: string; importoInvestito: number; investitoUltimoMese: boolean }> = {};
   detailList.forEach(item => {
     const key = `${item.nome}_${item.tipo}`.toLowerCase();
     if (mergedDetails[key]) {
       mergedDetails[key].importoInvestito += item.importoInvestito;
+      mergedDetails[key].investitoUltimoMese = mergedDetails[key].investitoUltimoMese || item.investitoUltimoMese;
     } else {
       mergedDetails[key] = {
         nome: item.nome,
         tipo: item.tipo,
-        importoInvestito: item.importoInvestito
+        importoInvestito: item.importoInvestito,
+        investitoUltimoMese: item.investitoUltimoMese
       };
     }
   });

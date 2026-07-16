@@ -522,21 +522,24 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
         name: item.nome,
         value: item.importoInvestito,
         color: azioniColors[Math.min(idx, azioniColors.length - 1)],
-        tipo: 'Azioni'
+        tipo: 'Azioni',
+        investitoUltimoMese: item.investitoUltimoMese
       }));
 
       const obbligazioniMapped = obbligazioniItems.map((item, idx) => ({
         name: item.nome,
         value: item.importoInvestito,
         color: obbligazioniColors[Math.min(idx, obbligazioniColors.length - 1)],
-        tipo: 'Obbligazioni'
+        tipo: 'Obbligazioni',
+        investitoUltimoMese: item.investitoUltimoMese
       }));
 
       const monetariMapped = monetariItems.map((item, idx) => ({
         name: item.nome,
         value: item.importoInvestito,
         color: monetariColors[Math.min(idx, monetariColors.length - 1)],
-        tipo: 'Monetari'
+        tipo: 'Monetari',
+        investitoUltimoMese: item.investitoUltimoMese
       }));
 
       const macroData = allocation.macroData.map(m => {

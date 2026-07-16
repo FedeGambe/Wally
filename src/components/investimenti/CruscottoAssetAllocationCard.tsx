@@ -11,7 +11,26 @@ interface LegendRow {
   name: string;
   value: number;
   color: string;
-  items?: { name: string; value: number; color: string }[];
+  investitoUltimoMese: boolean;
+  items?: { name: string; value: number; color: string; investitoUltimoMese: boolean }[];
+}
+
+// Pallino colorato della legenda/drawer: pulsa (animate-ping) + glow (box-shadow
+// colorato) se lo strumento (o, per un gruppo, almeno uno dei suoi strumenti) ha
+// avuto un versamento nell'ultimo mese disponibile (investitoUltimoMese,
+// calcolato in computeRealAssetAllocation).
+function LegendDot({ color, pulsing, className = 'w-1.5 h-1.5' }: { color: string; pulsing: boolean; className?: string }) {
+  return (
+    <span className={`relative inline-flex shrink-0 ${className}`}>
+      {pulsing && (
+        <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping" style={{ backgroundColor: color }} />
+      )}
+      <span
+        className="relative inline-flex w-full h-full rounded-full"
+        style={{ backgroundColor: color, boxShadow: pulsing ? `0 0 6px 2px ${color}` : undefined }}
+      />
+    </span>
+  );
 }
 
 // Regole di raggruppamento SOLO per la legenda "Dettaglio Strumenti". L'ordine
@@ -27,28 +46,31 @@ const LEGEND_GROUP_RULES: { label: string; match: (nameLower: string) => boolean
   { label: 'Globale (sviluppati)', match: n => n.includes('world sri') || n.includes('world') },
 ];
 
-function groupLegendRows(sortedItems: { name: string; value: number; color: string }[]): LegendRow[] {
+function groupLegendRows(sortedItems: { name: string; value: number; color: string; investitoUltimoMese?: boolean }[]): LegendRow[] {
   const groups = new Map<string, LegendRow>();
   const singles: LegendRow[] = [];
 
   sortedItems.forEach(item => {
     const nameLower = String(item.name || '').toLowerCase();
     const rule = LEGEND_GROUP_RULES.find(r => r.match(nameLower));
+    const investitoUltimoMese = Boolean(item.investitoUltimoMese);
     if (!rule) {
-      singles.push({ kind: 'single', name: item.name, value: item.value, color: item.color });
+      singles.push({ kind: 'single', name: item.name, value: item.value, color: item.color, investitoUltimoMese });
       return;
     }
     const existing = groups.get(rule.label);
     if (existing) {
       existing.value += item.value;
-      existing.items!.push({ name: item.name, value: item.value, color: item.color });
+      existing.investitoUltimoMese = existing.investitoUltimoMese || investitoUltimoMese;
+      existing.items!.push({ name: item.name, value: item.value, color: item.color, investitoUltimoMese });
     } else {
       groups.set(rule.label, {
         kind: 'group',
         name: rule.label,
         value: item.value,
         color: item.color,
-        items: [{ name: item.name, value: item.value, color: item.color }],
+        investitoUltimoMese,
+        items: [{ name: item.name, value: item.value, color: item.color, investitoUltimoMese }],
       });
     }
   });
@@ -305,8 +327,8 @@ export default function CruscottoAssetAllocationCard({
                         key={idx}
                         className="flex items-center justify-between font-semibold py-1 hover:bg-slate-50/50 px-1.5 rounded-lg transition-colors text-[11px]"
                       >
-                        <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px]">
-                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                        <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px] pl-1">
+                          <LegendDot color={row.color} pulsing={row.investitoUltimoMese} />
                           <span className="text-slate-500 truncate uppercase font-bold" title={row.name}>{row.name}</span>
                         </div>
                         <div className="flex items-center gap-2 font-mono text-right shrink-0">
@@ -344,8 +366,8 @@ export default function CruscottoAssetAllocationCard({
                   return (
                     <div key={idx}>
                       <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2 truncate">
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                        <div className="flex items-center gap-2 truncate pl-1">
+                          <LegendDot color={row.color} pulsing={row.investitoUltimoMese} className="w-2 h-2" />
                           <span className="text-slate-800 dark:text-white text-xs font-bold truncate" title={row.name}>{row.name}</span>
                         </div>
                         <span className="text-slate-800 dark:text-white text-xs font-mono font-bold shrink-0">
@@ -358,8 +380,8 @@ export default function CruscottoAssetAllocationCard({
                             const subPerc = row.value > 0 ? (sub.value / row.value) * 100 : 0;
                             return (
                               <div key={subIdx} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
-                                <div className="flex items-center gap-2 truncate">
-                                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: sub.color }} />
+                                <div className="flex items-center gap-2 truncate pl-1">
+                                  <LegendDot color={sub.color} pulsing={sub.investitoUltimoMese} />
                                   <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium truncate" title={sub.name}>{sub.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2 font-mono text-right shrink-0">

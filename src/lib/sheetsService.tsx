@@ -70,7 +70,7 @@ const mapToRows = (header: string[], items: any[], fieldsOnObject: string[], dat
     const row = fieldsOnObject.map(field => {
       const val = item[field];
       if (val === undefined || val === null) return '';
-      if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+      if (typeof val === 'boolean') return val ? 'Si' : 'No';
       if (dateFields.includes(field)) return formatDateForSheet(val);
       return val;
     });
@@ -300,7 +300,7 @@ export const createSpreadsheet = async (accessToken: string): Promise<string> =>
 // del foglio (Km effettuati, €/100km, ecc.) — vedi docs/PIANO-INSERIMENTO-DATI.md.
 export const fetchRowFormulas = async (accessToken: string, spreadsheetId: string, range: string): Promise<string[]> => {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMULA`;
-  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -317,18 +317,20 @@ export const fetchRowFormulas = async (accessToken: string, spreadsheetId: strin
   return (result.values && result.values[0]) || [];
 };
 
-// KILL-SWITCH TEMPORANEO: ogni scrittura verso Google Sheets (push di dati E
-// creazione automatica di tab mancanti da ensureSheetsExist, quest'ultima
-// scattava anche durante un semplice refresh/pull) è disattivata finché non
-// si capisce perché il foglio principale risultava alterato dopo l'aggiunta
-// del tab "Soglie" a SHEETS_CONFIG. Rimettere a `false` per riattivare.
+// Kill-switch per il foglio PRINCIPALE: blocca pushSpreadsheetData ed
+// ensureSheetsExist (creazione tab mancanti). Corrotto il file principale una
+// seconda volta nonostante i fix su booleani/colonne Trasferimenti — c'è
+// ancora un bug non trovato nella serializzazione di push (altri tab non
+// ancora verificati colonna per colonna). Non rimettere a `false` finché non
+// si trova la causa reale. NON copre pushDatiBaseToConfigSheet (foglio di
+// configurazione, gestito a parte): quello resta attivo.
 export const WRITE_TO_SHEETS_DISABLED = true;
 
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
   if (WRITE_TO_SHEETS_DISABLED) return;
 
   const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
-  const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+  const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
 
   if (!getResponse.ok) {
     if (getResponse.status === 401) {
@@ -376,7 +378,7 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   let actualSheets: string[] = [];
   try {
     const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
-    const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+    const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
     if (metaResponse.ok) {
       const metadata = await metaResponse.json();
       actualSheets = (metadata.sheets || []).map((s: any) => String(s.properties?.title || '').toLowerCase());
@@ -399,7 +401,7 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   
   const rangesParam = ranges.map(r => `ranges=${encodeURIComponent(r)}`).join('&');
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${rangesParam}`;
-  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -694,7 +696,25 @@ export const pushSpreadsheetData = async (
   }
   await ensureSheetsExist(accessToken, spreadsheetId);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`;
-  
+
+  // Alcuni tab di SHEETS_CONFIG non vengono auto-creati da ensureSheetsExist
+  // (vedi TAB_NON_AUTOCREABILI in sheetsConfig.tsx): se l'utente non li ha mai
+  // creati sul foglio, un range su un tab inesistente farebbe fallire l'INTERO
+  // batchUpdate (stesso problema di "Unable to parse range" del pull). Leggiamo
+  // qui i tab realmente presenti e scartiamo quelli mancanti dal payload.
+  let sheetConfigToPush = SHEETS_CONFIG;
+  try {
+    const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
+    const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+    if (metaResponse.ok) {
+      const metadata = await metaResponse.json();
+      const actualTitles = (metadata.sheets || []).map((s: any) => String(s.properties?.title || '').toLowerCase());
+      sheetConfigToPush = SHEETS_CONFIG.filter(s => actualTitles.includes(s.title.toLowerCase()));
+    }
+  } catch (err) {
+    console.error('Error fetching metadata before push:', err);
+  }
+
   // Prepariamo i dati ad-hoc di Risparmio prima del ciclo automatico
   const preparedRisparmio = (data.risparmio || []).map(r => ({
     ...r,
@@ -750,8 +770,9 @@ export const pushSpreadsheetData = async (
     tradeRepublic: data.tradeRepublic || []
   };
 
-  // Generiamo il body dinamicamente ciclando sulla configurazione
-  const valueData = SHEETS_CONFIG.map(sheet => {
+  // Generiamo il body dinamicamente ciclando sulla configurazione (solo i tab
+  // realmente presenti sul foglio, vedi sheetConfigToPush sopra)
+  const valueData = sheetConfigToPush.map(sheet => {
     const targetData = dataMapForPush[sheet.dataKey] || [];
     
     let fields = sheet.fields;
@@ -805,12 +826,32 @@ export const fetchDatiBaseFromConfigSheet = async (
   macroCategorieUscite?: any[];
   soglie?: any[];
 }> => {
-  const sheets = SHEETS_CONFIG.filter(s =>
+  let sheets = SHEETS_CONFIG.filter(s =>
     ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie'].includes(s.title)
   );
+
+  // Come in fetchSpreadsheetData: un solo range invalido fa fallire l'INTERO batchGet
+  // con "Unable to parse range" (400). Scartiamo qui i tab che non esistono davvero
+  // sul foglio di configurazione, cosi' un tab mancante non blocca gli altri tre.
+  try {
+    const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
+    const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+    if (metaResponse.ok) {
+      const metadata = await metaResponse.json();
+      const actualTitles = (metadata.sheets || []).map((s: any) => String(s.properties?.title || '').toLowerCase());
+      sheets = sheets.filter(s => actualTitles.includes(s.title.toLowerCase()));
+    }
+  } catch (err) {
+    console.error('Error fetching config sheet metadata:', err);
+  }
+
+  if (sheets.length === 0) {
+    return {};
+  }
+
   const rangesParam = sheets.map(s => `ranges=${encodeURIComponent(s.range)}`).join('&');
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${rangesParam}`;
-  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -866,4 +907,88 @@ export const fetchDatiBaseFromConfigSheet = async (
   });
 
   return out;
+};
+
+// PUSH di Conti/Categorie Entrate/Categorie Uscite/Soglie verso il foglio di
+// configurazione (invece che verso il foglio principale): quei 4 tab sono
+// curati lì, editarli dall'app (Dati Base in Impostazioni) deve scrivere sulla
+// stessa fonte da cui fetchDatiBaseFromConfigSheet li importa ad ogni sync,
+// altrimenti l'import automatico li sovrascriverebbe di nuovo al giro dopo.
+// Come fetchDatiBaseFromConfigSheet, NON chiama ensureSheetsExist (non è un
+// foglio di proprietà esclusiva dell'app) e scrive solo sui tab che esistono
+// davvero, per non far fallire l'intero batchUpdate su un tab mancante.
+export const pushDatiBaseToConfigSheet = async (
+  accessToken: string,
+  spreadsheetId: string,
+  data: {
+    conti?: string[];
+    categorieEntrate?: string[];
+    macroCategorieUscite?: any[];
+    soglie?: any[];
+  }
+): Promise<void> => {
+  // Nessun controllo su WRITE_TO_SHEETS_DISABLED qui: quel kill-switch copre solo
+  // il foglio principale (vedi commento sopra la costante), questo scrive sul
+  // foglio di configurazione, un percorso separato.
+  let sheets = SHEETS_CONFIG.filter(s =>
+    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie'].includes(s.title)
+  );
+
+  try {
+    const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
+    const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+    if (metaResponse.ok) {
+      const metadata = await metaResponse.json();
+      const actualTitles = (metadata.sheets || []).map((s: any) => String(s.properties?.title || '').toLowerCase());
+      sheets = sheets.filter(s => actualTitles.includes(s.title.toLowerCase()));
+    }
+  } catch (err) {
+    console.error('Error fetching config sheet metadata before push:', err);
+  }
+
+  if (sheets.length === 0) return;
+
+  const contiRows = (data.conti || []).map(nome => ({ nome }));
+  const categorieEntrateRows = (data.categorieEntrate || []).map(nome => ({ nome }));
+  const categorieUsciteRows = (data.macroCategorieUscite || []).flatMap((m: any) =>
+    m.categorie.length > 0
+      ? m.categorie.map((categoria: string) => ({ macro: m.nome, icon: m.icon, categoria }))
+      : [{ macro: m.nome, icon: m.icon, categoria: '' }]
+  );
+  // Le soglie qui arrivano come 0-100 (formato editor app): il foglio le vuole come
+  // frazione 0-1 (formato percentuale nativo di Google Sheets), stessa conversione
+  // inversa fatta in fetchSpreadsheetData/fetchDatiBaseFromConfigSheet in lettura.
+  const soglieRows = (data.soglie || []).map((s: any) => ({
+    categoria: s.categoria,
+    percentuale: Number(s.percentuale || 0) / 100
+  }));
+
+  const dataMapForPush: Record<string, any[]> = {
+    contiRows, categorieEntrateRows, categorieUsciteRows, soglieRows
+  };
+
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`;
+  const valueData = sheets.map(sheet => {
+    const targetData = dataMapForPush[sheet.dataKey] || [];
+    const rows = mapToRows(sheet.headers, targetData, sheet.fields, sheet.dateFields);
+    return { range: `${sheet.title}!A1`, values: rows };
+  });
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data: valueData })
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      const errBody = await response.json();
+      errorMsg = errBody?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile scrivere sul foglio di configurazione: ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
 };

@@ -36,7 +36,7 @@ export const MACRO_CATEGORIE_USCITE_SEED: MacroCategoriaUscita[] = [
 
 export const CATEGORIE_ENTRATE_SEED: string[] = ['Nonna Anna', 'Nonna Lina', 'Nonno Ago', 'Stipendio', 'Dividendi', 'Interessi'];
 
-export const CONTI_SEED: string[] = ['Contanti', 'Unicredit', 'Unicredit prepagata', 'Trade Republic', 'Scalable', 'Santander', 'Santander Vincolato'];
+export const CONTI_SEED: string[] = ['Contanti', 'Unicredit', 'Unicredit prepagata', 'Trade Republic', 'Scalable', 'Santander', 'Santander Vincolato', 'Alibabbone'];
 
 /**
  * Preset per uscite ricorrenti quasi identiche ogni mese (Fase 2 del piano:

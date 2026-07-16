@@ -109,7 +109,11 @@ export function useUsciteData(
     const headers = data.risparmioHeaders?.length
       ? data.risparmioHeaders
       : DEFAULT_RISPARMIO_HEADERS;
-    return getThresholds(headers, data.soglie);
+    const base = getThresholds(headers, data.soglie);
+    // getThresholds().totali è pensato per "Netto" in Panoramica (investimenti+risparmio,
+    // vedi commento in thresholds.tsx), ma qui la card "Spese Totali" vuole la soglia di
+    // spesa totale = primarie + secondarie: stesso nome di campo, significato diverso.
+    return { ...base, totali: base.primarie + base.secondarie };
   }, [data.risparmioHeaders, data.soglie]);
 
   // Rolling last 12 months data for trend chart (dynamic detail based on selection)
