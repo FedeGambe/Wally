@@ -333,11 +333,11 @@ export default function Uscite({
                     <td className="py-3.5 px-4 text-center">
                       {tx.primaria ? (
                         <span className="inline-flex items-center bg-orange-700 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
-                          Sì (35%)
+                          Sì ({dynamicThresholds.primarie}%)
                         </span>
                       ) : (
                         <span className="inline-flex items-center bg-orange-100 text-orange-700 text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
-                          No (15%)
+                          No ({dynamicThresholds.secondarie}%)
                         </span>
                       )}
                     </td>

@@ -38,7 +38,19 @@ export function getMonthIndex(mese: string): number {
   return -1;
 }
 
-const MESI_ABBREVIATI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+export const MESI_ABBREVIATI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+/**
+ * True se mese/anno sono successivi al mese corrente reale. Usata per non
+ * mostrare in grafici/tabelle righe "future" (es. transazioni ricorrenti
+ * pre-scritte sul foglio per mesi non ancora arrivati).
+ */
+export function isMeseAnnoFuturo(mese: string, anno: number): boolean {
+  const meseIdx = getMonthIndex(mese);
+  if (meseIdx === -1 || !anno) return false;
+  const oggi = new Date();
+  return anno * 12 + meseIdx > oggi.getFullYear() * 12 + oggi.getMonth();
+}
 
 /**
  * Comprime un valore "mese" (es. "Giugno 2026" o "Giu 26") nel formato compatto

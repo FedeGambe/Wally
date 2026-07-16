@@ -61,7 +61,10 @@ export default function Header({
     if (localEntrate) {
       localEntrate.forEach((e: any) => { if (e.anno) years.add(e.anno); });
     }
-    const sortedYears = Array.from(years).sort((a, b) => b - a); // descending
+    const currentYear = new Date().getFullYear();
+    const sortedYears = Array.from(years)
+      .filter(y => y <= currentYear)
+      .sort((a, b) => b - a); // descending
     return sortedYears.map(String);
   }, [localRisparmio, localEntrate]);
 
@@ -78,9 +81,15 @@ export default function Header({
   // Determina se un dato mese (dell'anno selezionato) ha effettivamente dei dati,
   // usata dal DropdownMenu del mese per disabilitare (in grigio) le voci senza dati.
   const isMonthAvailable = (monthName: string) => {
+    // Non si naviga mai oltre il mese corrente reale (i mesi futuri, es. transazioni
+    // ricorrenti pre-scritte sul foglio, non vanno mostrati in grafici/tabelle).
+    const today = new Date();
+    const yearNum = parseInt(selectedYear, 10);
+    const monthIdx = MESI_ITALIANI.indexOf(monthName);
+    if (yearNum * 12 + monthIdx > today.getFullYear() * 12 + today.getMonth()) return false;
+
     if (!hasAnyDataForSelectedYear) return true; // fallback if year has no records
     const monthLower = monthName.toLowerCase().trim();
-    const yearNum = parseInt(selectedYear, 10);
     const hasInRisparmio = localRisparmio?.some(
       (r: any) => r.anno === yearNum && r.mese?.toLowerCase().trim() === monthLower
     );

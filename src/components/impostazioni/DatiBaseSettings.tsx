@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ChevronRight, Wallet, ArrowDownCircle, Tags, Percent, RotateCcw } from 'lucide-react';
+import { ChevronRight, Wallet, ArrowDownCircle, Tags, Percent, RotateCcw, Download } from 'lucide-react';
 import Modal from '../Modal';
 import ContiEditor from './ContiEditor';
 import CategorieEntrateEditor from './CategorieEntrateEditor';
 import CategorieUsciteEditor from './CategorieUsciteEditor';
-import InArrivoPlaceholder from './InArrivoPlaceholder';
+import SoglieEditor from './SoglieEditor';
 import { useDatiBase } from '../../hooks/useDatiBase';
-import { CONTI_SEED, CATEGORIE_ENTRATE_SEED, MACRO_CATEGORIE_USCITE_SEED } from '../../data/datiBase';
+import { useFinanceData } from '../../context/FinanceDataContext';
+import { CONTI_SEED, CATEGORIE_ENTRATE_SEED, MACRO_CATEGORIE_USCITE_SEED, SOGLIE_SEED } from '../../data/datiBase';
 
 type Voce = 'conti' | 'categorieEntrate' | 'categorieUscite' | 'soglie' | null;
 
@@ -34,14 +35,47 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
 export default function DatiBaseSettings() {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
   const { updateDatiBase } = useDatiBase();
+  const { accessToken } = useFinanceData();
+  const [isImporting, setIsImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
 
   const ripristinaDefault = () => {
     if (!window.confirm('Sovrascrivere conti e categorie (anche sul foglio Google) con i valori di default? Le modifiche fatte finora andranno perse.')) return;
     updateDatiBase({
       conti: CONTI_SEED,
       categorieEntrate: CATEGORIE_ENTRATE_SEED,
-      macroCategorieUscite: MACRO_CATEGORIE_USCITE_SEED
+      macroCategorieUscite: MACRO_CATEGORIE_USCITE_SEED,
+      soglie: SOGLIE_SEED
     });
+  };
+
+  const importaDaConfigSheet = async () => {
+    const configId = localStorage.getItem('sf_config_spreadsheet_id');
+    if (!configId) {
+      setImportMsg('Nessun foglio di configurazione collegato. Aggiungilo prima nella card "Collegamento Google Sheets".');
+      setTimeout(() => setImportMsg(null), 6000);
+      return;
+    }
+    if (!accessToken) {
+      setImportMsg('Sessione Google scaduta: rifai il login.');
+      setTimeout(() => setImportMsg(null), 6000);
+      return;
+    }
+    if (!window.confirm('Importare conti, categorie e soglie dal foglio di configurazione? Sovrascriverà i valori attuali (anche sul foglio Google principale).')) return;
+
+    setIsImporting(true);
+    setImportMsg(null);
+    try {
+      const { fetchDatiBaseFromConfigSheet } = await import('../../lib/sheetsService');
+      const result = await fetchDatiBaseFromConfigSheet(accessToken, configId);
+      updateDatiBase(result);
+      setImportMsg('Dati importati dal foglio di configurazione.');
+    } catch (err: any) {
+      setImportMsg(err?.message || 'Errore durante l\'importazione.');
+    } finally {
+      setIsImporting(false);
+      setTimeout(() => setImportMsg(null), 6000);
+    }
   };
 
   return (
@@ -77,17 +111,29 @@ export default function DatiBaseSettings() {
       </div>
 
       <button
+        onClick={importaDaConfigSheet}
+        disabled={isImporting}
+        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors disabled:opacity-50"
+      >
+        <Download className="w-3.5 h-3.5" /> {isImporting ? 'Importazione...' : 'Importa da foglio di configurazione'}
+      </button>
+
+      <button
         onClick={ripristinaDefault}
-        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 mt-1 px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors"
       >
         <RotateCcw className="w-3.5 h-3.5" /> Ripristina valori di default
       </button>
+
+      {importMsg && (
+        <p className="text-[11px] text-center text-slate-500 dark:text-slate-400 font-semibold mt-2">{importMsg}</p>
+      )}
 
       <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>
         {voceAperta === 'conti' && <ContiEditor />}
         {voceAperta === 'categorieEntrate' && <CategorieEntrateEditor />}
         {voceAperta === 'categorieUscite' && <CategorieUsciteEditor />}
-        {voceAperta === 'soglie' && <InArrivoPlaceholder label="Soglie" />}
+        {voceAperta === 'soglie' && <SoglieEditor />}
       </Modal>
     </div>
   );

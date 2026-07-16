@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useFinanceData } from '../context/FinanceDataContext';
-import { MESI_ITALIANI } from '../utils/date';
+import { MESI_ITALIANI, isMeseAnnoFuturo } from '../utils/date';
 
 /**
  * Hook usato dalla pagina Entrate (src/pages/Entrate.tsx).
@@ -149,12 +149,14 @@ export function useEntrateData(
       ...extraEntrate
     ];
 
-    // Ordina in ordine cronologico assoluto (Anno -> Mese)
-    return combined.sort((a, b) => {
-      const scoreA = a.anno * 12 + monthsOrder.indexOf(a.meseDisplay);
-      const scoreB = b.anno * 12 + monthsOrder.indexOf(b.meseDisplay);
-      return scoreA - scoreB;
-    });
+    // Ordina in ordine cronologico assoluto (Anno -> Mese), scartando i mesi futuri
+    return combined
+      .filter(r => !isMeseAnnoFuturo(r.meseDisplay, r.anno))
+      .sort((a, b) => {
+        const scoreA = a.anno * 12 + monthsOrder.indexOf(a.meseDisplay);
+        const scoreB = b.anno * 12 + monthsOrder.indexOf(b.meseDisplay);
+        return scoreA - scoreB;
+      });
   }, [normalizedRisparmio, normalizedEntrate]);
 
   // Grafico dinamico: 9 mesi indietro e 2 in avanti, in aggiunta al mese attuale.

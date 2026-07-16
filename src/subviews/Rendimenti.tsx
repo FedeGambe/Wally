@@ -40,6 +40,8 @@ interface RendimentiProps {
   cruscottoRows: any[];
   formatEuro: (val: any) => string;
   formatPercent: (val: any) => string;
+  investitoMeseCorrente: number;
+  portafoglioStimatoAttuale: number;
 }
 
 type TimeRange = 'storico' | '12mesi';
@@ -55,6 +57,8 @@ export default function Rendimenti({
   cruscottoRows,
   formatEuro,
   formatPercent,
+  investitoMeseCorrente,
+  portafoglioStimatoAttuale,
 }: RendimentiProps) {
   const [crescitaRange, setCrescitaRange] = useState<TimeRange>('storico');
   const [mensileRange, setMensileRange] = useState<TimeRange>('12mesi');
@@ -266,11 +270,11 @@ export default function Rendimenti({
               </div>
               <div className="mt-2">
                 <span className="text-lg sm:text-2xl font-black font-display text-white block">
-                  <EuroAmount value={CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
+                  <EuroAmount value={portafoglioStimatoAttuale} />
                 </span>
               </div>
               <div className="border-t border-sky-800/60 pt-2 mt-2">
-                <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0) + (CRUSCOTTO_GENERALE.commissioniCum || 0))}</span></p>
+                <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(investitoMeseCorrente)}</span></p>
               </div>
             </div>
 

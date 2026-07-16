@@ -3,7 +3,8 @@ import { Transaction } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { SHEETS_CONFIG } from '../config/sheetsConfig';
 import { formatEuro } from '../utils/format';
-import { getMonthIndex, getTransactionYear } from '../utils/date';
+import { getMonthIndex, getTransactionYear, isMeseAnnoFuturo } from '../utils/date';
+import { getThresholds } from '../utils/thresholds';
 
 const DEFAULT_RISPARMIO_HEADERS = SHEETS_CONFIG.find(s => s.dataKey === 'risparmio')?.headers || [];
 
@@ -55,10 +56,12 @@ export function useUsciteData(
 
   // Sort raw savings data chronologically
   const chronologicalData = useMemo(() => {
-    return [...localRisparmio].sort((a, b) => {
-      if (a.anno !== b.anno) return a.anno - b.anno;
-      return getMonthIndex(a.mese) - getMonthIndex(b.mese);
-    });
+    return [...localRisparmio]
+      .filter(r => !isMeseAnnoFuturo(r.mese, r.anno))
+      .sort((a, b) => {
+        if (a.anno !== b.anno) return a.anno - b.anno;
+        return getMonthIndex(a.mese) - getMonthIndex(b.mese);
+      });
   }, [localRisparmio]);
 
   // Retrieve selected month record and previous month record for delta calculations
@@ -99,55 +102,15 @@ export function useUsciteData(
     return entrateVal > 0 ? (selectedRecord.speseSecondarie / entrateVal) * 100 : 0;
   }, [selectedRecord.speseSecondarie, entrateVal]);
 
-  // Estrae una soglia percentuale/numerica scritta dentro l'intestazione di una colonna
-  // del foglio Risparmio (es. header "Spese Primarie (35%)" -> 35). Se non trova nulla
-  // usa il valore di default passato come fallback.
-  const parseThreshold = (headerString: string, fallback: number): number => {
-    if (!headerString) return fallback;
-    const pctMatch = headerString.match(/(\d+(?:[.,]\d+)?)\s*%/);
-    if (pctMatch) {
-      return parseFloat(pctMatch[1].replace(',', '.'));
-    }
-    const numMatch = headerString.match(/(\d+(?:[.,]\d+)?)/);
-    if (numMatch) {
-      return parseFloat(numMatch[1].replace(',', '.'));
-    }
-    return fallback;
-  };
-
-  // Legge le soglie direttamente dalle intestazioni del foglio Google (cosi' se
-  // l'utente cambia le percentuali-obiettivo nello sheet, la UI si aggiorna da sola).
-  // Gli indici (4, 6, 9, ...) corrispondono alla posizione fissa di quelle colonne
-  // nel foglio Risparmio: vanno tenuti sincronizzati con SHEETS_CONFIG se l'ordine
-  // delle colonne cambia.
+  // Soglie di spesa "sane" (es. non oltre il 35% del reddito in primarie). Stessa
+  // fonte/priorità di Panoramica (src/utils/thresholds.tsx): Soglie di Dati Base
+  // prima, poi le intestazioni del foglio Risparmio, poi i default hardcoded.
   const dynamicThresholds = useMemo(() => {
     const headers = data.risparmioHeaders?.length
       ? data.risparmioHeaders
       : DEFAULT_RISPARMIO_HEADERS;
-
-    const primarie = parseThreshold(headers[4], 35);
-    const secondarie = parseThreshold(headers[6], 15);
-    const investiti = parseThreshold(headers[9], 15);
-
-    // La colonna "risparmio" nello sheet puo' trovarsi in posizione 11 oppure 10
-    // a seconda della versione del foglio dell'utente: si prova prima la piu' recente.
-    let risparmio = 35;
-    if (headers[11]) {
-      risparmio = parseThreshold(headers[11], 35);
-    } else if (headers[10]) {
-      risparmio = parseThreshold(headers[10], 35);
-    }
-
-    const totali = parseThreshold(headers[13] || headers[12] || '', 50);
-
-    return {
-      primarie,
-      secondarie,
-      investiti,
-      risparmio,
-      totali
-    };
-  }, [data.risparmioHeaders]);
+    return getThresholds(headers, data.soglie);
+  }, [data.risparmioHeaders, data.soglie]);
 
   // Rolling last 12 months data for trend chart (dynamic detail based on selection)
   // Utilizza una finestra mobile dinamica: 9 mesi indietro e 2 mesi in avanti in base alla selezione.

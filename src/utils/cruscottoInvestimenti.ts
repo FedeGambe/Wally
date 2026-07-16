@@ -154,39 +154,26 @@ export function computeCruscottoData(sheetsData: any): any[] {
   let prevCommissioniCum = 0;
 
   sortedYears.forEach((year, idx) => {
-    // Trova l'ultimo record dell'anno in Scalable
+    // Righe dell'anno per broker: ogni riga e' ormai il versamento del SOLO quel mese
+    // (non piu' un cumulato), quindi il totale dell'anno e' la somma delle righe
+    // dell'anno, e il cumulato di fine anno e' quel totale sommato al cumulato
+    // dell'anno precedente (invece di leggere una singola "ultima riga dell'anno").
     const scalableOfYear = scalableWithDate.filter(r => r.year === year);
-    const lastScalable = scalableOfYear.length > 0
-      ? scalableOfYear.sort((a, b) => b.month - a.month)[0]
-      : null;
-
-    // Trova l'ultimo record dell'anno in Trade Republic
     const tradeRepublicOfYear = tradeRepublicWithDate.filter(r => r.year === year);
-    const lastTradeRepublic = tradeRepublicOfYear.length > 0
-      ? tradeRepublicOfYear.sort((a, b) => b.month - a.month)[0]
-      : null;
 
-    // Calcoliamo il cumulato a fine anno sommando Scalable e Trade Republic
-    let azioniInvestitoCum = 0;
-    let obbligazioniInvestitoCum = 0;
-    let monetariInvestitoCum = 0;
+    const sumCategoryForRows = (rows: any[], categoriesMap: Record<string, string>, category: string): number =>
+      rows.reduce((sum, r) => sum + sumByCategory(r, categoriesMap, category), 0);
 
-    if (lastScalable) {
-      azioniInvestitoCum += sumByCategory(lastScalable, scalableCategories, 'azioni');
-      obbligazioniInvestitoCum += sumByCategory(lastScalable, scalableCategories, 'obbligazioni');
-      monetariInvestitoCum += sumByCategory(lastScalable, scalableCategories, 'monetari');
-    }
+    const azioniInvestitoAnno = sumCategoryForRows(scalableOfYear, scalableCategories, 'azioni') +
+      sumCategoryForRows(tradeRepublicOfYear, tradeRepublicCategories, 'azioni');
+    const obbligazioniInvestitoAnno = sumCategoryForRows(scalableOfYear, scalableCategories, 'obbligazioni') +
+      sumCategoryForRows(tradeRepublicOfYear, tradeRepublicCategories, 'obbligazioni');
+    const monetariInvestitoAnno = sumCategoryForRows(scalableOfYear, scalableCategories, 'monetari') +
+      sumCategoryForRows(tradeRepublicOfYear, tradeRepublicCategories, 'monetari');
 
-    if (lastTradeRepublic) {
-      azioniInvestitoCum += sumByCategory(lastTradeRepublic, tradeRepublicCategories, 'azioni');
-      obbligazioniInvestitoCum += sumByCategory(lastTradeRepublic, tradeRepublicCategories, 'obbligazioni');
-      monetariInvestitoCum += sumByCategory(lastTradeRepublic, tradeRepublicCategories, 'monetari');
-    }
-
-    // Se è il primo anno registrato, l'investito dell'anno coincide con il cumulato, altrimenti è la differenza con l'anno precedente
-    const azioniInvestitoAnno = idx === 0 ? azioniInvestitoCum : Math.max(0, azioniInvestitoCum - prevAzioniCum);
-    const obbligazioniInvestitoAnno = idx === 0 ? obbligazioniInvestitoCum : Math.max(0, obbligazioniInvestitoCum - prevObbligazioniCum);
-    const monetariInvestitoAnno = idx === 0 ? monetariInvestitoCum : Math.max(0, monetariInvestitoCum - prevMonetariCum);
+    const azioniInvestitoCum = prevAzioniCum + azioniInvestitoAnno;
+    const obbligazioniInvestitoCum = prevObbligazioniCum + obbligazioniInvestitoAnno;
+    const monetariInvestitoCum = prevMonetariCum + monetariInvestitoAnno;
 
     // Commissioni cumulate (Scalable + Trade Republic) a fine anno: sono soldi usciti dalla
     // tasca ma non allocati in nessuna asset class, quindi si sommano solo all'investito, non
@@ -282,14 +269,20 @@ export function computeCruscottoData(sheetsData: any): any[] {
 
 /**
  * Calcola l'allocazione reale del patrimonio investito (quanto in Azioni/Obbligazioni/Monetari,
- * per singolo strumento e aggregato) guardando solo l'ULTIMA riga disponibile di Scalable e
- * Trade Republic (la fotografia più recente, non uno storico). Usato da useInvestimentiData.ts
- * per il grafico a torta dell'allocazione nella pagina Investimenti.
+ * per singolo strumento e aggregato) fino al mese/anno indicato (di norma il mese selezionato
+ * nell'header). Usato da useInvestimentiData.ts per il grafico a torta dell'allocazione nella
+ * pagina Investimenti. Ogni riga di Scalable/Trade Republic e' il versamento del SOLO quel mese
+ * per strumento (non un cumulato): il totale per strumento si ottiene sommando tutte le righe
+ * fino al mese/anno target incluso, invece di leggere una singola "ultima riga".
  * Nota: la logica di parsing del mese (parseMeseLocal) è una copia di parseMese qui sopra;
  * è duplicata volutamente per tenere questa funzione indipendente, non è un refactor da fare
  * "al volo" qui.
  */
-export function computeRealAssetAllocation(sheetsData: any): { macroData: any[]; detailData: any[] } {
+export function computeRealAssetAllocation(
+  sheetsData: any,
+  targetMonth?: number,
+  targetYear?: number
+): { macroData: any[]; detailData: any[] } {
   if (!sheetsData) {
     return { macroData: [], detailData: [] };
   }
@@ -361,14 +354,18 @@ export function computeRealAssetAllocation(sheetsData: any): { macroData: any[];
   const scalableWithDate = mapWithDate(scalable);
   const tradeRepublicWithDate = mapWithDate(tradeRepublic);
 
-  // Find the latest records chronologically
-  const latestScalable = scalableWithDate.length > 0
-    ? [...scalableWithDate].sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month))[scalableWithDate.length - 1]
-    : null;
+  // Se non viene passato un mese/anno target, usiamo tutta la storia disponibile (comportamento
+  // precedente equivalente: sommare tutto invece di leggere solo l'ultima riga da' comunque il
+  // totale investito ad oggi).
+  const isUpToTarget = (r: MonthYear): boolean => {
+    if (targetYear === undefined || targetMonth === undefined) return true;
+    return r.year < targetYear || (r.year === targetYear && r.month <= targetMonth);
+  };
 
-  const latestTradeRepublic = tradeRepublicWithDate.length > 0
-    ? [...tradeRepublicWithDate].sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month))[tradeRepublicWithDate.length - 1]
-    : null;
+  const rowsUpToTarget = (rows: any[]) => rows.filter(isUpToTarget);
+
+  const sumFieldUpToTarget = (rows: any[], fieldName: string): number =>
+    rowsUpToTarget(rows).reduce((sum, r) => sum + Number(r[fieldName] || 0), 0);
 
   const detailList: any[] = [];
 
@@ -391,12 +388,12 @@ export function computeRealAssetAllocation(sheetsData: any): { macroData: any[];
     return fieldName;
   };
 
-  // Process Scalable latest row
-  if (latestScalable) {
+  // Somma per ogni strumento Scalable tutte le righe fino al mese/anno target
+  if (scalableWithDate.length > 0) {
     Object.keys(scalableCategories).forEach(fieldName => {
       const category = getCategoryForField(fieldName, scalableCategories);
       if (category) {
-        const val = Number(latestScalable[fieldName] || 0);
+        const val = sumFieldUpToTarget(scalableWithDate, fieldName);
         if (val > 0) {
           const header = getHeaderForField(fieldName, scalableFields, scalableHeaders);
           detailList.push({
@@ -409,12 +406,12 @@ export function computeRealAssetAllocation(sheetsData: any): { macroData: any[];
     });
   }
 
-  // Process Trade Republic latest row
-  if (latestTradeRepublic) {
+  // Somma per ogni strumento Trade Republic tutte le righe fino al mese/anno target
+  if (tradeRepublicWithDate.length > 0) {
     Object.keys(tradeRepublicCategories).forEach(fieldName => {
       const category = getCategoryForField(fieldName, tradeRepublicCategories);
       if (category) {
-        const val = Number(latestTradeRepublic[fieldName] || 0);
+        const val = sumFieldUpToTarget(tradeRepublicWithDate, fieldName);
         if (val > 0) {
           const header = getHeaderForField(fieldName, tradeRepublicFields, tradeRepublicHeaders);
           detailList.push({

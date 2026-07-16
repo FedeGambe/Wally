@@ -33,6 +33,7 @@ export interface SheetsData {
   macroCategorieUscite?: any[];
   presetUscite?: any[];
   presetTrasferimenti?: any[];
+  soglie?: any[];
   capitaleImpegnato?: any[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -176,7 +177,7 @@ export const parseDateString = (dateStr: any): Date | null => {
 // riga 1 del foglio (match esatto, poi per nome del campo, poi "contains"
 // case-insensitive). Questo rende l'app tollerante se l'utente riordina le
 // colonne nel foglio Google, a patto che le intestazioni restino riconoscibili.
-const mapFromRowsWithHeaders = (
+export const mapFromRowsWithHeaders = (
   rows: any[][],
   fieldsOnObject: string[],
   headersList: string[],
@@ -316,7 +317,16 @@ export const fetchRowFormulas = async (accessToken: string, spreadsheetId: strin
   return (result.values && result.values[0]) || [];
 };
 
+// KILL-SWITCH TEMPORANEO: ogni scrittura verso Google Sheets (push di dati E
+// creazione automatica di tab mancanti da ensureSheetsExist, quest'ultima
+// scattava anche durante un semplice refresh/pull) è disattivata finché non
+// si capisce perché il foglio principale risultava alterato dopo l'aggiunta
+// del tab "Soglie" a SHEETS_CONFIG. Rimettere a `false` per riattivare.
+export const WRITE_TO_SHEETS_DISABLED = true;
+
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
+  if (WRITE_TO_SHEETS_DISABLED) return;
+
   const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
   const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${accessToken}` } });
 
@@ -358,10 +368,11 @@ export const ensureSheetsExist = async (accessToken: string, spreadsheetId: stri
 export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: string): Promise<SheetsData> => {
   await ensureSheetsExist(accessToken, spreadsheetId);
 
-  // Genera i range in modo dinamico dalla configurazione
-  const ranges = SHEETS_CONFIG.map(s => s.range);
-
-  // Verifica Broker opzionali (Scalable / Trade Republic)
+  // Verifica quali tab esistono davvero sul foglio (serve sia per i broker opzionali
+  // Scalable/Trade Republic, sia per non chiedere un range su un tab di SHEETS_CONFIG
+  // che sul foglio reale è stato rinominato o cancellato: batchGet è UNA sola chiamata
+  // con tutti i range, quindi un solo range invalido ("Unable to parse range: X!A:A")
+  // fa fallire l'intera risposta 400, bloccando anche i tab che stavano andando bene.
   let actualSheets: string[] = [];
   try {
     const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
@@ -373,6 +384,13 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   } catch (err) {
     console.error('Error fetching metadata:', err);
   }
+
+  // Genera i range in modo dinamico dalla configurazione, scartando i tab che non
+  // esistono sul foglio reale (se la metadata è stata letta con successo: altrimenti,
+  // ranges.length 0 noto, si prova comunque con tutti come prima).
+  const ranges = actualSheets.length > 0
+    ? SHEETS_CONFIG.filter(s => actualSheets.includes(s.title.toLowerCase())).map(s => s.range)
+    : SHEETS_CONFIG.map(s => s.range);
 
   const hasScalable = actualSheets.includes('scalable');
   const hasTradeRepublic = actualSheets.includes('trade republic');
@@ -563,6 +581,18 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   if (presetUsciteDaSheet.length > 0) outputData.presetUscite = presetUsciteDaSheet;
   delete outputData.presetUsciteRows;
 
+  // Soglie: il foglio le scrive come frazione (0.35 = 35%, formato percentuale
+  // di Google Sheets), l'app le tiene invece come numero intero 0-100 per
+  // l'editor — normalizziamo qui, un valore <=1 viene trattato come frazione.
+  const soglieDaSheet = (outputData.soglieRows || [])
+    .map((r: any) => {
+      const raw = Number(r.percentuale || 0);
+      return { categoria: String(r.categoria || '').trim(), percentuale: raw > 0 && raw <= 1 ? raw * 100 : raw };
+    })
+    .filter((s: any) => s.categoria);
+  if (soglieDaSheet.length > 0) outputData.soglie = soglieDaSheet;
+  delete outputData.soglieRows;
+
   const presetTrasferimentiDaSheet = (outputData.presetTrasferimentiRows || [])
     .filter((r: any) => r.categoria)
     .map((r: any, idx: number) => ({
@@ -659,6 +689,9 @@ export const pushSpreadsheetData = async (
   spreadsheetId: string,
   data: SheetsData
 ): Promise<void> => {
+  if (WRITE_TO_SHEETS_DISABLED) {
+    throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
+  }
   await ensureSheetsExist(accessToken, spreadsheetId);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`;
   
@@ -710,6 +743,7 @@ export const pushSpreadsheetData = async (
     categorieUsciteRows,
     presetUsciteRows,
     presetTrasferimentiRows,
+    soglieRows: data.soglie || [],
     capitaleImpegnato: data.capitaleImpegnato || [],
     cruscottoInvestimenti: computedCruscotto.length > 0 ? computedCruscotto : (data.cruscottoInvestimenti || []),
     scalable: data.scalable || [],
@@ -755,4 +789,81 @@ export const pushSpreadsheetData = async (
     } catch (_) {}
     throw new Error(`Failed to save to Google Sheet: ${errorMsg || response.statusText || `Codice ${response.status}`}`);
   }
+};
+
+// Legge Conti/Categorie Entrate/Categorie Uscite/Soglie da un foglio Google SEPARATO
+// (il "foglio di configurazione", vedi sf_config_spreadsheet_id in Impostazioni),
+// per popolare i "Dati Base" con valori curati altrove invece del seed hardcoded.
+// A differenza di fetchSpreadsheetData NON chiama ensureSheetsExist: non deve
+// creare/alterare tab su un foglio che non è di proprietà esclusiva dell'app.
+export const fetchDatiBaseFromConfigSheet = async (
+  accessToken: string,
+  spreadsheetId: string
+): Promise<{
+  conti?: string[];
+  categorieEntrate?: string[];
+  macroCategorieUscite?: any[];
+  soglie?: any[];
+}> => {
+  const sheets = SHEETS_CONFIG.filter(s =>
+    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie'].includes(s.title)
+  );
+  const rangesParam = sheets.map(s => `ranges=${encodeURIComponent(s.range)}`).join('&');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${rangesParam}`;
+  const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      const errBody = await response.json();
+      errorMsg = errBody?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile leggere il foglio di configurazione: ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
+  const result = await response.json();
+  const valueRanges = result.valueRanges || [];
+  const getValueRangeForSheet = (sheetName: string): any[][] => {
+    const targetLower = sheetName.toLowerCase() + '!';
+    const found = valueRanges.find((vr: any) =>
+      String(vr?.range || '').replace(/'/g, '').toLowerCase().startsWith(targetLower)
+    );
+    return found?.values || [];
+  };
+
+  const out: { conti?: string[]; categorieEntrate?: string[]; macroCategorieUscite?: any[]; soglie?: any[] } = {};
+
+  sheets.forEach(sheet => {
+    const rows = getValueRangeForSheet(sheet.title);
+    const items = mapFromRowsWithHeaders(rows, sheet.fields, sheet.headers, sheet.booleanFields || [], sheet.numberFields || []);
+
+    if (sheet.title === 'Conti') {
+      out.conti = items.map((r: any) => String(r.nome || '').trim()).filter(Boolean);
+    } else if (sheet.title === 'Categorie Entrate') {
+      out.categorieEntrate = items.map((r: any) => String(r.nome || '').trim()).filter(Boolean);
+    } else if (sheet.title === 'Categorie Uscite') {
+      const macroMap = new Map<string, { nome: string; icon: string; categorie: string[] }>();
+      items.forEach((r: any) => {
+        const macro = String(r.macro || '').trim();
+        if (!macro) return;
+        if (!macroMap.has(macro)) {
+          macroMap.set(macro, { nome: macro, icon: String(r.icon || '').trim() || '💸', categorie: [] });
+        }
+        const categoria = String(r.categoria || '').trim();
+        if (categoria) macroMap.get(macro)!.categorie.push(categoria);
+      });
+      out.macroCategorieUscite = Array.from(macroMap.values());
+    } else if (sheet.title === 'Soglie') {
+      out.soglie = items
+        .map((r: any) => {
+          const raw = Number(r.percentuale || 0);
+          return { categoria: String(r.categoria || '').trim(), percentuale: raw > 0 && raw <= 1 ? raw * 100 : raw };
+        })
+        .filter((s: any) => s.categoria);
+    }
+  });
+
+  return out;
 };

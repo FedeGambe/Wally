@@ -1,9 +1,12 @@
 /**
- * Legge dagli header del foglio "Panoramica" (Google Sheet) le soglie percentuali target
- * per spese primarie/secondarie/investimenti/risparmio/netto, così l'utente può cambiarle
- * modificando il foglio invece del codice. Se il foglio non le contiene (o sono scritte in
- * un formato imprevisto), si usano i valori di default in src/config/targets.tsx.
- * Usato da usePanoramicaData.ts per colorare le card KPI della pagina Panoramica.
+ * Soglie percentuali target per spese primarie/secondarie/investimenti/risparmio/netto,
+ * usate da usePanoramicaData.ts per colorare le card KPI della pagina Panoramica.
+ * Priorità delle fonti (dalla più alta alla più bassa):
+ *  1. `soglie` (Impostazioni → Dati Base → Soglie, vedi src/data/mockData.ts) — editabile
+ *     dall'utente in app, sincronizzata col tab "Soglie" del foglio Google.
+ *  2. Gli header del foglio "Risparmio" (vecchio meccanismo: es. "35%" scritto
+ *     nell'intestazione), per compatibilità con fogli non ancora migrati a un tab Soglie.
+ *  3. I valori di default in src/config/targets.tsx.
  */
 import {
   TARGET_PRIMARIE,
@@ -12,8 +15,17 @@ import {
   TARGET_RISPARMIO,
   TARGET_NETTO,
 } from "../config/targets";
+import type { Soglia } from "../data/mockData";
 
 const normalize = (value: string) => value.toLowerCase().trim();
+
+// Cerca in `soglie` una categoria il cui nome contiene `keyword` (es. "prim" per
+// "Spese Primarie"), ritorna undefined se `soglie` è vuoto o non c'è match.
+const findInSoglie = (soglie: Soglia[] | undefined, keyword: string): number | undefined => {
+  if (!soglie || soglie.length === 0) return undefined;
+  const found = soglie.find((s) => normalize(s.categoria).includes(keyword));
+  return found ? found.percentuale : undefined;
+};
 
 /**
  * Trova in che colonna (indice) del foglio si trova la soglia cercata, provando 3 strategie
@@ -70,7 +82,7 @@ const parseThreshold = (headerString: string, fallback: number): number => {
   return fallback;
 };
 
-export const getThresholds = (headers: string[]) => {
+export const getThresholds = (headers: string[], soglie?: Soglia[]) => {
   // I numeri di fallback (4, 6, 9, 10/11, 12/13) sono le posizioni di colonna attese nel
   // layout standard del foglio "Panoramica", usate solo se le due ricerche sopra falliscono.
   const primarieIndex = findHeaderIndex(
@@ -110,11 +122,19 @@ export const getThresholds = (headers: string[]) => {
     headers[13] ? 13 : 12
   );
 
+  const investiti = findInSoglie(soglie, "invest") ?? parseThreshold(headers[investitiIndex], TARGET_INVESTIMENTI);
+  const risparmio = findInSoglie(soglie, "risp") ?? parseThreshold(headers[risparmioIndex], TARGET_RISPARMIO);
+
   return {
-    primarie: parseThreshold(headers[primarieIndex], TARGET_PRIMARIE),
-    secondarie: parseThreshold(headers[secondarieIndex], TARGET_SECONDARIE),
-    investiti: parseThreshold(headers[investitiIndex], TARGET_INVESTIMENTI),
-    risparmio: parseThreshold(headers[risparmioIndex], TARGET_RISPARMIO),
-    totali: parseThreshold(headers[nettoIndex], TARGET_NETTO),
+    primarie: findInSoglie(soglie, "prim") ?? parseThreshold(headers[primarieIndex], TARGET_PRIMARIE),
+    secondarie: findInSoglie(soglie, "sec") ?? parseThreshold(headers[secondarieIndex], TARGET_SECONDARIE),
+    investiti,
+    risparmio,
+    // "Netto" non ha una propria categoria in Soglie (è per definizione investimenti+risparmio,
+    // vedi TARGET_NETTO in targets.tsx): se entrambe vengono da Soglie lo ricalcoliamo, altrimenti
+    // resta l'header/default come per gli altri campi.
+    totali: (findInSoglie(soglie, "invest") !== undefined && findInSoglie(soglie, "risp") !== undefined)
+      ? investiti + risparmio
+      : parseThreshold(headers[nettoIndex], TARGET_NETTO),
   };
 };

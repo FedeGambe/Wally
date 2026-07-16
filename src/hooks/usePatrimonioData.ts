@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ContoPatrimonio } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
-import { MESI_ITALIANI, getMonthIndex } from '../utils/date';
+import { MESI_ITALIANI, getMonthIndex, isMeseAnnoFuturo } from '../utils/date';
 
 /**
  * Hook usato dalla pagina Patrimonio (src/pages/Patrimonio.tsx). Non riceve
@@ -48,13 +48,15 @@ export function usePatrimonioData() {
 
   // Sort and process savings trend from localRisparmio
   const sortedRisparmio = useMemo(() => {
-    return [...localRisparmio].sort((a, b) => {
-      const idxA = MESI_ITALIANI.indexOf(a.mese);
-      const idxB = MESI_ITALIANI.indexOf(b.mese);
-      const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
-      const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
-      return valA - valB;
-    });
+    return [...localRisparmio]
+      .filter(r => !isMeseAnnoFuturo(r.mese, r.anno))
+      .sort((a, b) => {
+        const idxA = MESI_ITALIANI.indexOf(a.mese);
+        const idxB = MESI_ITALIANI.indexOf(b.mese);
+        const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
+        const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
+        return valA - valB;
+      });
   }, [localRisparmio]);
 
   // Cumulative savings sum + monthly investments from Rendimenti (Somma attuale / valoreAttualePortafoglio)

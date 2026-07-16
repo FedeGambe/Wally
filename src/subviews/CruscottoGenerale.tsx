@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import CruscottoInspectorWidget from '../components/investimenti/CruscottoInspectorWidget';
 import CruscottoKpiGroups from '../components/investimenti/CruscottoKpiGroups';
 import CruscottoAssetAllocationCard from '../components/investimenti/CruscottoAssetAllocationCard';
@@ -39,6 +39,9 @@ interface CruscottoGeneraleProps {
   formatEuro: (val: any) => string;
   formatPercent: (val: any) => string;
   lastValidRendimento: any;
+  investitoMeseCorrente: number;
+  portafoglioStimatoAttuale: number;
+  contributoMeseCorrente: number;
 }
 
 export default function CruscottoGenerale({
@@ -61,7 +64,25 @@ export default function CruscottoGenerale({
   formatEuro,
   formatPercent,
   lastValidRendimento,
+  investitoMeseCorrente,
+  portafoglioStimatoAttuale,
+  contributoMeseCorrente,
 }: CruscottoGeneraleProps) {
+  // CSS grid non basta a "boxare" la tabella Asset Class sull'altezza naturale del widget
+  // Inspector accanto (un figlio con overflow-y-auto continua a imporre la sua altezza di
+  // contenuto al row auto-sized): misuriamo l'altezza renderizzata dell'Inspector e la
+  // applichiamo come max-height alla tabella, che scrolla internamente oltre quel limite.
+  const inspectorRef = useRef<HTMLDivElement>(null);
+  const [inspectorHeight, setInspectorHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const el = inspectorRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setInspectorHeight(entry.contentRect.height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="space-y-6 text-left animate-fadeIn">
       <CruscottoKpiGroups
@@ -74,6 +95,9 @@ export default function CruscottoGenerale({
         formatEuro={formatEuro}
         formatPercent={formatPercent}
         lastValidRendimento={lastValidRendimento}
+        investitoMeseCorrente={investitoMeseCorrente}
+        portafoglioStimatoAttuale={portafoglioStimatoAttuale}
+        contributoMeseCorrente={contributoMeseCorrente}
       />
 
       {/* Filtro Mese Selezionato: solo mobile, subito dopo i 4 KPI card in alto (su desktop resta in fondo, vedi sotto) */}
@@ -103,11 +127,11 @@ export default function CruscottoGenerale({
       {/* Grid containing Monthly returns inspector card on the left, and Distribuzione Asset Class table on the right */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
         {/* Left Column: Inspector widget (desktop only qui, su mobile è duplicato subito dopo i KPI in alto) */}
-        <div className="hidden lg:flex lg:col-span-1 bg-slate-50 p-6 rounded-3xl border border-slate-200 flex-col justify-between transition-all duration-300 hover:shadow-md">
+        <div ref={inspectorRef} className="hidden lg:flex lg:col-span-1 lg:self-start bg-slate-50 p-6 rounded-3xl border border-slate-200 flex-col justify-between transition-all duration-300 hover:shadow-md">
           <CruscottoInspectorWidget record={globalInspectorRecord} formatEuro={formatEuro} formatPercent={formatPercent} />
         </div>
 
-        <CruscottoAssetClassTable cruscottoRows={cruscottoRows} formatEuro={formatEuro} />
+        <CruscottoAssetClassTable cruscottoRows={cruscottoRows} formatEuro={formatEuro} maxHeight={inspectorHeight} />
       </div>
     </div>
   );

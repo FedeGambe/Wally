@@ -3,7 +3,7 @@ import { Transaction } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { SHEETS_CONFIG } from '../config/sheetsConfig';
 import { getThresholds } from '../utils/thresholds';
-import { MESI_ITALIANI } from '../utils/date';
+import { MESI_ITALIANI, isMeseAnnoFuturo } from '../utils/date';
 
 const DEFAULT_RISPARMIO_HEADERS = SHEETS_CONFIG.find(s => s.dataKey === 'risparmio')?.headers || [];
 
@@ -41,13 +41,15 @@ export function usePanoramicaData(
   // Filter data based on selected year
   const chronologicalData = useMemo(() => {
     const localRisparmio = data.risparmio;
-    const baseSorted = [...localRisparmio].sort((a, b) => {
-      const idxA = MESI_ITALIANI.indexOf(a.mese);
-      const idxB = MESI_ITALIANI.indexOf(b.mese);
-      const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
-      const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
-      return valA - valB;
-    });
+    const baseSorted = [...localRisparmio]
+      .filter(r => !isMeseAnnoFuturo(r.mese, r.anno))
+      .sort((a, b) => {
+        const idxA = MESI_ITALIANI.indexOf(a.mese);
+        const idxB = MESI_ITALIANI.indexOf(b.mese);
+        const valA = a.anno * 12 + (idxA !== -1 ? idxA : 0);
+        const valB = b.anno * 12 + (idxB !== -1 ? idxB : 0);
+        return valA - valB;
+      });
 
     return baseSorted.map(r => {
       const entrate = Number(r.entrate || 0);
@@ -131,8 +133,8 @@ export function usePanoramicaData(
     const headers = data.risparmioHeaders?.length
       ? data.risparmioHeaders
       : DEFAULT_RISPARMIO_HEADERS;
-    return getThresholds(headers);
-  }, [data.risparmioHeaders]);
+    return getThresholds(headers, data.soglie);
+  }, [data.risparmioHeaders, data.soglie]);
 
   // Retrieve current month record and previous month record for delta calculations (year-aware)
   // Ricerca "a cascata": prova prima mese+anno esatti, poi solo il mese (in

@@ -14,6 +14,9 @@ interface CruscottoKpiGroupsProps {
   formatEuro: (val: any) => string;
   formatPercent: (val: any) => string;
   lastValidRendimento: any;
+  investitoMeseCorrente: number;
+  portafoglioStimatoAttuale: number;
+  contributoMeseCorrente: number;
 }
 
 export default function CruscottoKpiGroups({
@@ -25,7 +28,10 @@ export default function CruscottoKpiGroups({
   cruscottoRows,
   formatEuro,
   formatPercent,
-  lastValidRendimento
+  lastValidRendimento,
+  investitoMeseCorrente,
+  portafoglioStimatoAttuale,
+  contributoMeseCorrente
 }: CruscottoKpiGroupsProps) {
   // Confronto con l'anno precedente per i triangolini di Rendimento/Contributo.
   // Se non esiste una riga per l'anno precedente (es. primo anno di dati), il
@@ -66,15 +72,15 @@ export default function CruscottoKpiGroups({
               </div>
             </div>
             <div className="mt-2">
-              {/* Valore attuale del portafoglio = capitale versato in ogni asset class (cumulato di sempre)
-                  + la plusvalenza/minusvalenza cumulata. Non è un valore letto direttamente dal foglio,
-                  ma ricostruito sommando questi pezzi. */}
+              {/* Valore attuale del portafoglio = investito cumulato al mese corrente + rendimento
+                  cumulato dell'ultimo mese effettivamente chiuso (lastValidRendimento): il rendimento
+                  del mese in corso non e' quasi mai disponibile finche' il broker non chiude il mese. */}
               <span className="text-lg sm:text-2xl font-black font-display text-white block">
-                <EuroAmount value={CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + CRUSCOTTO_GENERALE.monetariInvestitoCum + CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
+                <EuroAmount value={portafoglioStimatoAttuale} />
               </span>
             </div>
             <div className="border-t border-sky-800/60 pt-2 mt-2">
-              <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0) + (CRUSCOTTO_GENERALE.commissioniCum || 0))}</span></p>
+              <p className="text-[10px] text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-white">{formatEuro(investitoMeseCorrente)}</span></p>
             </div>
           </div>
 
@@ -162,9 +168,9 @@ export default function CruscottoKpiGroups({
               </span>
             </div>
             <div className="border-t border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-400">
-              <span>Contributo Totale</span>
+              <span>Contributo Mensile</span>
               <span className="text-[12px] font-extrabold text-sky-400 font-mono">
-                {formatEuro(CRUSCOTTO_GENERALE.azioniInvestitoCum + CRUSCOTTO_GENERALE.obbligazioniInvestitoCum + (CRUSCOTTO_GENERALE.monetariInvestitoCum || 0) + (CRUSCOTTO_GENERALE.commissioniCum || 0))}
+                {formatEuro(contributoMeseCorrente)}
               </span>
             </div>
           </div>

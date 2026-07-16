@@ -42,6 +42,7 @@ export default function Investimenti({
     chartData, globalInspectorRecord, cruscottoRows,
     formatPercent,
     lastValidRendimento,
+    investitoMeseCorrente, portafoglioStimatoAttuale, contributoMeseCorrente,
     accountKPIs,
     localScalableInstruments, localTradeRepublicInstruments,
     sortedFilteredRecords,
@@ -129,6 +130,9 @@ export default function Investimenti({
           formatEuro={formatEuro}
           formatPercent={formatPercent}
           lastValidRendimento={lastValidRendimento}
+          investitoMeseCorrente={investitoMeseCorrente}
+          portafoglioStimatoAttuale={portafoglioStimatoAttuale}
+          contributoMeseCorrente={contributoMeseCorrente}
         />
       )}
 
@@ -144,6 +148,8 @@ export default function Investimenti({
           cruscottoRows={cruscottoRows}
           formatEuro={formatEuro}
           formatPercent={formatPercent}
+          investitoMeseCorrente={investitoMeseCorrente}
+          portafoglioStimatoAttuale={portafoglioStimatoAttuale}
         />
       )}
 

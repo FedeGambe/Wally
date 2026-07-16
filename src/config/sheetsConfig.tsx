@@ -88,6 +88,14 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     dataKey: 'categorieUsciteRows'
   },
   {
+    title: 'Soglie',
+    range: 'Soglie!A:B',
+    fields: ['categoria', 'percentuale'],
+    headers: ['Categoria', 'Percentuale'],
+    numberFields: ['percentuale'],
+    dataKey: 'soglieRows'
+  },
+  {
     title: 'Preset Uscite Ricorrenti',
     range: 'Preset Uscite Ricorrenti!A:G',
     fields: ['nome', 'macroCategoria', 'categoria', 'conto', 'importo', 'descrizione', 'primaria'],

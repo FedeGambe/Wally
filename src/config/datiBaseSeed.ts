@@ -75,3 +75,23 @@ export interface PresetTrasferimento {
 }
 
 export const PRESET_TRASFERIMENTI_SEED: PresetTrasferimento[] = [];
+
+/**
+ * Soglie percentuali target per l'allocazione del reddito (quanto % dovrebbe
+ * andare a spese primarie/secondarie/investimenti/risparmio). Seed allineato
+ * ai default di src/config/targets.tsx — se l'utente collega un foglio di
+ * configurazione con un tab "Soglie" proprio, quei valori sostituiscono
+ * questo seed (vedi bottone "Importa da foglio di configurazione" in
+ * DatiBaseSettings).
+ */
+export interface Soglia {
+  categoria: string;
+  percentuale: number; // 0-100
+}
+
+export const SOGLIE_SEED: Soglia[] = [
+  { categoria: 'Spese Primarie', percentuale: 35 },
+  { categoria: 'Spese Secondarie', percentuale: 15 },
+  { categoria: 'Risparmio', percentuale: 25 },
+  { categoria: 'Investimenti', percentuale: 25 }
+];

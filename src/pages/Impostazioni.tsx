@@ -18,7 +18,8 @@ import {
   RefreshCw,
   Check,
   Save,
-  LogOut
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 import DatiBaseSettings from '../components/impostazioni/DatiBaseSettings';
 import PresetRicorrentiSettings from '../components/impostazioni/PresetRicorrentiSettings';
@@ -51,6 +52,30 @@ export default function Impostazioni({
     localStorage.setItem('sf_spreadsheet_id', spreadsheetId.trim());
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  // Secondo foglio, opzionale: contiene i dati di configurazione (categorie, conti, soglie, preset...).
+  const [configSpreadsheetId, setConfigSpreadsheetId] = useState(() => {
+    return localStorage.getItem('sf_config_spreadsheet_id') || '';
+  });
+  const [configSaveSuccess, setConfigSaveSuccess] = useState(false);
+
+  // Le due sezioni di collegamento fogli sono collassabili per guadagnare spazio
+  // verticale nella card: quella principale parte aperta (uso frequente), quella
+  // di configurazione parte chiusa (opzionale, meno usata).
+  const [mainSectionOpen, setMainSectionOpen] = useState(true);
+  const [configSectionOpen, setConfigSectionOpen] = useState(false);
+
+  const handleSaveConfigSpreadsheet = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = configSpreadsheetId.trim();
+    if (trimmed) {
+      localStorage.setItem('sf_config_spreadsheet_id', trimmed);
+    } else {
+      localStorage.removeItem('sf_config_spreadsheet_id');
+    }
+    setConfigSaveSuccess(true);
+    setTimeout(() => setConfigSaveSuccess(false), 3000);
   };
 
   return (
@@ -93,42 +118,98 @@ export default function Impostazioni({
               </h3>
             </div>
             
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-              Inserisci l'ID del foglio Google Sheets contenente i tuoi dati finanziari. Assicurati che l'app abbia i permessi di accesso.
-            </p>
+            <button
+              type="button"
+              onClick={() => setMainSectionOpen(o => !o)}
+              className="w-full flex items-center justify-between gap-2 cursor-pointer"
+            >
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Foglio Principale</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mainSectionOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            <form onSubmit={handleSaveSpreadsheet} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">
-                  Spreadsheet ID
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={spreadsheetId}
-                    onChange={(e) => setSpreadsheetId(e.target.value)}
-                    placeholder="Inserisci l'ID del foglio..."
-                    className="flex-1 px-4 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-                  >
-                    {saveSuccess ? (
-                      <Check className="w-4 h-4 text-emerald-300" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
+            {mainSectionOpen && (
+              <div className="mt-3">
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                  Inserisci l'ID del foglio Google Sheets contenente i tuoi dati finanziari. Assicurati che l'app abbia i permessi di accesso.
+                </p>
+
+                <form onSubmit={handleSaveSpreadsheet} className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">
+                      Spreadsheet ID
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={spreadsheetId}
+                        onChange={(e) => setSpreadsheetId(e.target.value)}
+                        placeholder="Inserisci l'ID del foglio..."
+                        className="flex-1 px-4 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      >
+                        {saveSuccess ? (
+                          <Check className="w-4 h-4 text-emerald-300" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                {saveSuccess && (
+                  <p className="text-[11px] text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
+                    <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
+                  </p>
+                )}
               </div>
-            </form>
-
-            {saveSuccess && (
-              <p className="text-[11px] text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
-                <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
-              </p>
             )}
+
+            <div className="mt-5 pt-5 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfigSectionOpen(o => !o)}
+                className="w-full flex items-center justify-between gap-2 cursor-pointer"
+              >
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Foglio di Configurazione (opzionale)</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${configSectionOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {configSectionOpen && (
+                <div className="mt-3">
+                  <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                    Un secondo foglio Google Sheets separato, con i dati di configurazione (categorie, conti, soglie, preset ricorrenti...).
+                  </p>
+                  <form onSubmit={handleSaveConfigSpreadsheet} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={configSpreadsheetId}
+                      onChange={(e) => setConfigSpreadsheetId(e.target.value)}
+                      placeholder="Inserisci l'ID del foglio di configurazione..."
+                      className="flex-1 px-4 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                    >
+                      {configSaveSuccess ? (
+                        <Check className="w-4 h-4 text-emerald-300" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                    </button>
+                  </form>
+                  {configSaveSuccess && (
+                    <p className="text-[11px] text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
+                      <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row gap-3">

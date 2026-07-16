@@ -33,14 +33,16 @@ import {
   MacroCategoriaUscita,
   PresetUscita,
   PresetTrasferimento,
+  Soglia,
   MACRO_CATEGORIE_USCITE_SEED,
   CATEGORIE_ENTRATE_SEED,
   CONTI_SEED,
   PRESET_USCITE_SEED,
-  PRESET_TRASFERIMENTI_SEED
+  PRESET_TRASFERIMENTI_SEED,
+  SOGLIE_SEED
 } from '../config/datiBaseSeed';
 
-export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento };
+export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento, Soglia };
 
 export interface Transaction {
   id: string;
@@ -311,6 +313,15 @@ export const PRESET_TRASFERIMENTI: PresetTrasferimento[] = (() => {
   }
 })();
 
+export const SOGLIE: Soglia[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_soglie');
+    return val ? JSON.parse(val) : SOGLIE_SEED;
+  } catch {
+    return SOGLIE_SEED;
+  }
+})();
+
 /** Ritrova l'icona della macro categoria di un'uscita, per popolarla in automatico al salvataggio. */
 export function iconPerMacroCategoria(macroCategoria: string): string {
   return MACRO_CATEGORIE_USCITE.find(m => m.nome === macroCategoria)?.icon || '💸';
@@ -470,6 +481,7 @@ export const saveToLocalStorage = (data: {
   macroCategorieUscite?: MacroCategoriaUscita[];
   presetUscite?: PresetUscita[];
   presetTrasferimenti?: PresetTrasferimento[];
+  soglie?: Soglia[];
   capitaleImpegnato?: CapitaleImpegnato[];
   risparmioHeaders?: string[];
   cruscottoInvestimenti?: any[];
@@ -533,6 +545,11 @@ export const saveToLocalStorage = (data: {
     safeSetItem('sf_preset_trasferimenti', JSON.stringify(data.presetTrasferimenti));
     PRESET_TRASFERIMENTI.length = 0;
     PRESET_TRASFERIMENTI.push(...data.presetTrasferimenti);
+  }
+  if (data.soglie) {
+    safeSetItem('sf_soglie', JSON.stringify(data.soglie));
+    SOGLIE.length = 0;
+    SOGLIE.push(...data.soglie);
   }
   if (data.uscite) {
     safeSetItem('sf_transactions', JSON.stringify(data.uscite));
@@ -622,6 +639,7 @@ const getDemoExportableData = () => ({
   macroCategorieUscite: MACRO_CATEGORIE_USCITE_SEED,
   presetUscite: PRESET_USCITE_SEED,
   presetTrasferimenti: PRESET_TRASFERIMENTI_SEED,
+  soglie: SOGLIE_SEED,
   capitaleImpegnato: DEMO_CAPITALE_IMPEGNATO,
   risparmioHeaders: DEMO_RISPARMIO_HEADERS,
   cruscottoInvestimenti: DEMO_CRUSCOTTO_DATA,
@@ -716,6 +734,7 @@ export const getExportableData = (incognito: boolean = false) => {
     macroCategorieUscite: MACRO_CATEGORIE_USCITE,
     presetUscite: PRESET_USCITE,
     presetTrasferimenti: PRESET_TRASFERIMENTI,
+    soglie: SOGLIE,
     capitaleImpegnato: CAPITALE_IMPEGNATO,
     risparmioHeaders: RISPARMIO_HEADERS_STATE,
     cruscottoInvestimenti: CRUSCOTTO_DATA,

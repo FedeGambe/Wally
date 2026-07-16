@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { useSaveAndPush } from './useSaveAndPush';
-import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita, PresetTrasferimento } from '../data/mockData';
+import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita, PresetTrasferimento, Soglia } from '../data/mockData';
 
 /**
  * Hook usato da Impostazioni (per editare conti/categorie/preset) e dai form
@@ -23,6 +23,7 @@ export function useDatiBase() {
     conti?: string[];
     presetUscite?: PresetUscita[];
     presetTrasferimenti?: PresetTrasferimento[];
+    soglie?: Soglia[];
   }) => {
     saveAndPush(() => {
       saveToLocalStorage(update);
@@ -35,6 +36,7 @@ export function useDatiBase() {
     conti: data.conti,
     presetUscite: data.presetUscite,
     presetTrasferimenti: data.presetTrasferimenti,
+    soglie: data.soglie,
     updateDatiBase,
     isSaving,
     error

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { computeCruscottoData, computeRealAssetAllocation } from '../utils/cruscottoInvestimenti';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { formatPercent as formatPercentBase } from '../utils/format';
-import { MESI_ITALIANI } from '../utils/date';
+import { MESI_ITALIANI, MESI_ABBREVIATI, isMeseAnnoFuturo } from '../utils/date';
 
 /**
  * Funzione helper esportata: prova a leggere mese e anno da una stringa libera
@@ -119,26 +119,18 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return computed;
   }, [data]);
 
-  // Le commissioni cumulate (Scalable + Trade Republic, colonna "Commissioni comulative") sono
-  // soldi usciti dalla tasca ma non allocati in nessuna asset class: vanno sommate a
-  // importoInvestitoCumulato (capitale investito), ma NON al rendimento/valutazione (che nel
-  // foglio Rendimenti è già calcolato al netto di queste, quindi sommarle lì sarebbe doppio
-  // conteggio). Sono per-anno (computeCruscottoData le calcola riga per riga in localCruscotto),
-  // non un unico totale "ultimo valore" spalmato su tutto lo storico.
+  // importoInvestitoCumulato del foglio Rendimenti include ormai gia' le commissioni (in
+  // passato non era cosi': si sommava qui commissioniInvestitoCum da localCruscotto per
+  // compensare, ma con le commissioni gia' nel dato sorgente sarebbe un doppio conteggio).
   const localRendimenti = useMemo(() => {
     const raw = data.rendimentiInvestimenti;
     return raw
       .filter((item: any) => item && item.mese && String(item.mese).trim() !== '')
-      .map((item: any) => {
+      .filter((item: any) => {
         const parsed = parseMeseStringToMonthYear(item.mese);
-        const yearRow = parsed ? localCruscotto.find((r: any) => Number(r.anno) === parsed.year) : null;
-        const commissioniCum = Number(yearRow?.commissioniInvestitoCum || 0);
-        return {
-          ...item,
-          importoInvestitoCumulato: Number(item.importoInvestitoCumulato || 0) + commissioniCum
-        };
+        return !parsed || !isMeseAnnoFuturo(item.mese, parsed.year);
       });
-  }, [data.rendimentiInvestimenti, localCruscotto]);
+  }, [data.rendimentiInvestimenti]);
 
   // 1.5 Active records with non-zero portfolio value
   const activeRendimenti = useMemo(() => {
@@ -232,7 +224,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     return activeRendimenti.slice(startIndex, endIndex + 1);
   }, [activeRendimenti, resolvedFocusIndex, isCurrentMonthSelected]);
 
-  const chartData = useMemo(() => {
+  const baseChartData = useMemo(() => {
     return timeRange === '12mesi' ? globalFocusRendimenti : activeRendimenti;
   }, [timeRange, globalFocusRendimenti, activeRendimenti]);
 
@@ -331,6 +323,64 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     }
     return localRendimenti[localRendimenti.length - 1];
   }, [localRendimenti]);
+
+  // Riga di Rendimenti del mese corrente reale (non quello selezionato nell'header), o l'ultima
+  // riga disponibile se il mese in corso non e' ancora stato inserito. A differenza del
+  // rendimento, l'importo investito e' quasi sempre noto in tempo reale (il versamento e' un
+  // fatto, non una valutazione di mercato), quindi niente fallback al mese precedente qui.
+  const rigaMeseCorrente = useMemo(() => {
+    if (localRendimenti.length === 0) return null;
+    const oggi = new Date();
+    const match = localRendimenti.find((r: any) => {
+      const parsed = parseMeseStringToMonthYear(r.mese);
+      return parsed && parsed.month === oggi.getMonth() + 1 && parsed.year === oggi.getFullYear();
+    });
+    return match || localRendimenti[localRendimenti.length - 1];
+  }, [localRendimenti]);
+
+  // Investito cumulato ad oggi (capitale totale versato di sempre, ad oggi).
+  const investitoMeseCorrente = useMemo(() => {
+    return Number(rigaMeseCorrente?.importoInvestitoCumulato || 0);
+  }, [rigaMeseCorrente]);
+
+  // Contributo versato nel solo mese corrente (non cumulato).
+  const contributoMeseCorrente = useMemo(() => {
+    return Number(rigaMeseCorrente?.importoMensileInvestito || 0);
+  }, [rigaMeseCorrente]);
+
+  // Stima del valore attuale del portafoglio quando il mese in corso non ha ancora un
+  // valoreAttualePortafoglio reale sul foglio (aggiornato solo a chiusura mese): investito
+  // ad oggi + rendimento cumulato dell'ultimo mese effettivamente chiuso (lastValidRendimento).
+  const portafoglioStimatoAttuale = useMemo(() => {
+    return investitoMeseCorrente + Number(lastValidRendimento?.rendimentoCumulativoEuro || 0);
+  }, [investitoMeseCorrente, lastValidRendimento]);
+
+  // Punto sintetico per il mese corrente nel grafico "Andamento Investimenti": activeRendimenti
+  // esclude il mese in corso finche' valoreAttualePortafoglio resta a 0 (sheet non ancora
+  // aggiornato a fine mese), quindi il grafico "sparirebbe" prima di oggi. Se la finestra
+  // visibile (baseChartData) arriva davvero fino all'ultimo dato disponibile (non e' un mese
+  // storico selezionato altrove), aggiungiamo un ultimo punto con il valore stimato.
+  const chartData = useMemo(() => {
+    if (baseChartData.length === 0) return baseChartData;
+
+    const isAtChronologicalEnd = activeRendimenti.length === 0 ||
+      baseChartData[baseChartData.length - 1] === activeRendimenti[activeRendimenti.length - 1];
+    if (!isAtChronologicalEnd) return baseChartData;
+
+    const oggi = new Date();
+    const lastPointDate = parseMeseStringToMonthYear(baseChartData[baseChartData.length - 1].mese);
+    const isLastPointCurrentMonth = lastPointDate &&
+      lastPointDate.month === oggi.getMonth() + 1 && lastPointDate.year === oggi.getFullYear();
+    if (isLastPointCurrentMonth) return baseChartData;
+
+    return [...baseChartData, {
+      mese: `${MESI_ABBREVIATI[oggi.getMonth()]} ${String(oggi.getFullYear()).slice(-2)}`,
+      anno: oggi.getFullYear(),
+      importoInvestitoCumulato: investitoMeseCorrente,
+      valoreAttualePortafoglio: portafoglioStimatoAttuale,
+      importoMensileInvestito: 0
+    }];
+  }, [baseChartData, activeRendimenti, investitoMeseCorrente, portafoglioStimatoAttuale]);
 
   const CRUSCOTTO_ANNO = useMemo(() => {
     const isLoaded = !!localStorage.getItem('sf_spreadsheet_id');
@@ -436,7 +486,10 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
         rendimentoAnnualeEuro: 2510.00
       });
     }
-    return list.sort((a, b) => Number(b.anno || 0) - Number(a.anno || 0));
+    const annoCorrente = new Date().getFullYear();
+    return list
+      .filter(item => Number(item.anno || 0) <= annoCorrente)
+      .sort((a, b) => Number(b.anno || 0) - Number(a.anno || 0));
   }, [localCruscotto]);
 
   const formatPercent = (value: any) => formatPercentBase(value, { signed: true });
@@ -454,7 +507,12 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     const monetariColors = ['#064e3b', '#065f46', '#047857', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
 
     if (data.scalable?.length > 0 || data.tradeRepublic?.length > 0) {
-      const allocation = computeRealAssetAllocation(data);
+      const targetMonthIdx = MESI_ITALIANI.findIndex(m => m.toLowerCase() === globalSelectedMonth.toLowerCase().trim());
+      const allocation = computeRealAssetAllocation(
+        data,
+        targetMonthIdx !== -1 ? targetMonthIdx + 1 : undefined,
+        Number(globalSelectedYear) || undefined
+      );
 
       const azioniItems = allocation.detailData.filter(item => item.tipo === 'Azioni').sort((a, b) => b.importoInvestito - a.importoInvestito);
       const obbligazioniItems = allocation.detailData.filter(item => item.tipo === 'Obbligazioni').sort((a, b) => b.importoInvestito - a.importoInvestito);
@@ -550,7 +608,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     const detailData = [...azioniMapped, ...obbligazioniMapped, ...monetariMapped];
 
     return { macroData, detailData };
-  }, [data, CRUSCOTTO_GENERALE]);
+  }, [data, CRUSCOTTO_GENERALE, globalSelectedMonth, globalSelectedYear]);
 
   const localScalableInstruments = data.scalableInstruments;
   const localTradeRepublicInstruments = data.tradeRepublicInstruments;
@@ -610,6 +668,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     const list = activeConto === 'scalable' ? localScalableMonthly : localTradeRepublicMonthly;
     return list.filter((row: any) => {
       const parsed = parseMeseStringToMonthYear(row.mese);
+      if (parsed && isMeseAnnoFuturo(row.mese, parsed.year)) return false;
       if (parsed) {
         return parsed.year === Number(globalSelectedYear);
       }
@@ -666,6 +725,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     chartData, globalInspectorRecord, cruscottoRows,
     formatPercent,
     lastValidRendimento,
+    investitoMeseCorrente, portafoglioStimatoAttuale, contributoMeseCorrente,
     accountKPIs,
     localScalableInstruments, localTradeRepublicInstruments,
     sortedFilteredRecords,
