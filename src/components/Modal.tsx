@@ -17,9 +17,13 @@ interface ModalProps {
   /** Popup a tutto schermo invece che centrato in una card piccola — per
    * editor più ampi (es. Impostazioni → Dati Base) dove il form breve non basta. */
   fullScreen?: boolean;
+  /** Larghezza massima della card centrata (ignorata se fullScreen). Default 'max-w-md'. */
+  maxWidthClass?: string;
+  /** Sfoca (backdrop-blur) il contenuto sotto l'overlay invece del solo scurimento. */
+  blurBackdrop?: boolean;
 }
 
-export default function Modal({ isOpen, onClose, title, children, fullScreen = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, fullScreen = false, maxWidthClass = 'max-w-md', blurBackdrop = false }: ModalProps) {
   // Reso in portal su document.body (come DropdownMenu): se non lo facessimo,
   // aprendo il popup da dentro una card "bg-white" (es. Impostazioni) il tema
   // scuro applica una regola CSS pensata per box ANNIDATI dentro altri box
@@ -37,7 +41,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900 z-[70]"
+            className={`fixed inset-0 bg-slate-900 z-[70] ${blurBackdrop ? 'backdrop-blur-md' : ''}`}
           />
           <div
             className={`fixed inset-0 z-[71] ${fullScreen ? '' : 'flex items-center justify-center p-4'}`}
@@ -52,7 +56,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
               className={
                 fullScreen
                   ? 'w-full h-full bg-[#ffffff] dark:bg-[#0b0f19] flex flex-col'
-                  : 'w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10'
+                  : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10`
               }
             >
               <div className={`p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>

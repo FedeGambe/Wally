@@ -109,6 +109,25 @@ export default function Panoramica({
   const spesePerc = currentMonthData.entrate > 0 ? (speseTotaleWidget / currentMonthData.entrate) * 100 : undefined;
   const speseSoglia = dynamicThresholds.primarie + dynamicThresholds.secondarie;
 
+  // Scostamento dalla soglia dei 4 mini-widget Risparmio/Investito/Spese Primarie/Secondarie,
+  // sia in euro (accanto all'importo) che in punti percentuali (nel badge Sotto/Fuori Soglia,
+  // che prima ripeteva la stessa quota già mostrata sopra invece di dire "di quanto").
+  // Positivo = soglia rispettata (margine), negativo = soglia sforata. Per risparmio/investito
+  // "di più è meglio" (quota - target); per le spese vale il contrario (target - quota).
+  const entrateMese = currentMonthData.entrate;
+  const rispDeltaEuro = (currentMonthData.risparmioNetto !== undefined && entrateMese)
+    ? currentMonthData.risparmioNetto - (entrateMese * dynamicThresholds.risparmio / 100) : undefined;
+  const invDeltaEuro = (currentMonthData.investito !== undefined && entrateMese)
+    ? currentMonthData.investito - (entrateMese * dynamicThresholds.investiti / 100) : undefined;
+  const primDeltaEuro = (currentMonthData.spesePrimarie !== undefined && entrateMese)
+    ? (entrateMese * dynamicThresholds.primarie / 100) - currentMonthData.spesePrimarie : undefined;
+  const secDeltaEuro = (currentMonthData.speseSecondarie !== undefined && entrateMese)
+    ? (entrateMese * dynamicThresholds.secondarie / 100) - currentMonthData.speseSecondarie : undefined;
+  const rispPercDelta = rispPerc !== undefined ? rispPerc - dynamicThresholds.risparmio : undefined;
+  const invPercDelta = invPerc !== undefined ? invPerc - dynamicThresholds.investiti : undefined;
+  const primPercDelta = primPerc !== undefined ? dynamicThresholds.primarie - primPerc : undefined;
+  const secPercDelta = secPerc !== undefined ? dynamicThresholds.secondarie - secPerc : undefined;
+
   // Widget "Rendiconto Mese Corrente": renderizzato due volte, una sola volta
   // visibile a seconda del breakpoint (vedi sotto), per spostarlo subito dopo i 4
   // widget patrimonio su mobile (dove sostituisce anche il box "Mese Corrente",
@@ -296,14 +315,21 @@ export default function Panoramica({
               >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Risparmio</span>
-                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                    <EuroAmount value={currentMonthData.risparmioNetto} />
-                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-2xl font-extrabold font-display text-slate-800 block">
+                      <EuroAmount value={currentMonthData.risparmioNetto} />
+                    </span>
+                    {rispDeltaEuro !== undefined && (
+                      <span className={`text-xs font-bold ${rispDeltaEuro >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {rispDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(rispDeltaEuro))}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(rispPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPerc !== undefined && rispPerc >= dynamicThresholds.risparmio ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {rispPerc !== undefined && rispPerc >= dynamicThresholds.risparmio ? `Sotto Soglia ✓ ${formatPercent(rispPerc)}` : `Fuori Soglia ✗ ${formatPercent(rispPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPercDelta !== undefined && rispPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {rispPercDelta !== undefined && rispPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(rispPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(rispPercDelta, { signed: true })}`}
                   </span>
                 </div>
               </div>
@@ -315,14 +341,21 @@ export default function Panoramica({
               >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Investito</span>
-                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                    <EuroAmount value={currentMonthData.investito} />
-                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-2xl font-extrabold font-display text-slate-800 block">
+                      <EuroAmount value={currentMonthData.investito} />
+                    </span>
+                    {invDeltaEuro !== undefined && (
+                      <span className={`text-xs font-bold ${invDeltaEuro >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {invDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(invDeltaEuro))}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(invPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPerc !== undefined && invPerc >= dynamicThresholds.investiti ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {invPerc !== undefined && invPerc >= dynamicThresholds.investiti ? `Sotto Soglia ✓ ${formatPercent(invPerc)}` : `Fuori Soglia ✗ ${formatPercent(invPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPercDelta !== undefined && invPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {invPercDelta !== undefined && invPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(invPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(invPercDelta, { signed: true })}`}
                   </span>
                 </div>
               </div>
@@ -348,14 +381,21 @@ export default function Panoramica({
               >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Primarie</span>
-                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                    <EuroAmount value={currentMonthData.spesePrimarie} />
-                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-2xl font-extrabold font-display text-slate-800 block">
+                      <EuroAmount value={currentMonthData.spesePrimarie} />
+                    </span>
+                    {primDeltaEuro !== undefined && (
+                      <span className={`text-xs font-bold ${primDeltaEuro >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {primDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(primDeltaEuro))}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(primPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPerc !== undefined && primPerc <= dynamicThresholds.primarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {primPerc !== undefined && primPerc <= dynamicThresholds.primarie ? `Sotto Soglia ✓ ${formatPercent(primPerc)}` : `Fuori Soglia ✗ ${formatPercent(primPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPercDelta !== undefined && primPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {primPercDelta !== undefined && primPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(primPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(primPercDelta, { signed: true })}`}
                   </span>
                 </div>
               </div>
@@ -367,14 +407,21 @@ export default function Panoramica({
               >
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spese Secondarie</span>
-                  <span className="text-2xl font-extrabold font-display text-slate-800 mt-1 block">
-                    <EuroAmount value={currentMonthData.speseSecondarie} />
-                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-2xl font-extrabold font-display text-slate-800 block">
+                      <EuroAmount value={currentMonthData.speseSecondarie} />
+                    </span>
+                    {secDeltaEuro !== undefined && (
+                      <span className={`text-xs font-bold ${secDeltaEuro >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {secDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(secDeltaEuro))}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500 font-medium">Quota: <strong className="font-bold text-slate-700">{formatPercent(secPerc)}</strong></span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPerc !== undefined && secPerc <= dynamicThresholds.secondarie ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                    {secPerc !== undefined && secPerc <= dynamicThresholds.secondarie ? `Sotto Soglia ✓ ${formatPercent(secPerc)}` : `Fuori Soglia ✗ ${formatPercent(secPerc)}`}
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPercDelta !== undefined && secPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                    {secPercDelta !== undefined && secPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(secPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(secPercDelta, { signed: true })}`}
                   </span>
                 </div>
               </div>

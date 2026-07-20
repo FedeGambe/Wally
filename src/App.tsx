@@ -38,6 +38,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './pages/Login';
 import SheetsModal from './components/SheetsModal';
+import RiepilogoMesePopup from './components/RiepilogoMesePopup';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // ponytail: spinner minimale, non serve altro per il breve gap del lazy-load pagina
@@ -62,7 +63,105 @@ const Impostazioni = lazy(() => import('./pages/Impostazioni'));
 import { initAuth, logout } from './lib/googleAuth';
 import { getExportableData, isIncognitoModeEnabled } from './data/mockData';
 import { FinanceDataProvider, useFinanceData } from './context/FinanceDataContext';
-import { MESI_ITALIANI } from './utils/date';
+import { MESI_ITALIANI, getMonthIndex } from './utils/date';
+import { getThresholds } from './utils/thresholds';
+
+// Punti percentuali di scarto (soglia target - quota reale spese totali) oltre i quali,
+// nel popup di riepilogo mese, si propone una redistribuzione del margine risparmiato.
+const SCARTO_MINIMO_REDISTRIBUZIONE = 9;
+
+/**
+ * Riepilogo del mese precedente: mostrato solo nei primi 5 giorni del mese
+ * (finestra "chiusura mese") e solo se non è già stato marcato "visto" per
+ * quel mese (flag in localStorage, impostato dal checkbox nel popup).
+ * Calcolato una sola volta all'avvio (lazy useState init in DashboardShell),
+ * non ricalcolato ad ogni refresh dati: altrimenti un pull da Sheets a popup
+ * già chiuso (ma non "visto") lo farebbe ricomparire a metà sessione.
+ */
+function computeRiepilogoPrecedente(data: ReturnType<typeof getExportableData>) {
+  const oggi = new Date();
+  // ponytail: bypass manuale per test in console (localStorage.setItem('sf_debug_riepilogo','true')), non un flag utente
+  if (oggi.getDate() > 5 && localStorage.getItem('sf_debug_riepilogo') !== 'true') return null;
+
+  const prev = new Date(oggi.getFullYear(), oggi.getMonth() - 1, 1);
+  const anno = prev.getFullYear();
+  const meseIdx = prev.getMonth();
+  const storageKey = `sf_riepilogo_visto_${anno}-${meseIdx}`;
+  const debug = localStorage.getItem('sf_debug_riepilogo') === 'true';
+  if (localStorage.getItem(storageKey) === 'true') {
+    if (debug) console.log('[riepilogo debug] già segnato visto', storageKey);
+    return null;
+  }
+
+  const record = data.risparmio.find(r => r.anno === anno && getMonthIndex(r.mese) === meseIdx);
+  if (debug) {
+    console.log('[riepilogo debug]', {
+      cercoAnno: anno, cercoMeseIdx: meseIdx, cercoMese: MESI_ITALIANI[meseIdx],
+      trovato: !!record,
+      righeRisparmioDisponibili: data.risparmio.map(r => ({ mese: r.mese, anno: r.anno }))
+    });
+  }
+  if (!record) return null;
+
+  // Soglia "spese totali" = primarie + secondarie (stessa fonte usata da Panoramica/Uscite:
+  // Soglie utente se presenti, altrimenti default di src/config/targets.tsx).
+  const thresholds = getThresholds([], data.soglie);
+  const targetSpeseTotali = thresholds.primarie + thresholds.secondarie;
+  // Coercizione a numero di tutti i campi usati, una volta sola qui: un campo mancante/non
+  // numerico nella riga del foglio (cella vuota, "N/D"...) altrimenti arriva come NaN/undefined
+  // fino a formatEuro nel popup, che lo rende come "***" invece di un importo.
+  const entrate = Number(record.entrate) || 0;
+  const speseTotali = Number(record.speseTotali) || 0;
+  const spesePrimarie = Number(record.spesePrimarie) || 0;
+  const speseSecondarie = Number(record.speseSecondarie) || 0;
+  const investito = Number(record.investito) || 0;
+  const risparmioNetto = Number(record.risparmioNetto) || 0;
+  const quotaSpeseTotali = entrate ? (speseTotali / entrate) * 100 : 0;
+  const quotaPrimarie = entrate ? (spesePrimarie / entrate) * 100 : 0;
+  const quotaSecondarie = entrate ? (speseSecondarie / entrate) * 100 : 0;
+  // Margine in euro rispetto alla soglia = soglia% * entrate - uscite reali:
+  // positivo = avanzo (speso meno del consentito), negativo = sforato di quel tanto.
+  const deltaPrimarie = (entrate * thresholds.primarie / 100) - spesePrimarie;
+  const deltaSecondarie = (entrate * thresholds.secondarie / 100) - speseSecondarie;
+  // Positivo = si è speso meno del previsto (sotto budget), negativo = sopra budget.
+  const scarto = targetSpeseTotali - quotaSpeseTotali;
+  // Margine/sforo totale in euro: somma dei due margini primarie+secondarie (equivalente a
+  // scarto% * entrate, ma sommando i due delta si evita un secondo calcolo separato).
+  const deltaBudgetEuro = deltaPrimarie + deltaSecondarie;
+  // Investito/Risparmio: "rispettata" = quota reale >= soglia target (qui più è meglio è,
+  // al contrario delle spese). Usato solo per il pallino verde/rosso nel popup.
+  const quotaInvestito = entrate ? (investito / entrate) * 100 : 0;
+  const quotaRisparmio = entrate ? (risparmioNetto / entrate) * 100 : 0;
+  const investitoOk = quotaInvestito >= thresholds.investiti;
+  const risparmioOk = quotaRisparmio >= thresholds.risparmio;
+
+  let redistribuzione: { risparmio: number; investito: number; primarie: number } | null = null;
+  if (scarto >= SCARTO_MINIMO_REDISTRIBUZIONE && entrate) {
+    const margine = entrate * scarto / 100;
+    // Investito e primarie arrotondati al multiplo di 5 più vicino (cifre "tonde"),
+    // risparmio assorbe il resto per far tornare esattamente il margine totale.
+    const roundTo5 = (v: number) => Math.round(v / 5) * 5;
+    const investito = roundTo5(margine * 0.35);
+    const primarie = roundTo5(margine * 0.15);
+    redistribuzione = {
+      investito,
+      primarie,
+      risparmio: margine - investito - primarie,
+    };
+  }
+
+  return {
+    storageKey, mese: MESI_ITALIANI[meseIdx], anno,
+    record: { entrate, spesePrimarie, speseSecondarie, investito, risparmioNetto },
+    budget: {
+      targetSpeseTotali, quotaSpeseTotali, sopraBudget: scarto < 0, deltaEuro: deltaBudgetEuro,
+      primarie: { target: thresholds.primarie, quota: quotaPrimarie, deltaEuro: deltaPrimarie },
+      secondarie: { target: thresholds.secondarie, quota: quotaSecondarie, deltaEuro: deltaSecondarie },
+      investitoOk, risparmioOk,
+    },
+    redistribuzione,
+  };
+}
 
 export default function App() {
   // Authentication State
@@ -317,6 +416,14 @@ function DashboardShell({
   const { data, isRefreshing, syncError, refreshData } = useFinanceData();
   const [showRefreshToast, setShowRefreshToast] = useState(false);
   const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
+  const [riepilogoMese, setRiepilogoMese] = useState(() => computeRiepilogoPrecedente(data));
+
+  const handleCloseRiepilogo = (visto: boolean) => {
+    if (visto && riepilogoMese) {
+      localStorage.setItem(riepilogoMese.storageKey, 'true');
+    }
+    setRiepilogoMese(null);
+  };
 
   const handleRefreshData = () => {
     const savedId = localStorage.getItem('sf_spreadsheet_id');
@@ -474,6 +581,18 @@ function DashboardShell({
           setTimeout(() => setShowRefreshToast(false), 4000);
         }}
       />
+
+      {/* Riepilogo mese precedente (primi 5 giorni del mese, una volta sola) */}
+      {riepilogoMese && (
+        <RiepilogoMesePopup
+          onClose={handleCloseRiepilogo}
+          mese={riepilogoMese.mese}
+          anno={riepilogoMese.anno}
+          record={riepilogoMese.record}
+          budget={riepilogoMese.budget}
+          redistribuzione={riepilogoMese.redistribuzione}
+        />
+      )}
 
       {/* Mobile Bottom Navigation Bar styled dynamically per active tab color */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around items-center pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-2 select-none shadow-lg">
