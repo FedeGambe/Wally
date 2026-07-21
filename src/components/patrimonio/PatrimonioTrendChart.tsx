@@ -131,13 +131,13 @@ export default function PatrimonioTrendChart({
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6 border-b border-slate-100 pb-4">
+    <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6 border-b border-hairline pb-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-amber-500" />
           <div>
-            <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Andamento Finanziario</h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h3 className="font-bold text-ink font-display text-base leading-snug">Andamento Finanziario</h3>
+            <p className="text-xs text-ink-soft mt-0.5">
               Analisi storica e cumulativa del patrimonio netto
               {isPointerFine && <span className="hidden sm:inline"> · trascina sul grafico per zoomare</span>}
             </p>
@@ -156,8 +156,8 @@ export default function PatrimonioTrendChart({
           <button
             onClick={() => setVisibleLines(prev => ({ ...prev, netto: !prev.netto }))}
             className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.netto
-              ? 'bg-slate-100 text-slate-800 border-slate-300 shadow-2xs dark:bg-white/10 dark:text-slate-100 dark:border-white/20'
-              : 'bg-transparent text-slate-400 border-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 dark:border-white/10 opacity-60'
+              ? 'bg-canvas text-ink border-hairline shadow-2xs dark:bg-white/10 dark:text-slate-100 dark:border-white/20'
+              : 'bg-transparent text-ink-soft border-hairline hover:bg-canvas dark:hover:bg-white/5 dark:border-white/10 opacity-60'
               }`}
           >
             <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.netto ? 'bg-slate-500' : 'bg-slate-300'}`}></span>
@@ -167,7 +167,7 @@ export default function PatrimonioTrendChart({
             onClick={() => setVisibleLines(prev => ({ ...prev, risparmio: !prev.risparmio }))}
             className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.risparmio
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs dark:bg-emerald-400/10 dark:text-emerald-300 dark:border-emerald-400/30'
-              : 'bg-transparent text-slate-400 border-slate-200 hover:bg-emerald-50/20 dark:hover:bg-emerald-400/10 dark:border-white/10 opacity-60'
+              : 'bg-transparent text-ink-soft border-hairline hover:bg-emerald-50/20 dark:hover:bg-emerald-400/10 dark:border-white/10 opacity-60'
               }`}
           >
             <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.risparmio ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
@@ -177,7 +177,7 @@ export default function PatrimonioTrendChart({
             onClick={() => setVisibleLines(prev => ({ ...prev, investito: !prev.investito }))}
             className={`flex items-center gap-2 transition-all duration-200 cursor-pointer select-none px-3 py-1.5 rounded-xl border text-xs font-semibold ${visibleLines.investito
               ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-2xs dark:bg-sky-400/10 dark:text-sky-300 dark:border-sky-400/30'
-              : 'bg-transparent text-slate-400 border-slate-200 hover:bg-sky-50/20 dark:hover:bg-sky-400/10 dark:border-white/10 opacity-60'
+              : 'bg-transparent text-ink-soft border-hairline hover:bg-sky-50/20 dark:hover:bg-sky-400/10 dark:border-white/10 opacity-60'
               }`}
           >
             <span className={`w-2 h-2 rounded-full transition-all ${visibleLines.investito ? 'bg-sky-500' : 'bg-slate-300'}`}></span>
@@ -375,9 +375,9 @@ export default function PatrimonioTrendChart({
         </div>
 
         {/* Right 1/3 - Monthly Detail List */}
-        <div className="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-slate-100 lg:pl-6 pt-4 lg:pt-0 flex flex-col h-full justify-between">
+        <div className="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-hairline lg:pl-6 pt-4 lg:pt-0 flex flex-col h-full justify-between">
           <div className="mb-2">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Riepilogo Mensile</span>
+            <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Riepilogo Mensile</span>
           </div>
           <div className="h-72 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-slate-200">
             {[...sortedRisparmio].reverse().map((r, idx) => {
@@ -387,20 +387,20 @@ export default function PatrimonioTrendChart({
               const rispVal = r.risparmioNetto ?? r.risparmio ?? 0;
               const invVal = r.investito ?? r.investiti ?? 0;
               return (
-                <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs transition-all hover:bg-slate-100/70 dark:hover:bg-white/5">
+                <div key={idx} className="p-2.5 rounded-xl bg-canvas border border-hairline flex items-center justify-between text-xs transition-all hover:bg-canvas/70 dark:hover:bg-white/5">
                   <div>
-                    <span className="font-bold text-slate-700 block">{r.mese}</span>
-                    <span className="text-[10px] text-slate-400 font-medium block">{r.anno}</span>
+                    <span className="font-bold text-ink block">{r.mese}</span>
+                    <span className="text-[10px] text-ink-soft font-medium block">{r.anno}</span>
                   </div>
                   <div className="text-right space-y-0.5">
                     <div className="flex items-center justify-end gap-1.5">
-                      <span className="text-[9px] text-slate-400 font-medium">Risp:</span>
-                      <span className={`font-bold ${rispVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <span className="text-[9px] text-ink-soft font-medium">Risp:</span>
+                      <span className={`font-bold ${rispVal >= 0 ? 'text-up' : 'text-down'}`}>
                         {formatEuro(rispVal)}
                       </span>
                     </div>
                     <div className="flex items-center justify-end gap-1.5">
-                      <span className="text-[9px] text-slate-400 font-medium">Inv:</span>
+                      <span className="text-[9px] text-ink-soft font-medium">Inv:</span>
                       <span className="font-bold text-sky-600">
                         {formatEuro(invVal)}
                       </span>

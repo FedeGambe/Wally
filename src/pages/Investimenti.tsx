@@ -56,21 +56,21 @@ export default function Investimenti({
       <div
         className={`sticky transition-all duration-300 z-30 ${
           isSticky
-            ? 'top-[-16px] md:top-[-32px] -mx-4 px-4 md:-mx-8 md:px-8 pt-4 pb-2 bg-slate-50/30 dark:bg-[#060a13]/30 backdrop-blur-md border-b border-slate-200/30 dark:border-slate-800/10 shadow-xs'
+            ? 'top-[-16px] md:top-[-32px] -mx-4 px-4 md:-mx-8 md:px-8 pt-4 pb-2 bg-canvas/30 dark:bg-[#060a13]/30 backdrop-blur-md border-b border-hairline/30 dark:border-slate-800/10 shadow-xs'
             : 'top-0 pt-0 pb-3 bg-transparent'
         }`}
       >
         <div className={`flex transition-all duration-300 p-1.5 rounded-2xl border gap-2 ${
           isSticky
-            ? 'bg-white/35 dark:bg-[#0c1425]/35 border-slate-200/30 dark:border-slate-800/20'
-            : 'bg-white/85 dark:bg-[#0c1425]/85 border-slate-200 dark:border-slate-800/60 shadow-xs'
+            ? 'bg-white/35 dark:bg-[#0c1425]/35 border-hairline/30 dark:border-slate-800/20'
+            : 'bg-white/85 dark:bg-[#0c1425]/85 border-hairline dark:border-slate-800/60 shadow-xs'
         }`}>
           <button
             onClick={() => setActiveTab('cruscotto')}
             className={`flex-1 px-2 sm:px-5 py-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'cruscotto'
                 ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
             Cruscotto
@@ -80,7 +80,7 @@ export default function Investimenti({
             className={`flex-1 px-2 sm:px-5 py-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'rendimenti'
                 ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
             Rendimenti
@@ -90,7 +90,7 @@ export default function Investimenti({
             className={`flex-1 px-2 sm:px-5 py-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'conti'
                 ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
             Conti
@@ -100,7 +100,7 @@ export default function Investimenti({
             className={`flex-1 px-2 sm:px-5 py-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'pensione'
                 ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/30'
+                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
             Fondo Pensione

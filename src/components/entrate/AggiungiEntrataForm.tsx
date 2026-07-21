@@ -54,15 +54,15 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500";
-  const labelClass = "block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500";
+  const labelClass = "block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className={labelClass}>Mese</label>
-          <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 cursor-pointer select-none">
+          <label className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-soft cursor-pointer select-none">
             <input type="checkbox" checked={useMeseDiverso} onChange={e => setUseMeseDiverso(e.target.checked)} className="cursor-pointer" />
             Mese diverso da quello corrente
           </label>
@@ -83,7 +83,7 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
             <input type="number" value={anno} onChange={e => setAnno(Number(e.target.value))} className={inputClass} />
           </div>
         ) : (
-          <div className={`${inputClass} bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400`}>
+          <div className={`${inputClass} bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400`}>
             {MESI_ITALIANI[oggi.getMonth()]} {oggi.getFullYear()}
           </div>
         )}
@@ -133,7 +133,7 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
         />
       </div>
 
-      {error && <p className="text-xs text-rose-600 font-semibold">{error}</p>}
+      {error && <p className="text-xs text-down font-semibold">{error}</p>}
 
       <button
         type="submit"

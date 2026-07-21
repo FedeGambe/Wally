@@ -25,13 +25,13 @@ export function SegmentedToggle<T extends string>({ value, onChange, options }: 
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700 select-none shrink-0">
+    <div className="flex bg-canvas dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-hairline dark:border-slate-700 select-none shrink-0">
       {options.map(opt => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
           className={`text-[9px] px-2.5 py-1 font-extrabold rounded-lg transition-all cursor-pointer ${
-            value === opt.value ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-500 hover:text-rose-600'
+            value === opt.value ? 'bg-rose-600 text-white shadow-xs' : 'text-ink-soft hover:text-down'
           }`}
         >
           {opt.label}

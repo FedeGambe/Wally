@@ -50,7 +50,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
               : conto.allarmeSoglia! > 85
                 ? 'bg-amber-50 text-amber-500'
                 : 'bg-emerald-50 text-emerald-500')
-            : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-600')
+            : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-canvas text-ink-soft')
             }`}>
             {hasSoglia && conto.allarmeSoglia! > 100 ? (
               <AlertTriangle className="w-5 h-5 text-rose-500" />
@@ -61,19 +61,19 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
             )}
           </div>
           <div className="text-left">
-            <p className="text-sm font-semibold text-slate-800">{conto.categoria}</p>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-slate-400 font-medium">
-              <span>Disponibile: <strong className="text-slate-600">{formatEuro(conto.capitaleDisponibile)}</strong></span>
+            <p className="text-sm font-semibold text-ink">{conto.categoria}</p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-ink-soft font-medium">
+              <span>Disponibile: <strong className="text-ink-soft">{formatEuro(conto.capitaleDisponibile)}</strong></span>
               {conto.capitaleInvestito > 0 && (
                 <>
                   <span>•</span>
-                  <span>Investito: <strong className="text-slate-600">{formatEuro(conto.capitaleInvestito)}</strong></span>
+                  <span>Investito: <strong className="text-ink-soft">{formatEuro(conto.capitaleInvestito)}</strong></span>
                 </>
               )}
               {conto.capitaleImpegnato > 0 && (
                 <>
                   <span>•</span>
-                  <span>Vincolato: <strong className="text-slate-600">{formatEuro(conto.capitaleImpegnato)}</strong></span>
+                  <span>Vincolato: <strong className="text-ink-soft">{formatEuro(conto.capitaleImpegnato)}</strong></span>
                 </>
               )}
             </div>
@@ -85,7 +85,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
           {hasSoglia ? (
             <div className="flex items-center shrink-0">
               {conto.allarmeSoglia! > 100 ? (
-                <span className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
+                <span className="inline-flex items-center gap-1.5 bg-down/15 text-down border border-down/30 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                   Fuori Soglia
                 </span>
@@ -95,7 +95,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
                   Attenzione
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
+                <span className="inline-flex items-center gap-1.5 bg-up/15 text-up border border-up/30 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Sotto Soglia
                 </span>
@@ -108,14 +108,14 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
                   <ShieldAlert className="w-3.5 h-3.5" />
                   Sotto Soglia
                 </span>
-                <p className="text-[9px] text-slate-400 font-mono mt-0.5">Mancano {formatEuro(limitRemaining)}</p>
+                <p className="text-[9px] text-ink-soft font-mono mt-0.5">Mancano {formatEuro(limitRemaining)}</p>
               </div>
             )
           )}
 
           <div className="text-right shrink-0">
-            <span className="text-slate-400 font-bold text-[9px] uppercase block">Capitale Totale</span>
-            <span className="text-sm font-bold text-slate-800 font-display block mt-0.5">
+            <span className="text-ink-soft font-bold text-[9px] uppercase block">Capitale Totale</span>
+            <span className="text-sm font-bold text-ink font-display block mt-0.5">
               {formatEuro(conto.capitaleTotale)}
             </span>
           </div>
@@ -132,49 +132,49 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-slate-200 dark:border-white/10 text-slate-800">
-              <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-3">
+            <div className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-hairline dark:border-white/10 text-ink">
+              <div className="flex justify-between items-center border-b border-hairline pb-3 mb-3">
                 <div>
-                  <h4 className="font-bold font-display text-sm text-slate-800">{conto.categoria}</h4>
-                  <p className="text-[10px] text-slate-500">Analisi approfondita disponibilità del conto</p>
+                  <h4 className="font-bold font-display text-sm text-ink">{conto.categoria}</h4>
+                  <p className="text-[10px] text-ink-soft">Analisi approfondita disponibilità del conto</p>
                 </div>
-                <span className="text-[10px] bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-white/10">
+                <span className="text-[10px] bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-hairline dark:border-white/10">
                   CONTO SELEZIONATO
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-2.5">
-                  <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                    <span className="text-slate-500 font-medium">Saldo complessivo:</span>
-                    <span className="font-bold text-slate-800">{formatEuro(conto.capitaleTotale)}</span>
+                  <div className="flex justify-between border-b border-hairline pb-1.5">
+                    <span className="text-ink-soft font-medium">Saldo complessivo:</span>
+                    <span className="font-bold text-ink">{formatEuro(conto.capitaleTotale)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                    <span className="text-slate-500 font-medium">Liquido disponibile:</span>
-                    <span className="font-bold text-emerald-600">{formatEuro(conto.capitaleDisponibile)}</span>
+                  <div className="flex justify-between border-b border-hairline pb-1.5">
+                    <span className="text-ink-soft font-medium">Liquido disponibile:</span>
+                    <span className="font-bold text-up">{formatEuro(conto.capitaleDisponibile)}</span>
                   </div>
                   {hasSoglia && (
-                    <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                      <span className="text-slate-500 font-medium">Allarme Soglia (%):</span>
-                      <span className={`font-bold ${conto.allarmeSoglia! > 100 ? 'text-rose-600' : conto.allarmeSoglia! > 85 ? 'text-amber-500' : 'text-emerald-600'}`}>
+                    <div className="flex justify-between border-b border-hairline pb-1.5">
+                      <span className="text-ink-soft font-medium">Allarme Soglia (%):</span>
+                      <span className={`font-bold ${conto.allarmeSoglia! > 100 ? 'text-down' : conto.allarmeSoglia! > 85 ? 'text-amber-500' : 'text-up'}`}>
                         {conto.allarmeSoglia}%
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="space-y-2.5">
-                  <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                    <span className="text-slate-500 font-medium">Quota investimenti:</span>
+                  <div className="flex justify-between border-b border-hairline pb-1.5">
+                    <span className="text-ink-soft font-medium">Quota investimenti:</span>
                     <span className="font-bold text-sky-600">{formatEuro(conto.capitaleInvestito)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                    <span className="text-slate-500 font-medium">Quota accantonamenti:</span>
+                  <div className="flex justify-between border-b border-hairline pb-1.5">
+                    <span className="text-ink-soft font-medium">Quota accantonamenti:</span>
                     <span className="font-bold text-amber-600">{formatEuro(conto.capitaleImpegnato)}</span>
                   </div>
                   {hasSoglia && (
-                    <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                      <span className="text-slate-500 font-medium">Rimanente Soglia:</span>
-                      <span className={`font-bold ${conto.allarmeSoglia !== undefined && conto.allarmeSoglia > 100 ? 'text-rose-600' : 'text-slate-700'}`}>
+                    <div className="flex justify-between border-b border-hairline pb-1.5">
+                      <span className="text-ink-soft font-medium">Rimanente Soglia:</span>
+                      <span className={`font-bold ${conto.allarmeSoglia !== undefined && conto.allarmeSoglia > 100 ? 'text-down' : 'text-ink'}`}>
                         {formatEuro(conto.rimanenteSoglia!)}
                       </span>
                     </div>
@@ -182,8 +182,8 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
                 </div>
               </div>
 
-              <div className="mt-4 pt-3.5 border-t border-slate-100 text-[10px] text-slate-500 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
+              <div className="mt-4 pt-3.5 border-t border-hairline text-[10px] text-ink-soft flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-ink-soft animate-pulse" />
                 <span>Valori storici e saldi sincronizzati in tempo reale dal foglio di calcolo Google Sheets.</span>
               </div>
             </div>

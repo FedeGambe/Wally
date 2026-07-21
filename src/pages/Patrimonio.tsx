@@ -63,7 +63,7 @@ export default function Patrimonio() {
           detail={
             <>
               <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-              <span>Incluso Accantonamento: <strong className="text-xs sm:text-[13px] font-black font-mono text-slate-800 dark:text-slate-100 tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
+              <span>Incluso Accantonamento: <strong className="text-xs sm:text-[13px] font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
             </>
           }
         />
@@ -115,10 +115,10 @@ export default function Patrimonio() {
       </div>
 
       {/* Accounts Summary Cards List - full width, 2 columns (primi 4 a sx, restanti a dx) */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
-        <h3 className="font-bold text-slate-800 font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+      <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
+        <h3 className="font-bold text-ink font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <span>Sintesi Situazione Conti</span>
-          <span className="text-[10px] text-slate-400 font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
+          <span className="text-[10px] text-ink-soft font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

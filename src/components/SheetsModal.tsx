@@ -290,22 +290,22 @@ export default function SheetsModal({
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="relative bg-white rounded-3xl shadow-2xl border border-slate-105 w-full max-w-lg overflow-hidden shrink-0 z-50 text-slate-800"
+        className="relative bg-white rounded-3xl shadow-2xl border border-slate-105 w-full max-w-lg overflow-hidden shrink-0 z-50 text-ink"
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-6 py-5 border-b border-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-up/15 text-up flex items-center justify-center">
               <Database className="w-5 h-5 animate-pulse" />
             </div>
             <div className="text-left">
-              <h3 className="font-bold font-display text-slate-800 text-base">Integrazione Google Sheets</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Sincronizza le tue finanze con un foglio Google</p>
+              <h3 className="font-bold font-display text-ink text-base">Integrazione Google Sheets</h3>
+              <p className="text-xs text-ink-soft mt-0.5">Sincronizza le tue finanze con un foglio Google</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg hover:bg-canvas text-ink-soft hover:text-ink-soft flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -314,15 +314,15 @@ export default function SheetsModal({
         {/* Modal Body */}
         <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {errorMsg && (
-            <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 text-xs text-rose-600">
+            <div className="p-4 bg-down/15 border border-down/25 rounded-2xl flex items-start gap-3 text-xs text-down">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-500" />
               <div>{errorMsg}</div>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-4 text-xs text-emerald-700">
-              <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />
+            <div className="p-4 bg-up/15 border border-up/25 rounded-2xl flex items-start gap-4 text-xs text-up">
+              <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-up" />
               <div>{successMsg}</div>
             </div>
           )}
@@ -333,14 +333,14 @@ export default function SheetsModal({
               <div className="p-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
                 <div className="flex justify-between items-start">
                   <div className="text-left">
-                    <span className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] text-up font-extrabold uppercase tracking-wider bg-up/15 px-2 py-0.5 rounded-md">
                       Collegamento Attivo
                     </span>
-                    <h4 className="text-sm font-semibold text-slate-800 mt-2 flex items-center gap-1.5 font-display">
+                    <h4 className="text-sm font-semibold text-ink mt-2 flex items-center gap-1.5 font-display">
                       <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-500" />
                       Wally - Dashboard Economica
                     </h4>
-                    <p className="text-[11px] text-slate-400 font-mono mt-1 select-all truncate max-w-xs sm:max-w-md">
+                    <p className="text-[11px] text-ink-soft font-mono mt-1 select-all truncate max-w-xs sm:max-w-md">
                       ID: {sheetId}
                     </p>
                   </div>
@@ -349,7 +349,7 @@ export default function SheetsModal({
                     target="_blank"
                     referrerPolicy="no-referrer"
                     rel="noreferrer"
-                    className="w-9 h-9 bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 text-slate-400 rounded-xl flex items-center justify-center transition-all shadow-xs shrink-0"
+                    className="w-9 h-9 bg-white border border-hairline hover:border-emerald-500 hover:text-up text-ink-soft rounded-xl flex items-center justify-center transition-all shadow-xs shrink-0"
                     title="Apri su Google Sheets"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -360,17 +360,17 @@ export default function SheetsModal({
               {/* Custom Confirmation Warning for Upload (Overwrite) */}
               {showConfirmPush && (
                 <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-3">
-                  <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wide">
+                  <h4 className="text-xs font-bold text-ink flex items-center gap-1.5 uppercase tracking-wide">
                     ⚠️ Attenzione Sovrascrittura
                   </h4>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-xs text-ink-soft leading-relaxed">
                     Vuoi davvero sovrascrivere il foglio Google Sheets con i tuoi attuali dati locali? Le modifiche precedenti sul foglio verranno perse per sempre.
                   </p>
                   <div className="flex gap-2 justify-end">
                     <button
                       type="button"
                       onClick={() => setShowConfirmPush(false)}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="px-3 py-1.5 bg-canvas hover:bg-slate-200 text-ink-soft rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                     >
                       Annulla
                     </button>
@@ -393,17 +393,17 @@ export default function SheetsModal({
               {/* Custom Confirmation Warning for Disconnect */}
               {showConfirmDisconnect && (
                 <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-left space-y-3">
-                  <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wide">
+                  <h4 className="text-xs font-bold text-ink flex items-center gap-1.5 uppercase tracking-wide">
                     ⚠️ Scollega Google Sheets
                   </h4>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-xs text-ink-soft leading-relaxed">
                     Vuoi davvero scollegare il foglio Google Sheets corrente? Perderai la sincronizzazione dei dati con il cloud.
                   </p>
                   <div className="flex gap-2 justify-end">
                     <button
                       type="button"
                       onClick={() => setShowConfirmDisconnect(false)}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="px-3 py-1.5 bg-canvas hover:bg-slate-200 text-ink-soft rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                     >
                       Annulla
                     </button>
@@ -429,7 +429,7 @@ export default function SheetsModal({
                       type="button"
                       onClick={handlePullData}
                       disabled={isLoading}
-                      className="p-4 bg-white hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-2xl transition-all font-semibold text-xs flex flex-col items-center justify-center text-indigo-600 cursor-pointer shadow-xs"
+                      className="p-4 bg-white hover:bg-accent/10 hover:border-accent/20 border border-hairline rounded-2xl transition-all font-semibold text-xs flex flex-col items-center justify-center text-accent cursor-pointer shadow-xs"
                     >
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -443,7 +443,7 @@ export default function SheetsModal({
                       type="button"
                       onClick={handlePushData}
                       disabled={isLoading}
-                      className="p-4 bg-white hover:bg-emerald-50 hover:border-emerald-200 border border-slate-200 rounded-2xl transition-all font-semibold text-xs flex flex-col items-center justify-center text-emerald-600 cursor-pointer shadow-xs"
+                      className="p-4 bg-white hover:bg-emerald-50 hover:border-emerald-200 border border-hairline rounded-2xl transition-all font-semibold text-xs flex flex-col items-center justify-center text-up cursor-pointer shadow-xs"
                     >
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -458,7 +458,7 @@ export default function SheetsModal({
                     <button
                       type="button"
                       onClick={handleDisconnect}
-                      className="w-full text-slate-400 hover:text-red-500 text-xs font-semibold py-2 transition-colors cursor-pointer text-center"
+                      className="w-full text-ink-soft hover:text-red-500 text-xs font-semibold py-2 transition-colors cursor-pointer text-center"
                     >
                       Scollega questo foglio di calcolo
                     </button>
@@ -469,18 +469,18 @@ export default function SheetsModal({
           ) : (
             <div className="space-y-5">
               {/* Option A: Quick Template Auto-Creator */}
-              <div className="p-5 bg-gradient-to-br from-indigo-500/5 to-emerald-500/5 border border-slate-100 rounded-2xl text-left">
-                <h4 className="text-sm font-bold text-slate-800 font-display flex items-center gap-1.5">
+              <div className="p-5 bg-gradient-to-br from-accent/5 to-up/5 border border-hairline rounded-2xl text-left">
+                <h4 className="text-sm font-bold text-ink font-display flex items-center gap-1.5">
                   Creazione Automatica Rapida
                 </h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <p className="text-xs text-ink-soft mt-1 leading-relaxed">
                   Crea un nuovo foglio Wally formattato ed esporta all'istante i dati di esempio correnti per iniziare subito.
                 </p>
                 <button
                   type="button"
                   onClick={handleCreateNew}
                   disabled={isLoading}
-                  className="mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-blue-500/10"
+                  className="mt-4 px-4 py-2.5 bg-accent hover:opacity-90 text-white rounded-xl text-xs font-semibold transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-accent/10"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -493,15 +493,15 @@ export default function SheetsModal({
 
               {/* Divisor line */}
               <div className="flex items-center gap-3 text-xs text-slate-300">
-                <div className="h-px bg-slate-100 flex-1" />
+                <div className="h-px bg-canvas flex-1" />
                 <span className="font-mono text-[10px] tracking-widest uppercase">Oppure</span>
-                <div className="h-px bg-slate-100 flex-1" />
+                <div className="h-px bg-canvas flex-1" />
               </div>
 
               {/* Option B: Input Existing ID/URL */}
               <form onSubmit={handleConnectExisting} className="space-y-3.5 text-left">
                 <div>
-                  <label htmlFor="sheetUrl" className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                  <label htmlFor="sheetUrl" className="text-xs font-bold text-ink-soft uppercase tracking-wider block mb-1.5">
                     Collega foglio Google esistente
                   </label>
                   <div className="relative">
@@ -512,13 +512,13 @@ export default function SheetsModal({
                       value={inputUrl}
                       onChange={(e) => setInputUrl(e.target.value)}
                       disabled={isLoading}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl py-3 pl-3.5 pr-10 text-xs transition-all outline-hidden font-mono"
+                      className="w-full bg-canvas border border-hairline focus:border-accent focus:bg-white rounded-xl py-3 pl-3.5 pr-10 text-xs transition-all outline-hidden font-mono"
                     />
                     <Link2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-300" />
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                  <p className="text-[10px] text-ink-soft mt-1.5 leading-relaxed">
                     Puoi incollare l'intero indirizzo della barra di navigazione del tuo foglio di calcolo, ad esempio:<br />
-                    <span className="font-mono text-indigo-500 select-all">https://docs.google.com/spreadsheets/d/...ID.../edit</span>
+                    <span className="font-mono text-accent select-all">https://docs.google.com/spreadsheets/d/...ID.../edit</span>
                   </p>
                 </div>
 
@@ -540,7 +540,7 @@ export default function SheetsModal({
         </div>
 
         {/* Footer info banner */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+        <div className="px-6 py-4 bg-canvas border-t border-hairline flex items-center justify-between text-[10px] text-ink-soft font-mono">
           <span>Wally Engine v2</span>
           <span>Google Drive API v3</span>
         </div>

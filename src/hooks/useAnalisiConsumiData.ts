@@ -279,7 +279,7 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   // Km/litri in più sono "peggio" (rosso); il prezzo al litro segue la logica opposta (in calo è "peggio")
   const deltaClass = (delta: number, dangerWhenPositive: boolean) => {
     const isDanger = dangerWhenPositive ? delta >= 0 : delta < 0;
-    return isDanger ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400';
+    return isDanger ? 'text-down' : 'text-up';
   };
 
   // Selezione settimana cliccabile da qualsiasi grafico della pagina.

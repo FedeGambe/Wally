@@ -30,7 +30,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
   // bianchi (.glass-theme .bg-white .bg-white — sfumatura gialla, quasi
   // trasparente): il popup risultava piccolo e giallastro invece che a schermo
   // intero. Il fullscreen usa in più colori "arbitrari" (bg-[#...]) invece dei
-  // nomi semantici bg-white/bg-slate-50, che quelle regole CSS globali
+  // nomi semantici bg-white/bg-canvas, che quelle regole CSS globali
   // (index.css, tutte con !important) intercettano per nome di classe.
   return createPortal(
     <AnimatePresence>
@@ -56,14 +56,14 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
               className={
                 fullScreen
                   ? 'w-full h-full bg-[#ffffff] dark:bg-[#0b0f19] flex flex-col'
-                  : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10`
+                  : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-hairline dark:border-white/10`
               }
             >
-              <div className={`p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-display">{title}</h3>
+              <div className={`p-5 border-b border-hairline dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
+                <h3 className="text-base font-bold text-ink dark:text-slate-100 font-display">{title}</h3>
                 <button
                   onClick={onClose}
-                  className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0"
+                  className="w-9 h-9 rounded-xl bg-down/15 border border-down/30 hover:bg-down/25 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>

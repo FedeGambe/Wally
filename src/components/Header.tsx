@@ -107,12 +107,12 @@ export default function Header({
   });
 
   return (
-    <header className="h-16 bg-white border-b border-slate-100 flex flex-row items-center justify-between px-3 sm:px-6 md:px-8 gap-2 sticky top-0 z-40 shrink-0 w-full">
+    <header className="h-16 bg-white border-b border-hairline flex flex-row items-center justify-between px-3 sm:px-6 md:px-8 gap-2 sticky top-0 z-40 shrink-0 w-full">
       {/* Saluto testuale con icona - desktop/tablet */}
       <div className="hidden md:flex items-center gap-2 min-w-0">
-        <GreetingIcon className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
-        <span className="text-sm font-semibold text-slate-700 truncate">
-          {greeting} <span className="text-indigo-600">Federico</span>
+        <GreetingIcon className="w-4.5 h-4.5 text-accent shrink-0" />
+        <span className="text-sm font-semibold text-ink truncate">
+          {greeting} <span className="text-accent">Federico</span>
         </span>
       </div>
 
@@ -121,9 +121,9 @@ export default function Header({
         type="button"
         onClick={onOpenMobileSettings}
         title="Impostazioni"
-        className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-50 cursor-pointer shrink-0"
+        className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-canvas cursor-pointer shrink-0"
       >
-        <Sliders className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
+        <Sliders className="w-4.5 h-4.5 text-accent shrink-0" />
       </button>
 
       {/* Action controls */}
@@ -135,10 +135,10 @@ export default function Header({
           className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 text-xs font-bold transition-all cursor-pointer border ${
             isIncognito
               ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700'
-              : 'bg-slate-50 border-slate-100 hover:border-slate-200 hover:bg-slate-100 text-slate-600'
+              : 'bg-canvas border-hairline hover:border-hairline hover:bg-canvas text-ink-soft'
           }`}
         >
-          {isIncognito ? <EyeOff className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" /> : <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 shrink-0" />}
+          {isIncognito ? <EyeOff className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" /> : <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-ink-soft shrink-0" />}
           <span className="hidden md:inline">{isIncognito ? 'Demo' : 'Incognito'}</span>
         </button>
 
@@ -146,7 +146,7 @@ export default function Header({
         <DropdownMenu
           icon={Database}
           label="Anno"
-          accent="blue"
+          accent="indigo"
           value={selectedYear}
           displayValue={selectedYear}
           options={availableYears}
@@ -181,9 +181,9 @@ export default function Header({
             onGoToToday?.();
           }}
           title="Imposta data odierna come filtro globale"
-          className="hidden lg:flex items-center gap-2 bg-slate-50 hover:bg-indigo-50/30 hover:text-indigo-600 hover:border-indigo-200 active:bg-indigo-100 border border-slate-100 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 shrink-0 transition-all duration-200 hover:scale-[1.02] active:scale-98 cursor-pointer shadow-xs hover:shadow-sm"
+          className="hidden lg:flex items-center gap-2 bg-canvas hover:bg-accent/10 hover:text-accent hover:border-accent/20 active:bg-accent/15 border border-hairline px-3.5 py-1.5 rounded-xl text-xs text-ink-soft shrink-0 transition-all duration-200 hover:scale-[1.02] active:scale-98 cursor-pointer shadow-xs hover:shadow-sm"
         >
-          <Calendar className="w-4 h-4 text-blue-500 transition-transform duration-200 group-hover:scale-110" />
+          <Calendar className="w-4 h-4 text-accent transition-transform duration-200 group-hover:scale-110" />
           <span className="font-semibold capitalize">{formattedDate}</span>
         </button>
       </div>

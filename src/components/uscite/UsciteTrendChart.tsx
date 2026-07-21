@@ -34,7 +34,7 @@ interface UsciteTrendChartProps {
 const renderAreaLegend = ({ payload }: any) => (
   <div className="flex items-center justify-center gap-4" style={{ marginBottom: 12 }}>
     {payload.map((entry: any, idx: number) => (
-      <span key={idx} className="flex items-center gap-1.5 text-slate-500" style={{ fontSize: 11, fontWeight: 600 }}>
+      <span key={idx} className="flex items-center gap-1.5 text-ink-soft" style={{ fontSize: 11, fontWeight: 600 }}>
         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
         {entry.value}
       </span>

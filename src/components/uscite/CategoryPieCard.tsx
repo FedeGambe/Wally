@@ -70,14 +70,14 @@ export default function CategoryPieCard({
     <div
       ref={containerRef}
       className={`bg-white p-6 rounded-3xl border shadow-sm text-left transition-all duration-300 hover:shadow-md ${
-        highlighted ? 'border-orange-400 ring-4 ring-orange-400/30' : 'border-slate-200'
+        highlighted ? 'border-orange-400 ring-4 ring-orange-400/30' : 'border-hairline'
       }`}
     >
-      <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-2">
+      <h3 className="font-bold text-ink font-display text-base flex items-center gap-2">
         <Icon className="w-5 h-5 text-orange-600" />
         {title}
       </h3>
-      <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
+      <p className="text-xs text-ink-soft mt-1">{subtitle}</p>
 
       <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
         <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
@@ -130,15 +130,15 @@ export default function CategoryPieCard({
                 onClick={() => toggle(name)}
                 className={`flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
                   isSelected
-                    ? 'bg-indigo-50/70 dark:bg-indigo-400/10 border border-indigo-200/50 dark:border-indigo-400/20 shadow-xs'
-                    : 'hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'
+                    ? 'bg-accent/10 border border-accent/20 shadow-xs'
+                    : 'hover:bg-canvas dark:hover:bg-white/5 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colors[(idx + colorOffset) % colors.length] }} />
-                  <span className={`text-slate-600 dark:text-slate-300 truncate ${isSelected ? 'font-bold text-indigo-700 dark:text-indigo-300' : 'font-semibold'}`}>{name}</span>
+                  <span className={`text-ink-soft dark:text-slate-300 truncate ${isSelected ? 'font-bold text-accent' : 'font-semibold'}`}>{name}</span>
                 </div>
-                <span className={`font-bold ${isSelected ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-800 dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
+                <span className={`font-bold ${isSelected ? 'text-accent' : 'text-ink dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
               </div>
             );
           })}

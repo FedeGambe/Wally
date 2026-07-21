@@ -40,11 +40,11 @@ export default function UsciteRicorrentiEditor() {
 
   const removePreset = (id: string) => updateDatiBase({ presetUscite: presetUscite.filter(p => p.id !== id) });
 
-  const inputClass = "px-3 py-2 rounded-xl text-xs border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
+  const inputClass = "px-3 py-2 rounded-xl text-xs border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
 
   return (
     <div>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+      <p className="text-xs text-ink-soft dark:text-slate-400 mb-6 leading-relaxed">
         Per uscite quasi identiche ogni mese (es. accantonamento). Scegli il preset nel form
         "Aggiungi Uscita": precompila i campi, tu confermi o modifichi prima di salvare — nessun
         inserimento automatico.
@@ -53,14 +53,14 @@ export default function UsciteRicorrentiEditor() {
       {presetUscite.length > 0 && (
         <div className="space-y-2 mb-5">
           {presetUscite.map(p => (
-            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/5">
+            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-hairline dark:border-white/10 bg-canvas/60 dark:bg-white/5">
               <div className="min-w-0">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block truncate">{p.nome}</span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-sm font-bold text-ink dark:text-slate-200 block truncate">{p.nome}</span>
+                <span className="text-[11px] text-ink-soft">
                   {p.macroCategoria} → {p.categoria} · {p.conto} · {formatEuro(p.importo)}
                 </span>
               </div>
-              <button onClick={() => removePreset(p.id)} className="text-slate-400 hover:text-rose-600 cursor-pointer shrink-0 ml-3" aria-label={`Rimuovi preset ${p.nome}`}>
+              <button onClick={() => removePreset(p.id)} className="text-ink-soft hover:text-down cursor-pointer shrink-0 ml-3" aria-label={`Rimuovi preset ${p.nome}`}>
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -68,7 +68,7 @@ export default function UsciteRicorrentiEditor() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl border border-dashed border-slate-200 dark:border-white/15">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl border border-dashed border-hairline dark:border-white/15">
         <input
           value={form.nome}
           onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
@@ -144,7 +144,7 @@ export default function UsciteRicorrentiEditor() {
           <Plus className="w-4 h-4" /> Aggiungi Preset
         </button>
       </div>
-      {error && <p className="text-xs text-rose-600 font-semibold mt-3">{error}</p>}
+      {error && <p className="text-xs text-down font-semibold mt-3">{error}</p>}
     </div>
   );
 }

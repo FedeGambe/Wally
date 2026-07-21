@@ -45,34 +45,34 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           <button
             type="button"
             onClick={() => setTipo('entrata')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all cursor-pointer"
           >
-            <ArrowUpRight className="w-6 h-6 text-emerald-600" />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Entrata</span>
+            <ArrowUpRight className="w-6 h-6 text-up" />
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Entrata</span>
           </button>
           <button
             type="button"
             onClick={() => setTipo('uscita')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:border-orange-300 dark:hover:border-orange-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:border-orange-300 dark:hover:border-orange-500/40 transition-all cursor-pointer"
           >
             <ArrowDownRight className="w-6 h-6 text-orange-600" />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Uscita</span>
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Uscita</span>
           </button>
           <button
             type="button"
             onClick={() => setTipo('consumo')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/40 transition-all cursor-pointer"
           >
             <Fuel className="w-6 h-6 text-rose-500" />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Consumo</span>
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Consumo</span>
           </button>
           <button
             type="button"
             onClick={() => setTipo('trasferimento')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-300 dark:hover:border-blue-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-300 dark:hover:border-blue-500/40 transition-all cursor-pointer"
           >
             <ArrowLeftRight className="w-6 h-6 text-blue-600" />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Trasferimento</span>
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Trasferimento</span>
           </button>
         </div>
       )}

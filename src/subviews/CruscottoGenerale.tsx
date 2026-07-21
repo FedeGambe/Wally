@@ -101,7 +101,7 @@ export default function CruscottoGenerale({
       />
 
       {/* Filtro Mese Selezionato: solo mobile, subito dopo i 4 KPI card in alto (su desktop resta in fondo, vedi sotto) */}
-      <div className="lg:hidden bg-slate-50 p-6 rounded-3xl border border-slate-200 flex flex-col justify-between transition-all duration-300 hover:shadow-md">
+      <div className="lg:hidden bg-canvas p-6 rounded-3xl border border-hairline flex flex-col justify-between transition-all duration-300 hover:shadow-md">
         <CruscottoInspectorWidget record={globalInspectorRecord} formatEuro={formatEuro} formatPercent={formatPercent} />
       </div>
 
@@ -127,7 +127,7 @@ export default function CruscottoGenerale({
       {/* Grid containing Monthly returns inspector card on the left, and Distribuzione Asset Class table on the right */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
         {/* Left Column: Inspector widget (desktop only qui, su mobile è duplicato subito dopo i KPI in alto) */}
-        <div ref={inspectorRef} className="hidden lg:flex lg:col-span-1 lg:self-start bg-slate-50 p-6 rounded-3xl border border-slate-200 flex-col justify-between transition-all duration-300 hover:shadow-md">
+        <div ref={inspectorRef} className="hidden lg:flex lg:col-span-1 lg:self-start bg-canvas p-6 rounded-3xl border border-hairline flex-col justify-between transition-all duration-300 hover:shadow-md">
           <CruscottoInspectorWidget record={globalInspectorRecord} formatEuro={formatEuro} formatPercent={formatPercent} />
         </div>
 

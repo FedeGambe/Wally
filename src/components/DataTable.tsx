@@ -36,7 +36,7 @@ export default function DataTable<T>({ columns, data, keyExtractor }: DataTableP
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse table-auto md:table-fixed">
         <thead>
-          <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <tr className="border-b border-hairline text-[11px] font-bold text-ink-soft uppercase tracking-wider">
             {columns.map((col, i) => (
               <th key={i} className={`py-3 px-4 ${col.align === 'right' ? 'text-right' : ''} ${i > 0 ? 'w-36' : ''} ${col.hideOnMobile ? 'hidden md:table-cell' : ''} ${col.className || ''}`}>
                 {col.header}
@@ -46,7 +46,7 @@ export default function DataTable<T>({ columns, data, keyExtractor }: DataTableP
         </thead>
         <tbody className="divide-y divide-slate-50 text-xs">
           {data.map((row, idx) => (
-            <tr key={keyExtractor ? keyExtractor(row, idx) : idx} className="hover:bg-slate-50/60 transition-colors">
+            <tr key={keyExtractor ? keyExtractor(row, idx) : idx} className="hover:bg-canvas/60 transition-colors">
               {columns.map((col, i) => (
                 <td key={i} className={`py-3.5 px-4 ${col.align === 'right' ? 'text-right' : ''} ${col.className || ''} ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}>
                   {col.render(row, idx)}

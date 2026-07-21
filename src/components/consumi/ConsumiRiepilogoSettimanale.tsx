@@ -48,11 +48,11 @@ export default function ConsumiRiepilogoSettimanale({
   setSelectedWeekState
 }: ConsumiRiepilogoSettimanaleProps) {
   return (
-    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
-      <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-4 mb-4">
+    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
+      <div className="flex items-center justify-between flex-wrap gap-3 border-b border-hairline dark:border-slate-800/60 pb-4 mb-4">
         <div>
-          <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h3>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
+          <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h3>
+          <p className="text-[11px] text-ink-soft dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
         </div>
         <div className="flex items-center gap-8 pr-4">
           <span
@@ -66,10 +66,10 @@ export default function ConsumiRiepilogoSettimanale({
           </span>
 
           <div className="text-right">
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Punteggio</span>
-            <span className="text-xl font-black font-display text-slate-800 dark:text-slate-100">
+            <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Punteggio</span>
+            <span className="text-xl font-black font-display text-ink dark:text-slate-100">
               {typeof selectedWeek.efficienzaPercentuale === 'number' && !isNaN(selectedWeek.efficienzaPercentuale) ? selectedWeek.efficienzaPercentuale.toFixed(2) : '***'}
-              <span className="text-xs font-medium text-slate-400 dark:text-slate-500"> /1</span>
+              <span className="text-xs font-medium text-ink-soft dark:text-slate-500"> /1</span>
             </span>
           </div>
 
@@ -77,17 +77,17 @@ export default function ConsumiRiepilogoSettimanale({
           <div className="relative select-none shrink-0">
             <button
               onClick={() => setIsWeekDropdownOpen(o => !o)}
-              className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 bg-canvas dark:bg-slate-800/60 border border-hairline dark:border-slate-700 hover:border-hairline dark:hover:border-slate-600 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer"
             >
-              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <Calendar className="w-3.5 h-3.5 text-ink-soft shrink-0" />
               <span>
-                Sett.: <strong className="text-rose-600 dark:text-rose-400">{selectedWeek.settimana}</strong>
+                Sett.: <strong className="text-down">{selectedWeek.settimana}</strong>
               </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-ink-soft shrink-0" />
             </button>
 
             {isWeekDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 w-36 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-0.5 animate-fadeIn">
+              <div className="absolute right-0 mt-1.5 w-36 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-hairline dark:border-slate-700 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-0.5 animate-fadeIn">
                 {[...consumiRecords].reverse().map((r) => (
                   <button
                     key={`${r.settimana}-${r.data}`}
@@ -98,7 +98,7 @@ export default function ConsumiRiepilogoSettimanale({
                     className={`px-3 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
                       selectedWeek.settimana === r.settimana && selectedWeek.data === r.data
                         ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        : 'text-ink-soft dark:text-slate-300 hover:bg-canvas dark:hover:bg-slate-800'
                     }`}
                   >
                     {r.settimana}
@@ -112,12 +112,12 @@ export default function ConsumiRiepilogoSettimanale({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Sotto-widget 1: Km Effettuati */}
-        <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
+        <div className="bg-canvas dark:bg-slate-900/40 p-4 rounded-2xl border border-hairline dark:border-slate-800/60">
+          <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
           <span className="text-4xl font-black font-display text-blue-600 dark:text-rose-400 mt-1 block">
-            {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-slate-400 dark:text-slate-500">Km</span>
+            {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
           </span>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 block font-mono">
+          <span className="text-[10px] text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">
             Rifornimento: {selectedWeek.data} • {selectedWeek.quantitaLitri} Lt • {selectedWeek.prezzoAlLitro} €/Lt
           </span>
           {previousWeek && (
@@ -206,8 +206,8 @@ export default function ConsumiRiepilogoSettimanale({
         </div>
       </div>
 
-      <div className="mt-4 px-1 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-        <span className="font-bold block mb-0.5 text-rose-600 dark:text-rose-400">💡 Analisi per Federico:</span>
+      <div className="mt-4 px-1 text-[11px] text-ink-soft dark:text-slate-400 leading-relaxed">
+        <span className="font-bold block mb-0.5 text-down">💡 Analisi per Federico:</span>
         I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? stats.kmAlLitro.median.toFixed(1) + ' km/lt' : '***'}).
       </div>
     </div>

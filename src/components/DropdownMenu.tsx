@@ -20,19 +20,19 @@ const ACCENT_STYLES: Record<DropdownAccent, { value: string; selected: string }>
     selected: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400'
   },
   indigo: {
-    value: 'text-indigo-600 dark:text-indigo-400',
-    selected: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400'
+    value: 'text-accent',
+    selected: 'bg-accent/15 text-accent'
   },
   orange: {
     value: 'text-orange-600 dark:text-orange-400',
     selected: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400'
   },
   emerald: {
-    value: 'text-emerald-600 dark:text-emerald-400',
+    value: 'text-up',
     selected: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
   },
   rose: {
-    value: 'text-rose-600 dark:text-rose-400',
+    value: 'text-down',
     selected: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
   }
 };
@@ -129,11 +129,11 @@ export default function DropdownMenu({
         type="button"
         ref={triggerRef}
         onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer ${
+        className={`flex items-center gap-1 sm:gap-1.5 bg-canvas dark:bg-slate-800/60 border border-hairline dark:border-slate-700/60 hover:border-hairline dark:hover:border-slate-600 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer ${
           fullWidth ? 'w-full justify-between px-3 py-2.5' : 'px-2 py-1'
         }`}
       >
-        <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <Icon className="w-3.5 h-3.5 text-ink-soft shrink-0" />
         <span className={`truncate ${fullWidth ? 'flex-1 text-left' : 'max-w-[10rem]'}`}>
           {hideLabel ? (
             <strong className={accentCls.value}>{displayValue || placeholder}</strong>
@@ -141,7 +141,7 @@ export default function DropdownMenu({
             <>{label}: <strong className={accentCls.value}>{displayValue}</strong></>
           )}
         </span>
-        <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <ChevronDown className="w-3.5 h-3.5 text-ink-soft shrink-0" />
       </button>
 
       {/* createPortal disegna questo <div> come figlio diretto di document.body invece
@@ -169,10 +169,10 @@ export default function DropdownMenu({
                   setOpen(false);
                 }}
                 className={`appearance-none border-0 px-3 py-2 text-left text-xs rounded-lg transition-all ${isDisabled
-                  ? 'text-slate-400 dark:text-slate-600 opacity-40 pointer-events-none cursor-not-allowed'
+                  ? 'text-ink-soft dark:text-slate-600 opacity-40 pointer-events-none cursor-not-allowed'
                   : isSelected
                     ? `font-bold cursor-pointer ${accentCls.selected}`
-                    : 'font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer'
+                    : 'font-medium text-ink-soft dark:text-slate-300 hover:bg-canvas dark:hover:bg-white/10 cursor-pointer'
                   }`}
               >
                 {getOptionLabel(opt)}

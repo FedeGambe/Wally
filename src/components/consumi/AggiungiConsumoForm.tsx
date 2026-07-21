@@ -93,11 +93,11 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
     }
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500";
   // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS.
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
-  const labelClass = "block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider";
+  const labelClass = "block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
   const busy = isSaving || isPreparing;
 
   return (
@@ -140,12 +140,12 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
         </div>
       </div>
 
-      <p className="text-[11px] text-slate-400 leading-relaxed">
+      <p className="text-[11px] text-ink-soft leading-relaxed">
         Km effettuati, Km/lt, €/100km, Km persi, Costo extra ed Esito settimana vengono calcolati
         dal foglio Google (stessa formula della riga precedente) al prossimo aggiornamento.
       </p>
 
-      {error && <p className="text-xs text-rose-600 font-semibold">{error}</p>}
+      {error && <p className="text-xs text-down font-semibold">{error}</p>}
 
       <button
         type="submit"

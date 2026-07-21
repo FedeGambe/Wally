@@ -16,7 +16,7 @@ const renderDeltaBadge = (current: number, previous: number | undefined, isDark:
 
   const colorClass = isDark
     ? (isPreviousHigher ? 'text-emerald-300 bg-emerald-500/20' : 'text-rose-300 bg-rose-500/20')
-    : (isPreviousHigher ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50');
+    : (isPreviousHigher ? 'text-up bg-emerald-50' : 'text-down bg-rose-50');
 
   return (
     <span className={`inline-flex items-center text-[10px] font-extrabold ${colorClass} px-1.5 py-0.5 rounded-md shrink-0 align-middle`}>
@@ -125,7 +125,7 @@ export default function UsciteKpiCards({
           className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'primarie'
               ? 'bg-orange-50 border-orange-700 ring-4 ring-orange-700/15'
-              : 'bg-white border-slate-200 hover:border-slate-300'
+              : 'bg-white border-hairline hover:border-hairline'
           }`}
         >
           <div className={`absolute right-4 top-4 w-12 h-12 rounded-xl flex items-center justify-center transition-colors border ${
@@ -136,22 +136,22 @@ export default function UsciteKpiCards({
             <CheckCircle className="w-6 h-6" />
           </div>
           <div className="z-10 text-left pr-14 md:pr-0">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
+            <span className="text-xs text-ink-soft font-bold uppercase tracking-wider block">
               <span className="md:hidden">Spese Prim.</span>
               <span className="hidden md:inline">Spese Primarie</span>
             </span>
-            <span className="hidden md:block text-[10px] text-slate-400 font-normal mt-0.5 lowercase">
+            <span className="hidden md:block text-[10px] text-ink-soft font-normal mt-0.5 lowercase">
               (essenziali)
             </span>
             <div className="mt-3 text-left">
               <div className="flex items-center flex-wrap gap-2.5">
-                <h3 className="text-3xl font-extrabold font-display leading-none text-slate-800">
+                <h3 className="text-3xl font-extrabold font-display leading-none text-ink">
                   <EuroAmount value={selectedRecord.spesePrimarie} />
                 </h3>
                 {prevRecord?.spesePrimarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.spesePrimarie, prevRecord?.spesePrimarie, false)}
-                    <span className="text-[10px] text-slate-400 mt-1">rispetto al mese prec.</span>
+                    <span className="text-[10px] text-ink-soft mt-1">rispetto al mese prec.</span>
                   </div>
                 )}
               </div>
@@ -159,15 +159,15 @@ export default function UsciteKpiCards({
           </div>
 
           {/* Progress bar compared to Entrate */}
-          <div className="mt-4 pt-3 border-t border-slate-100 w-full z-10">
-            <div className="hidden md:flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
+          <div className="mt-4 pt-3 border-t border-hairline w-full z-10">
+            <div className="hidden md:flex justify-between items-center text-[10px] text-ink-soft font-bold mb-1">
               <span>Rapporto Entrate</span>
-              <span className={primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
+              <span className={primaryPctOfIncome > dynamicThresholds.primarie ? 'text-down font-bold' : 'text-up font-bold'}>
                 {formatPercent(primaryPctOfIncome)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
+              <div className="flex-1 h-2 bg-canvas rounded-full overflow-hidden relative">
                 <div
                   className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-500 to-orange-700"
                   style={{ width: `${Math.min((primaryPctOfIncome / (dynamicThresholds.primarie + 5)) * 100, 100)}%` }}
@@ -175,12 +175,12 @@ export default function UsciteKpiCards({
                 <div className="absolute top-0 bottom-0 w-0.5 bg-slate-300" style={{ left: `${(dynamicThresholds.primarie / (dynamicThresholds.primarie + 5)) * 100}%` }} />
               </div>
             </div>
-            <div className="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+            <div className="flex justify-between items-center text-[9px] text-ink-soft mt-1">
               <span>Soglia: {dynamicThresholds.primarie}% delle entrate</span>
-              <span className={`hidden md:inline ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
+              <span className={`hidden md:inline ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-down font-semibold' : 'text-up font-semibold'}`}>
                 {primaryPctOfIncome > dynamicThresholds.primarie ? 'Soglia superata' : 'Nei limiti'}
               </span>
-              <span className={`md:hidden ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
+              <span className={`md:hidden ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-down font-semibold' : 'text-up font-semibold'}`}>
                 {primaryPctOfIncome > dynamicThresholds.primarie ? 'Non OK' : 'OK'}
               </span>
             </div>
@@ -193,7 +193,7 @@ export default function UsciteKpiCards({
           className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'secondarie'
               ? 'bg-orange-50 border-orange-400 ring-4 ring-orange-400/15'
-              : 'bg-white border-slate-200 hover:border-slate-300'
+              : 'bg-white border-hairline hover:border-hairline'
           }`}
         >
           <div className={`absolute right-4 top-4 w-12 h-12 rounded-xl flex items-center justify-center transition-colors border ${
@@ -204,22 +204,22 @@ export default function UsciteKpiCards({
             <XCircle className="w-6 h-6" />
           </div>
           <div className="z-10 text-left pr-14 md:pr-0">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
+            <span className="text-xs text-ink-soft font-bold uppercase tracking-wider block">
               <span className="md:hidden">Spese Sec.</span>
               <span className="hidden md:inline">Spese Secondarie</span>
             </span>
-            <span className="hidden md:block text-[10px] text-slate-400 font-normal mt-0.5 lowercase">
+            <span className="hidden md:block text-[10px] text-ink-soft font-normal mt-0.5 lowercase">
               (discrezionali)
             </span>
             <div className="mt-3 text-left">
               <div className="flex items-center flex-wrap gap-2.5">
-                <h3 className="text-3xl font-extrabold font-display leading-none text-slate-800">
+                <h3 className="text-3xl font-extrabold font-display leading-none text-ink">
                   <EuroAmount value={selectedRecord.speseSecondarie} />
                 </h3>
                 {prevRecord?.speseSecondarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.speseSecondarie, prevRecord?.speseSecondarie, false)}
-                    <span className="text-[10px] text-slate-400 mt-1">rispetto al mese prec.</span>
+                    <span className="text-[10px] text-ink-soft mt-1">rispetto al mese prec.</span>
                   </div>
                 )}
               </div>
@@ -227,15 +227,15 @@ export default function UsciteKpiCards({
           </div>
 
           {/* Progress bar compared to Entrate */}
-          <div className="mt-4 pt-3 border-t border-slate-100 w-full z-10">
-            <div className="hidden md:flex justify-between items-center text-[10px] text-slate-400 font-bold mb-1">
+          <div className="mt-4 pt-3 border-t border-hairline w-full z-10">
+            <div className="hidden md:flex justify-between items-center text-[10px] text-ink-soft font-bold mb-1">
               <span>Rapporto Entrate</span>
-              <span className={secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
+              <span className={secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-down font-bold' : 'text-up font-bold'}>
                 {formatPercent(secondaryPctOfIncome)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
+              <div className="flex-1 h-2 bg-canvas rounded-full overflow-hidden relative">
                 <div
                   className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-300 to-orange-400"
                   style={{ width: `${Math.min((secondaryPctOfIncome / (dynamicThresholds.secondarie + 5)) * 100, 100)}%` }}
@@ -243,12 +243,12 @@ export default function UsciteKpiCards({
                 <div className="absolute top-0 bottom-0 w-0.5 bg-slate-300" style={{ left: `${(dynamicThresholds.secondarie / (dynamicThresholds.secondarie + 5)) * 100}%` }} />
               </div>
             </div>
-            <div className="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+            <div className="flex justify-between items-center text-[9px] text-ink-soft mt-1">
               <span>Soglia: {dynamicThresholds.secondarie}% delle entrate</span>
-              <span className={`hidden md:inline ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
+              <span className={`hidden md:inline ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-down font-semibold' : 'text-up font-semibold'}`}>
                 {secondaryPctOfIncome > dynamicThresholds.secondarie ? 'Soglia superata' : 'Nei limiti'}
               </span>
-              <span className={`md:hidden ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'}`}>
+              <span className={`md:hidden ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-down font-semibold' : 'text-up font-semibold'}`}>
                 {secondaryPctOfIncome > dynamicThresholds.secondarie ? 'Non OK' : 'OK'}
               </span>
             </div>

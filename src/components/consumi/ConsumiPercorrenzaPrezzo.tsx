@@ -29,19 +29,19 @@ export default function ConsumiPercorrenzaPrezzo({
   const isMobile = useIsMobile();
 
   return (
-    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
-      <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
+    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
+      <h3 className="font-bold text-ink dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
         <Car className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
         Percorrenza & Prezzo Carburante
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Km settimanali */}
-        <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+        <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Chilometri Percorsi per Settimana</h4>
+            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Chilometri Percorsi per Settimana</h4>
             <TimeRangeToggle value={kmChartRange} onChange={setKmChartRange} />
           </div>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
+          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
           <div className="h-44">
             {kmChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
@@ -85,12 +85,12 @@ export default function ConsumiPercorrenzaPrezzo({
         </div>
 
         {/* €/Lt */}
-        <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+        <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Andamento Prezzo Carburante (€/Lt)</h4>
+            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Andamento Prezzo Carburante (€/Lt)</h4>
             <TimeRangeToggle value={prezzoChartRange} onChange={setPrezzoChartRange} />
           </div>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
+          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
           <div className="h-44">
             {prezzoChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>

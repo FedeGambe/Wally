@@ -32,10 +32,10 @@ export default function FinanceKpiCard({
     const typeConfigs = {
         disponibile: {
             cardClass: 'bg-emerald-200/70 dark:bg-emerald-950/65 border-emerald-200/80 dark:border-emerald-900/50',
-            titleColor: 'text-emerald-600 dark:text-emerald-400',
-            iconWrapper: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400',
+            titleColor: 'text-up',
+            iconWrapper: 'bg-emerald-100 dark:bg-emerald-950/60 text-up',
             borderT: 'border-emerald-200/70 dark:border-emerald-900/50',
-            textColor: 'text-slate-500 dark:text-slate-400',
+            textColor: 'text-ink-soft dark:text-slate-400',
             bgIconColor: 'text-emerald-500/5 dark:text-emerald-400/5'
         },
         investito: {
@@ -43,7 +43,7 @@ export default function FinanceKpiCard({
             titleColor: 'text-sky-600 dark:text-sky-400',
             iconWrapper: 'bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400',
             borderT: 'border-sky-200/70 dark:border-sky-900/50',
-            textColor: 'text-slate-500 dark:text-slate-400',
+            textColor: 'text-ink-soft dark:text-slate-400',
             bgIconColor: 'text-sky-500/5 dark:text-sky-400/5'
         },
         impegnato: {
@@ -51,16 +51,16 @@ export default function FinanceKpiCard({
             titleColor: 'text-amber-600 dark:text-amber-400',
             iconWrapper: 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400',
             borderT: 'border-amber-200/70 dark:border-amber-900/50',
-            textColor: 'text-slate-500 dark:text-slate-400',
+            textColor: 'text-ink-soft dark:text-slate-400',
             bgIconColor: 'text-amber-500/5 dark:text-amber-400/5'
         },
         totale: {
-            cardClass: 'bg-transparent border-slate-200 dark:border-slate-800/60',
-            titleColor: 'text-slate-400 dark:text-slate-500',
-            iconWrapper: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300',
-            borderT: 'border-slate-200 dark:border-slate-800/60',
-            textColor: 'text-slate-500 dark:text-slate-400',
-            bgIconColor: 'text-slate-400/5 dark:text-slate-300/3'
+            cardClass: 'bg-transparent border-hairline dark:border-slate-800/60',
+            titleColor: 'text-ink-soft dark:text-slate-500',
+            iconWrapper: 'bg-canvas dark:bg-slate-800/60 text-ink-soft dark:text-slate-300',
+            borderT: 'border-hairline dark:border-slate-800/60',
+            textColor: 'text-ink-soft dark:text-slate-400',
+            bgIconColor: 'text-ink-soft/5 dark:text-slate-300/3'
         }
     };
 
@@ -86,7 +86,7 @@ export default function FinanceKpiCard({
 
             {/* Value */}
             <div className="z-10 mt-1">
-                <h3 className="text-2xl font-black font-display text-slate-800 dark:text-slate-100 block leading-none">
+                <h3 className="text-2xl font-black font-display text-ink dark:text-slate-100 block leading-none">
                     <EuroAmount value={value} />
                 </h3>
             </div>

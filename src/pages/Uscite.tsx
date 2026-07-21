@@ -107,11 +107,11 @@ export default function Uscite({
       />
 
       {/* Monthly expense distribution stacked lines */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+      <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-bold text-slate-800 font-display text-base">
+              <h3 className="font-bold text-ink font-display text-base">
                 Andamento Spese {selectedMacroCat !== 'Tutte' ? `: ${selectedMacroCat}` : ''} {selectedMicroCat !== 'Tutte' ? `> ${selectedMicroCat}` : ''} (Ultimi 12 Mesi)
               </h3>
               {(selectedMacroCat !== 'Tutte' || selectedMicroCat !== 'Tutte') && (
@@ -120,7 +120,7 @@ export default function Uscite({
                     setSelectedMacroCat('Tutte');
                     setSelectedMicroCat('Tutte');
                   }}
-                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer"
+                  className="bg-accent/10 hover:bg-accent/20 text-accent text-[10px] px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer"
                   title="Azzera filtri categoria"
                 >
                   <span>Ripristina Totale</span>
@@ -128,7 +128,7 @@ export default function Uscite({
                 </button>
               )}
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-ink-soft mt-1">
               {selectedMacroCat !== 'Tutte' || selectedMicroCat !== 'Tutte'
                 ? `Mostrato il dettaglio storico per ${selectedMacroCat !== 'Tutte' ? `Macro: ${selectedMacroCat}` : ''} ${selectedMicroCat !== 'Tutte' ? `• Micro: ${selectedMicroCat}` : ''}.`
                 : "Confronto temporale tra primarie e secondarie."
@@ -183,30 +183,30 @@ export default function Uscite({
       </div>
 
       {/* Interactive table list filtering federico's real inputs */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+      <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 intense-search-bar">
           <div>
-            <h3 className="font-bold text-slate-800 font-display text-base">Archivio Transazioni Uscite</h3>
-            <p className="text-xs text-slate-400 mt-1">Cerca, filtra e analizza i flussi in tempo reale</p>
+            <h3 className="font-bold text-ink font-display text-base">Archivio Transazioni Uscite</h3>
+            <p className="text-xs text-ink-soft mt-1">Cerca, filtra e analizza i flussi in tempo reale</p>
           </div>
 
           {/* Quick search input */}
           <div className="flex items-center gap-2.5 relative w-full md:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5" />
+            <Search className="w-4 h-4 text-ink-soft absolute left-3.5" />
             <input
               type="text"
               placeholder="Cerca transazione, desc, cat..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-canvas border border-hairline rounded-xl py-2 pl-10 pr-4 text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-accent"
             />
           </div>
         </div>
 
         {/* Table filters strip */}
-        <div className="flex flex-wrap items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-500 mb-4 font-medium select-none">
+        <div className="flex flex-wrap items-center gap-3 bg-canvas border border-hairline p-3 rounded-xl text-xs text-ink-soft mb-4 font-medium select-none">
           <div className="flex items-center gap-1.5 shrink-0">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-ink-soft" />
             <span>Filtri attivi:</span>
           </div>
 
@@ -266,11 +266,11 @@ export default function Uscite({
 
           {/* Micro category selection indicator */}
           {selectedMicroCat !== 'Tutte' && (
-            <span className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2.5 py-1 rounded-lg font-bold shrink-0">
+            <span className="inline-flex items-center gap-1 bg-accent/10 border border-accent/25 text-accent px-2.5 py-1 rounded-lg font-bold shrink-0">
               <span>Micro: {selectedMicroCat}</span>
               <button
                 onClick={() => setSelectedMicroCat('Tutte')}
-                className="hover:text-indigo-900 font-extrabold ml-1.5 cursor-pointer text-sm leading-none"
+                className="hover:opacity-70 font-extrabold ml-1.5 cursor-pointer text-sm leading-none"
                 title="Rimuovi filtro micro categoria"
               >
                 ×
@@ -279,20 +279,20 @@ export default function Uscite({
           )}
 
           <span className="text-[10px] text-slate-450 ml-auto font-mono">
-            Mostrati: <strong className="font-bold text-slate-700">{finalFilteredTransactions.length}</strong> record
+            Mostrati: <strong className="font-bold text-ink">{finalFilteredTransactions.length}</strong> record
           </span>
         </div>
 
         {/* Transactions list layout table */}
         {finalFilteredTransactions.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+          <div className="py-12 text-center text-ink-soft text-xs border border-dashed border-hairline rounded-2xl bg-canvas/50">
             Nessuna transazione soddisfa i filtri selezionati.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-hairline text-[11px] font-bold text-ink-soft uppercase tracking-wider">
                   <th className="py-3 px-4">Data</th>
                   <th className="py-3 px-4">Descrizione</th>
                   <th className="py-3 px-4">Macro</th>
@@ -304,29 +304,29 @@ export default function Uscite({
               </thead>
               <tbody className="divide-y divide-slate-50 text-xs">
                 {finalFilteredTransactions.map((tx, idx) => (
-                  <tr key={tx.id || `tx-${idx}`} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4 text-slate-400 font-normal font-mono">
+                  <tr key={tx.id || `tx-${idx}`} className="hover:bg-canvas/60 transition-colors">
+                    <td className="py-3.5 px-4 text-ink-soft font-normal font-mono">
                       {tx.data}
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
                         <span className="shrink-0">{tx.icon || '🍕'}</span>
-                        <span className="font-semibold text-slate-800 truncate max-w-xs">{tx.descrizione}</span>
+                        <span className="font-semibold text-ink truncate max-w-xs">{tx.descrizione}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="bg-slate-100 border border-slate-200/50 text-[10px] text-slate-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">
+                      <span className="bg-canvas border border-hairline/50 text-[10px] text-ink-soft px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">
                         {tx.macroCategoria}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400 font-normal">
+                    <td className="py-3.5 px-4 text-ink-soft font-normal">
                       {tx.categoria}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-slate-800 font-mono">
+                    <td className="py-3.5 px-4 text-right font-extrabold text-ink font-mono">
                       {formatEuro(tx.importo)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 font-medium">
-                      <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 font-mono">
+                    <td className="py-3.5 px-4 text-ink-soft font-medium">
+                      <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-[10px] text-ink-soft font-mono">
                         {tx.conto}
                       </span>
                     </td>

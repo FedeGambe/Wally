@@ -82,12 +82,12 @@ export default function PatrimonioCapitalSplitCard({
   });
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col">
+    <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col">
       <div className="flex items-center gap-2">
         <Wallet className="w-5 h-5 text-amber-500" />
         <div>
-          <h3 className="font-bold text-slate-800 font-display text-base leading-snug">Suddivisione Capitale</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Ripartizione tra capitale disponibile, investito e accantonato</p>
+          <h3 className="font-bold text-ink font-display text-base leading-snug">Suddivisione Capitale</h3>
+          <p className="text-xs text-ink-soft mt-0.5">Ripartizione tra capitale disponibile, investito e accantonato</p>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export default function PatrimonioCapitalSplitCard({
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Totale</span>
+                <span className="text-[10px] text-ink-soft font-bold block uppercase tracking-wider">Totale</span>
                 <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</span>
               </div>
             </div>
@@ -141,20 +141,20 @@ export default function PatrimonioCapitalSplitCard({
                 <div key={idx} className="flex items-start gap-1.5">
                   <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
                   <div className="min-w-0">
-                    <span className="text-slate-600 font-medium text-[10px] block truncate">{item.name}</span>
-                    <span className="font-bold text-slate-800 text-[11px] block">{formatEuro(item.value)}</span>
+                    <span className="text-ink-soft font-medium text-[10px] block truncate">{item.name}</span>
+                    <span className="font-bold text-ink text-[11px] block">{formatEuro(item.value)}</span>
                   </div>
                 </div>
               ))}
               {contoCapitalData.length > 0 && (
-                <div className="mt-1 pt-2 border-t border-slate-100 space-y-2 flex-1 min-h-0 overflow-y-auto">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Per conto</span>
+                <div className="mt-1 pt-2 border-t border-hairline space-y-2 flex-1 min-h-0 overflow-y-auto">
+                  <span className="text-[9px] text-ink-soft font-bold uppercase tracking-wider block">Per conto</span>
                   {contoCapitalData.map((item, idx) => (
                     <div key={idx} className="flex items-start gap-1.5">
                       <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
                       <div className="min-w-0">
-                        <span className="text-slate-600 font-medium text-[10px] block truncate" title={item.name}>{item.name}</span>
-                        <span className="font-bold text-slate-800 text-[11px] block">{formatEuro(item.value)}</span>
+                        <span className="text-ink-soft font-medium text-[10px] block truncate" title={item.name}>{item.name}</span>
+                        <span className="font-bold text-ink text-[11px] block">{formatEuro(item.value)}</span>
                       </div>
                     </div>
                   ))}
@@ -163,7 +163,7 @@ export default function PatrimonioCapitalSplitCard({
             </div>
           </>
         ) : (
-          <div className="w-full text-center text-xs text-slate-400 font-medium">
+          <div className="w-full text-center text-xs text-ink-soft font-medium">
             Nessun capitale presente nel foglio Google Sheets
           </div>
         )}

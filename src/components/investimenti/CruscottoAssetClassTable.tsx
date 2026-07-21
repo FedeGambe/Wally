@@ -9,15 +9,15 @@ interface CruscottoAssetClassTableProps {
 
 export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, maxHeight }: CruscottoAssetClassTableProps) {
   return (
-    <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md flex flex-col">
-      <h3 className="font-bold text-slate-800 font-display text-base mb-4 shrink-0">Distribuzione Asset Class per Anno</h3>
+    <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-hairline shadow-sm transition-all duration-300 hover:shadow-md flex flex-col">
+      <h3 className="font-bold text-ink font-display text-base mb-4 shrink-0">Distribuzione Asset Class per Anno</h3>
       <div
         className="overflow-x-auto lg:overflow-y-auto"
         style={maxHeight ? { maxHeight } : undefined}
       >
         <table className="w-full text-sm text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
               <th className="py-3 px-4">Anno</th>
               <th className="py-3 px-4 text-right">Azioni Cum.</th>
               <th className="py-3 px-4 text-right">Azioni Ann.</th>
@@ -39,20 +39,20 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
                 Number(row.monetariInvestitoCum || 0) +
                 Number(row.rendimentoCumulativoEuro || 0);
               return (
-                <tr key={row.anno} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
-                  <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-100">
+                <tr key={row.anno} className="hover:bg-canvas/60 dark:hover:bg-slate-800/20 transition-colors">
+                  <td className="py-3.5 px-4 font-semibold text-ink dark:text-slate-100">
                     {row.anno}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
-                  <td className="py-3.5 px-4 text-right text-emerald-600 font-bold font-mono">
+                  <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
                     +{formatEuro(row.azioniInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
-                  <td className="py-3.5 px-4 text-right text-emerald-600 font-bold font-mono">
+                  <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
                     +{formatEuro(row.obbligazioniInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
-                  <td className="py-3.5 px-4 text-right text-emerald-600 font-bold font-mono">
+                  <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
                     +{formatEuro(row.monetariInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-bold text-sky-600 font-mono">

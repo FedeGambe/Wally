@@ -40,19 +40,19 @@ export default function ConsumiEfficienzaMarcia({
   const isMobile = useIsMobile();
 
   return (
-    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm text-left">
-      <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
+    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
+      <h3 className="font-bold text-ink dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
         <Gauge className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
         Efficienza di Marcia
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Km / Litro */}
-        <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+        <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Evoluzione Km / Litro</h4>
+            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Evoluzione Km / Litro</h4>
             <TimeRangeToggle value={kmLtChartRange} onChange={setKmLtChartRange} />
           </div>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
+          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
           <div className="h-44">
             {kmLtChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
@@ -82,12 +82,12 @@ export default function ConsumiEfficienzaMarcia({
         </div>
 
         {/* €/100km */}
-        <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/20">
+        <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs">Costo per 100 Km</h4>
+            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo per 100 Km</h4>
             <TimeRangeToggle value={euro100ChartRange} onChange={setEuro100ChartRange} />
           </div>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>
+          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>
           <div className="h-44">
             {euro100ChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>

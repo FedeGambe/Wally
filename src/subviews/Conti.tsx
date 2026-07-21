@@ -175,13 +175,13 @@ export default function Conti({
   return (
     <div className="space-y-6 text-left animate-fadeIn">
       {/* Subtabs to choose between Scalable Capital and Trade republic */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800/60 gap-6 mb-6 select-none outline-hidden">
+      <div className="flex border-b border-hairline dark:border-slate-800/60 gap-6 mb-6 select-none outline-hidden">
         <button
           onClick={() => setActiveConto('scalable')}
           className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
             activeConto === 'scalable'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              : 'border-transparent text-ink-soft hover:text-ink dark:hover:text-slate-200'
           }`}
         >
           Scalable Capital Portfolio
@@ -191,7 +191,7 @@ export default function Conti({
           className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
             activeConto === 'trade'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              : 'border-transparent text-ink-soft hover:text-ink dark:hover:text-slate-200'
           }`}
         >
           Trade Republic Portfolio
@@ -200,24 +200,24 @@ export default function Conti({
 
       {/* Accounts KPIs panels */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Saldo Attuale Portafoglio</span>
-          <span className="text-2xl font-black font-display text-slate-800 dark:text-slate-100 block mt-1">
+        <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
+          <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Saldo Attuale Portafoglio</span>
+          <span className="text-2xl font-black font-display text-ink dark:text-slate-100 block mt-1">
             <EuroAmount value={topKPIs.saldo} />
           </span>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-[10px] text-ink-soft dark:text-slate-500 mt-1">
             {topKPIs.isReal 
               ? `${topKPIs.isFallbackMonth ? 'Dato precedente rilevato' : 'Valutazione reale rilevata'} nel mese di ${topKPIs.mese}` 
               : 'Valutazione corrente di tutti gli strumenti'}
           </p>
         </div>
         
-        <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Totale Capitale Investito</span>
-          <span className="text-2xl font-black font-display text-slate-800 dark:text-slate-100 block mt-1">
+        <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
+          <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Totale Capitale Investito</span>
+          <span className="text-2xl font-black font-display text-ink dark:text-slate-100 block mt-1">
             <EuroAmount value={topKPIs.investito} />
           </span>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-[10px] text-ink-soft dark:text-slate-500 mt-1">
             {topKPIs.isReal ? `Capitale totale investito al mese di ${topKPIs.mese}` : 'Versato cumulativo netto'}
           </p>
         </div>
@@ -225,11 +225,11 @@ export default function Conti({
         <div className={`p-5 rounded-3xl border flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md ${
           topKPIs.plusvalenza >= 0
             ? 'bg-emerald-50/10 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.12)] hover:shadow-[0_0_20px_rgba(16,185,129,0.18)]'
-            : 'bg-white dark:bg-[#0c1425]/45 border-slate-200 dark:border-slate-800/80 shadow-sm'
+            : 'bg-white dark:bg-[#0c1425]/45 border-hairline dark:border-slate-800/80 shadow-sm'
         }`}>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Plusvalenza Attiva</span>
+          <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Plusvalenza Attiva</span>
           <span className={`text-2xl font-black font-display block mt-1 flex items-center gap-1 ${
-            topKPIs.plusvalenza >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+            topKPIs.plusvalenza >= 0 ? 'text-up' : 'text-down'
           }`}>
             {topKPIs.plusvalenza >= 0 ? (
               <ChevronUp className="w-5 h-5 shrink-0" />
@@ -238,7 +238,7 @@ export default function Conti({
             )}
             <EuroAmount value={Math.abs(topKPIs.plusvalenza)} />
           </span>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 truncate">
+          <p className="text-[10px] text-ink-soft dark:text-slate-500 mt-1 truncate">
             {topKPIs.isReal ? `Rendimento cumulativo registrato al mese di ${topKPIs.mese}` : `Contributore principale: ${accountKPIs[activeConto]?.topContributor || 'SToxx 600'}`}
           </p>
         </div>
@@ -246,13 +246,13 @@ export default function Conti({
 
       {/* Trade Republic Interests, Savebacks and Dividends widgets - MOVED ABOVE REGISTRO */}
       {activeConto === 'trade' && (
-        <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
-          <div className="mb-6 border-b border-slate-100 dark:border-slate-800/60 pb-4">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-2">
+        <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
+          <div className="mb-6 border-b border-hairline dark:border-slate-800/60 pb-4">
+            <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
               <Landmark className="w-5 h-5 text-sky-500 dark:text-sky-400" />
               Dettaglio Rendimenti e Benefit Accumulati ({globalSelectedYear})
             </h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+            <p className="text-xs text-ink-soft dark:text-slate-500 mt-0.5">
               Riepilogo delle voci di rendimento passivo con dettaglio sullo storico e progressione cumulativa.
             </p>
           </div>
@@ -262,14 +262,14 @@ export default function Conti({
             <div className="p-5 rounded-2xl bg-sky-50/20 dark:bg-sky-950/10 border border-sky-150/40 dark:border-sky-900/20 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Interessi Accumulati</span>
+                  <span className="text-xs font-bold text-ink-soft dark:text-slate-400 uppercase tracking-wider block">Interessi Accumulati</span>
                   <span className="px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded">4% Lordo</span>
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
                     <EuroAmount value={realMetrics.annualInteressi} />
                   </span>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
+                  <span className="text-[11px] text-ink-soft dark:text-slate-500 block font-medium mt-1">
                     Totale maturato nell'anno
                   </span>
                 </div>
@@ -277,16 +277,16 @@ export default function Conti({
               
               {/* Historical progression list */}
               <div className="mt-4 border-t border-sky-150/40 dark:border-sky-900/20 pt-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-ink-soft dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   {runningTotals.length === 0 ? (
-                    <span className="text-xs text-slate-400 block py-2">Nessun dato registrato</span>
+                    <span className="text-xs text-ink-soft block py-2">Nessun dato registrato</span>
                   ) : (
                     runningTotals.slice().reverse().map((m, i) => (
                       <div key={i} className="flex justify-between text-xs py-0.5">
-                        <span className="text-slate-500 dark:text-slate-400 capitalize">{m.mese}</span>
+                        <span className="text-ink-soft dark:text-slate-400 capitalize">{m.mese}</span>
                         <div className="text-right font-mono">
-                          <span className="text-slate-800 dark:text-slate-200 font-bold">{formatEuro(m.cumInteressi)}</span>
+                          <span className="text-ink dark:text-slate-200 font-bold">{formatEuro(m.cumInteressi)}</span>
                           <span className="text-[10px] text-emerald-500 dark:text-emerald-400 ml-1.5">({formatEuro(m.interessi)})</span>
                         </div>
                       </div>
@@ -300,14 +300,14 @@ export default function Conti({
             <div className="p-5 rounded-2xl bg-sky-50/20 dark:bg-sky-950/10 border border-sky-150/40 dark:border-sky-900/20 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Saveback Maturati</span>
+                  <span className="text-xs font-bold text-ink-soft dark:text-slate-400 uppercase tracking-wider block">Saveback Maturati</span>
                   <span className="px-2 py-0.5 text-[10px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded">1% Spesa</span>
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
                     <EuroAmount value={realMetrics.annualSaveback} />
                   </span>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
+                  <span className="text-[11px] text-ink-soft dark:text-slate-500 block font-medium mt-1">
                     Totale accreditato nell'anno
                   </span>
                 </div>
@@ -315,16 +315,16 @@ export default function Conti({
 
               {/* Historical progression list */}
               <div className="mt-4 border-t border-sky-150/40 dark:border-sky-900/20 pt-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-ink-soft dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   {runningTotals.length === 0 ? (
-                    <span className="text-xs text-slate-400 block py-2">Nessun dato registrato</span>
+                    <span className="text-xs text-ink-soft block py-2">Nessun dato registrato</span>
                   ) : (
                     runningTotals.slice().reverse().map((m, i) => (
                       <div key={i} className="flex justify-between text-xs py-0.5">
-                        <span className="text-slate-500 dark:text-slate-400 capitalize">{m.mese}</span>
+                        <span className="text-ink-soft dark:text-slate-400 capitalize">{m.mese}</span>
                         <div className="text-right font-mono">
-                          <span className="text-slate-800 dark:text-slate-200 font-bold">{formatEuro(m.cumSaveback)}</span>
+                          <span className="text-ink dark:text-slate-200 font-bold">{formatEuro(m.cumSaveback)}</span>
                           <span className="text-[10px] text-emerald-500 dark:text-emerald-400 ml-1.5">({formatEuro(m.saveback)})</span>
                         </div>
                       </div>
@@ -338,14 +338,14 @@ export default function Conti({
             <div className="p-5 rounded-2xl bg-emerald-50/10 dark:bg-emerald-950/10 border border-emerald-100/20 dark:border-emerald-900/20 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Bond & Dividendi</span>
+                  <span className="text-xs font-bold text-ink-soft dark:text-slate-400 uppercase tracking-wider block">Bond & Dividendi</span>
                   <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100/30 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded">Cedole</span>
                 </div>
                 <div className="mb-4">
-                  <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-display block">
+                  <span className="text-3xl font-black text-up font-display block">
                     <EuroAmount value={realMetrics.annualDividendi} />
                   </span>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block font-medium mt-1">
+                  <span className="text-[11px] text-ink-soft dark:text-slate-500 block font-medium mt-1">
                     Totale pagato nell'anno
                   </span>
                 </div>
@@ -353,21 +353,21 @@ export default function Conti({
 
               {/* Historical progression list */}
               <div className="mt-4 border-t border-emerald-100/20 dark:border-emerald-900/20 pt-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-ink-soft dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-emerald-100/30 dark:scrollbar-thumb-emerald-900/30">
                   {runningTotals.length === 0 ? (
-                    <span className="text-xs text-slate-400 block py-2">Nessun dato registrato</span>
+                    <span className="text-xs text-ink-soft block py-2">Nessun dato registrato</span>
                   ) : (
                     runningTotals.slice().reverse().map((m, i) => (
-                      <div key={i} className="flex flex-col text-xs py-1 border-b border-slate-100/10 last:border-0">
+                      <div key={i} className="flex flex-col text-xs py-1 border-b border-hairline/10 last:border-0">
                         <div className="flex justify-between">
-                          <span className="text-slate-500 dark:text-slate-400 capitalize font-medium">{m.mese}</span>
-                          <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                          <span className="text-ink-soft dark:text-slate-400 capitalize font-medium">{m.mese}</span>
+                          <span className="font-mono text-up font-bold">
                             {formatEuro(m.cumDividendi)}
                           </span>
                         </div>
                         {(m.dividendiIbonds > 0 || m.dividendiAmundi > 0) && (
-                          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 pl-2 font-mono mt-0.5">
+                          <div className="flex justify-between text-[10px] text-ink-soft dark:text-slate-500 pl-2 font-mono mt-0.5">
                             <span>iBonds: {formatEuro(m.dividendiIbonds)}</span>
                             <span>Amundi: {formatEuro(m.dividendiAmundi)}</span>
                           </div>
@@ -383,14 +383,14 @@ export default function Conti({
       )}
 
       {/* Historical Monthly Spreadsheet Structure */}
-      <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
+      <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-2">
+            <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-sky-500 dark:text-sky-400" />
               Registro Storico Mensile — Foglio di Calcolo ({activeConto === 'scalable' ? 'Scalable Capital' : 'Trade Republic'})
             </h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+            <p className="text-xs text-ink-soft dark:text-slate-500 font-medium mt-0.5">
               Rappresentazione della struttura del foglio Google filtrata per l'anno {globalSelectedYear}
             </p>
           </div>
@@ -400,14 +400,14 @@ export default function Conti({
         </div>
 
         {sortedFilteredRecords.length === 0 ? (
-          <div className="text-center py-8 bg-slate-50/50 dark:bg-slate-900/10 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Nessun dato mensile disponibile per l'anno {globalSelectedYear}</p>
+          <div className="text-center py-8 bg-canvas/50 dark:bg-slate-900/10 rounded-2xl border border-dashed border-hairline dark:border-slate-800">
+            <p className="text-sm text-ink-soft dark:text-slate-500 font-medium">Nessun dato mensile disponibile per l'anno {globalSelectedYear}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
                   <th className="py-3 px-4">Mese</th>
                   <th className="py-3 px-4 text-right">Rend. Mensile €</th>
                   <th className="py-3 px-4 text-right">Rend. Mensile %</th>
@@ -436,8 +436,8 @@ export default function Conti({
                   const rendCum = Number(r.rendimentoCumulativoEuro || 0);
                   const divSum = Number(r.dividendiIbonds || 0) + Number(r.dividendiAmundi || 0) + Number(r.dividendi || 0);
                   return (
-                    <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200 capitalize">{r.mese}</td>
+                    <tr key={idx} className="hover:bg-canvas/60 dark:hover:bg-slate-800/20 transition-colors">
+                      <td className="py-3.5 px-4 font-semibold text-ink dark:text-slate-200 capitalize">{r.mese}</td>
                       <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
                         {rendMese >= 0 ? '+' : ''}{formatEuro(rendMese)}
                       </td>
@@ -452,18 +452,18 @@ export default function Conti({
                         {formatPercent(r.rendimentoCumulativoPerc || 0)}
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.totaleInvestito || 0)}</td>
-                      <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-800 dark:text-slate-100">{formatEuro(r.saldoConto || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-ink dark:text-slate-100">{formatEuro(r.saldoConto || 0)}</td>
                       {activeConto === 'scalable' && (
                         <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.saldoContoCompleto || 0)}</td>
                       )}
-                      <td className="py-3.5 px-4 text-right font-mono text-emerald-600 dark:text-emerald-400">{formatEuro(r.interessiConto || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono text-up">{formatEuro(r.interessiConto || 0)}</td>
                       {activeConto === 'trade' ? (
                         <td className="py-3.5 px-4 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.savebacks || 0)}</td>
                       ) : (
                         <td className="py-3.5 px-4 text-right font-mono text-sky-600 dark:text-sky-400">{formatEuro(r.interessiContoComulativo || 0)}</td>
                       )}
-                      <td className="py-3.5 px-4 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniMensili || 0)}</td>
-                      <td className="py-3.5 px-4 text-right font-mono text-slate-400 dark:text-slate-500">{formatEuro(r.commissioniomulative || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono text-ink-soft dark:text-slate-500">{formatEuro(r.commissioniMensili || 0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono text-ink-soft dark:text-slate-500">{formatEuro(r.commissioniomulative || 0)}</td>
                       <td className="py-3.5 px-4 text-right font-mono font-bold text-sky-600 dark:text-sky-400">{formatEuro(divSum)}</td>
                     </tr>
                   );

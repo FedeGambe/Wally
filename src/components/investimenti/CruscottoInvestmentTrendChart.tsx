@@ -49,50 +49,50 @@ export default function CruscottoInvestmentTrendChart({
   }, 0);
 
   return (
-    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-sm">
+    <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
-        <h3 className="font-bold text-slate-800 dark:text-slate-100 font-display text-base flex items-center gap-1.5">
+        <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-1.5">
           <Activity className="w-5 h-5 text-sky-600 dark:text-sky-400" />
           Andamento Investimenti
         </h3>
-        <div className="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
+        <div className="flex bg-canvas dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-hairline dark:border-slate-700/60 select-none">
           <button
             onClick={() => { setChartView('cumulato'); setTimeRange('storico'); }}
-            className={`flex items-center gap-1 text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${chartView === 'cumulato' ? 'bg-sky-700 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-sky-700'
+            className={`flex items-center gap-1 text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${chartView === 'cumulato' ? 'bg-sky-700 text-white shadow-sm' : 'text-ink-soft dark:text-slate-400 hover:text-sky-700'
               }`}
           >
             Cumulato
           </button>
           <button
             onClick={() => { setChartView('mensile'); setTimeRange('12mesi'); }}
-            className={`flex items-center gap-1 text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${chartView === 'mensile' ? 'bg-sky-700 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-sky-700'
+            className={`flex items-center gap-1 text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${chartView === 'mensile' ? 'bg-sky-700 text-white shadow-sm' : 'text-ink-soft dark:text-slate-400 hover:text-sky-700'
               }`}
           >
             Mensile
           </button>
         </div>
       </div>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 font-medium">
+      <p className="text-xs text-ink-soft dark:text-slate-500 mb-4 font-medium">
         Andamento del portafoglio nel tempo, {chartView === 'mensile' ? 'importo versato ogni mese' : 'capitale investito confrontato con il valore di mercato'}.
       </p>
 
-      <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-900/20 border border-slate-200/70 dark:border-slate-800/60">
+      <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-canvas/60 dark:bg-slate-900/20 border border-hairline/70 dark:border-slate-800/60">
         <div className="flex items-center justify-between gap-3 mb-2">
-          <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-1.5">
+          <h4 className="font-bold text-ink dark:text-slate-200 text-sm flex items-center gap-1.5">
             {chartView === 'mensile' ? <BarChart3 className="w-4 h-4 text-sky-600 dark:text-sky-400" /> : <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
             {chartView === 'mensile' ? 'Investimento Mensile' : 'Investimento Cumulato'}
           </h4>
-          <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-slate-700/60 select-none">
+          <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-hairline dark:border-slate-700/60 select-none">
             <button
               onClick={() => setTimeRange('storico')}
-              className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+              className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === 'storico' ? 'bg-sky-600 text-white shadow-xs' : 'text-ink-soft dark:text-slate-400 hover:text-sky-600'
                 }`}
             >
               Storico
             </button>
             <button
               onClick={() => setTimeRange('12mesi')}
-              className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-sky-600'
+              className={`flex-1 text-center whitespace-nowrap text-[9px] px-2.5 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${timeRange === '12mesi' ? 'bg-sky-600 text-white shadow-xs' : 'text-ink-soft dark:text-slate-400 hover:text-sky-600'
                 }`}
             >
               <span className="sm:hidden">Ultimi 12 M.</span>
@@ -100,16 +100,16 @@ export default function CruscottoInvestmentTrendChart({
             </button>
           </div>
         </div>
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-2 font-medium">
+        <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-2 font-medium">
           {chartView === 'mensile'
             ? 'Importo versato mese per mese sui conti di investimento.'
             : "Confronto storico tra il capitale depositato e l'attuale valore di mercato."}
         </p>
         <div className="flex justify-between items-center mb-3">
-          <span className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">
+          <span className="text-[10px] uppercase font-extrabold text-ink-soft tracking-wider">
             {timeRange === '12mesi' ? 'Focus Periodo (Ultimi 12 Mesi)' : 'Storico Completo'}
           </span>
-          <span className="text-[10px] text-slate-500">
+          <span className="text-[10px] text-ink-soft">
             {activeChartData.length > 0 ? `${activeChartData[0]?.mese} - ${activeChartData[activeChartData.length - 1]?.mese}` : ''}
           </span>
         </div>
@@ -122,8 +122,8 @@ export default function CruscottoInvestmentTrendChart({
                   <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.01} />
                 </linearGradient>
                 <linearGradient id="colorValorePortafoglio" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.01} />
+                  <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.01} />
                 </linearGradient>
                 <linearGradient id="colorInvestitoMensile" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.35} />
@@ -188,7 +188,7 @@ export default function CruscottoInvestmentTrendChart({
                     type="monotone"
                     name="Valore Portafoglio"
                     dataKey="valoreAttualePortafoglio"
-                    stroke="#0ea5e9"
+                    stroke="#38bdf8"
                     strokeWidth={3}
                     fillOpacity={1}
                     fill="url(#colorValorePortafoglio)"
@@ -200,17 +200,17 @@ export default function CruscottoInvestmentTrendChart({
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-500 flex justify-between items-center shrink-0">
+        <div className="mt-3 pt-3 border-t border-hairline dark:border-slate-800 text-xs font-semibold text-ink-soft flex justify-between items-center shrink-0">
           <div>
-            <span className="block text-[9px] uppercase text-slate-400 font-bold">Inizio Range</span>
-            <span className="text-slate-800 dark:text-slate-100 font-bold font-mono">
+            <span className="block text-[9px] uppercase text-ink-soft font-bold">Inizio Range</span>
+            <span className="text-ink dark:text-slate-100 font-bold font-mono">
               <span className="sm:hidden">{activeChartData[0]?.mese ? toMeseCompatto(activeChartData[0].mese) : 'N/D'}</span>
               <span className="hidden sm:inline">{activeChartData[0]?.mese || 'N/D'}</span>
             </span>
           </div>
           <div className="text-right">
-            <span className="block text-[9px] uppercase text-slate-400 font-bold">Fine Range</span>
-            <span className="font-bold font-mono text-slate-800 dark:text-slate-100">
+            <span className="block text-[9px] uppercase text-ink-soft font-bold">Fine Range</span>
+            <span className="font-bold font-mono text-ink dark:text-slate-100">
               <span className="sm:hidden">{activeChartData[activeChartData.length - 1]?.mese ? toMeseCompatto(activeChartData[activeChartData.length - 1].mese) : 'N/D'}</span>
               <span className="hidden sm:inline">{activeChartData[activeChartData.length - 1]?.mese || 'N/D'}</span> (
               <span className="text-sky-600 dark:text-sky-400">

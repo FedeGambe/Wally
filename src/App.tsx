@@ -45,7 +45,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 function PageLoadingFallback() {
   return (
     <div className="flex items-center justify-center h-full w-full py-24">
-      <div className="w-8 h-8 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-hairline border-t-blue-600 rounded-full animate-spin" />
     </div>
   );
 }
@@ -309,11 +309,11 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#060a13] text-slate-100' : 'bg-slate-50 text-slate-800'} antialiased font-sans relative overflow-hidden transition-colors duration-300`}>
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#060a13] text-slate-100' : 'bg-canvas text-ink'} antialiased font-sans relative overflow-hidden transition-colors duration-300`}>
       {/* Colorful Floating Blurry Blobs for Glassmorphism depth in Dark theme only */}
       {theme === 'dark' && (
         <>
-          <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+          <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent/20 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
           <div className="absolute bottom-[5%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-emerald-500/15 blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: '12s' }} />
           <div className="absolute top-[35%] right-[10%] w-[45vw] h-[45vw] rounded-full bg-rose-500/10 blur-[110px] pointer-events-none animate-pulse" style={{ animationDuration: '10s' }} />
           <div className="absolute bottom-[-10%] left-[15%] w-[50vw] h-[50vw] rounded-full bg-sky-500/15 blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: '14s' }} />
@@ -595,7 +595,7 @@ function DashboardShell({
       )}
 
       {/* Mobile Bottom Navigation Bar styled dynamically per active tab color */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around items-center pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-2 select-none shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-hairline flex justify-around items-center pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-2 select-none shadow-lg">
         {[
           { id: 'panoramica', label: 'Home', icon: LayoutDashboard },
           { id: 'entrate', label: 'Entrate', icon: ArrowUpRight },
@@ -608,11 +608,11 @@ function DashboardShell({
           const isActive = activeView === item.id;
           const activeColorMap: { [key: string]: string } = {
             panoramica: 'text-blue-600 font-extrabold',
-            entrate: 'text-emerald-600 font-extrabold',
+            entrate: 'text-up font-extrabold',
             uscite: 'text-orange-600 font-extrabold',
             patrimonio: 'text-amber-500 font-extrabold',
             investimenti: 'text-sky-500 font-extrabold',
-            consumi: 'text-rose-600 font-extrabold'
+            consumi: 'text-down font-extrabold'
           };
           return (
             <button
@@ -620,8 +620,8 @@ function DashboardShell({
               onClick={() => setActiveView(item.id)}
               className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-all"
             >
-              <Icon className={`w-5 h-5 ${isActive ? activeColorMap[item.id] || 'text-blue-600' : 'text-slate-400'}`} />
-              <span className={`text-[10px] mt-0.5 tracking-tighter ${isActive ? 'text-slate-900 font-extrabold' : 'text-slate-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? activeColorMap[item.id] || 'text-blue-600' : 'text-ink-soft'}`} />
+              <span className={`text-[10px] mt-0.5 tracking-tighter ${isActive ? 'text-ink font-extrabold' : 'text-ink-soft'}`}>
                 {item.label}
               </span>
             </button>
@@ -643,7 +643,7 @@ function DashboardShell({
             </div>
             <div className="text-left">
               <h4 className="text-sm font-semibold">Sheets Sincronizzato!</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Dati scaricati dal foglio 'Finanza' ed elaborati correttamente.</p>
+              <p className="text-xs text-ink-soft mt-0.5">Dati scaricati dal foglio 'Finanza' ed elaborati correttamente.</p>
             </div>
           </motion.div>
         )}

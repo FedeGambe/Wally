@@ -121,12 +121,12 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
   // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS
   // (funziona su Chrome/Edge/Safari, gli unici che espongono questo pseudo-elemento).
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
-  const labelClass = "block text-[11px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider";
+  const labelClass = "block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,10 +161,10 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
               })}
             </div>
           ) : (
-            <p className="text-xs text-slate-400 mb-2">Nessuna uscita ricorrente ancora da inserire.</p>
+            <p className="text-xs text-ink-soft mb-2">Nessuna uscita ricorrente ancora da inserire.</p>
           )}
           {presetSelezionato && selezionatoHaTrasferimento && (
-            <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs font-semibold text-ink-soft dark:text-slate-300 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={ancheTrasferimento}
@@ -269,18 +269,18 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
         </div>
         <div>
           <label className={labelClass}>Tipologia</label>
-          <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-slate-200 dark:border-white/10 h-[42px]">
+          <div className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-hairline dark:border-white/10 h-[42px]">
             <button
               type="button"
               onClick={() => setPrimaria(true)}
-              className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'text-slate-500'}`}
+              className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'text-ink-soft'}`}
             >
               Primaria
             </button>
             <button
               type="button"
               onClick={() => setPrimaria(false)}
-              className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'text-slate-500'}`}
+              className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'text-ink-soft'}`}
             >
               Secondaria
             </button>
@@ -288,7 +288,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
         </div>
       </div>
 
-      {error && <p className="text-xs text-rose-600 font-semibold">{error}</p>}
+      {error && <p className="text-xs text-down font-semibold">{error}</p>}
 
       <button
         type="submit"

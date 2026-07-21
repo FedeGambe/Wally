@@ -90,13 +90,13 @@ export default function Entrate({
 
     if (isPreviousHigher) {
       return (
-        <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
+        <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-down bg-down/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
           <span>↓ {formattedPct}</span>
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
+        <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-up bg-up/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
           <span>↑ {formattedPct}</span>
         </span>
       );
@@ -168,22 +168,22 @@ export default function Entrate({
         </div>
 
         {/* Box Entrate Annuali */}
-        <div className="bg-transparent text-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden h-40 border-2 border-emerald-500 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
-          <div className="absolute right-4 top-4 w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+        <div className="bg-transparent text-ink rounded-3xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden h-40 border-2 border-emerald-500 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+          <div className="absolute right-4 top-4 w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-up">
             <Calendar className="w-6 h-6" />
           </div>
           <div className="z-10 text-left">
-            <span className="text-xs text-emerald-600 font-bold uppercase tracking-wider block">
+            <span className="text-xs text-up font-bold uppercase tracking-wider block">
               Entrate Anno Corrente ({selectedRecord?.anno})
             </span>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              <h3 className="text-3xl font-extrabold font-display text-slate-800 leading-none">
+              <h3 className="text-3xl font-extrabold font-display text-ink leading-none">
                 <EuroAmount value={totalIncomeForSelectedYear} />
               </h3>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-auto z-10 font-medium text-left">
-            Media mensile stimata di <strong className="font-bold text-slate-700">{formatEuro(avgMonthlyIncome)}</strong>
+          <p className="text-xs text-ink-soft mt-auto z-10 font-medium text-left">
+            Media mensile stimata di <strong className="font-bold text-ink">{formatEuro(avgMonthlyIncome)}</strong>
           </p>
           <div className="absolute -right-4 -bottom-4 text-emerald-500/10">
             <TrendingUp className="w-32 h-32" />
@@ -192,11 +192,11 @@ export default function Entrate({
       </div>
 
       {/* Grafico Principale di Andamento Storico */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+      <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h3 className="font-bold text-slate-800 font-display text-base">Andamento Entrate Mensili</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <h3 className="font-bold text-ink font-display text-base">Andamento Entrate Mensili</h3>
+            <p className="text-xs text-ink-soft mt-1">
               Visualizzazione dei flussi di entrata storici estratti da Google Fogli. Clicca sul punto del mese per visualizzare il dettaglio dei bonifici.
             </p>
           </div>
@@ -215,7 +215,7 @@ export default function Entrate({
 
         <div className="h-72 mt-6 pointer-events-none md:pointer-events-auto">
           {chartData.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center text-slate-400">
+            <div className="h-full flex flex-col items-center justify-center text-center text-ink-soft">
               <Calendar className="w-8 h-8 text-slate-300 mb-2" />
               <p className="text-xs">Nessun dato cronologico disponibile per l'anno selezionato</p>
             </div>
@@ -302,16 +302,16 @@ export default function Entrate({
       {/* Grafici a Torta della Ripartizione */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Torta Categorie */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
-          <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-2">
-            <Grid className="w-5 h-5 text-emerald-600" />
+        <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
+          <h3 className="font-bold text-ink font-display text-base flex items-center gap-2">
+            <Grid className="w-5 h-5 text-up" />
             Ripartizione Categoria Ricavi
           </h3>
-          <p className="text-xs text-slate-400 mt-1">Suddivisione delle entrate per causale o tipologia</p>
+          <p className="text-xs text-ink-soft mt-1">Suddivisione delle entrate per causale o tipologia</p>
           
           <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
             {categoryData.length === 0 ? (
-              <div className="h-44 w-full flex flex-col items-center justify-center text-center text-slate-400">
+              <div className="h-44 w-full flex flex-col items-center justify-center text-center text-ink-soft">
                 <Grid className="w-8 h-8 text-slate-300 mb-2" />
                 <p className="text-xs">Nessuna entrata registrata per questo mese</p>
               </div>
@@ -345,9 +345,9 @@ export default function Entrate({
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                        <span className="text-slate-600 font-semibold truncate">{c.name}</span>
+                        <span className="text-ink-soft font-semibold truncate">{c.name}</span>
                       </div>
-                      <span className="font-bold text-slate-800">{formatEuro(c.value)}</span>
+                      <span className="font-bold text-ink">{formatEuro(c.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -357,16 +357,16 @@ export default function Entrate({
         </div>
 
         {/* Torta Canali / Conti di accredito */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
-          <h3 className="font-bold text-slate-800 font-display text-base flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-emerald-600" />
+        <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
+          <h3 className="font-bold text-ink font-display text-base flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-up" />
             Canali di Accredito
           </h3>
-          <p className="text-xs text-slate-400 mt-1">Conti correnti e depositi su cui sono confluiti i capitali</p>
+          <p className="text-xs text-ink-soft mt-1">Conti correnti e depositi su cui sono confluiti i capitali</p>
           
           <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
             {accountData.length === 0 ? (
-              <div className="h-44 w-full flex flex-col items-center justify-center text-center text-slate-400">
+              <div className="h-44 w-full flex flex-col items-center justify-center text-center text-ink-soft">
                 <CreditCard className="w-8 h-8 text-slate-300 mb-2" />
                 <p className="text-xs">Nessun accredito registrato per questo mese</p>
               </div>
@@ -400,9 +400,9 @@ export default function Entrate({
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[(idx + 2) % COLORS.length] }} />
-                        <span className="text-slate-600 font-semibold truncate">{a.name}</span>
+                        <span className="text-ink-soft font-semibold truncate">{a.name}</span>
                       </div>
-                       <span className="font-bold text-slate-800">{formatEuro(a.value)}</span>
+                       <span className="font-bold text-ink">{formatEuro(a.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -413,23 +413,23 @@ export default function Entrate({
       </div>
 
       {/* Tabella Dettaglio Entrate del Mese */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-left transition-all duration-300 hover:shadow-md">
+      <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h3 className="font-bold text-slate-800 font-display text-base">
+            <h3 className="font-bold text-ink font-display text-base">
               Movimenti Entrate - {selectedRecord?.meseDisplay} {selectedRecord?.anno}
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-ink-soft mt-1">
               Lista dei singoli flussi reali registrati per questo mese nel foglio Entrate.
             </p>
           </div>
-          <div className="bg-slate-50 px-3 py-1 text-xs font-mono font-bold text-slate-600 rounded-lg">
+          <div className="bg-canvas px-3 py-1 text-xs font-mono font-bold text-ink-soft rounded-lg">
             {activeMonthEntries.length} {activeMonthEntries.length === 1 ? 'movimento' : 'movimenti'}
           </div>
         </div>
 
         {activeMonthEntries.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+          <div className="py-12 text-center text-ink-soft text-xs border border-dashed border-hairline rounded-2xl bg-canvas/50">
             Nessun movimento di entrata inserito direttamente per questo mese.
           </div>
         ) : (
@@ -440,7 +440,7 @@ export default function Entrate({
               {
                 header: 'Categoria / Causale',
                 render: (e) => (
-                  <div className="flex items-center gap-2 font-semibold text-slate-800">
+                  <div className="flex items-center gap-2 font-semibold text-ink">
                     <span className="shrink-0">{e.categoria === 'Stipendio' ? '💼' : '💵'}</span>
                     <span>{e.categoria || 'Generica'}</span>
                   </div>
@@ -450,7 +450,7 @@ export default function Entrate({
                 header: 'Canale / Conto',
                 hideOnMobile: true,
                 render: (e) => (
-                  <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 font-mono">
+                  <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-[10px] text-ink-soft font-mono">
                     {e.conto || 'Altro'}
                   </span>
                 )
@@ -458,7 +458,7 @@ export default function Entrate({
               {
                 header: 'Importo',
                 align: 'right',
-                render: (e) => <span className="font-extrabold text-emerald-600 font-mono">{formatEuro(e.importo)}</span>
+                render: (e) => <span className="font-extrabold text-up font-mono">{formatEuro(e.importo)}</span>
               }
             ]}
           />
