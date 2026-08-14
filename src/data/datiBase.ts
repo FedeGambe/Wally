@@ -2,7 +2,7 @@
  * Re-export di comodo: Conti/Categorie/Preset vivono ora nel ciclo standard
  * di mockData.ts (pull/push su Google Sheet come Uscite/Entrate, vedi tab
  * "Conti"/"Categorie Entrate"/"Categorie Uscite"/"Preset Uscite Ricorrenti"
- * in src/config/sheetsConfig.tsx). Questo file esiste solo per non dover
+ * in src/config/sheetsConfig.ts). Questo file esiste solo per non dover
  * aggiornare gli import esistenti (`from '../../data/datiBase'`) nei
  * componenti di Impostazioni — la fonte vera è src/data/mockData.ts.
  */

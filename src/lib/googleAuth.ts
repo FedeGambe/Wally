@@ -6,14 +6,45 @@
  *  - Firebase gestisce SOLO l'identità (chi sei); l'`accessToken` OAuth per
  *    Sheets/Drive è un dato separato ottenuto dallo stesso popup di login e
  *    tenuto in `cachedAccessToken` (variabile di modulo, si perde al reload).
- *  - "Ricorda questo dispositivo" salva token+email in localStorage per 7
- *    giorni, MA il token Google scade comunque dopo ~1 ora: per questo ogni
- *    controllo qui usa una finestra di 50 minuti (isWithinRememberPeriod)
- *    per decidere se il token salvato è ancora considerato valido, forzando
- *    un nuovo login altrimenti.
+ *  - Quel token OAuth scade sempre dopo ~1 ora (limite di Google, non
+ *    aggirabile) e Firebase NON lo rinnova da solo: la sua identità
+ *    (onAuthStateChanged) resta valida per giorni, ma il token per
+ *    Sheets/Drive no.
+ *  - Per evitare di dover riaprire il popup di login ogni ora, usiamo Google
+ *    Identity Services (script caricato in index.html) per un rinnovo
+ *    SILENZIOSO (silentTokenRefresh, prompt:'' — nessuna finestra visibile):
+ *    funziona finché il browser ha ancora una sessione Google attiva e
+ *    l'utente ha già dato il consenso in passato. "Ricorda questo
+ *    dispositivo" salva token+email in localStorage; isWithinRememberPeriod
+ *    (50 minuti, sotto il limite di 1 ora di Google) decide solo se il
+ *    token salvato è ancora usabile SENZA nemmeno provare un rinnovo — se è
+ *    scaduto, prima di arrendersi e forzare il login si tenta sempre un
+ *    silentTokenRefresh.
  */
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
+
+// Stessi scope richiesti dal provider Firebase qui sotto: servono identici
+// anche al token client GIS, altrimenti il rinnovo silenzioso otterrebbe un
+// token con permessi insufficienti per Sheets/Drive.
+const OAUTH_SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: {
+            client_id: string;
+            scope: string;
+            callback: (resp: { access_token?: string; error?: string }) => void;
+            error_callback?: (err: { type: string }) => void;
+          }) => { requestAccessToken: (opts?: { prompt?: string }) => void };
+        };
+      };
+    };
+  }
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -35,6 +66,94 @@ provider.addScope('https://www.googleapis.com/auth/drive.readonly');
 
 let isSigningIn = false;
 let cachedAccessToken: string | null = null;
+
+let gisTokenClient: ReturnType<NonNullable<Window['google']>['accounts']['oauth2']['initTokenClient']> | null = null;
+let pendingRefreshResolvers: Array<(token: string | null) => void> = [];
+
+// Aspetta che lo script GIS (caricato async in index.html) sia pronto, con
+// un timeout: se non si carica (rete lenta, blocco ad-blocker) il chiamante
+// deve poter ripiegare sul login interattivo invece di restare bloccato.
+const waitForGis = (timeoutMs = 8000): Promise<boolean> => {
+  if (window.google?.accounts?.oauth2) return Promise.resolve(true);
+  return new Promise(resolve => {
+    const start = Date.now();
+    const check = () => {
+      if (window.google?.accounts?.oauth2) {
+        resolve(true);
+      } else if (Date.now() - start > timeoutMs) {
+        resolve(false);
+      } else {
+        setTimeout(check, 150);
+      }
+    };
+    check();
+  });
+};
+
+/**
+ * Rinnova il token OAuth SENZA aprire alcun popup (prompt:''): richiede una
+ * sessione Google ancora attiva nel browser e un consenso già dato in
+ * passato per questo client_id+scope, altrimenti GIS fallisce in silenzio
+ * (nessun errore visibile all'utente) e qui ritorniamo null — il chiamante
+ * decide se a quel punto serve un login interattivo vero e proprio.
+ */
+export const silentTokenRefresh = async (): Promise<string | null> => {
+  const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID;
+  if (!clientId) return null;
+
+  const gisReady = await waitForGis();
+  if (!gisReady) return null;
+
+  if (!gisTokenClient) {
+    gisTokenClient = window.google!.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: OAUTH_SCOPES,
+      callback: (resp) => {
+        const resolvers = pendingRefreshResolvers;
+        pendingRefreshResolvers = [];
+        if (resp.access_token) {
+          cachedAccessToken = resp.access_token;
+          localStorage.setItem('sf_device_remembered_token', resp.access_token);
+          localStorage.setItem('sf_device_remember_time', String(Date.now()));
+          resolvers.forEach(r => r(resp.access_token!));
+        } else {
+          resolvers.forEach(r => r(null));
+        }
+      },
+      error_callback: () => {
+        const resolvers = pendingRefreshResolvers;
+        pendingRefreshResolvers = [];
+        resolvers.forEach(r => r(null));
+      }
+    });
+  }
+
+  return new Promise(resolve => {
+    // Se la finestra che GIS apre per il rinnovo non riesce nemmeno ad
+    // aprirsi (popup bloccato dal browser, verificato dal vivo: succede
+    // sempre quando la richiesta non parte da un vero click utente), né
+    // `callback` né `error_callback` vengono chiamati — senza questo
+    // timeout la promise resterebbe in sospeso per sempre, e chi aspetta
+    // questo risultato (initAuth, handleAuthError) resterebbe bloccato
+    // anziché ripiegare sul login interattivo.
+    let settled = false;
+    const settle = (token: string | null) => {
+      if (settled) return;
+      settled = true;
+      resolve(token);
+    };
+    const timeout = setTimeout(() => settle(null), 3000);
+
+    const alreadyInFlight = pendingRefreshResolvers.length > 0;
+    pendingRefreshResolvers.push((token) => {
+      clearTimeout(timeout);
+      settle(token);
+    });
+    if (!alreadyInFlight) {
+      gisTokenClient!.requestAccessToken({ prompt: '' });
+    }
+  });
+};
 
 // Initialize auth state listener. Call this on app load.
 export const initAuth = (
@@ -88,14 +207,26 @@ export const initAuth = (
         if (storedToken && storedEmail && isStoredTokenValid) {
           cachedAccessToken = storedToken;
           if (onAuthSuccess) onAuthSuccess(user, storedToken);
+        } else if (storedEmail) {
+          // Token scaduto/mancante ma Firebase sa già chi sei (la sua sessione
+          // dura ben più a lungo dei 50 minuti dell'OAuth token): prima di
+          // sloggare tentiamo un rinnovo silenzioso via GIS, invece di forzare
+          // subito un login interattivo.
+          const freshToken = await silentTokenRefresh();
+          if (freshToken) {
+            if (onAuthSuccess) onAuthSuccess(user, freshToken);
+          } else {
+            cachedAccessToken = null;
+            signOut(auth).catch(console.error);
+            localStorage.removeItem('sf_device_remembered');
+            localStorage.removeItem('sf_device_remembered_email');
+            localStorage.removeItem('sf_device_remembered_token');
+            localStorage.removeItem('sf_device_remember_time');
+            if (onAuthFailure) onAuthFailure();
+          }
         } else {
-          // Token is expired or missing. Sign out of Firebase and trigger failure.
+          // Nessuna sessione ricordata: mai stato loggato da questo dispositivo.
           cachedAccessToken = null;
-          signOut(auth).catch(console.error);
-          localStorage.removeItem('sf_device_remembered');
-          localStorage.removeItem('sf_device_remembered_email');
-          localStorage.removeItem('sf_device_remembered_token');
-          localStorage.removeItem('sf_device_remember_time');
           if (onAuthFailure) onAuthFailure();
         }
       }

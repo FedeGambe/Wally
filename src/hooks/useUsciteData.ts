@@ -103,7 +103,7 @@ export function useUsciteData(
   }, [selectedRecord.speseSecondarie, entrateVal]);
 
   // Soglie di spesa "sane" (es. non oltre il 35% del reddito in primarie). Stessa
-  // fonte/priorità di Panoramica (src/utils/thresholds.tsx): Soglie di Dati Base
+  // fonte/priorità di Panoramica (src/utils/thresholds.ts): Soglie di Dati Base
   // prima, poi le intestazioni del foglio Risparmio, poi i default hardcoded.
   const dynamicThresholds = useMemo(() => {
     const headers = data.risparmioHeaders?.length
@@ -111,7 +111,7 @@ export function useUsciteData(
       : DEFAULT_RISPARMIO_HEADERS;
     const base = getThresholds(headers, data.soglie);
     // getThresholds().totali è pensato per "Netto" in Panoramica (investimenti+risparmio,
-    // vedi commento in thresholds.tsx), ma qui la card "Spese Totali" vuole la soglia di
+    // vedi commento in thresholds.ts), ma qui la card "Spese Totali" vuole la soglia di
     // spesa totale = primarie + secondarie: stesso nome di campo, significato diverso.
     return { ...base, totali: base.primarie + base.secondarie };
   }, [data.risparmioHeaders, data.soglie]);

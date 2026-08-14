@@ -6,16 +6,15 @@ import { saveToLocalStorage, MacroCategoriaUscita, PresetUscita, PresetTrasferim
  * Hook usato da Impostazioni (per editare conti/categorie/preset) e dai form
  * "Aggiungi Uscita/Entrata/Trasferimento" (per popolare i dropdown).
  *
- * Conti, Categorie Entrate/Uscite e Soglie sono curati sul foglio di
- * configurazione ("finanza_data_config", sf_config_spreadsheet_id): editarli
- * qui scrive lì (pushDatiBaseToConfigSheet), non sul foglio principale —
- * altrimenti il pull automatico di finanza_data_config ad ogni sync (vedi
+ * Conti, Categorie Entrate/Uscite, Soglie e Preset Uscite/Trasferimenti
+ * Ricorrenti sono tutti curati sul foglio di configurazione
+ * ("finanza_data_config", sf_config_spreadsheet_id): editarli qui scrive lì
+ * (pushDatiBaseToConfigSheet), non sul foglio principale — altrimenti il pull
+ * automatico di finanza_data_config ad ogni sync (vedi
  * FinanceDataContext.refreshData) sovrascriverebbe la modifica al giro dopo.
- * Preset Uscite/Trasferimenti Ricorrenti restano invece sul ciclo standard
- * (foglio principale, come qualsiasi altro dato finanza).
  */
 export function useDatiBase() {
-  const { data, accessToken, bumpVersion, pushToSheet } = useFinanceData();
+  const { data, accessToken, bumpVersion } = useFinanceData();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,26 +34,24 @@ export function useDatiBase() {
 
       const { conti, categorieEntrate, macroCategorieUscite, soglie, presetUscite, presetTrasferimenti } = update;
       const hasConfigFields = conti !== undefined || categorieEntrate !== undefined ||
-        macroCategorieUscite !== undefined || soglie !== undefined;
-      const hasMainFields = presetUscite !== undefined || presetTrasferimenti !== undefined;
+        macroCategorieUscite !== undefined || soglie !== undefined ||
+        presetUscite !== undefined || presetTrasferimenti !== undefined;
 
       if (hasConfigFields) {
         const configId = localStorage.getItem('sf_config_spreadsheet_id');
         if (configId && accessToken) {
           const { pushDatiBaseToConfigSheet } = await import('../lib/sheetsService');
-          await pushDatiBaseToConfigSheet(accessToken, configId, { conti, categorieEntrate, macroCategorieUscite, soglie });
+          await pushDatiBaseToConfigSheet(accessToken, configId, {
+            conti, categorieEntrate, macroCategorieUscite, soglie, presetUscite, presetTrasferimenti
+          });
         }
-      }
-
-      if (hasMainFields) {
-        await pushToSheet();
       }
     } catch (err: any) {
       setError(err?.message || 'Errore durante il salvataggio.');
     } finally {
       setIsSaving(false);
     }
-  }, [accessToken, bumpVersion, pushToSheet]);
+  }, [accessToken, bumpVersion]);
 
   return {
     macroCategorieUscite: data.macroCategorieUscite,

@@ -5,7 +5,7 @@ import { formatEuro } from '../../utils/format';
 import type { PresetUscita } from '../../data/datiBase';
 import DropdownMenu from '../DropdownMenu';
 
-const emptyForm = { nome: '', macroCategoria: '', categoria: '', conto: '', importo: '', descrizione: '', primaria: false };
+const emptyForm = { nome: '', macroCategoria: '', categoria: '', conto: '', importo: '', giornoDelMese: '', primaria: false };
 
 /**
  * Editor "Uscite Ricorrenti" (dentro il popup fullscreen di Impostazioni →
@@ -20,7 +20,8 @@ export default function UsciteRicorrentiEditor() {
   const macroSelezionata = macroCategorieUscite.find(m => m.nome === form.macroCategoria);
   const categorieDisponibili = macroSelezionata?.categorie || [];
 
-  const isValid = form.nome.trim() && form.macroCategoria && form.categoria && form.conto && Number(form.importo) > 0;
+  const isValid = form.nome.trim() && form.macroCategoria && form.categoria && form.conto && Number(form.importo) > 0 &&
+    Number(form.giornoDelMese) >= 1 && Number(form.giornoDelMese) <= 31;
 
   const addPreset = () => {
     if (!isValid) return;
@@ -31,7 +32,7 @@ export default function UsciteRicorrentiEditor() {
       categoria: form.categoria,
       conto: form.conto,
       importo: Number(form.importo),
-      descrizione: form.descrizione.trim() || form.nome.trim(),
+      giornoDelMese: Number(form.giornoDelMese),
       primaria: form.primaria
     };
     updateDatiBase({ presetUscite: [...presetUscite, nuovo] });
@@ -57,7 +58,7 @@ export default function UsciteRicorrentiEditor() {
               <div className="min-w-0">
                 <span className="text-sm font-bold text-ink dark:text-slate-200 block truncate">{p.nome}</span>
                 <span className="text-[11px] text-ink-soft">
-                  {p.macroCategoria} → {p.categoria} · {p.conto} · {formatEuro(p.importo)}
+                  {p.macroCategoria} → {p.categoria} · {p.conto} · {formatEuro(p.importo)} · giorno {p.giornoDelMese}
                 </span>
               </div>
               <button onClick={() => removePreset(p.id)} className="text-ink-soft hover:text-down cursor-pointer shrink-0 ml-3" aria-label={`Rimuovi preset ${p.nome}`}>
@@ -131,9 +132,13 @@ export default function UsciteRicorrentiEditor() {
           className={inputClass}
         />
         <input
-          value={form.descrizione}
-          onChange={e => setForm(f => ({ ...f, descrizione: e.target.value }))}
-          placeholder="Descrizione (opzionale, default = nome)"
+          type="number"
+          step="1"
+          min="1"
+          max="31"
+          value={form.giornoDelMese}
+          onChange={e => setForm(f => ({ ...f, giornoDelMese: e.target.value }))}
+          placeholder="Giorno del mese (1-31)"
           className={`${inputClass} sm:col-span-2`}
         />
         <button

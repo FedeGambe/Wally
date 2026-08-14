@@ -53,7 +53,9 @@ export interface PresetUscita {
   categoria: string;
   conto: string;
   importo: number;
-  descrizione: string;
+  // Giorno del mese (1-31) in cui la spesa ricorre — usato per datare
+  // automaticamente l'uscita quando il preset viene applicato.
+  giornoDelMese: number;
   primaria: boolean;
 }
 
@@ -79,7 +81,7 @@ export const PRESET_TRASFERIMENTI_SEED: PresetTrasferimento[] = [];
 /**
  * Soglie percentuali target per l'allocazione del reddito (quanto % dovrebbe
  * andare a spese primarie/secondarie/investimenti/risparmio). Seed allineato
- * ai default di src/config/targets.tsx — se l'utente collega un foglio di
+ * ai default di src/config/targets.ts — se l'utente collega un foglio di
  * configurazione con un tab "Soglie" proprio, quei valori sostituiscono
  * questo seed (vedi bottone "Importa da foglio di configurazione" in
  * DatiBaseSettings).

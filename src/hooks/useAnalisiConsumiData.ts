@@ -28,19 +28,31 @@ export function toDate(dataStr: string): Date | null {
   return p ? new Date(p.year, p.month - 1, p.day) : null;
 }
 
-// Sintetizza una label tipo "Gen W1 26" dalla data grezza
-function getSettimanaLabel(dataStr: string, index: number): string {
-  const parsed = parseDataConsumo(dataStr);
-  if (!parsed) return `Sett. ${index + 1}`;
+// Le "settimane" di Analisi Consumi vanno da martedì a lunedì (non lunedì-domenica):
+// ogni data viene ancorata al martedì della sua settimana, traslando indietro di
+// (giorno_settimana - martedì) giorni. getDay(): 0=domenica..6=sabato, martedì=2.
+function getAnchorTuesday(date: Date): Date {
+  const offset = (date.getDay() - 2 + 7) % 7;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() - offset);
+}
 
-  const meseAbbr = MESI_ABBR[parsed.month - 1] || 'Mese';
-  let weekNum = 1;
-  if (parsed.day > 21) weekNum = 4;
-  else if (parsed.day > 14) weekNum = 3;
-  else if (parsed.day > 7) weekNum = 2;
+function formatDataIT(date: Date): string {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${d}/${m}/${date.getFullYear()}`;
+}
 
-  const annoBreve = String(parsed.year).slice(-2);
-  return `${meseAbbr} W${weekNum} ${annoBreve}`;
+// Label del tipo "11 Ago 26" dal martedì di ancoraggio della settimana.
+function getWeekLabel(anchor: Date): string {
+  const meseAbbr = MESI_ABBR[anchor.getMonth()] || 'Mese';
+  const annoBreve = String(anchor.getFullYear()).slice(-2);
+  return `${anchor.getDate()} ${meseAbbr} ${annoBreve}`;
+}
+
+function weightedAverage(items: { value: number; weight: number }[]): number {
+  const totalWeight = items.reduce((s, i) => s + i.weight, 0);
+  if (totalWeight === 0) return 0;
+  return items.reduce((s, i) => s + i.value * i.weight, 0) / totalWeight;
 }
 
 export interface RecordConsumo {
@@ -111,53 +123,86 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   const consumiRecords: RecordConsumo[] = useMemo(() => {
     const rawList = data.analisiConsumi || [];
 
-    const parsedRecords = rawList
+    // Il foglio ha una riga per rifornimento (non per settimana): la parsiamo così com'è,
+    // l'aggregazione per settimana avviene subito dopo.
+    const parsedRows = rawList
       .slice(1) // scarta la prima riga: sempre incompleta
       .filter((r: any) => r && (r.data || r.costo || r.kmEffettuati)) // filter empty rows
-      .map((r: any, index: number) => {
-        const parsedCosto = Number(r.costo || 0);
-        const parsedKmEffettuati = Number(r.kmEffettuati || 0);
-        const parsedKmLitro = Number(r.kmAlLitro || 0);
+      .map((r: any) => ({
+        date: toDate(String(r.data || '')),
+        costo: Number(r.costo || 0),
+        quantitaLitri: Number(r.quantitaLitri || 0),
+        prezzoAlLitro: Number(r.prezzoAlLitro || 0),
+        kmFinali: Number(r.kmFinali || 0),
+        kmEffettuati: Number(r.kmEffettuati || 0),
         // fetchSpreadsheetData normalizza le celle numeriche vuote a 0: un kmAlLitroAuto reale non è mai 0,
-        // quindi 0 qui significa "nessun dato" (auto non ancora tracciata quella settimana).
-        const rawKmLitroAuto = Number(r.kmAlLitroAuto || 0);
-        const parsedKmLitroAuto = rawKmLitroAuto === 0 ? null : rawKmLitroAuto;
-        const parsedEuroPer100Km = Number(r.euroPer100Km || 0);
-        const parsedKmPersi = Number(r.kmPersi || 0);
-        const parsedEfficienza = Number(r.efficienzaPercentuale || 0);
-        const parsedCostoExtra = Number(r.costoExtra || 0);
-        const parsedQuantitaLitri = Number(r.quantitaLitri || 0);
-        const parsedPrezzoAlLitro = Number(r.prezzoAlLitro || 0);
-        const parsedKmFinali = Number(r.kmFinali || 0);
+        // quindi 0 qui significa "nessun dato" (auto non ancora tracciata quel rifornimento).
+        kmAlLitroAuto: (() => { const v = Number(r.kmAlLitroAuto || 0); return v === 0 ? null : v; })(),
+        efficienzaPercentuale: Number(r.efficienzaPercentuale || 0)
+      }))
+      .filter((r): r is typeof r & { date: Date } => r.date !== null);
 
-        // Label sempre calcolata dalla data per includere l'anno in modo uniforme
-        const settimana = getSettimanaLabel(String(r.data || ''), index);
+    // Raggruppa i rifornimenti per settimana (martedì-lunedì, vedi getAnchorTuesday): più
+    // rifornimenti nella stessa settimana diventano un solo punto dati per grafici/KPI.
+    const gruppi = new Map<string, typeof parsedRows>();
+    parsedRows.forEach(r => {
+      const key = getAnchorTuesday(r.date).toISOString();
+      if (!gruppi.has(key)) gruppi.set(key, []);
+      gruppi.get(key)!.push(r);
+    });
 
+    // Prima passata: aggrega i campi "base" per settimana — costo/litri/km effettuati sommati,
+    // prezzo/efficienza in media pesata sui litri (rifornimenti più grandi pesano di più), km
+    // finali e data presi dal rifornimento più recente della settimana.
+    const settimaneBase = Array.from(gruppi.entries())
+      .map(([key, righe]) => {
+        const ordinate = [...righe].sort((a, b) => a.date.getTime() - b.date.getTime());
+        const totaleLitri = ordinate.reduce((s, r) => s + r.quantitaLitri, 0);
+        const costo = ordinate.reduce((s, r) => s + r.costo, 0);
+        const kmEffettuati = ordinate.reduce((s, r) => s + r.kmEffettuati, 0);
+        const prezzoAlLitro = weightedAverage(ordinate.map(r => ({ value: r.prezzoAlLitro, weight: r.quantitaLitri })));
+        const efficienzaPercentuale = weightedAverage(ordinate.map(r => ({ value: r.efficienzaPercentuale, weight: r.quantitaLitri })));
+        const ultimo = ordinate[ordinate.length - 1];
+        const kmAlLitroAutoValidi = ordinate.filter(r => r.kmAlLitroAuto !== null);
+        const kmAlLitroAuto = kmAlLitroAutoValidi.length > 0 ? kmAlLitroAutoValidi[kmAlLitroAutoValidi.length - 1].kmAlLitroAuto : null;
         return {
-          ...r,
-          settimana,
-          data: r.data || '',
-          costo: parsedCosto,
-          quantitaLitri: parsedQuantitaLitri,
-          prezzoAlLitro: parsedPrezzoAlLitro,
-          kmFinali: parsedKmFinali,
-          kmEffettuati: parsedKmEffettuati,
-          kmAlLitro: parsedKmLitro,
-          kmAlLitroAuto: parsedKmLitroAuto,
-          euroPer100Km: parsedEuroPer100Km,
-          kmPersi: parsedKmPersi,
-          efficienzaPercentuale: parsedEfficienza,
-          costoExtra: parsedCostoExtra
+          anchorTime: new Date(key).getTime(),
+          settimana: getWeekLabel(new Date(key)),
+          data: formatDataIT(ultimo.date),
+          costo,
+          quantitaLitri: totaleLitri,
+          prezzoAlLitro,
+          kmFinali: ultimo.kmFinali,
+          kmEffettuati,
+          kmAlLitro: totaleLitri > 0 ? kmEffettuati / totaleLitri : 0,
+          kmAlLitroAuto,
+          efficienzaPercentuale
         };
-      });
+      })
+      .sort((a, b) => a.anchorTime - b.anchorTime);
 
-    const esiti = calcolaEsitiSettimanali(parsedRecords);
-    return parsedRecords.map((r, index) => ({ ...r, esitoSettimana: esiti[index] }));
+    // Seconda passata: Km persi/Costo extra confrontano ogni settimana con il MAX (record
+    // personale) e la MEDIANA di km/litro su TUTTO lo storico (stesse formule della colonna
+    // corrispondente sul foglio Google, Analisi consumi!H/J/L/N) — richiede quindi che tutte le
+    // settimane siano già aggregate, non si può calcolare riga per riga.
+    const kmAlLitroStorico = settimaneBase.map(s => s.kmAlLitro).filter(v => v > 0);
+    const maxKmAlLitro = kmAlLitroStorico.length > 0 ? Math.max(...kmAlLitroStorico) : 0;
+
+    const settimane = settimaneBase.map(s => ({
+      ...s,
+      euroPer100Km: s.kmEffettuati > 0 ? (s.costo / s.kmEffettuati) * 100 : 0,
+      kmPersi: maxKmAlLitro > 0 ? Math.max(0, s.quantitaLitri * maxKmAlLitro - s.kmEffettuati) : 0,
+      costoExtra: (s.kmAlLitro > 0 && maxKmAlLitro > 0)
+        ? Math.max(0, s.kmEffettuati * s.prezzoAlLitro * (1 / s.kmAlLitro - 1 / maxKmAlLitro))
+        : 0
+    }));
+
+    const esiti = calcolaEsitiSettimanali(settimane);
+    return settimane.map((s, index) => ({ ...s, esitoSettimana: esiti[index] }));
   }, [data.analisiConsumi]);
 
   // 2. Local selection state
   const [selectedWeekState, setSelectedWeekState] = useState<RecordConsumo | null>(null);
-  const [isWeekDropdownOpen, setIsWeekDropdownOpen] = useState(false);
 
   // Ogni volta che consumiRecords cambia (nuova sincronizzazione dal foglio) riallinea la settimana
   // selezionata: se la settimana che era selezionata esiste ancora nei nuovi dati la ritrova (stesso
@@ -294,7 +339,6 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   return {
     consumiRecords,
     selectedWeek, selectedWeekState, setSelectedWeekState,
-    isWeekDropdownOpen, setIsWeekDropdownOpen,
     kmChartRange, setKmChartRange, kmChartData,
     kmLtChartRange, setKmLtChartRange, kmLtChartData,
     euro100ChartRange, setEuro100ChartRange, euro100ChartData,

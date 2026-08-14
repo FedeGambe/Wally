@@ -16,7 +16,8 @@ Una dashboard di finanza personale, per un solo utente, tutta in italiano. Non h
 ```bash
 npm run dev      # avvia l'app in locale (http://localhost:3000)
 npm run build    # crea la build di produzione (usata da Vercel per pubblicare l'app)
-npm run lint     # controlla che il codice TypeScript sia corretto (non ci sono test automatici)
+npm run lint     # controlla che il codice TypeScript sia corretto (tsc --noEmit)
+npm test         # esegue i test automatici (vitest)
 ```
 
-Non esiste una suite di test: l'unico controllo automatico è `npm run lint` (in realtà è un controllo dei tipi TypeScript, `tsc --noEmit`). Dopo ogni modifica va lanciato quello, e poi va provata l'app a mano nel browser.
+C'è una suite di test (vitest, file `*.test.ts` accanto al codice che testano, es. `src/lib/sheetsService.test.ts`) ma copre solo una piccola parte del codice — non sostituisce la verifica manuale. Dopo ogni modifica: `npm run lint`, poi `npm test`, poi va comunque provata l'app a mano nel browser.

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Calendar, ChevronDown } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import EuroAmount from '../EuroAmount';
+import DropdownMenu from '../DropdownMenu';
 import { formatEuro } from '../../utils/format';
 import { kpiColorAlpha, kpiTextColor, KpiRange } from '../../utils/kpiColorScale';
 import type { RecordConsumo } from '../../hooks/useAnalisiConsumiData';
@@ -23,8 +24,6 @@ interface ConsumiRiepilogoSettimanaleProps {
   kmPersiLabel: string;
   costoExtraLabel: string;
   consumiRecords: RecordConsumo[];
-  isWeekDropdownOpen: boolean;
-  setIsWeekDropdownOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   setSelectedWeekState: (record: RecordConsumo) => void;
 }
 
@@ -43,10 +42,9 @@ export default function ConsumiRiepilogoSettimanale({
   kmPersiLabel,
   costoExtraLabel,
   consumiRecords,
-  isWeekDropdownOpen,
-  setIsWeekDropdownOpen,
   setSelectedWeekState
 }: ConsumiRiepilogoSettimanaleProps) {
+  const settimaneOrdinate = [...consumiRecords].reverse();
   return (
     <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
       <div className="flex items-center justify-between flex-wrap gap-3 border-b border-hairline dark:border-slate-800/60 pb-4 mb-4">
@@ -73,40 +71,25 @@ export default function ConsumiRiepilogoSettimanale({
             </span>
           </div>
 
-          {/* Selettore settimana: stesso design/layout del selettore Anno globale in Header */}
-          <div className="relative select-none shrink-0">
-            <button
-              onClick={() => setIsWeekDropdownOpen(o => !o)}
-              className="flex items-center gap-1.5 bg-canvas dark:bg-slate-800/60 border border-hairline dark:border-slate-700 hover:border-hairline dark:hover:border-slate-600 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl px-3.5 py-2 text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer"
-            >
-              <Calendar className="w-3.5 h-3.5 text-ink-soft shrink-0" />
-              <span>
-                Sett.: <strong className="text-down">{selectedWeek.settimana}</strong>
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-ink-soft shrink-0" />
-            </button>
-
-            {isWeekDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 w-36 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-hairline dark:border-slate-700 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-0.5 animate-fadeIn">
-                {[...consumiRecords].reverse().map((r) => (
-                  <button
-                    key={`${r.settimana}-${r.data}`}
-                    onClick={() => {
-                      setSelectedWeekState(r);
-                      setIsWeekDropdownOpen(false);
-                    }}
-                    className={`px-3 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                      selectedWeek.settimana === r.settimana && selectedWeek.data === r.data
-                        ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400'
-                        : 'text-ink-soft dark:text-slate-300 hover:bg-canvas dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {r.settimana}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Selettore settimana: componente condiviso DropdownMenu (portal su
+              document.body) invece di un pannello inline — un pannello dentro
+              questa card altrimenti eredita l'hover ".glass-theme .bg-white:hover"
+              di tutti gli antenati, che sbianca/rende illeggibili le voci al passaggio
+              del mouse. Stesso bug già risolto altrove proprio con questo componente. */}
+          <DropdownMenu
+            icon={Calendar}
+            label="Sett."
+            accent="rose"
+            widthClass="w-36"
+            align="right"
+            value={selectedWeek.settimana}
+            displayValue={selectedWeek.settimana}
+            options={settimaneOrdinate.map(r => r.settimana)}
+            onSelect={(settimana) => {
+              const trovata = settimaneOrdinate.find(r => r.settimana === settimana);
+              if (trovata) setSelectedWeekState(trovata);
+            }}
+          />
         </div>
       </div>
 

@@ -6,7 +6,7 @@
  * anche riferimenti con nome foglio (Foglio1!B12) e range (B2:B12), perché
  * ogni riferimento cella viene trattato indipendentemente dal regex.
  *
- * Usato da Analisi Consumi (Fase 3 del piano, docs/PIANO-INSERIMENTO-DATI.md):
+ * Usato da Analisi Consumi (Fase 3 del piano, docs/archive/PIANO-INSERIMENTO-DATI.md):
  * per i campi calcolati dal foglio Google (Km effettuati, €/100km, ecc.) non
  * proviamo a reimplementare la formula — copiamo quella della riga sopra e la
  * shiftiamo, così il valore vero lo calcola sempre Sheets, non noi.

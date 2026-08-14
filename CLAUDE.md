@@ -11,9 +11,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` — Vite dev server on port 3000 (`--host=0.0.0.0`)
 - `npm run build` — production build
 - `npm run preview` — serve the production build
-- `npm run lint` — **this is the typecheck** (`tsc --noEmit`), the only automated verification in the repo. Run it after any change.
+- `npm run lint` — **this is the typecheck** (`tsc --noEmit`). Run it after any change.
+- `npm test` — runs the Vitest suite (`*.test.ts` files colocated with their source, e.g. `src/lib/sheetsService.test.ts`, `src/utils/formulaShift.test.ts`). Small and not comprehensive — most of the codebase has no test coverage.
 
-There is **no test framework**. "Verifying" a change means `npm run lint`, then `npm run build`, then driving the running app.
+"Verifying" a change means `npm run lint`, then `npm test`, then `npm run build`, then driving the running app.
 
 ## Data architecture (the core concept)
 
@@ -27,7 +28,7 @@ There is no backend or database. Data lives in **three layers** and flows Google
 
 ### Config-driven sheet mapping
 
-`src/config/sheetsConfig.tsx` (`SHEETS_CONFIG`) is the source of truth mapping each sheet tab → field names, headers, and number/boolean columns. `fetchSpreadsheetData` and `pushSpreadsheetData` **iterate this config dynamically** — to add or change a sheet mapping, edit `SHEETS_CONFIG`, not the service functions. The "Scalable" and "Trade Republic" broker tabs additionally get their columns detected at runtime from rows 1–2 (asset-class keywords like `azioni`/`obbligazioni`/`monetari`). `src/utils/cruscottoInvestimenti.ts` derives the aggregated investment dashboard (`computeCruscottoData`, `computeRealAssetAllocation`) from those broker tabs.
+`src/config/sheetsConfig.ts` (`SHEETS_CONFIG`) is the source of truth mapping each sheet tab → field names, headers, and number/boolean columns. `fetchSpreadsheetData` and `pushSpreadsheetData` **iterate this config dynamically** — to add or change a sheet mapping, edit `SHEETS_CONFIG`, not the service functions. The "Scalable" and "Trade Republic" broker tabs additionally get their columns detected at runtime from rows 1–2 (asset-class keywords like `azioni`/`obbligazioni`/`monetari`). `src/utils/cruscottoInvestimenti.ts` derives the aggregated investment dashboard (`computeCruscottoData`, `computeRealAssetAllocation`) from those broker tabs.
 
 ## Incognito mode
 

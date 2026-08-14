@@ -4,7 +4,11 @@
  * (src/lib/googleAuth.ts, basato su Firebase Auth con provider Google) e, se l'accesso va a buon
  * fine, passa email/token/foto/nome al callback onLogin ricevuto da App.tsx, che è il vero
  * proprietario dello stato di autenticazione (dove viene anche eventualmente salvato il
- * "ricorda dispositivo" per il login automatico nei successivi 7 giorni).
+ * "ricorda dispositivo"). NON dura 7 giorni a prescindere: il token OAuth scade dopo ~1 ora,
+ * e viene rinnovato in silenzio SOLO quando l'utente interagisce con l'app (click — vedi
+ * l'effect in App.tsx che chiama silentTokenRefresh). Se il dispositivo resta inattivo/la
+ * scheda chiusa per più di ~50 minuti, al ritorno serve un nuovo click di login (vedi
+ * googleAuth.ts per i dettagli e il perché).
  */
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
@@ -152,7 +156,7 @@ export default function Login({ onLogin }: LoginProps) {
               className="w-4.5 h-4.5 text-accent bg-canvas border-hairline rounded-lg focus:ring-accent focus:ring-2 cursor-pointer"
             />
             <label htmlFor="remember_me" className="text-xs font-semibold text-ink-soft cursor-pointer select-none">
-              Ricorda questo dispositivo (Accesso automatico per 7 giorni)
+              Ricorda questo dispositivo (resti connesso finché usi l'app)
             </label>
           </div>
 

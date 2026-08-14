@@ -7,6 +7,10 @@
   <title>Wally</title>
   <link rel="icon" type="image/png" href="/icon/app-icon-solo.png" />
   <link rel="apple-touch-icon" href="/icon/app-icon-wordmark.png" />
+  <!-- Google Identity Services: usato solo per rinnovare in silenzio il token
+       OAuth di Sheets/Drive senza dover riaprire il popup di login (vedi
+       src/lib/googleAuth.ts, silentTokenRefresh). -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>

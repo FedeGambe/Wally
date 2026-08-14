@@ -27,7 +27,6 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   const {
     consumiRecords,
     selectedWeek, setSelectedWeekState,
-    isWeekDropdownOpen, setIsWeekDropdownOpen,
     kmChartRange, setKmChartRange, kmChartData,
     kmLtChartRange, setKmLtChartRange, kmLtChartData,
     euro100ChartRange, setEuro100ChartRange, euro100ChartData,
@@ -70,8 +69,6 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
         kmPersiLabel={kmPersiLabel}
         costoExtraLabel={costoExtraLabel}
         consumiRecords={consumiRecords}
-        isWeekDropdownOpen={isWeekDropdownOpen}
-        setIsWeekDropdownOpen={setIsWeekDropdownOpen}
         setSelectedWeekState={setSelectedWeekState}
       />
 

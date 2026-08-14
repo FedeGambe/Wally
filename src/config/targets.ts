@@ -1,6 +1,6 @@
 /**
  * Soglie percentuali "target" (obiettivo) di allocazione del reddito, usate come default
- * quando il foglio Google Sheet non specifica soglie proprie (vedi src/utils/thresholds.tsx,
+ * quando il foglio Google Sheet non specifica soglie proprie (vedi src/utils/thresholds.ts,
  * che le legge dalle intestazioni del foglio "Panoramica" e ricade su questi valori come
  * fallback). Rappresentano quanto % delle entrate dovrebbe andare a: spese primarie
  * (necessarie), spese secondarie (discrezionali), investimenti, risparmio.

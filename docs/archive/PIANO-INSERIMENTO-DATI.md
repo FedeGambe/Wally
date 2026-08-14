@@ -1,12 +1,23 @@
 # Piano: inserimento dati via webapp (sostituzione editing manuale su Google Sheet)
 
+> **⚠️ ARCHIVIATO — documento storico, non riflette il comportamento attuale.**
+> Questo piano descriveva la scrittura come **"full-replace, non append"** (vedi sotto):
+> quel principio è stato **superato**. Il foglio principale si è corrotto due volte proprio
+> a causa del full-replace, ed è stato sostituito da una scrittura sicura **riga per riga**
+> (`appendRowToSheet` in `src/lib/sheetsService.tsx`) — vedi
+> [ARCHITETTURA.md](../ARCHITETTURA.md) e [STRUTTURA-PROGETTO.md](../STRUTTURA-PROGETTO.md)
+> per come funziona davvero oggi. Le Fasi 1 / 1b / 2 / 3 / 5 descritte qui sotto sono tutte
+> **completate**; solo la Fase 4 (Investimenti) resta rimandata. Tenuto solo come contesto
+> storico sul perché di alcune scelte (es. "un popup non fullscreen", "riuso del form invece
+> di duplicarlo").
+
 Obiettivo: eliminare la necessità di aprire Google Sheets a mano per aggiungere movimenti.
 Tutto l'inserimento passa dalla webapp — che poi scrive su Sheet come fa già oggi con `pushSpreadsheetData`.
 
 Questo documento fissa lo scope e le decisioni prese, prima di scrivere codice. Vedi
-[ARCHITETTURA.md](./ARCHITETTURA.md) per come funzionano oggi pull/push/localStorage.
+[ARCHITETTURA.md](../ARCHITETTURA.md) per come funzionano oggi pull/push/localStorage.
 
-## Principio di fondo: full-replace, non append
+## Principio di fondo: full-replace, non append (SUPERATO — vedi banner sopra)
 
 `pushSpreadsheetData` e `saveToLocalStorage` **sostituiscono sempre l'intero array/tab**, non
 fanno merge riga per riga (vedi ARCHITETTURA.md). Quindi ogni form di inserimento deve:

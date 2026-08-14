@@ -45,6 +45,19 @@ export interface SheetDefinition {
   // foglio (DD/MM/YYYY viene letto come MM/DD/YYYY o rifiutato come testo su
   // un foglio con locale US se il giorno supera 12).
   dateFields?: string[];
+  // Colonne che sul foglio reale sono FORMULE (dedotte da altre colonne della
+  // stessa riga, es. "Mese" calcolato da "Data", "Icon" da un lookup sulla
+  // categoria), non campi scrivibili — l'append (appendRowToSheet in
+  // sheetsService.tsx) non le tocca mai, altrimenti cancella la formula.
+  // Scoperto verificando cella per cella il foglio reale dopo che due push
+  // avevano corrotto il file sovrascrivendole con valori statici.
+  formulaFields?: string[];
+  // Campi che l'app tiene come nome del mese (stringa, es. "Agosto") ma che
+  // sul foglio reale sono una vera data (day=1 del mese, es. 01/08/2026) da
+  // cui la colonna "Anno" (in formulaFields) si deriva con una formula
+  // (=A2). Il valore effettivo scritto viene ricostruito da `mese` + dal
+  // valore corrente del campo `anno` sul record.
+  monthDateFields?: string[];
   dataKey: string; // La chiave corrispondente nell'oggetto SheetsData
 }
 
@@ -98,10 +111,10 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
   {
     title: 'Preset Uscite Ricorrenti',
     range: 'Preset Uscite Ricorrenti!A:G',
-    fields: ['nome', 'macroCategoria', 'categoria', 'conto', 'importo', 'descrizione', 'primaria'],
-    headers: ['Nome', 'Macro Categoria', 'Categoria', 'Conto', 'Importo', 'Descrizione', 'Primaria'],
+    fields: ['giornoDelMese', 'nome', 'macroCategoria', 'categoria', 'conto', 'importo', 'primaria'],
+    headers: ['Giorno del Mese', 'Nome', 'Macro Categoria', 'Categoria', 'Conto', 'Importo', 'Primaria'],
     booleanFields: ['primaria'],
-    numberFields: ['importo'],
+    numberFields: ['giornoDelMese', 'importo'],
     dataKey: 'presetUsciteRows'
   },
   {
@@ -120,6 +133,7 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     booleanFields: ['primaria'],
     numberFields: ['importo'],
     dateFields: ['data'],
+    formulaFields: ['mese', 'icon'],
     dataKey: 'uscite'
   },
   {
@@ -128,6 +142,8 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     fields: ['mese', 'anno', 'categoria', 'conto', 'importo', 'dettagli'],
     headers: ['Mese', 'Anno', 'Categoria', 'Conto', 'Importo', 'Dettagli'],
     numberFields: ['anno', 'importo'],
+    formulaFields: ['anno'],
+    monthDateFields: ['mese'],
     dataKey: 'entrate'
   },
   {
@@ -200,6 +216,8 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     fields: ['mese', 'anno', 'categoria', 'contoOrdinante', 'contoBeneficiario', 'importo'],
     headers: ['Mese', 'Anno', 'Categoria', 'Conto ordinante', 'Conto beneficiario', 'Importo'],
     numberFields: ['anno', 'importo'],
+    formulaFields: ['anno'],
+    monthDateFields: ['mese'],
     dataKey: 'trasferimenti'
   },
   {
@@ -209,6 +227,9 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     headers: ['Data', 'Costo', 'Quantità (Lt)', '€/Lt', 'Km finali', 'Km effettuati', 'Litri precedenti', 'Km/lt', 'Km/lt (auto)', '€/100km', 'Lt/100km', 'Km persi', 'km persi mediani', 'Costo extra', 'Esito settimana', 'Efficienza'],
     numberFields: ['costo', 'quantitaLitri', 'prezzoAlLitro', 'kmFinali', 'kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'kmAlLitroAuto', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'efficienzaPercentuale'],
     dateFields: ['data'],
+    // Colonne calcolate dal foglio Google (formula = riga sopra shiftata di 1, vedi
+    // appendRowToSheet in sheetsService.tsx): l'app non le ricalcola mai da sola.
+    formulaFields: ['kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'esitoSettimana'],
     dataKey: 'analisiConsumi'
   }
 ];

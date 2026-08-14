@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight, Repeat } from 'lucide-react';
 import Modal from './Modal';
 import AggiungiUscitaForm from './uscite/AggiungiUscitaForm';
 import AggiungiEntrataForm from './entrate/AggiungiEntrataForm';
 import AggiungiConsumoForm from './consumi/AggiungiConsumoForm';
-import AggiungiTrasferimentoForm from './AggiungiTrasferimentoForm';
+import AggiungiTrasferimentoForm from './trasferimenti/AggiungiTrasferimentoForm';
+import AggiungiUsciteRicorrentiForm from './uscite/AggiungiUsciteRicorrentiForm';
 
-type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | null;
+type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | null;
 
 interface AggiungiDatoModalProps {
   isOpen: boolean;
@@ -17,7 +18,8 @@ const TITOLI: Record<Exclude<TipoDato, null>, string> = {
   entrata: 'Aggiungi Entrata',
   uscita: 'Aggiungi Uscita',
   consumo: 'Aggiungi Consumo',
-  trasferimento: 'Aggiungi Trasferimento'
+  trasferimento: 'Aggiungi Trasferimento',
+  usciteRicorrenti: 'Uscite Ricorrenti'
 };
 
 /**
@@ -26,7 +28,7 @@ const TITOLI: Record<Exclude<TipoDato, null>, string> = {
  * bottone contestuale della pagina dedicata (AggiungiUscitaForm/
  * AggiungiEntrataForm) — nessuna duplicazione di logica. Consumo e
  * Trasferimento restano disabilitati finché le Fasi 3/5 del piano non
- * esistono (docs/PIANO-INSERIMENTO-DATI.md).
+ * esistono (docs/archive/PIANO-INSERIMENTO-DATI.md).
  */
 export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModalProps) {
   const [tipo, setTipo] = useState<TipoDato>(null);
@@ -39,7 +41,12 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={tipo ? TITOLI[tipo] : 'Aggiungi Dato'}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={tipo ? TITOLI[tipo] : 'Aggiungi Dato'}
+      maxWidthClass={tipo === 'usciteRicorrenti' ? 'max-w-lg' : 'max-w-md'}
+    >
       {!tipo && (
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -74,12 +81,21 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
             <ArrowLeftRight className="w-6 h-6 text-blue-600" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Trasferimento</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setTipo('usciteRicorrenti')}
+            className="col-span-2 flex items-center justify-center gap-2 p-4 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:border-amber-300 dark:hover:border-amber-500/40 transition-all cursor-pointer"
+          >
+            <Repeat className="w-5 h-5 text-amber-600" />
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Uscite Ricorrenti</span>
+          </button>
         </div>
       )}
       {tipo === 'entrata' && <AggiungiEntrataForm onSaved={handleClose} />}
       {tipo === 'uscita' && <AggiungiUscitaForm onSaved={handleClose} />}
       {tipo === 'consumo' && <AggiungiConsumoForm onSaved={handleClose} />}
       {tipo === 'trasferimento' && <AggiungiTrasferimentoForm onSaved={handleClose} />}
+      {tipo === 'usciteRicorrenti' && <AggiungiUsciteRicorrentiForm onSaved={handleClose} />}
     </Modal>
   );
 }

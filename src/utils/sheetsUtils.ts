@@ -2,7 +2,7 @@
  * Utility per interpretare la struttura "grezza" di un foglio Google Sheet (righe di header)
  * e trasformarla in nomi di campo validi in JS/TS, più il riconoscimento delle colonne
  * "dinamiche" (Azioni/Obbligazioni/Monetari) dei fogli broker Scalable e Trade Republic.
- * Usato da src/config/sheetsConfig.tsx e da src/lib/sheetsService.tsx, cioè dal cuore della
+ * Usato da src/config/sheetsConfig.ts e da src/lib/sheetsService.tsx, cioè dal cuore della
  * lettura/scrittura dati verso il foglio: attenzione a non rompere il parsing qui.
  */
 

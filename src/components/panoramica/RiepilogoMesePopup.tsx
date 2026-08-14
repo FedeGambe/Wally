@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, PiggyBank } from 'lucide-react';
-import Modal from './Modal';
-import { formatEuro, formatPercent } from '../utils/format';
+import Modal from '../Modal';
+import { formatEuro, formatPercent } from '../../utils/format';
 
 interface RiepilogoMesePopupProps {
   onClose: (visto: boolean) => void;

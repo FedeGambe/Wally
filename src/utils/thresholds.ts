@@ -6,7 +6,7 @@
  *     dall'utente in app, sincronizzata col tab "Soglie" del foglio Google.
  *  2. Gli header del foglio "Risparmio" (vecchio meccanismo: es. "35%" scritto
  *     nell'intestazione), per compatibilità con fogli non ancora migrati a un tab Soglie.
- *  3. I valori di default in src/config/targets.tsx.
+ *  3. I valori di default in src/config/targets.ts.
  */
 import {
   TARGET_PRIMARIE,
@@ -131,7 +131,7 @@ export const getThresholds = (headers: string[], soglie?: Soglia[]) => {
     investiti,
     risparmio,
     // "Netto" non ha una propria categoria in Soglie (è per definizione investimenti+risparmio,
-    // vedi TARGET_NETTO in targets.tsx): se entrambe vengono da Soglie lo ricalcoliamo, altrimenti
+    // vedi TARGET_NETTO in targets.ts): se entrambe vengono da Soglie lo ricalcoliamo, altrimenti
     // resta l'header/default come per gli altri campi.
     totali: (findInSoglie(soglie, "invest") !== undefined && findInSoglie(soglie, "risp") !== undefined)
       ? investiti + risparmio

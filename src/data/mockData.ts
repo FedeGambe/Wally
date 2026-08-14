@@ -241,7 +241,7 @@ export const ENTRATE_LIST: EntrataRecord[] = (() => {
   }
 })();
 
-// Fase 5 del piano (docs/PIANO-INSERIMENTO-DATI.md): tipo dato nuovo, log puro
+// Fase 5 del piano (docs/archive/PIANO-INSERIMENTO-DATI.md): tipo dato nuovo, log puro
 // dei movimenti tra conti. Non aggiorna i saldi di CONTI_PATRIMONIO (che resta
 // uno snapshot letto dal foglio Google, non derivato dai movimenti) — deciso
 // così per evitare doppio conteggio finché non si decide una logica di sync.

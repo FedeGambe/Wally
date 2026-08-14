@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Calendar, CreditCard, ArrowRight } from 'lucide-react';
-import { useFinanceData } from '../context/FinanceDataContext';
-import { useDatiBase } from '../hooks/useDatiBase';
-import { useSaveAndPush } from '../hooks/useSaveAndPush';
-import { saveToLocalStorage, Trasferimento } from '../data/mockData';
-import { MESI_ITALIANI } from '../utils/date';
-import DropdownMenu from './DropdownMenu';
+import { useFinanceData } from '../../context/FinanceDataContext';
+import { useDatiBase } from '../../hooks/useDatiBase';
+import { useSaveAndPush } from '../../hooks/useSaveAndPush';
+import { saveToLocalStorage, Trasferimento } from '../../data/mockData';
+import { MESI_ITALIANI } from '../../utils/date';
+import DropdownMenu from '../DropdownMenu';
 
 interface AggiungiTrasferimentoFormProps {
   onSaved: () => void;
 }
 
 /**
- * Form "Aggiungi Trasferimento" (Fase 5 del piano, docs/PIANO-INSERIMENTO-DATI.md).
+ * Form "Aggiungi Trasferimento" (Fase 5 del piano, docs/archive/PIANO-INSERIMENTO-DATI.md).
  * Resta un log puro dei movimenti tra conti: NON aggiorna i saldi mostrati in
  * Patrimonio (che restano uno snapshot letto dal foglio Google) — decisione
  * presa per evitare doppio conteggio finché non si definisce una logica di
@@ -21,12 +21,13 @@ interface AggiungiTrasferimentoFormProps {
 export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferimentoFormProps) {
   const { data } = useFinanceData();
   const { conti } = useDatiBase();
-  const { saveAndPush, isSaving, error } = useSaveAndPush();
+  const { appendAndPush, isSaving, error } = useSaveAndPush();
 
   const oggi = new Date();
   const [useMeseDiverso, setUseMeseDiverso] = useState(false);
   const [meseIdx, setMeseIdx] = useState(oggi.getMonth());
   const [anno, setAnno] = useState(oggi.getFullYear());
+  const [categoria, setCategoria] = useState('Trasferimento');
   const [contoOrdinante, setContoOrdinante] = useState(conti[0] || '');
   const [contoBeneficiario, setContoBeneficiario] = useState(conti[1] || conti[0] || '');
   const [importo, setImporto] = useState('');
@@ -41,14 +42,15 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
       id: `manual-${Date.now()}`,
       mese: MESI_ITALIANI[useMeseDiverso ? meseIdx : oggi.getMonth()],
       anno: useMeseDiverso ? anno : oggi.getFullYear(),
+      categoria: categoria.trim() || 'Trasferimento',
       contoOrdinante,
       contoBeneficiario,
       importo: Number(importo)
     };
 
-    const ok = await saveAndPush(() => {
+    const ok = await appendAndPush(() => {
       saveToLocalStorage({ trasferimenti: [...data.trasferimenti, nuovoTrasferimento] });
-    });
+    }, [{ tabTitle: 'Trasferimenti', record: nuovoTrasferimento }]);
     if (ok) onSaved();
   };
 
@@ -85,6 +87,17 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
             {MESI_ITALIANI[oggi.getMonth()]} {oggi.getFullYear()}
           </div>
         )}
+      </div>
+
+      <div>
+        <label className={labelClass}>Categoria</label>
+        <input
+          type="text"
+          value={categoria}
+          onChange={e => setCategoria(e.target.value)}
+          placeholder="Trasferimento"
+          className={inputClass}
+        />
       </div>
 
       <div>

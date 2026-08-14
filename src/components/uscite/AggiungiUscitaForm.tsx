@@ -32,13 +32,13 @@ interface AggiungiUscitaFormProps {
 export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps) {
   const { data } = useFinanceData();
   const { macroCategorieUscite, conti, presetUscite, presetTrasferimenti } = useDatiBase();
-  const { saveAndPush, isSaving, error } = useSaveAndPush();
+  const { appendAndPush, isSaving, error } = useSaveAndPush();
 
   const [dataStr, setDataStr] = useState(() => toInputDate(new Date()));
   const [descrizione, setDescrizione] = useState('');
   const [macroCategoria, setMacroCategoria] = useState(macroCategorieUscite[0]?.nome || '');
   const [categoria, setCategoria] = useState('');
-  const [conto, setConto] = useState(conti[0] || '');
+  const [conto, setConto] = useState(conti.includes('Trade Republic') ? 'Trade Republic' : conti[0] || '');
   const [importo, setImporto] = useState('');
   const [primaria, setPrimaria] = useState(true);
   const [presetSelezionatoId, setPresetSelezionatoId] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
     setCategoria(preset.categoria);
     setConto(preset.conto);
     setImporto(String(preset.importo));
-    setDescrizione(preset.descrizione);
+    setDescrizione(preset.nome);
     setPrimaria(preset.primaria);
     setPresetSelezionatoId(presetId);
     setAncheTrasferimento(false);
@@ -70,7 +70,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
   const targetMese = MESI_ITALIANI[parseInt(targetMeseStr, 10) - 1];
   const targetAnno = parseInt(targetAnnoStr, 10);
   const usciteDelMese = data.uscite.filter(t => t.mese === targetMese && t.data.split('/')[2] === targetAnnoStr);
-  const presetMancanti = presetUscite.filter(p => !usciteDelMese.some(t => t.descrizione === p.descrizione));
+  const presetMancanti = presetUscite.filter(p => !usciteDelMese.some(t => t.descrizione === p.nome));
   const hasTrasferimentoCollegato = (nomePreset: string) => presetTrasferimenti.some(pt => pt.categoria === nomePreset);
   const presetSelezionato = presetUscite.find(p => p.id === presetSelezionatoId);
   const selezionatoHaTrasferimento = presetSelezionato ? hasTrasferimentoCollegato(presetSelezionato.nome) : false;
@@ -104,20 +104,26 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
       ? presetTrasferimenti.find(pt => pt.categoria === presetSelezionato.nome)
       : undefined;
 
-    const ok = await saveAndPush(() => {
+    const nuovoTrasferimento: Trasferimento | undefined = presetTrasf ? {
+      id: `manual-${Date.now()}-t`,
+      mese: targetMese,
+      anno: targetAnno,
+      contoOrdinante: presetTrasf.contoOrdinante,
+      contoBeneficiario: presetTrasf.contoBeneficiario,
+      importo: presetTrasf.importo
+    } : undefined;
+
+    const appends = [{ tabTitle: 'Uscite', record: nuovaTransazione as Record<string, any> }];
+    if (nuovoTrasferimento) {
+      appends.push({ tabTitle: 'Trasferimenti', record: nuovoTrasferimento as Record<string, any> });
+    }
+
+    const ok = await appendAndPush(() => {
       saveToLocalStorage({ uscite: [...data.uscite, nuovaTransazione] });
-      if (presetTrasf) {
-        const nuovoTrasferimento: Trasferimento = {
-          id: `manual-${Date.now()}-t`,
-          mese: targetMese,
-          anno: targetAnno,
-          contoOrdinante: presetTrasf.contoOrdinante,
-          contoBeneficiario: presetTrasf.contoBeneficiario,
-          importo: presetTrasf.importo
-        };
+      if (nuovoTrasferimento) {
         saveToLocalStorage({ trasferimenti: [...data.trasferimenti, nuovoTrasferimento] });
       }
-    });
+    }, appends);
     if (ok) onSaved();
   };
 

@@ -19,6 +19,8 @@
 import { SHEETS_CONFIG, REQUIRED_SHEETS_TITLES } from '../config/sheetsConfig';
 import { toValidFieldName } from '../utils/sheetsUtils';
 import { computeCruscottoData } from '../utils/cruscottoInvestimenti';
+import { MESI_ITALIANI } from '../utils/date';
+import { shiftFormulaRows } from '../utils/formulaShift';
 
 export interface SheetsData {
   uscite: any[];
@@ -52,7 +54,7 @@ export interface SheetsData {
 
 // Formatta una data in ISO YYYY-MM-DD: unico formato che Google Sheets legge
 // allo stesso modo a prescindere dal locale del foglio (vedi commento su
-// SheetDefinition.dateFields in sheetsConfig.tsx). Se non è una data valida,
+// SheetDefinition.dateFields in sheetsConfig.ts). Se non è una data valida,
 // lascia il valore originale invece di scriverci una stringa vuota.
 const formatDateForSheet = (val: any): any => {
   const date = parseDateString(val);
@@ -63,18 +65,25 @@ const formatDateForSheet = (val: any): any => {
   return `${y}-${m}-${d}`;
 };
 
+// Formatta UN singolo record secondo le stesse regole usate per il push completo
+// (booleani -> 'Si'/'No', date -> ISO). Condivisa tra mapToRows (full push) e
+// appendRowToSheet (append di una riga sola), unica fonte di verità per la
+// serializzazione: vedi nota sul kill-switch WRITE_TO_SHEETS_DISABLED più sotto.
+const formatRowValues = (fieldsOnObject: string[], dateFields: string[], item: any): any[] => {
+  return fieldsOnObject.map(field => {
+    const val = item[field];
+    if (val === undefined || val === null) return '';
+    if (typeof val === 'boolean') return val ? 'Si' : 'No';
+    if (dateFields.includes(field)) return formatDateForSheet(val);
+    return val;
+  });
+};
+
 // Convert arrays of objects to row arrays for Google Sheets
 const mapToRows = (header: string[], items: any[], fieldsOnObject: string[], dateFields: string[] = []) => {
   const rows = [header];
   items.forEach(item => {
-    const row = fieldsOnObject.map(field => {
-      const val = item[field];
-      if (val === undefined || val === null) return '';
-      if (typeof val === 'boolean') return val ? 'Si' : 'No';
-      if (dateFields.includes(field)) return formatDateForSheet(val);
-      return val;
-    });
-    rows.push(row);
+    rows.push(formatRowValues(fieldsOnObject, dateFields, item));
   });
   return rows;
 };
@@ -297,7 +306,7 @@ export const createSpreadsheet = async (accessToken: string): Promise<string> =>
 // es. "Analisi consumi!A15:P15". Usata da Analisi Consumi per copiare e
 // shiftare (src/utils/formulaShift.ts) la formula della riga precedente su un
 // nuovo record aggiunto da webapp, invece di reimplementare da zero i calcoli
-// del foglio (Km effettuati, €/100km, ecc.) — vedi docs/PIANO-INSERIMENTO-DATI.md.
+// del foglio (Km effettuati, €/100km, ecc.) — vedi docs/archive/PIANO-INSERIMENTO-DATI.md.
 export const fetchRowFormulas = async (accessToken: string, spreadsheetId: string, range: string): Promise<string[]> => {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMULA`;
   const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
@@ -325,6 +334,203 @@ export const fetchRowFormulas = async (accessToken: string, spreadsheetId: strin
 // si trova la causa reale. NON copre pushDatiBaseToConfigSheet (foglio di
 // configurazione, gestito a parte): quello resta attivo.
 export const WRITE_TO_SHEETS_DISABLED = true;
+
+// Gate indipendente per il percorso di APPEND (una riga sola, via Sheets API
+// values:append) usato dai form "Aggiungi Uscita/Entrata/Trasferimento/Consumo"
+// al posto del push completo. A differenza di pushSpreadsheetData, l'append non
+// tocca mai celle/righe esistenti né altre tab: è strutturalmente più sicuro
+// (stesso principio dello script Python originale, che scriveva solo le celle
+// della nuova riga). Va comunque validato contro un foglio di prova prima di
+// portarlo a `false` sul foglio reale — vedi docs/archive/PIANO-INSERIMENTO-DATI.md.
+export const APPEND_TO_SHEETS_DISABLED = false;
+
+// Data in DD/MM/YYYY: usato SOLO dall'append (a differenza di
+// formatDateForSheet/ISO usato dal push completo) perché qui scriviamo su un
+// foglio di cui conosciamo il locale reale (italiano, verificato a mano) e
+// vogliamo coerenza visiva con le righe esistenti, che sono già in questo
+// formato. Se un giorno l'append dovesse girare su fogli di locale ignoto,
+// tornare a formatDateForSheet (ISO) sarebbe la scelta sicura di default.
+const formatDateIT = (val: any): any => {
+  const date = parseDateString(val);
+  if (!date) return val;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${d}/${m}/${y}`;
+};
+
+// Converte un nome di mese italiano ("Agosto") + anno in una data "01/MM/YYYY"
+// (il giorno è sempre 1: sul foglio reale la colonna "Mese" di Entrate/
+// Trasferimenti è una data vera che rappresenta il mese, non il nome del
+// mese come stringa — vedi SheetDefinition.monthDateFields).
+const monthNameToDateString = (meseNome: any, anno: any): string => {
+  const idx = MESI_ITALIANI.findIndex(m => m.toLowerCase() === String(meseNome || '').trim().toLowerCase());
+  if (idx === -1 || !anno) return '';
+  return `01/${String(idx + 1).padStart(2, '0')}/${anno}`;
+};
+
+const columnLetterForIndex = (index: number): string => String.fromCharCode(65 + index);
+
+// Scrive UNA riga in fondo a una singola tab, senza toccare nient'altro: cella
+// per cella (una range per campo), MAI un blocco unico dell'intera riga.
+// Motivo: colonne come "Mese"/"Icon" su Uscite o "Anno" su Entrate/
+// Trasferimenti sono FORMULE già presenti sul foglio reale (vedi
+// SheetDefinition.formulaFields) — scriverci sopra un valore statico le
+// cancella. Trovata dopo che due push avevano già corrotto il foglio
+// sovrascrivendo formule con valori letterali; verificata cella per cella sul
+// foglio reale prima di questo fix. Stesso principio dello script Python
+// originale dell'utente, che scriveva solo le colonne che gli servivano.
+export const appendRowToSheet = async (
+  accessToken: string,
+  spreadsheetId: string,
+  tabTitle: string,
+  record: Record<string, any>
+): Promise<void> => {
+  if (APPEND_TO_SHEETS_DISABLED) {
+    throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
+  }
+  const sheet = SHEETS_CONFIG.find(s => s.title === tabTitle);
+  if (!sheet) {
+    throw new Error(`Tab "${tabTitle}" non configurata in SHEETS_CONFIG.`);
+  }
+
+  const formulaFields = sheet.formulaFields || [];
+  const monthDateFields = sheet.monthDateFields || [];
+  const dateFields = sheet.dateFields || [];
+
+  // Riga di destinazione: prima riga libera sotto l'ultima con contenuto
+  // nella colonna "ancora" (il primo campo della tab, sempre valorizzato per
+  // ogni riga reale e mai per le righe con solo formule in attesa) — stessa
+  // tecnica di _prima_riga_libera nello script Python originale.
+  const anchorCol = columnLetterForIndex(0);
+  const lastCol = columnLetterForIndex(sheet.fields.length - 1);
+  const anchorUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(`${tabTitle}!${anchorCol}:${anchorCol}`)}`;
+  const anchorResponse = await fetch(anchorUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+  if (!anchorResponse.ok) {
+    if (anchorResponse.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    throw new Error(`Impossibile determinare la riga di destinazione su "${tabTitle}" (codice ${anchorResponse.status}).`);
+  }
+  const anchorResult = await anchorResponse.json();
+  const targetRow = ((anchorResult.values || []).length) + 1;
+
+  // La griglia del foglio può finire esattamente all'ultima riga con dati
+  // (non è detto ci siano righe vuote "di scorta" sotto): se la riga di
+  // destinazione non esiste ancora, la creiamo prima di scriverci, altrimenti
+  // il write fallisce con "exceeds grid limits".
+  const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title,gridProperties.rowCount)`;
+  const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+  if (!metaResponse.ok) {
+    throw new Error(`Impossibile leggere le proprietà del foglio "${tabTitle}" (codice ${metaResponse.status}).`);
+  }
+  const metadata = await metaResponse.json();
+  // Confronto case-insensitive: SHEETS_CONFIG.title e il nome reale della tab sul foglio non
+  // sempre coincidono esattamente (es. "Analisi consumi" in config vs "Analisi Consumi" sul
+  // foglio) — con un confronto case-sensitive la tab non viene trovata e l'append fallisce
+  // silenziosamente (l'errore finisce nel banner di useSaveAndPush, facile da non notare).
+  const sheetMeta = (metadata.sheets || []).find((s: any) => String(s.properties?.title || '').toLowerCase() === tabTitle.toLowerCase());
+  if (!sheetMeta) {
+    throw new Error(`Tab "${tabTitle}" non trovata sul foglio Google.`);
+  }
+  const sheetId = sheetMeta.properties.sheetId;
+  const rowCount = sheetMeta.properties.gridProperties?.rowCount || 0;
+  // Formato data italiano esplicito sulle celle di dateFields: una riga
+  // appena aggiunta (via appendDimension) non eredita alcuna formattazione,
+  // quindi anche scrivendo "13/08/2026" Sheets la visualizzerebbe con il suo
+  // formato data di default (spesso ISO) invece di dd/mm/yyyy come le righe
+  // esistenti — bug scoperto testando questo stesso fix.
+  const structuralRequests: any[] = [];
+  if (targetRow > rowCount) {
+    structuralRequests.push({ appendDimension: { sheetId, dimension: 'ROWS', length: targetRow - rowCount } });
+  }
+  dateFields.forEach(field => {
+    const colIdx = sheet.fields.indexOf(field);
+    if (colIdx === -1) return;
+    structuralRequests.push({
+      repeatCell: {
+        range: { sheetId, startRowIndex: targetRow - 1, endRowIndex: targetRow, startColumnIndex: colIdx, endColumnIndex: colIdx + 1 },
+        cell: { userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'dd/mm/yyyy' } } },
+        fields: 'userEnteredFormat.numberFormat'
+      }
+    });
+  });
+  // Stesso problema per monthDateFields (es. "Mese" di Entrate/Trasferimenti):
+  // è una data vera ma visualizzata come nome del mese ("gennaio").
+  monthDateFields.forEach(field => {
+    const colIdx = sheet.fields.indexOf(field);
+    if (colIdx === -1) return;
+    structuralRequests.push({
+      repeatCell: {
+        range: { sheetId, startRowIndex: targetRow - 1, endRowIndex: targetRow, startColumnIndex: colIdx, endColumnIndex: colIdx + 1 },
+        cell: { userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'mmmm' } } },
+        fields: 'userEnteredFormat.numberFormat'
+      }
+    });
+  });
+  if (structuralRequests.length > 0) {
+    const growResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: structuralRequests })
+    });
+    if (!growResponse.ok) {
+      throw new Error(`Impossibile preparare la riga su "${tabTitle}" per la nuova riga (codice ${growResponse.status}).`);
+    }
+  }
+
+  // Per le colonne-formula (formulaFields) non scriviamo un valore: copiamo la
+  // formula della riga sopra e ne shiftiamo i riferimenti di riga (stessa
+  // tecnica già usata per Analisi Consumi, vedi utils/formulaShift.ts) così
+  // resta una formula viva calcolata da Sheets, non un valore statico.
+  let formulasAbove: string[] = [];
+  if (formulaFields.length > 0 && targetRow > 2) {
+    const aboveRow = targetRow - 1;
+    formulasAbove = await fetchRowFormulas(accessToken, spreadsheetId, `${tabTitle}!${anchorCol}${aboveRow}:${lastCol}${aboveRow}`);
+  }
+
+  const data = sheet.fields.reduce<{ range: string; values: any[][] }[]>((acc, field, index) => {
+    const col = columnLetterForIndex(index);
+    if (formulaFields.includes(field)) {
+      const formulaAbove = formulasAbove[index];
+      if (typeof formulaAbove === 'string' && formulaAbove.startsWith('=')) {
+        acc.push({ range: `${tabTitle}!${col}${targetRow}`, values: [[shiftFormulaRows(formulaAbove, 1)]] });
+      }
+      // Nessuna formula da copiare (es. prima riga dati della tab): lasciamo
+      // la cella intoccata invece di scriverci un valore statico a caso.
+      return acc;
+    }
+    let val = record[field];
+    if (monthDateFields.includes(field)) {
+      val = monthNameToDateString(val, record.anno);
+    } else if (val === undefined || val === null) {
+      val = '';
+    } else if (typeof val === 'boolean') {
+      val = val ? 'Si' : 'No';
+    } else if (dateFields.includes(field)) {
+      val = formatDateIT(val);
+    }
+    acc.push({ range: `${tabTitle}!${col}${targetRow}`, values: [[val]] });
+    return acc;
+  }, []);
+
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data })
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      const errBody = await response.json();
+      errorMsg = errBody?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile aggiungere la riga su "${tabTitle}": ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
+};
 
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
   if (WRITE_TO_SHEETS_DISABLED) return;
@@ -568,19 +774,13 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   if (macroMap.size > 0) outputData.macroCategorieUscite = Array.from(macroMap.values());
   delete outputData.categorieUsciteRows;
 
-  const presetUsciteDaSheet = (outputData.presetUsciteRows || [])
-    .filter((r: any) => r.nome)
-    .map((r: any, idx: number) => ({
-      id: `preset-sheet-${idx}`,
-      nome: r.nome,
-      macroCategoria: r.macroCategoria,
-      categoria: r.categoria,
-      conto: r.conto,
-      importo: Number(r.importo || 0),
-      descrizione: r.descrizione || r.nome,
-      primaria: Boolean(r.primaria)
-    }));
-  if (presetUsciteDaSheet.length > 0) outputData.presetUscite = presetUsciteDaSheet;
+  // Preset Uscite/Trasferimenti Ricorrenti NON vivono più sul foglio principale
+  // (SHEETS_CONFIG li elenca solo perché la config dei campi è condivisa con
+  // fetchDatiBaseFromConfigSheet/pushDatiBaseToConfigSheet): sul foglio
+  // principale queste tab non esistono, quindi presetUsciteRows/
+  // presetTrasferimentiRows qui sono sempre vuoti. I valori veri arrivano da
+  // fetchDatiBaseFromConfigSheet (foglio di configurazione), chiamato dopo
+  // questa funzione in FinanceDataContext.refreshData.
   delete outputData.presetUsciteRows;
 
   // Soglie: il foglio le scrive come frazione (0.35 = 35%, formato percentuale
@@ -595,16 +795,6 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   if (soglieDaSheet.length > 0) outputData.soglie = soglieDaSheet;
   delete outputData.soglieRows;
 
-  const presetTrasferimentiDaSheet = (outputData.presetTrasferimentiRows || [])
-    .filter((r: any) => r.categoria)
-    .map((r: any, idx: number) => ({
-      id: `preset-trasf-sheet-${idx}`,
-      categoria: r.categoria,
-      contoOrdinante: r.contoOrdinante || '',
-      contoBeneficiario: r.contoBeneficiario,
-      importo: Number(r.importo || 0)
-    }));
-  if (presetTrasferimentiDaSheet.length > 0) outputData.presetTrasferimenti = presetTrasferimentiDaSheet;
   delete outputData.presetTrasferimentiRows;
 
   // Intestazioni per il Risparmio
@@ -686,10 +876,16 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
 // volta, secondo la stessa mappatura fields/headers di SHEETS_CONFIG.
 // Sovrascrive interamente il contenuto di ogni tab (values:batchUpdate con
 // range "A1" e i dati completi) — non fa un merge riga per riga.
+// `tabTitles`: se passato, limita il push a queste tab soltanto (scarta le
+// altre da SHEETS_CONFIG prima di costruire il payload) — usato per non
+// riscrivere l'intero workbook quando in realtà è cambiata una sola tab (es.
+// i Preset Ricorrenti in Impostazioni). Omesso = tutte le tab, comportamento
+// storico, usato solo dai bottoni manuali "Carica/Sincronizza" in SheetsModal.
 export const pushSpreadsheetData = async (
   accessToken: string,
   spreadsheetId: string,
-  data: SheetsData
+  data: SheetsData,
+  tabTitles?: string[]
 ): Promise<void> => {
   if (WRITE_TO_SHEETS_DISABLED) {
     throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
@@ -698,18 +894,18 @@ export const pushSpreadsheetData = async (
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`;
 
   // Alcuni tab di SHEETS_CONFIG non vengono auto-creati da ensureSheetsExist
-  // (vedi TAB_NON_AUTOCREABILI in sheetsConfig.tsx): se l'utente non li ha mai
+  // (vedi TAB_NON_AUTOCREABILI in sheetsConfig.ts): se l'utente non li ha mai
   // creati sul foglio, un range su un tab inesistente farebbe fallire l'INTERO
   // batchUpdate (stesso problema di "Unable to parse range" del pull). Leggiamo
   // qui i tab realmente presenti e scartiamo quelli mancanti dal payload.
-  let sheetConfigToPush = SHEETS_CONFIG;
+  let sheetConfigToPush = tabTitles ? SHEETS_CONFIG.filter(s => tabTitles.includes(s.title)) : SHEETS_CONFIG;
   try {
     const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
     const metaResponse = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
     if (metaResponse.ok) {
       const metadata = await metaResponse.json();
       const actualTitles = (metadata.sheets || []).map((s: any) => String(s.properties?.title || '').toLowerCase());
-      sheetConfigToPush = SHEETS_CONFIG.filter(s => actualTitles.includes(s.title.toLowerCase()));
+      sheetConfigToPush = sheetConfigToPush.filter(s => actualTitles.includes(s.title.toLowerCase()));
     }
   } catch (err) {
     console.error('Error fetching metadata before push:', err);
@@ -733,22 +929,6 @@ export const pushSpreadsheetData = async (
       ? m.categorie.map((categoria: string) => ({ macro: m.nome, icon: m.icon, categoria }))
       : [{ macro: m.nome, icon: m.icon, categoria: '' }]
   );
-  const presetUsciteRows = (data.presetUscite || []).map((p: any) => ({
-    nome: p.nome,
-    macroCategoria: p.macroCategoria,
-    categoria: p.categoria,
-    conto: p.conto,
-    importo: p.importo,
-    descrizione: p.descrizione,
-    primaria: p.primaria
-  }));
-  const presetTrasferimentiRows = (data.presetTrasferimenti || []).map((p: any) => ({
-    categoria: p.categoria,
-    contoOrdinante: p.contoOrdinante,
-    contoBeneficiario: p.contoBeneficiario,
-    importo: p.importo
-  }));
-
   const computedCruscotto = computeCruscottoData(data);
   const dataMapForPush: Record<string, any[]> = {
     uscite: data.uscite,
@@ -761,8 +941,6 @@ export const pushSpreadsheetData = async (
     contiRows,
     categorieEntrateRows,
     categorieUsciteRows,
-    presetUsciteRows,
-    presetTrasferimentiRows,
     soglieRows: data.soglie || [],
     capitaleImpegnato: data.capitaleImpegnato || [],
     cruscottoInvestimenti: computedCruscotto.length > 0 ? computedCruscotto : (data.cruscottoInvestimenti || []),
@@ -825,9 +1003,11 @@ export const fetchDatiBaseFromConfigSheet = async (
   categorieEntrate?: string[];
   macroCategorieUscite?: any[];
   soglie?: any[];
+  presetUscite?: any[];
+  presetTrasferimenti?: any[];
 }> => {
   let sheets = SHEETS_CONFIG.filter(s =>
-    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie'].includes(s.title)
+    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie', 'Preset Uscite Ricorrenti', 'Preset Trasferimenti Ricorrenti'].includes(s.title)
   );
 
   // Come in fetchSpreadsheetData: un solo range invalido fa fallire l'INTERO batchGet
@@ -874,13 +1054,39 @@ export const fetchDatiBaseFromConfigSheet = async (
     return found?.values || [];
   };
 
-  const out: { conti?: string[]; categorieEntrate?: string[]; macroCategorieUscite?: any[]; soglie?: any[] } = {};
+  const out: {
+    conti?: string[]; categorieEntrate?: string[]; macroCategorieUscite?: any[]; soglie?: any[];
+    presetUscite?: any[]; presetTrasferimenti?: any[];
+  } = {};
 
   sheets.forEach(sheet => {
     const rows = getValueRangeForSheet(sheet.title);
     const items = mapFromRowsWithHeaders(rows, sheet.fields, sheet.headers, sheet.booleanFields || [], sheet.numberFields || []);
 
-    if (sheet.title === 'Conti') {
+    if (sheet.title === 'Preset Uscite Ricorrenti') {
+      out.presetUscite = items
+        .map((r: any, i: number) => ({
+          id: `preset-${i}`,
+          nome: String(r.nome || '').trim(),
+          macroCategoria: String(r.macroCategoria || '').trim(),
+          categoria: String(r.categoria || '').trim(),
+          conto: String(r.conto || '').trim(),
+          importo: Number(r.importo || 0),
+          giornoDelMese: Number(r.giornoDelMese || 1),
+          primaria: Boolean(r.primaria)
+        }))
+        .filter((p: any) => p.nome);
+    } else if (sheet.title === 'Preset Trasferimenti Ricorrenti') {
+      out.presetTrasferimenti = items
+        .map((r: any, i: number) => ({
+          id: `preset-t-${i}`,
+          categoria: String(r.categoria || '').trim(),
+          contoOrdinante: String(r.contoOrdinante || '').trim(),
+          contoBeneficiario: String(r.contoBeneficiario || '').trim(),
+          importo: Number(r.importo || 0)
+        }))
+        .filter((p: any) => p.categoria);
+    } else if (sheet.title === 'Conti') {
       out.conti = items.map((r: any) => String(r.nome || '').trim()).filter(Boolean);
     } else if (sheet.title === 'Categorie Entrate') {
       out.categorieEntrate = items.map((r: any) => String(r.nome || '').trim()).filter(Boolean);
@@ -925,13 +1131,15 @@ export const pushDatiBaseToConfigSheet = async (
     categorieEntrate?: string[];
     macroCategorieUscite?: any[];
     soglie?: any[];
+    presetUscite?: any[];
+    presetTrasferimenti?: any[];
   }
 ): Promise<void> => {
   // Nessun controllo su WRITE_TO_SHEETS_DISABLED qui: quel kill-switch copre solo
   // il foglio principale (vedi commento sopra la costante), questo scrive sul
   // foglio di configurazione, un percorso separato.
   let sheets = SHEETS_CONFIG.filter(s =>
-    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie'].includes(s.title)
+    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie', 'Preset Uscite Ricorrenti', 'Preset Trasferimenti Ricorrenti'].includes(s.title)
   );
 
   try {
@@ -963,8 +1171,25 @@ export const pushDatiBaseToConfigSheet = async (
     percentuale: Number(s.percentuale || 0) / 100
   }));
 
+  const presetUsciteRows = (data.presetUscite || []).map((p: any) => ({
+    giornoDelMese: p.giornoDelMese,
+    nome: p.nome,
+    macroCategoria: p.macroCategoria,
+    categoria: p.categoria,
+    conto: p.conto,
+    importo: p.importo,
+    primaria: p.primaria
+  }));
+  const presetTrasferimentiRows = (data.presetTrasferimenti || []).map((p: any) => ({
+    categoria: p.categoria,
+    contoOrdinante: p.contoOrdinante,
+    contoBeneficiario: p.contoBeneficiario,
+    importo: p.importo
+  }));
+
   const dataMapForPush: Record<string, any[]> = {
-    contiRows, categorieEntrateRows, categorieUsciteRows, soglieRows
+    contiRows, categorieEntrateRows, categorieUsciteRows, soglieRows,
+    presetUsciteRows, presetTrasferimentiRows
   };
 
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`;

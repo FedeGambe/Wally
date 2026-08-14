@@ -37,9 +37,10 @@ interface FinanceDataContextValue {
    * Usata dai form "Aggiungi ..." dopo un saveToLocalStorage: dato che il push
    * sovrascrive sempre l'intera tab, basta richiamare questa subito dopo aver
    * salvato in locale, senza costruire a mano il payload da inviare.
-   * Ritorna true se il push è andato a buon fine.
+   * Ritorna true se il push è andato a buon fine. `tabTitles`, se passato,
+   * limita il push a quelle tab soltanto (vedi pushSpreadsheetData).
    */
-  pushToSheet: () => Promise<boolean>;
+  pushToSheet: (tabTitles?: string[]) => Promise<boolean>;
   isPushing: boolean;
   /** Token OAuth corrente (o null) e ID del foglio collegato — servono ai form
    * che devono chiamare direttamente l'API Sheets (es. leggere una formula in
@@ -80,7 +81,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
     if (!savedId) return;
 
     if (!accessToken) {
-      setSyncError('Autenticazione scaduta. Per favore effettua di nuovo l\'accesso.');
+      setSyncError('Sessione Google scaduta: provo a riconnetterti in automatico...');
       setTimeout(() => setSyncError(null), 5000);
       onAuthError();
       return;
@@ -117,7 +118,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
                        err?.message?.toLowerCase().includes('authentication credentials') ||
                        err?.message?.includes('401');
       if (isUnauth) {
-        setSyncError('La sessione di Google è scaduta. Effettua nuovamente il login per ricollegare il tuo account.');
+        setSyncError('Sessione Google scaduta: provo a riconnetterti in automatico...');
         setTimeout(() => setSyncError(null), 8000);
         onAuthError();
       } else {
@@ -129,7 +130,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
   }, [accessToken, onAuthError, bumpVersion]);
 
   // Sincronizzazione automatica al login (quando accessToken diventa disponibile)
-  const pushToSheet = useCallback(async (): Promise<boolean> => {
+  const pushToSheet = useCallback(async (tabTitles?: string[]): Promise<boolean> => {
     const savedId = localStorage.getItem('sf_spreadsheet_id');
     if (!savedId) {
       setSyncError('Nessun foglio Google collegato. Collega un foglio da Impostazioni prima di aggiungere dati.');
@@ -137,7 +138,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
       return false;
     }
     if (!accessToken) {
-      setSyncError('Autenticazione scaduta. Per favore effettua di nuovo l\'accesso.');
+      setSyncError('Sessione Google scaduta: provo a riconnetterti in automatico...');
       setTimeout(() => setSyncError(null), 5000);
       onAuthError();
       return false;
@@ -149,7 +150,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
       const { pushSpreadsheetData } = await import('../lib/sheetsService');
       // getExportableData() senza argomenti = SEMPRE dati reali, mai demo/incognito
       // (stesso motivo per cui SheetsModal la chiama così, vedi mockData.ts).
-      await pushSpreadsheetData(accessToken, savedId, getExportableData());
+      await pushSpreadsheetData(accessToken, savedId, getExportableData(), tabTitles);
       setIsPushing(false);
       return true;
     } catch (err: any) {
@@ -158,7 +159,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
                        err?.message?.toLowerCase().includes('authentication credentials') ||
                        err?.message?.includes('401');
       if (isUnauth) {
-        setSyncError('La sessione di Google è scaduta. Effettua nuovamente il login per ricollegare il tuo account.');
+        setSyncError('Sessione Google scaduta: provo a riconnetterti in automatico...');
         setTimeout(() => setSyncError(null), 8000);
         onAuthError();
       } else {

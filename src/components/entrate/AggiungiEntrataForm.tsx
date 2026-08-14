@@ -13,7 +13,7 @@ interface AggiungiEntrataFormProps {
 
 /**
  * Form "Aggiungi Entrata" — niente campi data/descrizione (confermato non
- * servono, vedi docs/PIANO-INSERIMENTO-DATI.md): solo mese (default corrente,
+ * servono, vedi docs/archive/PIANO-INSERIMENTO-DATI.md): solo mese (default corrente,
  * un flag per sceglierne uno diverso), anno derivato dal mese, categoria,
  * conto, importo. Stipendio e voci variabili restano inserimento manuale
  * puro, nessun preset applicato qui.
@@ -21,14 +21,14 @@ interface AggiungiEntrataFormProps {
 export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProps) {
   const { data } = useFinanceData();
   const { categorieEntrate, conti } = useDatiBase();
-  const { saveAndPush, isSaving, error } = useSaveAndPush();
+  const { appendAndPush, isSaving, error } = useSaveAndPush();
 
   const oggi = new Date();
   const [useMeseDiverso, setUseMeseDiverso] = useState(false);
   const [meseIdx, setMeseIdx] = useState(oggi.getMonth());
   const [anno, setAnno] = useState(oggi.getFullYear());
   const [categoria, setCategoria] = useState(categorieEntrate[0] || '');
-  const [conto, setConto] = useState(conti[0] || '');
+  const [conto, setConto] = useState(conti.includes('Unicredit') ? 'Unicredit' : conti[0] || '');
   const [importo, setImporto] = useState('');
 
   const isValid = Boolean(categoria && conto && Number(importo) > 0);
@@ -48,9 +48,9 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
       importo: Number(importo)
     };
 
-    const ok = await saveAndPush(() => {
+    const ok = await appendAndPush(() => {
       saveToLocalStorage({ entrate: [...data.entrate, nuovaEntrata] });
-    });
+    }, [{ tabTitle: 'Entrate', record: nuovaEntrata }]);
     if (ok) onSaved();
   };
 

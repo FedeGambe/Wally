@@ -38,7 +38,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './pages/Login';
 import SheetsModal from './components/SheetsModal';
-import RiepilogoMesePopup from './components/RiepilogoMesePopup';
+import RiepilogoMesePopup from './components/panoramica/RiepilogoMesePopup';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // ponytail: spinner minimale, non serve altro per il breve gap del lazy-load pagina
@@ -60,7 +60,7 @@ const Investimenti = lazy(() => import('./pages/Investimenti'));
 const AnalisiConsumi = lazy(() => import('./pages/AnalisiConsumi'));
 const Impostazioni = lazy(() => import('./pages/Impostazioni'));
 
-import { initAuth, logout } from './lib/googleAuth';
+import { initAuth, logout, silentTokenRefresh } from './lib/googleAuth';
 import { getExportableData, isIncognitoModeEnabled } from './data/mockData';
 import { FinanceDataProvider, useFinanceData } from './context/FinanceDataContext';
 import { MESI_ITALIANI, getMonthIndex } from './utils/date';
@@ -104,7 +104,7 @@ function computeRiepilogoPrecedente(data: ReturnType<typeof getExportableData>) 
   if (!record) return null;
 
   // Soglia "spese totali" = primarie + secondarie (stessa fonte usata da Panoramica/Uscite:
-  // Soglie utente se presenti, altrimenti default di src/config/targets.tsx).
+  // Soglie utente se presenti, altrimenti default di src/config/targets.ts).
   const thresholds = getThresholds([], data.soglie);
   const targetSpeseTotali = thresholds.primarie + thresholds.secondarie;
   // Coercizione a numero di tutti i campi usati, una volta sola qui: un campo mancante/non
@@ -307,6 +307,46 @@ export default function App() {
     setActiveView('panoramica');
   };
 
+  // Chiamata da FinanceDataProvider quando una richiesta a Sheets torna 401
+  // (token OAuth scaduto a metà sessione): prima di sloggare davvero
+  // l'utente tentiamo un rinnovo silenzioso (nessun popup) — se funziona la
+  // sessione continua senza che l'utente se ne accorga, altrimenti si
+  // procede con il logout come prima.
+  const handleAuthError = async () => {
+    const freshToken = await silentTokenRefresh();
+    if (freshToken) {
+      setAccessToken(freshToken);
+    } else {
+      await handleLogout();
+    }
+  };
+
+  // Rinnovo proattivo del token OAuth agganciato ai click reali dell'utente,
+  // NON a un timer in background: verificato dal vivo che Chrome blocca la
+  // finestra (anche invisibile, prompt:'') che Google Identity Services apre
+  // per il rinnovo se la richiesta non parte da una vera interazione utente
+  // ("user activation") — un setInterval puro fallisce sempre. Agganciandolo
+  // al primo click dopo ~40 minuti dall'ultimo rinnovo, la richiesta eredita
+  // l'activation del click e il rinnovo può riuscire davvero in silenzio.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let refreshInFlight = false;
+    const REFRESH_AFTER_MS = 40 * 60 * 1000;
+    const onUserGesture = () => {
+      if (refreshInFlight) return;
+      const rememberTimeStr = localStorage.getItem('sf_device_remember_time');
+      const rememberTime = rememberTimeStr ? parseInt(rememberTimeStr, 10) : 0;
+      if (Date.now() - rememberTime < REFRESH_AFTER_MS) return;
+      refreshInFlight = true;
+      silentTokenRefresh().then(freshToken => {
+        if (freshToken) setAccessToken(freshToken);
+        refreshInFlight = false;
+      });
+    };
+    document.addEventListener('click', onUserGesture, true);
+    return () => document.removeEventListener('click', onUserGesture, true);
+  }, [isLoggedIn]);
+
   return (
     <ErrorBoundary>
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#060a13] text-slate-100' : 'bg-canvas text-ink'} antialiased font-sans relative overflow-hidden transition-colors duration-300`}>
@@ -340,7 +380,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'glass-theme' : 'bg-transparent'} relative z-10 w-full`}
           >
-            <FinanceDataProvider accessToken={accessToken} onAuthError={handleLogout}>
+            <FinanceDataProvider accessToken={accessToken} onAuthError={handleAuthError}>
               <DashboardShell
                 theme={theme}
                 toggleTheme={toggleTheme}
