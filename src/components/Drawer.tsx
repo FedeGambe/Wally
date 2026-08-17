@@ -290,11 +290,11 @@ export default function Drawer({
                       </span>
                       {t.macroCategoria !== 'Entrate' && (
                         t.primaria ? (
-                          <span className="bg-orange-700 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          <span className="bg-orange-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
                             Spesa Primaria
                           </span>
                         ) : (
-                          <span className="bg-orange-50 dark:bg-orange-400/10 text-orange-700 dark:text-orange-300 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          <span className="bg-orange-50 dark:bg-orange-400/10 text-orange-700 dark:text-orange-300 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
                             Spesa Secondaria
                           </span>
                         )

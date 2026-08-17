@@ -494,13 +494,13 @@ export default function FondoPensione({
           <table className="w-full text-sm text-left border-collapse">
             <thead>
               <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4">Mese Rif</th>
-                <th className="py-3 px-4 text-right">Quota TFR</th>
-                <th className="py-3 px-4 text-right">Dipendente Base</th>
-                <th className="py-3 px-4 text-right">Volontario</th>
-                <th className="py-3 px-4 text-right">Quota Datoriale</th>
-                <th className="py-3 px-4 text-right">Totale Mese</th>
-                <th className="py-3 px-4 text-right">Importo Cumulativo</th>
+                <th scope="col" className="py-3 px-4">Mese Rif</th>
+                <th scope="col" className="py-3 px-4 text-right">Quota TFR</th>
+                <th scope="col" className="py-3 px-4 text-right">Dipendente Base</th>
+                <th scope="col" className="py-3 px-4 text-right">Volontario</th>
+                <th scope="col" className="py-3 px-4 text-right">Quota Datoriale</th>
+                <th scope="col" className="py-3 px-4 text-right">Totale Mese</th>
+                <th scope="col" className="py-3 px-4 text-right">Importo Cumulativo</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">

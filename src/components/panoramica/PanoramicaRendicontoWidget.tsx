@@ -19,10 +19,15 @@ interface PanoramicaRendicontoWidgetProps {
  * + nel popup di dettaglio).
  */
 export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRisparmio, isMobile, onOpenDetail }: PanoramicaRendicontoWidgetProps) {
+  // Il widget è cliccabile solo su mobile (apre il drawer di dettaglio); su desktop
+  // resta un div non interattivo, per non esporre a tastiera/screen reader un
+  // bottone senza azione.
+  const Wrapper = isMobile ? 'button' : 'div';
+  const wrapperProps = isMobile ? { type: 'button' as const, onClick: onOpenDetail } : {};
   return (
-    <div
-      onClick={isMobile ? onOpenDetail : undefined}
-      className={`bg-slate-900 border border-slate-800 text-white p-6 rounded-3xl shadow-sm text-left flex flex-col justify-between transition-all duration-300 hover:shadow-md ${isMobile ? 'cursor-pointer active:scale-[0.99]' : ''}`}
+    <Wrapper
+      {...wrapperProps}
+      className={`w-full bg-slate-900 border border-slate-800 text-white p-6 rounded-3xl shadow-sm text-left flex flex-col justify-between transition-all duration-300 hover:shadow-md ${isMobile ? 'cursor-pointer active:scale-[0.99]' : ''}`}
     >
       <div>
         <span className="text-[10px] text-accent font-bold uppercase tracking-wider">Rendiconto Mese Corrente</span>
@@ -67,6 +72,6 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
         </span>
         <span className="font-extrabold text-emerald-400">{formatEuro(currentMonthData.entrate * (sogliaRisparmio / 100))}</span>
       </div>
-    </div>
+    </Wrapper>
   );
 }

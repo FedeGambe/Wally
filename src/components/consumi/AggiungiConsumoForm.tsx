@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage } from '../../data/mockData';
@@ -25,6 +25,12 @@ interface AggiungiConsumoFormProps {
  * più da form (deciso: non manuale), resta vuota sulle righe aggiunte da qui.
  */
 export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProps) {
+  const dataId = useId();
+  const costoId = useId();
+  const litriId = useId();
+  const prezzoId = useId();
+  const kmFinaliId = useId();
+  const kmAlLitroId = useId();
   const { data } = useFinanceData();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
 
@@ -96,37 +102,37 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className={labelClass}>Data</label>
-        <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
+        <label htmlFor={dataId} className={labelClass}>Data</label>
+        <input id={dataId} type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
       </div>
 
       <div>
-        <label className={labelClass}>Costo (€)</label>
-        <input type="number" step="0.01" min="0.01" value={costo} onChange={e => handleCostoChange(e.target.value)} placeholder="0.00" className={inputClass} required />
+        <label htmlFor={costoId} className={labelClass}>Costo (€)</label>
+        <input id={costoId} type="number" step="0.01" min="0.01" value={costo} onChange={e => handleCostoChange(e.target.value)} placeholder="0.00" className={inputClass} required />
       </div>
 
       <div>
         <p className="text-[11px] text-ink-soft mb-1.5">Basta compilare uno tra Litri e €/Lt: l'altro si calcola dal Costo.</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Quantità (Lt)</label>
-            <input type="number" step="0.01" min="0.01" value={quantitaLitri} onChange={e => handleLitriChange(e.target.value)} placeholder="0.00" className={inputClass} required />
+            <label htmlFor={litriId} className={labelClass}>Quantità (Lt)</label>
+            <input id={litriId} type="number" step="0.01" min="0.01" value={quantitaLitri} onChange={e => handleLitriChange(e.target.value)} placeholder="0.00" className={inputClass} required />
           </div>
           <div>
-            <label className={labelClass}>€/Lt</label>
-            <input type="number" step="0.001" min="0.001" value={prezzoAlLitro} onChange={e => handlePrezzoChange(e.target.value)} placeholder="0.000" className={inputClass} required />
+            <label htmlFor={prezzoId} className={labelClass}>€/Lt</label>
+            <input id={prezzoId} type="number" step="0.001" min="0.001" value={prezzoAlLitro} onChange={e => handlePrezzoChange(e.target.value)} placeholder="0.000" className={inputClass} required />
           </div>
         </div>
       </div>
 
       <div>
-        <label className={labelClass}>Km finali</label>
-        <input type="number" step="1" min="0" value={kmFinali} onChange={e => setKmFinali(e.target.value)} placeholder="0" className={inputClass} required />
+        <label htmlFor={kmFinaliId} className={labelClass}>Km finali</label>
+        <input id={kmFinaliId} type="number" step="1" min="0" value={kmFinali} onChange={e => setKmFinali(e.target.value)} placeholder="0" className={inputClass} required />
       </div>
 
       <div>
-        <label className={labelClass}>Km/lt (bordo auto)</label>
-        <input type="number" step="0.1" min="0" value={kmAlLitroAuto} onChange={e => setKmAlLitroAuto(e.target.value)} placeholder="opzionale" className={inputClass} />
+        <label htmlFor={kmAlLitroId} className={labelClass}>Km/lt (bordo auto)</label>
+        <input id={kmAlLitroId} type="number" step="0.1" min="0" value={kmAlLitroAuto} onChange={e => setKmAlLitroAuto(e.target.value)} placeholder="opzionale" className={inputClass} />
       </div>
 
       <p className="text-[11px] text-ink-soft leading-relaxed">

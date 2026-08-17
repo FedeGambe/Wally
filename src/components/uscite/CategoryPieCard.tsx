@@ -125,10 +125,12 @@ export default function CategoryPieCard({
             const name = entry.name || 'Altro';
             const isSelected = selected === name;
             return (
-              <div
+              <button
+                type="button"
                 key={`pie-list-${idx}-${entry.name}`}
                 onClick={() => toggle(name)}
-                className={`flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
+                aria-pressed={isSelected}
+                className={`w-full flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
                   isSelected
                     ? 'bg-accent/10 border border-accent/20 shadow-xs'
                     : 'hover:bg-canvas dark:hover:bg-white/5 border border-transparent'
@@ -139,7 +141,7 @@ export default function CategoryPieCard({
                   <span className={`text-ink-soft dark:text-slate-300 truncate ${isSelected ? 'font-bold text-accent' : 'font-semibold'}`}>{name}</span>
                 </div>
                 <span className={`font-bold ${isSelected ? 'text-accent' : 'text-ink dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
-              </div>
+              </button>
             );
           })}
         </div>

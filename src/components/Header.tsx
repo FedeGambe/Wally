@@ -121,6 +121,7 @@ export default function Header({
         type="button"
         onClick={onOpenMobileSettings}
         title="Impostazioni"
+        aria-label="Impostazioni"
         className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-canvas cursor-pointer shrink-0"
       >
         <Sliders className="w-4.5 h-4.5 text-accent shrink-0" />
@@ -132,6 +133,8 @@ export default function Header({
         <button
           onClick={() => toggleIncognito(!isIncognito)}
           title={isIncognito ? 'Disattiva modalità incognito (torna ai dati reali)' : 'Attiva modalità incognito (mostra dati fittizi)'}
+          aria-label={isIncognito ? 'Disattiva modalità incognito (torna ai dati reali)' : 'Attiva modalità incognito (mostra dati fittizi)'}
+          aria-pressed={isIncognito}
           className={`flex items-center gap-1 sm:gap-1.5 rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 text-xs font-bold transition-all cursor-pointer border ${
             isIncognito
               ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700'
@@ -181,6 +184,7 @@ export default function Header({
             onGoToToday?.();
           }}
           title="Imposta data odierna come filtro globale"
+          aria-label="Imposta data odierna come filtro globale"
           className="hidden lg:flex items-center gap-2 bg-canvas hover:bg-accent/10 hover:text-accent hover:border-accent/20 active:bg-accent/15 border border-hairline px-3.5 py-1.5 rounded-xl text-xs text-ink-soft shrink-0 transition-all duration-200 hover:scale-[1.02] active:scale-98 cursor-pointer shadow-xs hover:shadow-sm"
         >
           <Calendar className="w-4 h-4 text-accent transition-transform duration-200 group-hover:scale-110" />

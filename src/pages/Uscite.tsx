@@ -86,6 +86,7 @@ export default function Uscite({
 
   return (
     <div className="space-y-6">
+      <h1 className="sr-only">Uscite</h1>
       <div className="flex justify-end">
         <button
           onClick={() => setShowAddModal(true)}
@@ -293,13 +294,13 @@ export default function Uscite({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-hairline text-[11px] font-bold text-ink-soft uppercase tracking-wider">
-                  <th className="py-3 px-4">Data</th>
-                  <th className="py-3 px-4">Descrizione</th>
-                  <th className="py-3 px-4">Macro</th>
-                  <th className="py-3 px-4">Categoria</th>
-                  <th className="py-3 px-4 text-right">Importo</th>
-                  <th className="py-3 px-4">Conto utilizzato</th>
-                  <th className="py-3 px-4 text-center">Primaria</th>
+                  <th scope="col" className="py-3 px-4">Data</th>
+                  <th scope="col" className="py-3 px-4">Descrizione</th>
+                  <th scope="col" className="py-3 px-4">Macro</th>
+                  <th scope="col" className="py-3 px-4">Categoria</th>
+                  <th scope="col" className="py-3 px-4 text-right">Importo</th>
+                  <th scope="col" className="py-3 px-4">Conto utilizzato</th>
+                  <th scope="col" className="py-3 px-4 text-center">Primaria</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-xs">

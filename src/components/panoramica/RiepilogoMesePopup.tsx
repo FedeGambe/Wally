@@ -150,6 +150,8 @@ export default function RiepilogoMesePopup({ onClose, mese, anno, record, budget
               {t.label}
               {t.ok !== undefined && (
                 <span
+                  role="img"
+                  aria-label={t.ok ? 'Soglia rispettata' : 'Soglia non rispettata'}
                   className="w-2 h-2 rounded-full shrink-0 animate-pulse"
                   style={{
                     backgroundColor: t.ok ? '#10b981' : '#f43f5e',

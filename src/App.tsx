@@ -566,6 +566,15 @@ function DashboardShell({
 
   return (
     <>
+      {/* Skip link: primo elemento raggiungibile da tastiera, per bypassare la
+          sidebar (7 voci di navigazione) e saltare dritti al contenuto. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:outline-hidden focus:ring-2 focus:ring-white"
+      >
+        Salta al contenuto
+      </a>
+
       {/* Sidebar Navigation */}
       <Sidebar
         activeView={activeView}
@@ -594,7 +603,7 @@ function DashboardShell({
         />
 
         {/* View Section Panels scrollable */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
+        <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}
@@ -673,6 +682,8 @@ function DashboardShell({
       <AnimatePresence>
         {showRefreshToast && (
           <motion.div
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -693,6 +704,8 @@ function DashboardShell({
       <AnimatePresence>
         {syncError && (
           <motion.div
+            role="alert"
+            aria-live="assertive"
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}

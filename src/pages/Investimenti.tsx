@@ -52,6 +52,7 @@ export default function Investimenti({
 
   return (
     <div className="space-y-6">
+      <h1 className="sr-only">Investimenti</h1>
       {/* 3 Inner Tabs buttons (Sticky & Glassmorphic) */}
       <div
         className={`sticky transition-all duration-300 z-30 ${

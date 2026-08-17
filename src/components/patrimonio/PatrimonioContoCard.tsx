@@ -39,9 +39,12 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
         : 'border-slate-50 dark:border-white/10 dark:hover:border-white/30'
         }`}
     >
-      <div
+      <button
+        type="button"
         onClick={onToggle}
-        className="p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
+        aria-expanded={isSelected}
+        aria-controls={`conto-details-${conto.id}`}
+        className="w-full text-left p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
       >
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${hasSoglia
@@ -120,7 +123,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
             </span>
           </div>
         </div>
-      </div>
+      </button>
 
       {/* Expandable account details inline directly below */}
       <AnimatePresence initial={false}>
@@ -132,7 +135,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-hairline dark:border-white/10 text-ink">
+            <div id={`conto-details-${conto.id}`} className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-hairline dark:border-white/10 text-ink">
               <div className="flex justify-between items-center border-b border-hairline pb-3 mb-3">
                 <div>
                   <h4 className="font-bold font-display text-sm text-ink">{conto.categoria}</h4>

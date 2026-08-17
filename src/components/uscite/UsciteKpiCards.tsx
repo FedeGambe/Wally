@@ -49,9 +49,11 @@ export default function UsciteKpiCards({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
       {/* Cumulative Monthly Expenses - Orange card */}
-      <div
+      <button
+        type="button"
         onClick={() => setActiveChartFilter('all')}
-        className={`cursor-pointer text-white rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden md:min-h-[15.5rem] border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] ${
+        aria-pressed={activeChartFilter === 'all'}
+        className={`w-full text-left cursor-pointer text-white rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden md:min-h-[15.5rem] border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] ${
           activeChartFilter === 'all'
             ? 'bg-orange-600 border-orange-400 ring-4 ring-orange-500/20'
             : 'bg-orange-700/80 border-orange-800 opacity-80 hover:opacity-100'
@@ -115,14 +117,16 @@ export default function UsciteKpiCards({
         <div className="absolute -right-4 -bottom-4 opacity-10">
           <ArrowDownLeft className="w-32 h-32" />
         </div>
-      </div>
+      </button>
 
       {/* Spese Primarie + Secondarie: side by side on mobile, own grid columns on desktop */}
       <div className="grid grid-cols-2 gap-3 md:contents">
         {/* Spese primarie - White Card */}
-        <div
+        <button
+          type="button"
           onClick={() => setActiveChartFilter('primarie')}
-          className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
+          aria-pressed={activeChartFilter === 'primarie'}
+          className={`w-full cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'primarie'
               ? 'bg-orange-50 border-orange-700 ring-4 ring-orange-700/15'
               : 'bg-white border-hairline hover:border-hairline'
@@ -185,12 +189,14 @@ export default function UsciteKpiCards({
               </span>
             </div>
           </div>
-        </div>
+        </button>
 
         {/* Spese Secondarie - White Card */}
-        <div
+        <button
+          type="button"
           onClick={() => setActiveChartFilter('secondarie')}
-          className={`cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
+          aria-pressed={activeChartFilter === 'secondarie'}
+          className={`w-full cursor-pointer p-4 sm:p-6 rounded-3xl border text-left relative overflow-hidden flex flex-col justify-between min-h-[11rem] md:min-h-[15.5rem] transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
             activeChartFilter === 'secondarie'
               ? 'bg-orange-50 border-orange-400 ring-4 ring-orange-400/15'
               : 'bg-white border-hairline hover:border-hairline'
@@ -253,7 +259,7 @@ export default function UsciteKpiCards({
               </span>
             </div>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );

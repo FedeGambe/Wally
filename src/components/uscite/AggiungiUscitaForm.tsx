@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { Grid, Tag, CreditCard } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
@@ -30,6 +30,10 @@ interface AggiungiUscitaFormProps {
  * sfondo bianco.
  */
 export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps) {
+  const dataId = useId();
+  const descrizioneId = useId();
+  const categoriaLiberaId = useId();
+  const importoId = useId();
   const { data } = useFinanceData();
   const { macroCategorieUscite, conti, presetUscite, presetTrasferimenti } = useDatiBase();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
@@ -184,13 +188,14 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
       )}
 
       <div>
-        <label className={labelClass}>Data</label>
-        <input type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
+        <label htmlFor={dataId} className={labelClass}>Data</label>
+        <input id={dataId} type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
       </div>
 
       <div>
-        <label className={labelClass}>Descrizione</label>
+        <label htmlFor={descrizioneId} className={labelClass}>Descrizione</label>
         <input
+          id={descrizioneId}
           type="text"
           value={descrizione}
           onChange={e => setDescrizione(e.target.value)}
@@ -217,11 +222,12 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
       </div>
 
       <div>
-        <label className={labelClass}>Categoria</label>
+        <label htmlFor={macroCategoria && categorieDisponibili.length === 0 ? categoriaLiberaId : undefined} className={labelClass}>Categoria</label>
         {macroCategoria && categorieDisponibili.length === 0 ? (
           // Macro a "inserimento libero" (es. Istruzione, Regalo): nessuna
           // lista predefinita, la categoria si scrive a mano.
           <input
+            id={categoriaLiberaId}
             type="text"
             value={categoria}
             onChange={e => setCategoria(e.target.value)}
@@ -261,8 +267,9 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>Importo (€)</label>
+          <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
           <input
+            id={importoId}
             type="number"
             step="0.01"
             min="0.01"
@@ -274,10 +281,12 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
           />
         </div>
         <div>
-          <label className={labelClass}>Tipologia</label>
-          <div className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-hairline dark:border-white/10 h-[42px]">
+          <span className={labelClass}>Tipologia</span>
+          <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-hairline dark:border-white/10 h-[42px]">
             <button
               type="button"
+              role="radio"
+              aria-checked={primaria}
               onClick={() => setPrimaria(true)}
               className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'text-ink-soft'}`}
             >
@@ -285,6 +294,8 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
             </button>
             <button
               type="button"
+              role="radio"
+              aria-checked={!primaria}
               onClick={() => setPrimaria(false)}
               className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'text-ink-soft'}`}
             >

@@ -618,14 +618,14 @@ export default function Rendimenti({
             <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
               <thead>
                 <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Mese</th>
-                  <th className="py-3 px-4 text-right">Mensile €</th>
-                  <th className="py-3 px-4 text-right">Mensile %</th>
-                  <th className="py-3 px-4 text-right">Inv. Mese</th>
-                  <th className="py-3 px-4 text-right">Cumul. €</th>
-                  <th className="py-3 px-4 text-right">Cumul. %</th>
-                  <th className="py-3 px-4 text-right">Investito</th>
-                  <th className="py-3 px-4 text-right">Saldo</th>
+                  <th scope="col" className="py-3 px-4">Mese</th>
+                  <th scope="col" className="py-3 px-4 text-right">Mensile €</th>
+                  <th scope="col" className="py-3 px-4 text-right">Mensile %</th>
+                  <th scope="col" className="py-3 px-4 text-right">Inv. Mese</th>
+                  <th scope="col" className="py-3 px-4 text-right">Cumul. €</th>
+                  <th scope="col" className="py-3 px-4 text-right">Cumul. %</th>
+                  <th scope="col" className="py-3 px-4 text-right">Investito</th>
+                  <th scope="col" className="py-3 px-4 text-right">Saldo</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">

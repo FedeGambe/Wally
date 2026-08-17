@@ -408,26 +408,26 @@ export default function Conti({
             <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
               <thead>
                 <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Mese</th>
-                  <th className="py-3 px-4 text-right">Rend. Mensile €</th>
-                  <th className="py-3 px-4 text-right">Rend. Mensile %</th>
-                  <th className="py-3 px-4 text-right">Importo Inv. Mese</th>
-                  <th className="py-3 px-4 text-right">Rend. Cumulativo €</th>
-                  <th className="py-3 px-4 text-right">Rend. Cumulativo %</th>
-                  <th className="py-3 px-4 text-right">Totale Investito</th>
-                  <th className="py-3 px-4 text-right">Saldo Conto</th>
+                  <th scope="col" className="py-3 px-4">Mese</th>
+                  <th scope="col" className="py-3 px-4 text-right">Rend. Mensile €</th>
+                  <th scope="col" className="py-3 px-4 text-right">Rend. Mensile %</th>
+                  <th scope="col" className="py-3 px-4 text-right">Importo Inv. Mese</th>
+                  <th scope="col" className="py-3 px-4 text-right">Rend. Cumulativo €</th>
+                  <th scope="col" className="py-3 px-4 text-right">Rend. Cumulativo %</th>
+                  <th scope="col" className="py-3 px-4 text-right">Totale Investito</th>
+                  <th scope="col" className="py-3 px-4 text-right">Saldo Conto</th>
                   {activeConto === 'scalable' && (
-                    <th className="py-3 px-4 text-right">Saldo Conto Compl.</th>
+                    <th scope="col" className="py-3 px-4 text-right">Saldo Conto Compl.</th>
                   )}
-                  <th className="py-3 px-4 text-right">Interessi Conto</th>
+                  <th scope="col" className="py-3 px-4 text-right">Interessi Conto</th>
                   {activeConto === 'trade' ? (
-                    <th className="py-3 px-4 text-right">Savebacks</th>
+                    <th scope="col" className="py-3 px-4 text-right">Savebacks</th>
                   ) : (
-                    <th className="py-3 px-4 text-right">Interessi Cumulati</th>
+                    <th scope="col" className="py-3 px-4 text-right">Interessi Cumulati</th>
                   )}
-                  <th className="py-3 px-4 text-right">Commissioni Mese</th>
-                  <th className="py-3 px-4 text-right">Commissioni Cumul.</th>
-                  <th className="py-3 px-4 text-right">Dividendi</th>
+                  <th scope="col" className="py-3 px-4 text-right">Commissioni Mese</th>
+                  <th scope="col" className="py-3 px-4 text-right">Commissioni Cumul.</th>
+                  <th scope="col" className="py-3 px-4 text-right">Dividendi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50 text-xs">

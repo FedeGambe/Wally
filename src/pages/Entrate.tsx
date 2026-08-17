@@ -56,6 +56,7 @@ export default function Entrate({
 
   return (
     <div className="space-y-6">
+      <h1 className="sr-only">Entrate</h1>
       <div className="flex justify-end">
         <button
           onClick={() => setShowAddModal(true)}

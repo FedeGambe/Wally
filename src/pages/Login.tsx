@@ -129,7 +129,7 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
 
           {errMessage && (
-            <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100 text-center mb-4">
+            <div role="alert" aria-live="assertive" className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100 text-center mb-4">
               {errMessage}
             </div>
           )}

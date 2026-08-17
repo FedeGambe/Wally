@@ -124,9 +124,10 @@ export default function PanoramicaMeseCorrenteStrip({
           </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-6">
             {/* Risparmio */}
-            <div
+            <button
+              type="button"
               onClick={() => setActiveView?.('patrimonio')}
-              className="p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
+              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
                 <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Risparmio</span>
@@ -147,12 +148,13 @@ export default function PanoramicaMeseCorrenteStrip({
                   {rispPercDelta !== undefined && rispPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(rispPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(rispPercDelta, { signed: true })}`}
                 </span>
               </div>
-            </div>
+            </button>
 
             {/* Investito */}
-            <div
+            <button
+              type="button"
               onClick={() => setActiveView?.('investimenti')}
-              className="p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
+              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
                 <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Investito</span>
@@ -173,7 +175,7 @@ export default function PanoramicaMeseCorrenteStrip({
                   {invPercDelta !== undefined && invPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(invPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(invPercDelta, { signed: true })}`}
                 </span>
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -190,9 +192,10 @@ export default function PanoramicaMeseCorrenteStrip({
           </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-6">
             {/* Spese Primarie */}
-            <div
+            <button
+              type="button"
               onClick={() => setActiveView?.('uscite')}
-              className="p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
+              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
                 <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Spese Primarie</span>
@@ -213,12 +216,13 @@ export default function PanoramicaMeseCorrenteStrip({
                   {primPercDelta !== undefined && primPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(primPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(primPercDelta, { signed: true })}`}
                 </span>
               </div>
-            </div>
+            </button>
 
             {/* Spese Secondarie */}
-            <div
+            <button
+              type="button"
               onClick={() => setActiveView?.('uscite')}
-              className="p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
+              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
                 <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Spese Secondarie</span>
@@ -239,7 +243,7 @@ export default function PanoramicaMeseCorrenteStrip({
                   {secPercDelta !== undefined && secPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(secPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(secPercDelta, { signed: true })}`}
                 </span>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -72,6 +72,7 @@ export default function Panoramica({
 
   return (
     <div className="space-y-6">
+      <h1 className="sr-only">Panoramica</h1>
       <div className="flex justify-end">
         <button
           onClick={() => setShowAddDataModal(true)}

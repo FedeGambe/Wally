@@ -45,6 +45,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      <h1 className="sr-only">Analisi Consumi</h1>
       <div className="flex justify-end">
         <button
           onClick={() => setShowAddModal(true)}

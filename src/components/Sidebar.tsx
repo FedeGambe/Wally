@@ -135,6 +135,7 @@ export default function Sidebar({
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             title={isCollapsed ? "Espandi barra" : "Comprimi barra"}
+            aria-label={isCollapsed ? "Espandi barra" : "Comprimi barra"}
             className="p-1.5 rounded-lg hover:bg-canvas text-ink-soft hover:text-ink-soft transition-colors cursor-pointer shrink-0"
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -151,6 +152,8 @@ export default function Sidebar({
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
                 title={isCollapsed ? item.label : undefined}
+                aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0 py-3' : 'gap-3.5 px-4 py-3'} rounded-xl text-sm font-medium transition-all group ${isActive
                   ? activeClassMap[item.id] || 'bg-blue-600 text-white shadow-xs'
                   : 'text-ink-soft hover:text-ink hover:bg-canvas'
@@ -175,6 +178,7 @@ export default function Sidebar({
               onClick={onRefreshData}
               disabled={isRefreshing}
               title="Aggiorna Google Sheets"
+              aria-label="Aggiorna Google Sheets"
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0 py-3.5' : 'gap-3.5 px-4 py-3'} mt-6 text-xs text-ink-soft hover:text-ink bg-canvas/50 hover:bg-canvas rounded-xl transition-all border border-hairline border-dashed cursor-pointer`}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-500' : ''} shrink-0`} />
@@ -203,6 +207,7 @@ export default function Sidebar({
               <button
                 onClick={onLogout}
                 title="Scollegati"
+                aria-label="Scollegati"
                 className="w-8 h-8 rounded-lg text-ink-soft hover:text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
@@ -233,6 +238,7 @@ export default function Sidebar({
               <button
                 onClick={onLogout}
                 title="Scollegati"
+                aria-label="Scollegati"
                 className="w-8 h-8 rounded-lg text-ink-soft hover:text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />

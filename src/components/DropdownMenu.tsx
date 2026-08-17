@@ -59,6 +59,10 @@ interface DropdownMenuProps {
    * ripetizione "Categoria: Categoria: Cibo". */
   hideLabel?: boolean;
   placeholder?: string;
+  /** Nome accessibile esplicito per il bottone trigger — da passare quando `hideLabel`
+   * è true e la label visiva del campo è resa come <label> separato non collegato via
+   * htmlFor (il DropdownMenu è un <button>, non un <input>, quindi <label> da solo non basta). */
+  ariaLabel?: string;
 }
 
 export default function DropdownMenu({
@@ -76,7 +80,8 @@ export default function DropdownMenu({
   layout = 'list',
   fullWidth = false,
   hideLabel = false,
-  placeholder = 'Scegli...'
+  placeholder = 'Scegli...',
+  ariaLabel
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   // Coordinate (in pixel, relative alla viewport) a cui posizionare il pannello
@@ -123,12 +128,30 @@ export default function DropdownMenu({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [open]);
 
+  // Chiude il menu con Esc e riporta il focus sul bottone che lo ha aperto,
+  // altrimenti un utente da tastiera perde il focus nel vuoto (il pannello è
+  // in portal, fuori dall'albero DOM del bottone).
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
   return (
     <div className={`relative select-none ${fullWidth ? 'w-full' : 'shrink-0'}`}>
       <button
         type="button"
         ref={triggerRef}
         onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel ?? (hideLabel ? `${label}: ${displayValue || placeholder}` : undefined)}
         className={`flex items-center gap-1 sm:gap-1.5 bg-canvas dark:bg-slate-800/60 border border-hairline dark:border-slate-700/60 hover:border-hairline dark:hover:border-slate-600 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer ${
           fullWidth ? 'w-full justify-between px-3 py-2.5' : 'px-2 py-1'
         }`}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { Calendar, CreditCard, ArrowRight } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
@@ -19,6 +19,8 @@ interface AggiungiTrasferimentoFormProps {
  * sincronizzazione tra le due cose.
  */
 export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferimentoFormProps) {
+  const categoriaId = useId();
+  const importoId = useId();
   const { data } = useFinanceData();
   const { conti } = useDatiBase();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
@@ -80,7 +82,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
               options={MESI_ITALIANI}
               onSelect={m => setMeseIdx(MESI_ITALIANI.indexOf(m))}
             />
-            <input type="number" value={anno} onChange={e => setAnno(Number(e.target.value))} className={inputClass} />
+            <input type="number" value={anno} onChange={e => setAnno(Number(e.target.value))} aria-label="Anno" className={inputClass} />
           </div>
         ) : (
           <div className={`${inputClass} bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400`}>
@@ -90,8 +92,9 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
       </div>
 
       <div>
-        <label className={labelClass}>Categoria</label>
+        <label htmlFor={categoriaId} className={labelClass}>Categoria</label>
         <input
+          id={categoriaId}
           type="text"
           value={categoria}
           onChange={e => setCategoria(e.target.value)}
@@ -134,8 +137,9 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
       </div>
 
       <div>
-        <label className={labelClass}>Importo (€)</label>
+        <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
         <input
+          id={importoId}
           type="number"
           step="0.01"
           min="0.01"
