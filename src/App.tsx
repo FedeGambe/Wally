@@ -22,6 +22,7 @@
  */
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import {
   CheckCircle2,
   LayoutDashboard,
@@ -405,6 +406,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      <SpeedInsights />
     </div>
     </ErrorBoundary>
   );
