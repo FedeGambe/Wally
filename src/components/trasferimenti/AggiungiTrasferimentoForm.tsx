@@ -57,14 +57,14 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
   };
 
   const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500";
-  const labelClass = "block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
+  const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className={labelClass}>Mese</label>
-          <label className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-soft cursor-pointer select-none">
+          <label className="flex items-center gap-1.5 text-2xs font-semibold text-ink-soft cursor-pointer select-none">
             <input type="checkbox" checked={useMeseDiverso} onChange={e => setUseMeseDiverso(e.target.checked)} className="cursor-pointer" />
             Mese diverso da quello corrente
           </label>
@@ -132,7 +132,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
           onSelect={setContoBeneficiario}
         />
         {contoOrdinante && contoBeneficiario && contoOrdinante === contoBeneficiario && (
-          <p className="text-[11px] text-down font-semibold mt-1">Conto ordinante e beneficiario devono essere diversi.</p>
+          <p className="text-2xs text-down font-semibold mt-1">Conto ordinante e beneficiario devono essere diversi.</p>
         )}
       </div>
 

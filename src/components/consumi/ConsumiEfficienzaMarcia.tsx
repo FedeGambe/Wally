@@ -52,7 +52,7 @@ export default function ConsumiEfficienzaMarcia({
             <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Evoluzione Km / Litro</h4>
             <TimeRangeToggle value={kmLtChartRange} onChange={setKmLtChartRange} />
           </div>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
           <div className="h-44">
             {kmLtChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
@@ -87,7 +87,7 @@ export default function ConsumiEfficienzaMarcia({
             <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo per 100 Km</h4>
             <TimeRangeToggle value={euro100ChartRange} onChange={setEuro100ChartRange} />
           </div>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>
           <div className="h-44">
             {euro100ChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>

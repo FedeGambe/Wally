@@ -132,7 +132,7 @@ export default function PatrimonioCapitalSplitCard({
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <span className="text-[10px] text-ink-soft font-bold block uppercase tracking-wider">Totale</span>
+                <span className="text-3xs text-ink-soft font-bold block uppercase tracking-wider">Totale</span>
                 <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</span>
               </div>
             </div>
@@ -141,20 +141,20 @@ export default function PatrimonioCapitalSplitCard({
                 <div key={idx} className="flex items-start gap-1.5">
                   <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
                   <div className="min-w-0">
-                    <span className="text-ink-soft font-medium text-[10px] block truncate">{item.name}</span>
-                    <span className="font-bold text-ink text-[11px] block">{formatEuro(item.value)}</span>
+                    <span className="text-ink-soft font-medium text-3xs block truncate">{item.name}</span>
+                    <span className="font-bold text-ink text-2xs block">{formatEuro(item.value)}</span>
                   </div>
                 </div>
               ))}
               {contoCapitalData.length > 0 && (
                 <div className="mt-1 pt-2 border-t border-hairline space-y-2 flex-1 min-h-0 overflow-y-auto">
-                  <span className="text-[9px] text-ink-soft font-bold uppercase tracking-wider block">Per conto</span>
+                  <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Per conto</span>
                   {contoCapitalData.map((item, idx) => (
                     <div key={idx} className="flex items-start gap-1.5">
                       <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: item.color }} />
                       <div className="min-w-0">
-                        <span className="text-ink-soft font-medium text-[10px] block truncate" title={item.name}>{item.name}</span>
-                        <span className="font-bold text-ink text-[11px] block">{formatEuro(item.value)}</span>
+                        <span className="text-ink-soft font-medium text-3xs block truncate" title={item.name}>{item.name}</span>
+                        <span className="font-bold text-ink text-2xs block">{formatEuro(item.value)}</span>
                       </div>
                     </div>
                   ))}

@@ -58,8 +58,8 @@ function DeltaBadge({ value, goodWhenPositive }: { value?: number; goodWhenPosit
   const isGood = goodWhenPositive ? value >= 0 : value <= 0;
   return (
     <span className={`inline-flex items-center gap-1 font-bold px-1.5 py-0.5 rounded-md mt-1 w-fit border ${isGood ? 'bg-up/15 border-up/40 text-up' : 'bg-down/15 border-down/40 text-down'}`}>
-      <span className="text-[11px] sm:text-[9px]">{value >= 0 ? '+' : ''}{formatPercent(value)}</span>
-      <span className="text-[9px]">vs mese prec.</span>
+      <span className="text-2xs sm:text-3xs">{value >= 0 ? '+' : ''}{formatPercent(value)}</span>
+      <span className="text-3xs">vs mese prec.</span>
     </span>
   );
 }
@@ -80,7 +80,7 @@ export default function Drawer({
       title={title}
       subtitle={subtitle}
       footer={
-        <div className="p-4 bg-canvas dark:bg-white/5 border-t border-hairline dark:border-white/10 text-center text-[10px] text-ink-soft font-mono">
+        <div className="p-4 bg-canvas dark:bg-white/5 border-t border-hairline dark:border-white/10 text-center text-3xs text-ink-soft font-mono">
           Dashboard Finanze • Sincronia Google Sheet
         </div>
       }
@@ -137,39 +137,39 @@ export default function Drawer({
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div className={`${glass} ${neutralBox}`}>
-                    <span className="text-[10px] text-ink-soft dark:text-slate-300 font-bold uppercase tracking-wider block">Entrate</span>
+                    <span className="text-3xs text-ink-soft dark:text-slate-300 font-bold uppercase tracking-wider block">Entrate</span>
                     <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.entrate)}</span>
-                    <span className="text-[10px] text-ink-soft font-semibold mt-0.5">{pct(m.entrate)}</span>
+                    <span className="text-3xs text-ink-soft font-semibold mt-0.5">{pct(m.entrate)}</span>
                     <DeltaBadge value={m.entrateDelta} goodWhenPositive={true} />
                   </div>
                   <div className={`${glass} ${neutralBox}`}>
-                    <span className="text-[10px] text-ink-soft dark:text-slate-300 font-bold uppercase tracking-wider block">Spese Totali</span>
+                    <span className="text-3xs text-ink-soft dark:text-slate-300 font-bold uppercase tracking-wider block">Spese Totali</span>
                     <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.speseTotali)}</span>
-                    <span className="text-[10px] text-ink-soft font-semibold mt-0.5">{pct(m.speseTotali)}</span>
+                    <span className="text-3xs text-ink-soft font-semibold mt-0.5">{pct(m.speseTotali)}</span>
                     <DeltaBadge value={m.speseTotaliDelta} goodWhenPositive={false} />
                   </div>
                   <div className={glass} style={thresholdStyle(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? 'var(--drawer-text-soft)' }}>Spese Primarie</span>
+                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? 'var(--drawer-text-soft)' }}>Spese Primarie</span>
                     <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.spesePrimarie)}</span>
-                    <span className="text-[10px] font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? 'var(--drawer-text-soft)' }}>{pct(m.spesePrimarie)}</span>
+                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? 'var(--drawer-text-soft)' }}>{pct(m.spesePrimarie)}</span>
                     <DeltaBadge value={m.spesePrimarieDelta} goodWhenPositive={false} />
                   </div>
                   <div className={glass} style={thresholdStyle(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? 'var(--drawer-text-soft)' }}>Spese Secondarie</span>
+                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? 'var(--drawer-text-soft)' }}>Spese Secondarie</span>
                     <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.speseSecondarie)}</span>
-                    <span className="text-[10px] font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? 'var(--drawer-text-soft)' }}>{pct(m.speseSecondarie)}</span>
+                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? 'var(--drawer-text-soft)' }}>{pct(m.speseSecondarie)}</span>
                     <DeltaBadge value={m.speseSecondarieDelta} goodWhenPositive={false} />
                   </div>
                   <div className={glass} style={thresholdStyle(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? 'var(--drawer-text-soft)' }}>Investito</span>
+                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? 'var(--drawer-text-soft)' }}>Investito</span>
                     <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.investito)}</span>
-                    <span className="text-[10px] font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? 'var(--drawer-text-soft)' }}>{pct(m.investito)}</span>
+                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? 'var(--drawer-text-soft)' }}>{pct(m.investito)}</span>
                     <DeltaBadge value={m.investitoDelta} goodWhenPositive={true} />
                   </div>
                   <div className={glass} style={thresholdStyle(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? 'var(--drawer-text-soft)' }}>Risparmio Netto</span>
+                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? 'var(--drawer-text-soft)' }}>Risparmio Netto</span>
                     <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.risparmioNetto)}</span>
-                    <span className="text-[10px] font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? 'var(--drawer-text-soft)' }}>{pct(m.risparmioNetto)}</span>
+                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? 'var(--drawer-text-soft)' }}>{pct(m.risparmioNetto)}</span>
                     <DeltaBadge value={m.risparmioNettoDelta} goodWhenPositive={true} />
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export default function Drawer({
                 {/* Ripartizione: spese primarie/secondarie, investito, risparmio */}
                 {pieData.length > 0 && (
                   <div className="dark:backdrop-blur-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/10 rounded-2xl p-4">
-                    <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block mb-2">Ripartizione</span>
+                    <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block mb-2">Ripartizione</span>
                     <div className="h-52 flex items-center">
                       <div className="w-1/2 h-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -210,20 +210,20 @@ export default function Drawer({
       ) : stats && (
         <div className="bg-canvas dark:bg-white/5 p-6 border-b border-hairline dark:border-white/10 grid grid-cols-2 gap-4">
           <div className="bg-white dark:bg-white/5 p-4 rounded-2xl border border-hairline dark:border-white/10 shadow-xs">
-            <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Importo Totale</span>
+            <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Importo Totale</span>
             <span className="text-xl font-bold font-display text-ink dark:text-slate-100 block mt-1">
               {formatEuro(stats.total)}
             </span>
           </div>
           <div className="bg-white dark:bg-white/5 p-4 rounded-2xl border border-hairline dark:border-white/10 shadow-xs">
-            <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Numero Movimenti</span>
+            <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Numero Movimenti</span>
             <span className="text-xl font-bold font-display text-ink dark:text-slate-100 block mt-1">
               {stats.count}
             </span>
           </div>
           {stats.primaryTotal !== undefined && (
             <div className="bg-orange-700 border border-orange-800 p-3 rounded-2xl flex flex-col justify-between text-left">
-              <span className="text-[10px] text-orange-100 font-bold uppercase tracking-wider block">Spese Primarie</span>
+              <span className="text-3xs text-orange-100 font-bold uppercase tracking-wider block">Spese Primarie</span>
               <span className="text-lg font-bold font-display text-white block mt-1">
                 {formatEuro(stats.primaryTotal)}
               </span>
@@ -231,7 +231,7 @@ export default function Drawer({
           )}
           {stats.secondaryTotal !== undefined && (
             <div className="bg-orange-50 dark:bg-orange-400/10 border border-orange-200 dark:border-orange-400/20 p-3 rounded-2xl flex flex-col justify-between text-left">
-              <span className="text-[10px] text-orange-700 dark:text-orange-300 font-bold uppercase tracking-wider block">Spese Secondarie</span>
+              <span className="text-3xs text-orange-700 dark:text-orange-300 font-bold uppercase tracking-wider block">Spese Secondarie</span>
               <span className="text-lg font-bold font-display text-orange-800 dark:text-orange-200 block mt-1">
                 {formatEuro(stats.secondaryTotal)}
               </span>
@@ -272,7 +272,7 @@ export default function Drawer({
                         {t.macroCategoria === 'Entrate' ? '+' : '-'} {formatEuro(t.importo)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-1 text-[10px] text-ink-soft">
+                    <div className="flex items-center gap-1.5 mt-1 text-3xs text-ink-soft">
                       <span className="flex items-center gap-0.5 font-medium shrink-0">
                         <Calendar className="w-3 h-3 text-ink-soft" />
                         {t.data}
@@ -284,17 +284,17 @@ export default function Drawer({
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className="inline-flex items-center gap-1 bg-canvas dark:bg-white/10 border border-hairline dark:border-white/10 px-2 py-0.5 rounded-md text-[9px] text-ink-soft dark:text-slate-300">
+                      <span className="inline-flex items-center gap-1 bg-canvas dark:bg-white/10 border border-hairline dark:border-white/10 px-2 py-0.5 rounded-md text-3xs text-ink-soft dark:text-slate-300">
                         <CreditCard className="w-2.5 h-2.5 text-ink-soft" />
                         {t.conto}
                       </span>
                       {t.macroCategoria !== 'Entrate' && (
                         t.primaria ? (
-                          <span className="bg-orange-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          <span className="bg-orange-700 text-white text-3xs font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
                             Spesa Primaria
                           </span>
                         ) : (
-                          <span className="bg-orange-50 dark:bg-orange-400/10 text-orange-700 dark:text-orange-300 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          <span className="bg-orange-50 dark:bg-orange-400/10 text-orange-700 dark:text-orange-300 text-3xs font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
                             Spesa Secondaria
                           </span>
                         )

@@ -290,7 +290,7 @@ export default function FondoPensione({
         <div className="bg-slate-900/95 backdrop-blur-xs text-slate-100 px-3 py-2 rounded-xl shadow-xl text-xs font-medium border border-slate-800 leading-tight">
           <div className="flex items-center gap-1.5 mb-1 font-bold">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: data.color }} />
-            <span className="uppercase text-[9px] tracking-wide text-slate-300">{data.name}</span>
+            <span className="uppercase text-3xs tracking-wide text-slate-300">{data.name}</span>
           </div>
           <div className="flex items-center justify-between gap-3 font-mono font-bold text-white">
             <span>{formatEuro(val)}</span>
@@ -317,37 +317,37 @@ export default function FondoPensione({
         {/* Valore Fondo Accumulato */}
         <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md hover:border-hairline dark:hover:border-slate-700/80">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] text-ink-soft dark:text-slate-400 font-black uppercase tracking-wider block">Valore Fondo Accumulato</span>
+            <span className="text-3xs text-ink-soft dark:text-slate-400 font-black uppercase tracking-wider block">Valore Fondo Accumulato</span>
             <Landmark className="w-4 h-4 text-ink-soft dark:text-slate-400" />
           </div>
           <span className="text-2xl font-black font-display text-ink dark:text-white block mt-1">
             <EuroAmount value={lastAccumulated} />
           </span>
-          <p className="text-[10px] text-ink-soft dark:text-slate-500 mt-1">Capitale complessivo accumulato comprensivo di TFR</p>
+          <p className="text-3xs text-ink-soft dark:text-slate-500 mt-1">Capitale complessivo accumulato comprensivo di TFR</p>
         </div>
 
         {/* Versamento Mensile Medio */}
         <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md hover:border-hairline dark:hover:border-slate-700/80">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] text-ink-soft dark:text-slate-400 font-black uppercase tracking-wider block">Versamento Mensile Medio</span>
+            <span className="text-3xs text-ink-soft dark:text-slate-400 font-black uppercase tracking-wider block">Versamento Mensile Medio</span>
             <Coins className="w-4 h-4 text-ink-soft dark:text-slate-400" />
           </div>
           <span className="text-2xl font-black font-display text-ink dark:text-white block mt-1">
             <EuroAmount value={avgMonthly} />
           </span>
-          <p className="text-[10px] text-ink-soft dark:text-slate-500 mt-1">PAC integrato con contributo datore e TFR</p>
+          <p className="text-3xs text-ink-soft dark:text-slate-500 mt-1">PAC integrato con contributo datore e TFR</p>
         </div>
 
         {/* Contributo Azienda Attivo */}
         <div className="p-5 rounded-3xl border flex flex-col justify-between h-32 bg-emerald-50/10 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] dark:border-emerald-500/80 dark:bg-[#0c2514]/15 transition-all duration-300 hover:shadow-[0_0_22px_rgba(16,185,129,0.55)]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-wider block">Contributo Azienda Attivo</span>
+            <span className="text-3xs text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-wider block">Contributo Azienda Attivo</span>
             <Wallet className="w-4 h-4 text-up" />
           </div>
           <span className="text-2xl font-black font-display text-up block mt-1">
             <EuroAmount value={activeCompanyContrib} />
           </span>
-          <p className="text-[10px] text-up dark:text-emerald-500/80 font-medium mt-1">Ultimo versamento base datoriale sbloccato</p>
+          <p className="text-3xs text-up dark:text-emerald-500/80 font-medium mt-1">Ultimo versamento base datoriale sbloccato</p>
         </div>
       </div>
 
@@ -390,7 +390,7 @@ export default function FondoPensione({
 
               {/* Centered Label for Donut chart */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 mt-1">
-                <span className="text-[9px] uppercase tracking-wider text-ink-soft dark:text-slate-500 font-black">Totale Versato</span>
+                <span className="text-3xs uppercase tracking-wider text-ink-soft dark:text-slate-500 font-black">Totale Versato</span>
                 <span className="text-xs font-black text-ink dark:text-slate-100 font-mono">
                   {formatEuro(totalHistoricalContributions)}
                 </span>
@@ -408,7 +408,7 @@ export default function FondoPensione({
                       <span className="font-medium truncate max-w-[130px]">{item.name}</span>
                     </div>
                     <div className="font-bold text-slate-850 dark:text-slate-100 font-mono text-right shrink-0">
-                      {formatEuro(item.value)} <span className="text-[10px] text-ink-soft dark:text-slate-500 font-normal">({pct}%)</span>
+                      {formatEuro(item.value)} <span className="text-3xs text-ink-soft dark:text-slate-500 font-normal">({pct}%)</span>
                     </div>
                   </div>
                 );
@@ -493,7 +493,7 @@ export default function FondoPensione({
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-hairline dark:border-slate-800/60 text-2xs font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
                 <th scope="col" className="py-3 px-4">Mese Rif</th>
                 <th scope="col" className="py-3 px-4 text-right">Quota TFR</th>
                 <th scope="col" className="py-3 px-4 text-right">Dipendente Base</th>

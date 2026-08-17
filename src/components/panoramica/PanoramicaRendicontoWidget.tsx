@@ -30,7 +30,7 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
       className={`w-full bg-slate-900 border border-slate-800 text-white p-6 rounded-3xl shadow-sm text-left flex flex-col justify-between transition-all duration-300 hover:shadow-md ${isMobile ? 'cursor-pointer active:scale-[0.99]' : ''}`}
     >
       <div>
-        <span className="text-[10px] text-accent font-bold uppercase tracking-wider">Rendiconto Mese Corrente</span>
+        <span className="text-3xs text-accent font-bold uppercase tracking-wider">Rendiconto Mese Corrente</span>
         <h3 className="text-2.5xl font-black font-display mt-2 text-white leading-none">Disponibilità Netta</h3>
         <p className="text-xs text-slate-300 mt-3 leading-relaxed">
           <span className="hidden md:inline">Sintesi dei flussi di questo mese ricavati direttamente dal foglio Risparmio.</span>

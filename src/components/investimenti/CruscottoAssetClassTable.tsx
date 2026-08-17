@@ -17,7 +17,7 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
       >
         <table className="w-full text-sm text-left border-collapse">
           <thead>
-            <tr className="border-b border-hairline dark:border-slate-800/60 text-[11px] font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
+            <tr className="border-b border-hairline dark:border-slate-800/60 text-2xs font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
               <th scope="col" className="py-3 px-4">Anno</th>
               <th scope="col" className="py-3 px-4 text-right">Azioni Cum.</th>
               <th scope="col" className="py-3 px-4 text-right">Azioni Ann.</th>

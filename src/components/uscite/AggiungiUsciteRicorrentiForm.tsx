@@ -126,7 +126,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-bold text-ink dark:text-slate-200">{targetMese} {targetAnno}</p>
-          <p className="text-[11px] text-ink-soft uppercase tracking-wider font-bold">Preset mancanti questo mese</p>
+          <p className="text-2xs text-ink-soft uppercase tracking-wider font-bold">Preset mancanti questo mese</p>
         </div>
         {presetMancanti.length > 0 && (
           <button
@@ -172,7 +172,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
                     <span className="font-bold text-ink dark:text-slate-200 truncate">{p.nome}</span>
                     {collegato && (
                       <span
-                        className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30"
+                        className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full text-3xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30"
                         title="Ha un trasferimento ricorrente collegato"
                       >
                         <ArrowLeftRight className="w-2.5 h-2.5" />
@@ -180,7 +180,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
                       </span>
                     )}
                   </span>
-                  <span className="block text-[11px] text-ink-soft truncate">
+                  <span className="block text-2xs text-ink-soft truncate">
                     {p.categoria} · {p.conto} · giorno {p.giornoDelMese}
                   </span>
                 </span>

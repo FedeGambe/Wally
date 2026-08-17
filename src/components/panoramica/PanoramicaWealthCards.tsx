@@ -66,7 +66,7 @@ export default function PanoramicaWealthCards({
         detail={
           <>
             <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-            <span>Incluso Accantonato: <strong className="text-xs sm:text-[13px] font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
+            <span>Incluso Accantonato: <strong className="text-xs sm:text-xs font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
           </>
         }
       />

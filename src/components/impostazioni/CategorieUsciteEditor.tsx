@@ -61,14 +61,14 @@ export default function CategorieUsciteEditor() {
             </div>
             <div className="flex flex-wrap gap-1.5 mb-2.5">
               {macro.categorie.map(cat => (
-                <span key={cat} className="inline-flex items-center gap-1 bg-white dark:bg-white/10 border border-hairline dark:border-white/10 rounded-md px-2 py-0.5 text-[11px] font-medium text-ink-soft dark:text-slate-300">
+                <span key={cat} className="inline-flex items-center gap-1 bg-white dark:bg-white/10 border border-hairline dark:border-white/10 rounded-md px-2 py-0.5 text-2xs font-medium text-ink-soft dark:text-slate-300">
                   {cat}
                   <button onClick={() => removeSottoCategoria(macro.nome, cat)} className="text-ink-soft hover:text-down cursor-pointer" aria-label={`Rimuovi categoria ${cat}`}>
                     <Trash2 className="w-2.5 h-2.5" />
                   </button>
                 </span>
               ))}
-              {macro.categorie.length === 0 && <span className="text-[11px] text-ink-soft italic">Inserimento libero (nessuna sotto-categoria)</span>}
+              {macro.categorie.length === 0 && <span className="text-2xs text-ink-soft italic">Inserimento libero (nessuna sotto-categoria)</span>}
             </div>
             <div className="flex gap-1.5">
               <input
@@ -76,7 +76,7 @@ export default function CategorieUsciteEditor() {
                 onChange={e => setNewSottoCategoria(prev => ({ ...prev, [macro.nome]: e.target.value }))}
                 onKeyDown={e => e.key === 'Enter' && addSottoCategoria(macro.nome)}
                 placeholder="Nuova sotto-categoria..."
-                className="flex-1 px-2.5 py-1.5 rounded-lg text-[11px] border border-hairline dark:border-white/10 bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
+                className="flex-1 px-2.5 py-1.5 rounded-lg text-2xs border border-hairline dark:border-white/10 bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
               />
               <button onClick={() => addSottoCategoria(macro.nome)} className="px-2.5 py-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-ink-soft dark:text-slate-300 rounded-lg cursor-pointer">
                 <Plus className="w-3.5 h-3.5" />

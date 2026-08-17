@@ -31,7 +31,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
           <h3 className="font-bold text-ink font-display text-base">Bilancio Storico Mensile</h3>
           <p className="text-xs text-ink-soft mt-1">Sintesi consolidata ricavata dal foglio Risparmio</p>
         </div>
-        <span className="text-[10px] text-ink-soft font-bold bg-canvas px-2.5 py-1 rounded-full uppercase tracking-wider">
+        <span className="text-3xs text-ink-soft font-bold bg-canvas px-2.5 py-1 rounded-full uppercase tracking-wider">
           Storico: {filteredRisparmio.length} mesi
         </span>
       </div>
@@ -97,7 +97,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
             render: (r) => {
               const quota = r.entrate ? ((r.investito + r.risparmioNetto) / r.entrate) * 100 : 0;
               return (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${quota >= 35
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-3xs font-bold uppercase tracking-wider ${quota >= 35
                   ? "bg-emerald-100 text-emerald-800"
                   : quota >= 10
                     ? "bg-amber-100 text-amber-800"

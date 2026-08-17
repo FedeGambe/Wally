@@ -21,7 +21,7 @@ export default function CruscottoInspectorWidget({ record, formatEuro, formatPer
   return (
     <>
       <div>
-        <span className="text-[10px] text-slate-450 font-bold uppercase tracking-wider block">Filtro Mese Selezionato</span>
+        <span className="text-3xs text-slate-450 font-bold uppercase tracking-wider block">Filtro Mese Selezionato</span>
         <h3 className="text-xl font-bold font-display text-ink capitalize mt-2 flex items-center justify-between">
           <span>{record.mese}</span>
           <span className={`text-xs font-bold px-2 py-1 rounded-lg ${record.rendimentoMensileEuro >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
@@ -53,7 +53,7 @@ export default function CruscottoInspectorWidget({ record, formatEuro, formatPer
         </div>
       </div>
 
-      <div className="text-[10px] text-ink-soft font-medium">
+      <div className="text-3xs text-ink-soft font-medium">
         * Mostra il mese selezionato globalmente o quello precedente se è selezionato il mese corrente.
       </div>
     </>

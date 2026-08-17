@@ -23,13 +23,13 @@ function renderDelta(current: number, previous?: number) {
 
   if (isPreviousHigher) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-down bg-down/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
+      <span className="inline-flex items-center gap-0.5 text-2xs font-extrabold text-down bg-down/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
         <span>↓ {formattedPct}</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-up bg-up/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
+    <span className="inline-flex items-center gap-0.5 text-2xs font-extrabold text-up bg-up/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
       <span>↑ {formattedPct}</span>
     </span>
   );

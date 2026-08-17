@@ -57,7 +57,7 @@ export default function UsciteRicorrentiEditor() {
             <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-hairline dark:border-white/10 bg-canvas/60 dark:bg-white/5">
               <div className="min-w-0">
                 <span className="text-sm font-bold text-ink dark:text-slate-200 block truncate">{p.nome}</span>
-                <span className="text-[11px] text-ink-soft">
+                <span className="text-2xs text-ink-soft">
                   {p.macroCategoria} → {p.categoria} · {p.conto} · {formatEuro(p.importo)} · giorno {p.giornoDelMese}
                 </span>
               </div>

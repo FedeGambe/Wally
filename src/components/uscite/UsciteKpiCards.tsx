@@ -19,7 +19,7 @@ const renderDeltaBadge = (current: number, previous: number | undefined, isDark:
     : (isPreviousHigher ? 'text-up bg-emerald-50' : 'text-down bg-rose-50');
 
   return (
-    <span className={`inline-flex items-center text-[10px] font-extrabold ${colorClass} px-1.5 py-0.5 rounded-md shrink-0 align-middle`}>
+    <span className={`inline-flex items-center text-3xs font-extrabold ${colorClass} px-1.5 py-0.5 rounded-md shrink-0 align-middle`}>
       {isPreviousHigher ? '↓' : '↑'} {formattedPct}
     </span>
   );
@@ -66,7 +66,7 @@ export default function UsciteKpiCards({
           <span className="text-xs text-orange-100 font-bold uppercase tracking-wider block">
             Spese Totali
           </span>
-          <span className="text-[10px] text-orange-200 font-normal block mt-0.5 lowercase">
+          <span className="text-3xs text-orange-200 font-normal block mt-0.5 lowercase">
             ({selectedRecord.mese} {selectedRecord.anno})
           </span>
           <div className="mt-3 text-left">
@@ -77,7 +77,7 @@ export default function UsciteKpiCards({
               {prevRecord?.speseTotali && (
                 <div className="flex flex-col items-start leading-none mt-1">
                   {renderDeltaBadge(selectedRecord.speseTotali, prevRecord?.speseTotali, true)}
-                  <span className="text-[10px] text-orange-200 mt-1 whitespace-nowrap">rispetto al mese prec.</span>
+                  <span className="text-3xs text-orange-200 mt-1 whitespace-nowrap">rispetto al mese prec.</span>
                 </div>
               )}
             </div>
@@ -91,7 +91,7 @@ export default function UsciteKpiCards({
             o lontani dal limite. Stesso pattern ripetuto per Primarie e
             Secondarie qui sotto. */}
         <div className="mt-4 pt-3 border-t border-white/15 w-full z-10">
-          <div className="flex justify-between items-center text-[10px] text-orange-100 font-bold mb-1">
+          <div className="flex justify-between items-center text-3xs text-orange-100 font-bold mb-1">
             <span>Rapporto Entrate</span>
             <span className={totalPctOfIncome > dynamicThresholds.totali ? 'text-red-300 font-bold' : 'text-orange-100 font-bold'}>
               {formatPercent(totalPctOfIncome)}
@@ -106,7 +106,7 @@ export default function UsciteKpiCards({
               <div className="absolute top-0 bottom-0 w-0.5 bg-white/40" style={{ left: `${(dynamicThresholds.totali / (dynamicThresholds.totali + 5)) * 100}%` }} />
             </div>
           </div>
-          <div className="flex justify-between items-center text-[9px] text-orange-200 mt-1">
+          <div className="flex justify-between items-center text-3xs text-orange-200 mt-1">
             <span>Soglia: {dynamicThresholds.totali}% delle entrate</span>
             <span className={totalPctOfIncome > dynamicThresholds.totali ? 'text-red-300 font-semibold' : 'text-orange-100 font-semibold'}>
               {totalPctOfIncome > dynamicThresholds.totali ? 'Soglia superata' : 'Nei limiti'}
@@ -144,7 +144,7 @@ export default function UsciteKpiCards({
               <span className="md:hidden">Spese Prim.</span>
               <span className="hidden md:inline">Spese Primarie</span>
             </span>
-            <span className="hidden md:block text-[10px] text-ink-soft font-normal mt-0.5 lowercase">
+            <span className="hidden md:block text-3xs text-ink-soft font-normal mt-0.5 lowercase">
               (essenziali)
             </span>
             <div className="mt-3 text-left">
@@ -155,7 +155,7 @@ export default function UsciteKpiCards({
                 {prevRecord?.spesePrimarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.spesePrimarie, prevRecord?.spesePrimarie, false)}
-                    <span className="text-[10px] text-ink-soft mt-1">rispetto al mese prec.</span>
+                    <span className="text-3xs text-ink-soft mt-1">rispetto al mese prec.</span>
                   </div>
                 )}
               </div>
@@ -164,7 +164,7 @@ export default function UsciteKpiCards({
 
           {/* Progress bar compared to Entrate */}
           <div className="mt-4 pt-3 border-t border-hairline w-full z-10">
-            <div className="hidden md:flex justify-between items-center text-[10px] text-ink-soft font-bold mb-1">
+            <div className="hidden md:flex justify-between items-center text-3xs text-ink-soft font-bold mb-1">
               <span>Rapporto Entrate</span>
               <span className={primaryPctOfIncome > dynamicThresholds.primarie ? 'text-down font-bold' : 'text-up font-bold'}>
                 {formatPercent(primaryPctOfIncome)}
@@ -179,7 +179,7 @@ export default function UsciteKpiCards({
                 <div className="absolute top-0 bottom-0 w-0.5 bg-slate-300" style={{ left: `${(dynamicThresholds.primarie / (dynamicThresholds.primarie + 5)) * 100}%` }} />
               </div>
             </div>
-            <div className="flex justify-between items-center text-[9px] text-ink-soft mt-1">
+            <div className="flex justify-between items-center text-3xs text-ink-soft mt-1">
               <span>Soglia: {dynamicThresholds.primarie}% delle entrate</span>
               <span className={`hidden md:inline ${primaryPctOfIncome > dynamicThresholds.primarie ? 'text-down font-semibold' : 'text-up font-semibold'}`}>
                 {primaryPctOfIncome > dynamicThresholds.primarie ? 'Soglia superata' : 'Nei limiti'}
@@ -214,7 +214,7 @@ export default function UsciteKpiCards({
               <span className="md:hidden">Spese Sec.</span>
               <span className="hidden md:inline">Spese Secondarie</span>
             </span>
-            <span className="hidden md:block text-[10px] text-ink-soft font-normal mt-0.5 lowercase">
+            <span className="hidden md:block text-3xs text-ink-soft font-normal mt-0.5 lowercase">
               (discrezionali)
             </span>
             <div className="mt-3 text-left">
@@ -225,7 +225,7 @@ export default function UsciteKpiCards({
                 {prevRecord?.speseSecondarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.speseSecondarie, prevRecord?.speseSecondarie, false)}
-                    <span className="text-[10px] text-ink-soft mt-1">rispetto al mese prec.</span>
+                    <span className="text-3xs text-ink-soft mt-1">rispetto al mese prec.</span>
                   </div>
                 )}
               </div>
@@ -234,7 +234,7 @@ export default function UsciteKpiCards({
 
           {/* Progress bar compared to Entrate */}
           <div className="mt-4 pt-3 border-t border-hairline w-full z-10">
-            <div className="hidden md:flex justify-between items-center text-[10px] text-ink-soft font-bold mb-1">
+            <div className="hidden md:flex justify-between items-center text-3xs text-ink-soft font-bold mb-1">
               <span>Rapporto Entrate</span>
               <span className={secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-down font-bold' : 'text-up font-bold'}>
                 {formatPercent(secondaryPctOfIncome)}
@@ -249,7 +249,7 @@ export default function UsciteKpiCards({
                 <div className="absolute top-0 bottom-0 w-0.5 bg-slate-300" style={{ left: `${(dynamicThresholds.secondarie / (dynamicThresholds.secondarie + 5)) * 100}%` }} />
               </div>
             </div>
-            <div className="flex justify-between items-center text-[9px] text-ink-soft mt-1">
+            <div className="flex justify-between items-center text-3xs text-ink-soft mt-1">
               <span>Soglia: {dynamicThresholds.secondarie}% delle entrate</span>
               <span className={`hidden md:inline ${secondaryPctOfIncome > dynamicThresholds.secondarie ? 'text-down font-semibold' : 'text-up font-semibold'}`}>
                 {secondaryPctOfIncome > dynamicThresholds.secondarie ? 'Soglia superata' : 'Nei limiti'}

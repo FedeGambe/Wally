@@ -53,7 +53,7 @@ export default function ConsumiCostoExtraKmPersi({
             <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo Extra da Inefficienza Carburante</h4>
             <TimeRangeToggle value={costoExtraChartRange} onChange={setCostoExtraChartRange} />
           </div>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
           <div className="h-44">
             {costoExtraChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
@@ -97,7 +97,7 @@ export default function ConsumiCostoExtraKmPersi({
             <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Km Persi per Inefficienza</h4>
             <TimeRangeToggle value={kmPersiChartRange} onChange={setKmPersiChartRange} />
           </div>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Chilometri "persi" per uno stile di guida sopra la media consigliata</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Chilometri "persi" per uno stile di guida sopra la media consigliata</p>
           <div className="h-44">
             {kmPersiChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>

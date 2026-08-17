@@ -136,7 +136,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS
   // (funziona su Chrome/Edge/Safari, gli unici che espongono questo pseudo-elemento).
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
-  const labelClass = "block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
+  const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

@@ -36,7 +36,7 @@ export default function DataTable<T>({ columns, data, keyExtractor }: DataTableP
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse table-auto md:table-fixed">
         <thead>
-          <tr className="border-b border-hairline text-[11px] font-bold text-ink-soft uppercase tracking-wider">
+          <tr className="border-b border-hairline text-2xs font-bold text-ink-soft uppercase tracking-wider">
             {columns.map((col, i) => (
               <th key={i} scope="col" className={`py-3 px-4 ${col.align === 'right' ? 'text-right' : ''} ${i > 0 ? 'w-36' : ''} ${col.hideOnMobile ? 'hidden md:table-cell' : ''} ${col.className || ''}`}>
                 {col.header}

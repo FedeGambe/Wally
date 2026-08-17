@@ -50,7 +50,7 @@ export default function ConsumiRiepilogoSettimanale({
       <div className="flex items-center justify-between flex-wrap gap-3 border-b border-hairline dark:border-slate-800/60 pb-4 mb-4">
         <div>
           <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h3>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
         </div>
         <div className="flex items-center gap-8 pr-4">
           <span
@@ -64,7 +64,7 @@ export default function ConsumiRiepilogoSettimanale({
           </span>
 
           <div className="text-right">
-            <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Punteggio</span>
+            <span className="text-3xs text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Punteggio</span>
             <span className="text-xl font-black font-display text-ink dark:text-slate-100">
               {typeof selectedWeek.efficienzaPercentuale === 'number' && !isNaN(selectedWeek.efficienzaPercentuale) ? selectedWeek.efficienzaPercentuale.toFixed(2) : '***'}
               <span className="text-xs font-medium text-ink-soft dark:text-slate-500"> /1</span>
@@ -96,27 +96,27 @@ export default function ConsumiRiepilogoSettimanale({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Sotto-widget 1: Km Effettuati */}
         <div className="bg-canvas dark:bg-slate-900/40 p-4 rounded-2xl border border-hairline dark:border-slate-800/60">
-          <span className="text-[10px] text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
+          <span className="text-3xs text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
           <span className="text-4xl font-black font-display text-blue-600 dark:text-rose-400 mt-1 block">
             {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
           </span>
-          <span className="text-[10px] text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">
+          <span className="text-3xs text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">
             Rifornimento: {selectedWeek.data} • {selectedWeek.quantitaLitri} Lt • {selectedWeek.prezzoAlLitro} €/Lt
           </span>
           {previousWeek && (
             <div className="mt-1.5 space-y-0.5">
               {kmDelta !== null && (
-                <span className={`text-[10px] block ${deltaClass(kmDelta, true)}`}>
+                <span className={`text-3xs block ${deltaClass(kmDelta, true)}`}>
                   <span className="font-bold">{kmDelta >= 0 ? '▲' : '▼'} {Math.abs(kmDelta)} km</span> vs sett. precedente
                 </span>
               )}
               {litriDelta !== null && (
-                <span className={`text-[10px] block ${deltaClass(litriDelta, true)}`}>
+                <span className={`text-3xs block ${deltaClass(litriDelta, true)}`}>
                   <span className="font-bold">{litriDelta >= 0 ? '▲' : '▼'} {Math.abs(litriDelta).toFixed(1)} Lt</span> vs sett. precedente
                 </span>
               )}
               {prezzoDelta !== null && (
-                <span className={`text-[10px] block ${deltaClass(prezzoDelta, true)}`}>
+                <span className={`text-3xs block ${deltaClass(prezzoDelta, true)}`}>
                   <span className="font-bold">{prezzoDelta >= 0 ? '▲' : '▼'} {Math.abs(prezzoDelta).toFixed(3)} €/Lt</span> vs sett. precedente
                 </span>
               )}
@@ -131,7 +131,7 @@ export default function ConsumiRiepilogoSettimanale({
             style={kpiCardStyle(selectedWeek.kmAlLitro, stats.kmAlLitro, true)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider block">Consumo medio (Km/Lt)</span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">Consumo medio (Km/Lt)</span>
               <span className="text-xl font-bold font-display block">
                 {typeof selectedWeek.kmAlLitro === 'number' && !isNaN(selectedWeek.kmAlLitro) ? selectedWeek.kmAlLitro.toFixed(1) + ' km/lt' : '***'}
               </span>
@@ -146,7 +146,7 @@ export default function ConsumiRiepilogoSettimanale({
             style={kpiCardStyle(selectedWeek.euroPer100Km, stats.costo100, false)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider block">Costo / 100 Km</span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">Costo / 100 Km</span>
               <span className="text-xl font-bold font-display block"><EuroAmount value={selectedWeek.euroPer100Km} /></span>
             </div>
             <div className="text-right">
@@ -163,7 +163,7 @@ export default function ConsumiRiepilogoSettimanale({
             style={kpiCardStyle(selectedWeek.kmPersi, stats.kmPersi, false)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider block">Km Persi (Incurrenza)</span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">Km Persi (Incurrenza)</span>
               <span className="text-xl font-bold font-display block">
                 {typeof selectedWeek.kmPersi === 'number' && !isNaN(selectedWeek.kmPersi) ? selectedWeek.kmPersi.toFixed(1) + ' km' : '***'}
               </span>
@@ -178,7 +178,7 @@ export default function ConsumiRiepilogoSettimanale({
             style={kpiCardStyle(selectedWeek.costoExtra, stats.costoExtra, false)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider block">Costo Extra</span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">Costo Extra</span>
               <span className="text-xl font-bold font-display block"><EuroAmount value={selectedWeek.costoExtra} /></span>
             </div>
             <div className="text-right">
@@ -189,7 +189,7 @@ export default function ConsumiRiepilogoSettimanale({
         </div>
       </div>
 
-      <div className="mt-4 px-1 text-[11px] text-ink-soft dark:text-slate-400 leading-relaxed">
+      <div className="mt-4 px-1 text-2xs text-ink-soft dark:text-slate-400 leading-relaxed">
         <span className="font-bold block mb-0.5 text-down">💡 Analisi per Federico:</span>
         I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? stats.kmAlLitro.median.toFixed(1) + ' km/lt' : '***'}).
       </div>

@@ -182,7 +182,7 @@ export default function CruscottoAssetAllocationCard({
           {/* 1. Macro Data Legend Tiles (Interactive buttons) - FULL WIDTH */}
           <div className="mb-4 shrink-0">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase font-bold text-ink-soft tracking-wider">Filtri Asset Class</span>
+              <span className="text-3xs uppercase font-bold text-ink-soft tracking-wider">Filtri Asset Class</span>
               <button
                 onClick={() => setAreButtonsCollapsed(v => !v)}
                 className="p-1 rounded hover:bg-canvas dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -228,11 +228,11 @@ export default function CruscottoAssetAllocationCard({
                     >
                       <div className="flex items-center gap-1.5 truncate w-full">
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColor, opacity: isSelected ? 1 : 0.4 }} />
-                        <span className={`text-[10px] truncate uppercase tracking-wider ${textTitleClass}`}>{item.name}</span>
+                        <span className={`text-3xs truncate uppercase tracking-wider ${textTitleClass}`}>{item.name}</span>
                       </div>
                       <div className="mt-0.5 flex flex-col">
-                        <span className={`font-mono text-[11px] leading-tight ${textPercentageClass}`}>{actualPercent.toFixed(1)}%</span>
-                        <span className={`text-[9px] font-mono leading-none ${textAmountClass}`}>{formatEuro(value)}</span>
+                        <span className={`font-mono text-2xs leading-tight ${textPercentageClass}`}>{actualPercent.toFixed(1)}%</span>
+                        <span className={`text-3xs font-mono leading-none ${textAmountClass}`}>{formatEuro(value)}</span>
                       </div>
                     </button>
                   );
@@ -290,7 +290,7 @@ export default function CruscottoAssetAllocationCard({
 
               {/* Centered Label for Donut chart */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1 z-10">
-                <span className="text-[9px] uppercase tracking-wider text-ink-soft font-bold">Investito</span>
+                <span className="text-3xs uppercase tracking-wider text-ink-soft font-bold">Investito</span>
                 <span className="text-sm font-black text-ink font-mono">
                   {formatEuro(totalAssetAllocation)}
                 </span>
@@ -300,14 +300,14 @@ export default function CruscottoAssetAllocationCard({
             {/* Micro Data Legend Column - collapses to a narrow rail on the right, title stays visible */}
             <div className={`h-auto md:h-full flex flex-col md:min-h-0 overflow-visible md:overflow-hidden pb-1 transition-all duration-300 ${isLegendCollapsed ? 'md:max-w-[150px]' : 'w-full'}`}>
               <div className="flex items-center justify-between mb-1.5 shrink-0 gap-2 w-full">
-                <span className="text-[10px] uppercase font-bold text-ink-soft tracking-wider truncate">
+                <span className="text-3xs uppercase font-bold text-ink-soft tracking-wider truncate">
                   Dettaglio Strumenti {selectedMacroCategories.length < 3 && `(${selectedMacroCategories.join(', ')})`}
                 </span>
                 <div className="flex items-center gap-2 ml-auto shrink-0">
                   {!isLegendCollapsed && selectedMacroCategories.length < 3 && (
                     <button
                       onClick={() => setSelectedMacroCategories(['Azioni', 'Obbligazioni', 'Monetari'])}
-                      className="text-[10px] text-accent hover:opacity-75 font-bold cursor-pointer transition-colors whitespace-nowrap"
+                      className="text-3xs text-accent hover:opacity-75 font-bold cursor-pointer transition-colors whitespace-nowrap"
                     >
                       Mostra tutti
                     </button>
@@ -328,14 +328,14 @@ export default function CruscottoAssetAllocationCard({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between font-semibold py-1 hover:bg-canvas/50 px-1.5 rounded-lg transition-colors text-[11px]"
+                        className="flex items-center justify-between font-semibold py-1 hover:bg-canvas/50 px-1.5 rounded-lg transition-colors text-2xs"
                       >
                         <div className="flex items-center gap-2 truncate max-w-[130px] sm:max-w-[150px] pl-1">
                           <LegendDot color={row.color} pulsing={row.investitoUltimoMese} />
                           <span className="text-ink-soft truncate uppercase font-bold" title={row.name}>{row.name}</span>
                         </div>
                         <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                          <span className="text-ink-soft font-extrabold text-[10px]">({rowPerc.toFixed(1)}%)</span>
+                          <span className="text-ink-soft font-extrabold text-3xs">({rowPerc.toFixed(1)}%)</span>
                           <span className="text-slate-880 font-bold">{formatEuro(row.value)}</span>
                         </div>
                       </div>
@@ -346,7 +346,7 @@ export default function CruscottoAssetAllocationCard({
               {/* Sempre visibile, anche a legenda collassata (su mobile parte collassata di default) */}
               <button
                 onClick={() => setShowDetailDrawer(true)}
-                className="mt-2 shrink-0 text-[10px] font-bold text-white uppercase tracking-wider py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 dark:bg-sky-600 dark:hover:bg-sky-500 transition-all cursor-pointer md:hover:scale-[1.03]"
+                className="mt-2 shrink-0 text-3xs font-bold text-white uppercase tracking-wider py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 dark:bg-sky-600 dark:hover:bg-sky-500 transition-all cursor-pointer md:hover:scale-[1.03]"
               >
                 Dettaglio strumenti
               </button>
@@ -385,11 +385,11 @@ export default function CruscottoAssetAllocationCard({
                               <div key={subIdx} className="flex items-center justify-between p-2.5 bg-canvas dark:bg-white/5 rounded-xl border border-hairline dark:border-white/10">
                                 <div className="flex items-center gap-2 truncate pl-1">
                                   <LegendDot color={sub.color} pulsing={sub.investitoUltimoMese} />
-                                  <span className="text-ink-soft dark:text-slate-400 text-[11px] font-medium truncate" title={sub.name}>{sub.name}</span>
+                                  <span className="text-ink-soft dark:text-slate-400 text-2xs font-medium truncate" title={sub.name}>{sub.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                                  <span className="text-ink-soft text-[10px] font-bold">({subPerc.toFixed(1)}%)</span>
-                                  <span className="text-ink-soft dark:text-slate-400 text-[11px] font-semibold">{formatEuro(sub.value)}</span>
+                                  <span className="text-ink-soft text-3xs font-bold">({subPerc.toFixed(1)}%)</span>
+                                  <span className="text-ink-soft dark:text-slate-400 text-2xs font-semibold">{formatEuro(sub.value)}</span>
                                 </div>
                               </div>
                             );

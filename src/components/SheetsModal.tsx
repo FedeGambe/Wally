@@ -333,14 +333,14 @@ export default function SheetsModal({
               <div className="p-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
                 <div className="flex justify-between items-start">
                   <div className="text-left">
-                    <span className="text-[10px] text-up font-extrabold uppercase tracking-wider bg-up/15 px-2 py-0.5 rounded-md">
+                    <span className="text-3xs text-up font-extrabold uppercase tracking-wider bg-up/15 px-2 py-0.5 rounded-md">
                       Collegamento Attivo
                     </span>
                     <h4 className="text-sm font-semibold text-ink mt-2 flex items-center gap-1.5 font-display">
                       <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-500" />
                       Wally - Dashboard Economica
                     </h4>
-                    <p className="text-[11px] text-ink-soft font-mono mt-1 select-all truncate max-w-xs sm:max-w-md">
+                    <p className="text-2xs text-ink-soft font-mono mt-1 select-all truncate max-w-xs sm:max-w-md">
                       ID: {sheetId}
                     </p>
                   </div>
@@ -494,7 +494,7 @@ export default function SheetsModal({
               {/* Divisor line */}
               <div className="flex items-center gap-3 text-xs text-slate-300">
                 <div className="h-px bg-canvas flex-1" />
-                <span className="font-mono text-[10px] tracking-widest uppercase">Oppure</span>
+                <span className="font-mono text-3xs tracking-widest uppercase">Oppure</span>
                 <div className="h-px bg-canvas flex-1" />
               </div>
 
@@ -516,7 +516,7 @@ export default function SheetsModal({
                     />
                     <Link2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-300" />
                   </div>
-                  <p className="text-[10px] text-ink-soft mt-1.5 leading-relaxed">
+                  <p className="text-3xs text-ink-soft mt-1.5 leading-relaxed">
                     Puoi incollare l'intero indirizzo della barra di navigazione del tuo foglio di calcolo, ad esempio:<br />
                     <span className="font-mono text-accent select-all">https://docs.google.com/spreadsheets/d/...ID.../edit</span>
                   </p>
@@ -540,7 +540,7 @@ export default function SheetsModal({
         </div>
 
         {/* Footer info banner */}
-        <div className="px-6 py-4 bg-canvas border-t border-hairline flex items-center justify-between text-[10px] text-ink-soft font-mono">
+        <div className="px-6 py-4 bg-canvas border-t border-hairline flex items-center justify-between text-3xs text-ink-soft font-mono">
           <span>Wally Engine v2</span>
           <span>Google Drive API v3</span>
         </div>

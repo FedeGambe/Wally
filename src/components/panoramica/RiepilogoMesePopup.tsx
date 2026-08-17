@@ -98,15 +98,15 @@ export default function RiepilogoMesePopup({ onClose, mese, anno, record, budget
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
-              <span className="text-[10px] text-ink-soft dark:text-slate-400 font-semibold uppercase block">Risparmio 50%</span>
+              <span className="text-3xs text-ink-soft dark:text-slate-400 font-semibold uppercase block">Risparmio 50%</span>
               <span className="text-sm font-bold text-ink dark:text-slate-200 block mt-1">{formatEuro(redistribuzione.risparmio)}</span>
             </div>
             <div>
-              <span className="text-[10px] text-ink-soft dark:text-slate-400 font-semibold uppercase block">Investito 35%</span>
+              <span className="text-3xs text-ink-soft dark:text-slate-400 font-semibold uppercase block">Investito 35%</span>
               <span className="text-sm font-bold text-ink dark:text-slate-200 block mt-1">{formatEuro(redistribuzione.investito)}</span>
             </div>
             <div>
-              <span className="text-[10px] text-ink-soft dark:text-slate-400 font-semibold uppercase block">Primarie 15%</span>
+              <span className="text-3xs text-ink-soft dark:text-slate-400 font-semibold uppercase block">Primarie 15%</span>
               <span className="text-sm font-bold text-ink dark:text-slate-200 block mt-1">{formatEuro(redistribuzione.primarie)}</span>
             </div>
           </div>
@@ -127,14 +127,14 @@ export default function RiepilogoMesePopup({ onClose, mese, anno, record, budget
                   : 'bg-up/15 border-up/30'
               }`}
             >
-              <span className={`text-[10px] font-bold uppercase tracking-wider block ${sopra ? 'text-down' : 'text-up'}`}>{t.label}</span>
+              <span className={`text-3xs font-bold uppercase tracking-wider block ${sopra ? 'text-down' : 'text-up'}`}>{t.label}</span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-lg font-bold font-display text-ink dark:text-slate-100">{formatEuro(t.value)}</span>
                 <span className={`text-xs font-bold ${sopra ? 'text-down' : 'text-up'}`}>
                   {sopra ? '+' : '-'}{formatEuro(Math.abs(t.deltaEuro))}
                 </span>
               </div>
-              <span className={`text-[10px] font-semibold mt-0.5 ${sopra ? 'text-down' : 'text-up'}`}>{formatPercent(t.quota)} (target {formatPercent(t.target)})</span>
+              <span className={`text-3xs font-semibold mt-0.5 ${sopra ? 'text-down' : 'text-up'}`}>{formatPercent(t.quota)} (target {formatPercent(t.target)})</span>
             </div>
           );
         })}
@@ -146,7 +146,7 @@ export default function RiepilogoMesePopup({ onClose, mese, anno, record, budget
       <div className="grid grid-cols-3 gap-3 mb-5">
         {tileStatiche.map(t => (
           <div key={t.label} className="p-3 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5">
-            <span className="text-[10px] text-ink-soft dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-3xs text-ink-soft dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
               {t.label}
               {t.ok !== undefined && (
                 <span

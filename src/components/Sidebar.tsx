@@ -126,7 +126,7 @@ export default function Sidebar({
                 <span className="font-semibold font-display text-ink text-base leading-tight tracking-tight truncate">
                   Wally
                 </span>
-                <span className="text-[9px] text-ink-soft font-mono tracking-wider uppercase truncate">
+                <span className="text-3xs text-ink-soft font-mono tracking-wider uppercase truncate">
                   Dashboard Finanze
                 </span>
               </div>
@@ -231,7 +231,7 @@ export default function Sidebar({
                 <h4 className="text-xs font-semibold text-ink truncate">
                   {userDisplayName || getDisplayName(userEmail)}
                 </h4>
-                <p className="text-[10px] text-ink-soft truncate font-mono">
+                <p className="text-3xs text-ink-soft truncate font-mono">
                   {userEmail}
                 </p>
               </div>

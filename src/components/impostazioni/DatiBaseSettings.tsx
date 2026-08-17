@@ -126,7 +126,7 @@ export default function DatiBaseSettings() {
       </button>
 
       {importMsg && (
-        <p className="text-[11px] text-center text-ink-soft dark:text-slate-400 font-semibold mt-2">{importMsg}</p>
+        <p className="text-2xs text-center text-ink-soft dark:text-slate-400 font-semibold mt-2">{importMsg}</p>
       )}
 
       <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>

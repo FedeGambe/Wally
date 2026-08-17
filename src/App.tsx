@@ -670,7 +670,7 @@ function DashboardShell({
               className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-all"
             >
               <Icon className={`w-5 h-5 ${isActive ? activeColorMap[item.id] || 'text-blue-600' : 'text-ink-soft'}`} />
-              <span className={`text-[10px] mt-0.5 tracking-tighter ${isActive ? 'text-ink font-extrabold' : 'text-ink-soft'}`}>
+              <span className={`text-3xs mt-0.5 tracking-tighter ${isActive ? 'text-ink font-extrabold' : 'text-ink-soft'}`}>
                 {item.label}
               </span>
             </button>

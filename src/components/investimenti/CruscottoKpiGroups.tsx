@@ -54,11 +54,11 @@ export default function CruscottoKpiGroups({
       {/* GRUPPO 1: DATI CUMULATI STORICI */}
       <div className="bg-canvas/55 dark:bg-[#0c1425]/40 p-4 rounded-3xl border border-hairline/75 dark:border-slate-800/80 shadow-xs space-y-3 text-left">
         <div className="flex items-center justify-between px-1">
-          <span className="text-[11px] font-black uppercase text-ink-soft dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-black uppercase text-ink-soft dark:text-slate-300 tracking-wider flex items-center gap-1.5">
             <Database className="w-4 h-4 text-ink-soft dark:text-slate-300" />
             Dati Cumulati Storici
           </span>
-          <span className="text-[9px] bg-accent/15 text-accent px-2 py-0.5 rounded-full font-bold">
+          <span className="text-3xs bg-accent/15 text-accent px-2 py-0.5 rounded-full font-bold">
             Sempre Aggiornato
           </span>
         </div>
@@ -66,7 +66,7 @@ export default function CruscottoKpiGroups({
           {/* Portafoglio Attuale Box */}
           <div className="bg-gradient-to-br from-sky-50 to-white dark:from-sky-950 dark:via-slate-900 dark:to-sky-900 text-ink dark:text-white p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900 shadow-xs dark:shadow-[0_0_15px_rgba(14,165,233,0.12)] flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:border-sky-300 dark:hover:shadow-[0_0_25px_rgba(14,165,233,0.3)] dark:hover:border-sky-800/25 hover:scale-[1.01]">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-sky-700 dark:text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
+              <span className="text-3xs text-sky-700 dark:text-sky-300 font-extrabold uppercase tracking-wider block">Portafoglio Attuale</span>
               <div className="bg-sky-100 dark:bg-sky-950/50 p-1 rounded-lg">
                 <Wallet className="w-4 h-4 text-sky-600 dark:text-sky-400" />
               </div>
@@ -80,7 +80,7 @@ export default function CruscottoKpiGroups({
               </span>
             </div>
             <div className="border-t border-sky-100 dark:border-sky-800/60 pt-2 mt-2">
-              <p className="text-[10px] text-sky-600 dark:text-sky-300 font-medium">Investito:   <span className="text-[12px] font-bold text-ink dark:text-white">{formatEuro(investitoMeseCorrente)}</span></p>
+              <p className="text-3xs text-sky-600 dark:text-sky-300 font-medium">Investito:   <span className="text-xs font-bold text-ink dark:text-white">{formatEuro(investitoMeseCorrente)}</span></p>
             </div>
           </div>
 
@@ -90,7 +90,7 @@ export default function CruscottoKpiGroups({
               : 'bg-white dark:bg-slate-900/40 border-hairline/80 dark:border-slate-800/60 shadow-xs hover:shadow-md'
             }`}>
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Plusvalenza Cumulata</span>
+              <span className="text-3xs text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Plusvalenza Cumulata</span>
               <div className="bg-emerald-50 dark:bg-emerald-950/50 p-1 rounded-lg">
                 <TrendingUp className="w-4 h-4 text-up" />
               </div>
@@ -101,9 +101,9 @@ export default function CruscottoKpiGroups({
                 <EuroAmount value={CRUSCOTTO_GENERALE.rendimentoCumulativoEuro} />
               </span>
             </div>
-            <div className="border-t border-hairline dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-[9px]">
-              <span className="text-[10px] text-ink-soft dark:text-slate-400 font-medium">Rendimento Totale</span>
-              <span className="text-[12px] bg-up/15 text-up border border-up/30 px-1.5 py-0.5 rounded-lg font-extrabold font-mono">
+            <div className="border-t border-hairline dark:border-slate-800 pt-2 mt-2 flex justify-between items-center text-3xs">
+              <span className="text-3xs text-ink-soft dark:text-slate-400 font-medium">Rendimento Totale</span>
+              <span className="text-xs bg-up/15 text-up border border-up/30 px-1.5 py-0.5 rounded-lg font-extrabold font-mono">
                 {formatPercent(lastValidRendimento?.rendimentoCumulativoPerc)}
               </span>
             </div>
@@ -114,11 +114,11 @@ export default function CruscottoKpiGroups({
       {/* GRUPPO 2: PERFORMANCE ANNO SELEZIONATO */}
       <div className="bg-canvas/55 dark:bg-[#0c1425]/40 p-4 rounded-3xl border border-hairline/75 dark:border-slate-800/80 shadow-xs space-y-3 text-left">
         <div className="flex items-center justify-between px-1">
-          <span className="text-[11px] font-black uppercase text-ink-soft dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-black uppercase text-ink-soft dark:text-slate-300 tracking-wider flex items-center gap-1.5">
             <Calendar className="w-4 h-4 text-ink-soft dark:text-slate-300" />
             Performance Anno {globalSelectedYear}
           </span>
-          <span className="text-[9px] bg-warn/15 text-warn px-2 py-0.5 rounded-full font-bold">
+          <span className="text-3xs bg-warn/15 text-warn px-2 py-0.5 rounded-full font-bold">
             Anno Selezionato
           </span>
         </div>
@@ -126,7 +126,7 @@ export default function CruscottoKpiGroups({
           {/* Rendimento Annuo Box */}
           <div className="bg-white dark:bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
+              <span className="text-3xs text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
               <div className="bg-sky-100 dark:bg-sky-950/50 p-1 rounded-lg">
                 <Award className="w-4 h-4 text-sky-600 dark:text-sky-400" />
               </div>
@@ -143,16 +143,16 @@ export default function CruscottoKpiGroups({
                 </span>
               </span>
             </div>
-            <div className="border-t border-sky-100 dark:border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-ink-soft">
+            <div className="border-t border-sky-100 dark:border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-3xs text-ink-soft">
               <span>Media mensile ({elapsedMonthsForSelectedYear}m)</span>
-              <span className="text-[12px] font-bold text-ink dark:text-slate-300 font-mono">{formatPercent(CRUSCOTTO_ANNO.rendimentoMedioMensilePerc)}</span>
+              <span className="text-xs font-bold text-ink dark:text-slate-300 font-mono">{formatPercent(CRUSCOTTO_ANNO.rendimentoMedioMensilePerc)}</span>
             </div>
           </div>
 
           {/* Contributo Anno Box */}
           <div className="bg-white dark:bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
+              <span className="text-3xs text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
               <div className="bg-sky-100 dark:bg-sky-950/50 p-1 rounded-lg">
                 <Coins className="w-4 h-4 text-sky-600 dark:text-sky-400" />
               </div>
@@ -167,9 +167,9 @@ export default function CruscottoKpiGroups({
                 <EuroAmount value={CRUSCOTTO_ANNO.azioniInvestitoAnno + CRUSCOTTO_ANNO.obbligazioniInvestitoAnno + (CRUSCOTTO_ANNO.monetariInvestitoAnno || 0)} />
               </span>
             </div>
-            <div className="border-t border-sky-100 dark:border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-[9px] text-ink-soft">
+            <div className="border-t border-sky-100 dark:border-sky-900/60 pt-2 mt-2 flex justify-between items-center text-3xs text-ink-soft">
               <span>Contributo Mensile</span>
-              <span className="text-[12px] font-extrabold text-sky-600 dark:text-sky-400 font-mono">
+              <span className="text-xs font-extrabold text-sky-600 dark:text-sky-400 font-mono">
                 {formatEuro(contributoMeseCorrente)}
               </span>
             </div>

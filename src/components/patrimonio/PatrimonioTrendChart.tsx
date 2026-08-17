@@ -377,7 +377,7 @@ export default function PatrimonioTrendChart({
         {/* Right 1/3 - Monthly Detail List */}
         <div className="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-hairline lg:pl-6 pt-4 lg:pt-0 flex flex-col h-full justify-between">
           <div className="mb-2">
-            <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Riepilogo Mensile</span>
+            <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Riepilogo Mensile</span>
           </div>
           <div className="h-72 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-slate-200">
             {[...sortedRisparmio].reverse().map((r, idx) => {
@@ -390,17 +390,17 @@ export default function PatrimonioTrendChart({
                 <div key={idx} className="p-2.5 rounded-xl bg-canvas border border-hairline flex items-center justify-between text-xs transition-all hover:bg-canvas/70 dark:hover:bg-white/5">
                   <div>
                     <span className="font-bold text-ink block">{r.mese}</span>
-                    <span className="text-[10px] text-ink-soft font-medium block">{r.anno}</span>
+                    <span className="text-3xs text-ink-soft font-medium block">{r.anno}</span>
                   </div>
                   <div className="text-right space-y-0.5">
                     <div className="flex items-center justify-end gap-1.5">
-                      <span className="text-[9px] text-ink-soft font-medium">Risp:</span>
+                      <span className="text-3xs text-ink-soft font-medium">Risp:</span>
                       <span className={`font-bold ${rispVal >= 0 ? 'text-up' : 'text-down'}`}>
                         {formatEuro(rispVal)}
                       </span>
                     </div>
                     <div className="flex items-center justify-end gap-1.5">
-                      <span className="text-[9px] text-ink-soft font-medium">Inv:</span>
+                      <span className="text-3xs text-ink-soft font-medium">Inv:</span>
                       <span className="font-bold text-sky-600">
                         {formatEuro(invVal)}
                       </span>

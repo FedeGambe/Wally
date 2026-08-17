@@ -97,7 +97,7 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS.
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
-  const labelClass = "block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
+  const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,7 +112,7 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
       </div>
 
       <div>
-        <p className="text-[11px] text-ink-soft mb-1.5">Basta compilare uno tra Litri e €/Lt: l'altro si calcola dal Costo.</p>
+        <p className="text-2xs text-ink-soft mb-1.5">Basta compilare uno tra Litri e €/Lt: l'altro si calcola dal Costo.</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor={litriId} className={labelClass}>Quantità (Lt)</label>
@@ -135,7 +135,7 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
         <input id={kmAlLitroId} type="number" step="0.1" min="0" value={kmAlLitroAuto} onChange={e => setKmAlLitroAuto(e.target.value)} placeholder="opzionale" className={inputClass} />
       </div>
 
-      <p className="text-[11px] text-ink-soft leading-relaxed">
+      <p className="text-2xs text-ink-soft leading-relaxed">
         Km effettuati, Km/lt, €/100km, Km persi, Costo extra ed Esito settimana vengono calcolati
         dal foglio Google (stessa formula della riga precedente) al prossimo aggiornamento.
       </p>

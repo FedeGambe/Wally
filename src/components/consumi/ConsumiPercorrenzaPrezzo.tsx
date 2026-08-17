@@ -41,7 +41,7 @@ export default function ConsumiPercorrenzaPrezzo({
             <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Chilometri Percorsi per Settimana</h4>
             <TimeRangeToggle value={kmChartRange} onChange={setKmChartRange} />
           </div>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
           <div className="h-44">
             {kmChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
@@ -90,7 +90,7 @@ export default function ConsumiPercorrenzaPrezzo({
             <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Andamento Prezzo Carburante (€/Lt)</h4>
             <TimeRangeToggle value={prezzoChartRange} onChange={setPrezzoChartRange} />
           </div>
-          <p className="text-[11px] text-ink-soft dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
           <div className="h-44">
             {prezzoChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>

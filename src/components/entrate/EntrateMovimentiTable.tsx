@@ -47,7 +47,7 @@ export default function EntrateMovimentiTable({ selectedRecord, activeMonthEntri
               header: 'Canale / Conto',
               hideOnMobile: true,
               render: (e) => (
-                <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-[10px] text-ink-soft font-mono">
+                <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-3xs text-ink-soft font-mono">
                   {e.conto || 'Altro'}
                 </span>
               )

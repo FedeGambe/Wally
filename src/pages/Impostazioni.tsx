@@ -123,7 +123,7 @@ export default function Impostazioni({
               onClick={() => setMainSectionOpen(o => !o)}
               className="w-full flex items-center justify-between gap-2 cursor-pointer"
             >
-              <span className="text-[11px] font-bold text-ink-soft uppercase tracking-wider">Foglio Principale</span>
+              <span className="text-2xs font-bold text-ink-soft uppercase tracking-wider">Foglio Principale</span>
               <ChevronDown className={`w-4 h-4 text-ink-soft transition-transform ${mainSectionOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -135,7 +135,7 @@ export default function Impostazioni({
 
                 <form onSubmit={handleSaveSpreadsheet} className="space-y-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-ink-soft uppercase mb-1.5 tracking-wider">
+                    <label className="block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider">
                       Spreadsheet ID
                     </label>
                     <div className="flex gap-2">
@@ -161,7 +161,7 @@ export default function Impostazioni({
                 </form>
 
                 {saveSuccess && (
-                  <p className="text-[11px] text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
+                  <p className="text-2xs text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
                     <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
                   </p>
                 )}
@@ -174,7 +174,7 @@ export default function Impostazioni({
                 onClick={() => setConfigSectionOpen(o => !o)}
                 className="w-full flex items-center justify-between gap-2 cursor-pointer"
               >
-                <span className="text-[11px] font-bold text-ink-soft uppercase tracking-wider">Foglio di Configurazione (opzionale)</span>
+                <span className="text-2xs font-bold text-ink-soft uppercase tracking-wider">Foglio di Configurazione (opzionale)</span>
                 <ChevronDown className={`w-4 h-4 text-ink-soft transition-transform ${configSectionOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -203,7 +203,7 @@ export default function Impostazioni({
                     </button>
                   </form>
                   {configSaveSuccess && (
-                    <p className="text-[11px] text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
+                    <p className="text-2xs text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
                       <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
                     </p>
                   )}

@@ -30,7 +30,7 @@ export function SegmentedToggle<T extends string>({ value, onChange, options }: 
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`text-[9px] px-2.5 py-1 font-extrabold rounded-lg transition-all cursor-pointer ${
+          className={`text-3xs px-2.5 py-1 font-extrabold rounded-lg transition-all cursor-pointer ${
             value === opt.value ? 'bg-rose-600 text-white shadow-xs' : 'text-ink-soft hover:text-down'
           }`}
         >

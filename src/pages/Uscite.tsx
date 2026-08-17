@@ -121,7 +121,7 @@ export default function Uscite({
                     setSelectedMacroCat('Tutte');
                     setSelectedMicroCat('Tutte');
                   }}
-                  className="bg-accent/10 hover:bg-accent/20 text-accent text-[10px] px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer"
+                  className="bg-accent/10 hover:bg-accent/20 text-accent text-3xs px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer"
                   title="Azzera filtri categoria"
                 >
                   <span>Ripristina Totale</span>
@@ -279,7 +279,7 @@ export default function Uscite({
             </span>
           )}
 
-          <span className="text-[10px] text-slate-450 ml-auto font-mono">
+          <span className="text-3xs text-slate-450 ml-auto font-mono">
             Mostrati: <strong className="font-bold text-ink">{finalFilteredTransactions.length}</strong> record
           </span>
         </div>
@@ -293,7 +293,7 @@ export default function Uscite({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-hairline text-[11px] font-bold text-ink-soft uppercase tracking-wider">
+                <tr className="border-b border-hairline text-2xs font-bold text-ink-soft uppercase tracking-wider">
                   <th scope="col" className="py-3 px-4">Data</th>
                   <th scope="col" className="py-3 px-4">Descrizione</th>
                   <th scope="col" className="py-3 px-4">Macro</th>
@@ -316,7 +316,7 @@ export default function Uscite({
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="bg-canvas border border-hairline/50 text-[10px] text-ink-soft px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">
+                      <span className="bg-canvas border border-hairline/50 text-3xs text-ink-soft px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">
                         {tx.macroCategoria}
                       </span>
                     </td>
@@ -327,17 +327,17 @@ export default function Uscite({
                       {formatEuro(tx.importo)}
                     </td>
                     <td className="py-3.5 px-4 text-ink-soft font-medium">
-                      <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-[10px] text-ink-soft font-mono">
+                      <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-3xs text-ink-soft font-mono">
                         {tx.conto}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       {tx.primaria ? (
-                        <span className="inline-flex items-center bg-orange-700 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
+                        <span className="inline-flex items-center bg-orange-700 text-white text-3xs font-bold uppercase px-2 py-0.5 rounded-sm">
                           Sì ({dynamicThresholds.primarie}%)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center bg-orange-100 text-orange-700 text-[9px] font-bold uppercase px-2 py-0.5 rounded-sm">
+                        <span className="inline-flex items-center bg-orange-100 text-orange-700 text-3xs font-bold uppercase px-2 py-0.5 rounded-sm">
                           No ({dynamicThresholds.secondarie}%)
                         </span>
                       )}

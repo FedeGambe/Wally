@@ -97,7 +97,7 @@ export default function PanoramicaMeseCorrenteStrip({
           ancora da spendere ora. */}
       <div className="mb-5 p-4 rounded-2xl border border-hairline dark:border-slate-700 bg-canvas dark:bg-slate-800 flex items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] text-ink-soft dark:text-slate-400 font-bold uppercase tracking-wider block">Ancora Spendibile questo Mese</span>
+          <span className="text-3xs text-ink-soft dark:text-slate-400 font-bold uppercase tracking-wider block">Ancora Spendibile questo Mese</span>
           <span className="text-xs text-ink-soft dark:text-slate-500 mt-0.5 block">Spendibile − Spese Secondarie</span>
         </div>
         <span className={`text-2xl font-black font-display shrink-0 ${spendibileResiduo !== undefined && spendibileResiduo < 0 ? 'text-down' : 'text-ink dark:text-slate-100'}`}>
@@ -117,7 +117,7 @@ export default function PanoramicaMeseCorrenteStrip({
             <span className="text-sm text-slate-300 font-bold">Risparmio & Investito</span>
             <div className="text-right">
               <span className="font-extrabold font-display text-ink block">{formatEuro(rispInvTotale)}</span>
-              <span className={`text-[10px] font-bold ${rispInvPerc !== undefined && rispInvPerc >= rispInvSoglia ? 'text-up' : 'text-down'}`}>
+              <span className={`text-3xs font-bold ${rispInvPerc !== undefined && rispInvPerc >= rispInvSoglia ? 'text-up' : 'text-down'}`}>
                 {formatPercent(rispInvPerc)} / Soglia {rispInvSoglia}%
               </span>
             </div>
@@ -130,7 +130,7 @@ export default function PanoramicaMeseCorrenteStrip({
               className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
-                <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Risparmio</span>
+                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Risparmio</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-extrabold font-display text-ink block">
                     <EuroAmount value={currentMonthData.risparmioNetto} />
@@ -144,7 +144,7 @@ export default function PanoramicaMeseCorrenteStrip({
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
                 <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(rispPerc)}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${rispPercDelta !== undefined && rispPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${rispPercDelta !== undefined && rispPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {rispPercDelta !== undefined && rispPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(rispPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(rispPercDelta, { signed: true })}`}
                 </span>
               </div>
@@ -157,7 +157,7 @@ export default function PanoramicaMeseCorrenteStrip({
               className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
-                <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Investito</span>
+                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Investito</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-extrabold font-display text-ink block">
                     <EuroAmount value={currentMonthData.investito} />
@@ -171,7 +171,7 @@ export default function PanoramicaMeseCorrenteStrip({
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
                 <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(invPerc)}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${invPercDelta !== undefined && invPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${invPercDelta !== undefined && invPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {invPercDelta !== undefined && invPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(invPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(invPercDelta, { signed: true })}`}
                 </span>
               </div>
@@ -185,7 +185,7 @@ export default function PanoramicaMeseCorrenteStrip({
             <span className="text-sm text-slate-300 font-bold">Spese</span>
             <div className="text-right">
               <span className="font-extrabold font-display text-ink block">{formatEuro(speseTotaleWidget)}</span>
-              <span className={`text-[10px] font-bold ${spesePerc !== undefined && spesePerc <= speseSoglia ? 'text-up' : 'text-down'}`}>
+              <span className={`text-3xs font-bold ${spesePerc !== undefined && spesePerc <= speseSoglia ? 'text-up' : 'text-down'}`}>
                 {formatPercent(spesePerc)} / Soglia {speseSoglia}%
               </span>
             </div>
@@ -198,7 +198,7 @@ export default function PanoramicaMeseCorrenteStrip({
               className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
-                <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Spese Primarie</span>
+                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Spese Primarie</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-extrabold font-display text-ink block">
                     <EuroAmount value={currentMonthData.spesePrimarie} />
@@ -212,7 +212,7 @@ export default function PanoramicaMeseCorrenteStrip({
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
                 <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(primPerc)}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${primPercDelta !== undefined && primPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${primPercDelta !== undefined && primPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {primPercDelta !== undefined && primPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(primPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(primPercDelta, { signed: true })}`}
                 </span>
               </div>
@@ -225,7 +225,7 @@ export default function PanoramicaMeseCorrenteStrip({
               className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
             >
               <div>
-                <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider block">Spese Secondarie</span>
+                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Spese Secondarie</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-extrabold font-display text-ink block">
                     <EuroAmount value={currentMonthData.speseSecondarie} />
@@ -239,7 +239,7 @@ export default function PanoramicaMeseCorrenteStrip({
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
                 <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(secPerc)}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${secPercDelta !== undefined && secPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
+                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${secPercDelta !== undefined && secPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {secPercDelta !== undefined && secPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(secPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(secPercDelta, { signed: true })}`}
                 </span>
               </div>
@@ -251,7 +251,7 @@ export default function PanoramicaMeseCorrenteStrip({
       {/* Delta change vs previous month */}
       <div className="mt-4 p-4 bg-canvas dark:bg-slate-800 rounded-2xl border border-hairline dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-extrabold text-ink dark:text-slate-200 uppercase tracking-wider bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-lg">
+          <span className="text-3xs font-extrabold text-ink dark:text-slate-200 uppercase tracking-wider bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-lg">
             Delta vs {prevMonthData ? `${prevMonthData.mese} ${prevMonthData.anno}` : 'Mese Precedente'}
           </span>
         </div>

@@ -100,7 +100,7 @@ export default function Login({ onLogin }: LoginProps) {
 
           {/* Utente Autorizzato Card */}
           <div className="bg-canvas border border-hairline p-4 rounded-xl mb-6">
-            <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider block mb-2 text-left">
+            <span className="text-3xs font-bold text-ink-soft uppercase tracking-wider block mb-2 text-left">
               Utente di Riferimento
             </span>
             <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-hairline shadow-2xs">
@@ -113,7 +113,7 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               <div className="flex items-center">
                 <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
-                  <span className="text-[10px] font-black">✓</span>
+                  <span className="text-3xs font-black">✓</span>
                 </div>
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function Login({ onLogin }: LoginProps) {
           {/* Graphical Separation Line with Text */}
           <div className="relative my-6 flex py-1 items-center">
             <div className="flex-grow border-t border-hairline" />
-            <span className="flex-shrink mx-4 text-[10px] font-bold text-ink-soft uppercase tracking-wider">
+            <span className="flex-shrink mx-4 text-3xs font-bold text-ink-soft uppercase tracking-wider">
               Autenticazione Google API
             </span>
             <div className="flex-grow border-t border-hairline" />

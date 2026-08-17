@@ -73,7 +73,7 @@ export default function PanoramicaTrendChart({
           <div className="flex bg-canvas p-1 rounded-xl gap-0.5 border border-hairline select-none">
             <button
               onClick={() => setTrendChartMode('mensile')}
-              className={`text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
+              className={`text-3xs px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
                 trendChartMode === 'mensile' ? 'bg-blue-600 text-white shadow-sm' : 'text-ink-soft hover:text-blue-600'
               }`}
             >
@@ -81,7 +81,7 @@ export default function PanoramicaTrendChart({
             </button>
             <button
               onClick={() => setTrendChartMode('cumulato')}
-              className={`text-[10px] px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
+              className={`text-3xs px-3 py-1.5 font-extrabold rounded-lg transition-all cursor-pointer ${
                 trendChartMode === 'cumulato' ? 'bg-blue-600 text-white shadow-sm' : 'text-ink-soft hover:text-blue-600'
               }`}
             >
