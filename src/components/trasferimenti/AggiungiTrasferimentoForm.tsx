@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { Calendar, CreditCard, ArrowRight } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
@@ -6,6 +6,7 @@ import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage, Trasferimento } from '../../data/mockData';
 import { MESI_ITALIANI } from '../../utils/date';
 import DropdownMenu from '../DropdownMenu';
+import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
 
 interface AggiungiTrasferimentoFormProps {
   onSaved: () => void;
@@ -33,6 +34,20 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
   const [contoOrdinante, setContoOrdinante] = useState(conti[0] || '');
   const [contoBeneficiario, setContoBeneficiario] = useState(conti[1] || conti[0] || '');
   const [importo, setImporto] = useState('');
+  const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
+
+  const coinvolgeContanti = (contoBeneficiario === 'Contanti' || contoOrdinante === 'Contanti') && contoOrdinante !== contoBeneficiario;
+
+  // L'Importo deve corrispondere alla composizione di banconote scelta: lo
+  // ricalcoliamo automaticamente ogni volta che il trasferimento coinvolge
+  // Contanti (anche appena selezionato, per non lasciare visibile un importo
+  // digitato a mano prima del cambio conto). Il campo Importo diventa di sola
+  // lettura in quel caso (vedi JSX più sotto).
+  useEffect(() => {
+    if (coinvolgeContanti) {
+      setImporto(String(contantiTotal(contantiCounts)));
+    }
+  }, [coinvolgeContanti, contantiCounts]);
 
   const isValid = Boolean(contoOrdinante && contoBeneficiario && contoOrdinante !== contoBeneficiario && Number(importo) > 0);
 
@@ -50,9 +65,18 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
       importo: Number(importo)
     };
 
+    // Trasferimento che coinvolge Contanti: se Contanti è il beneficiario le
+    // banconote entrano nel portafoglio (delta positivo, es. prelievo
+    // bancomat), se è l'ordinante escono (delta negativo, es. versamento in
+    // banca). Non può essere entrambi: la validazione sopra impone conti diversi.
+    const segno = contoBeneficiario === 'Contanti' ? 1 : contoOrdinante === 'Contanti' ? -1 : 0;
+    const contantiDelta = segno !== 0
+      ? Object.fromEntries(Object.entries(contantiCounts).filter(([, n]) => n > 0).map(([denom, n]) => [denom, n * segno]))
+      : undefined;
+
     const ok = await appendAndPush(() => {
       saveToLocalStorage({ trasferimenti: [...data.trasferimenti, nuovoTrasferimento] });
-    }, [{ tabTitle: 'Trasferimenti', record: nuovoTrasferimento }]);
+    }, [{ tabTitle: 'Trasferimenti', record: nuovoTrasferimento }], contantiDelta && Object.keys(contantiDelta).length > 0 ? contantiDelta : undefined);
     if (ok) onSaved();
   };
 
@@ -136,6 +160,14 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
         )}
       </div>
 
+      {coinvolgeContanti && (
+        <ContantiBreakdown
+          value={contantiCounts}
+          onChange={setContantiCounts}
+          hint={contoBeneficiario === 'Contanti' ? 'Banconote entrate nel portafoglio' : 'Banconote uscite dal portafoglio'}
+        />
+      )}
+
       <div>
         <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
         <input
@@ -146,7 +178,9 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
           value={importo}
           onChange={e => setImporto(e.target.value)}
           placeholder="0.00"
-          className={inputClass}
+          readOnly={coinvolgeContanti}
+          title={coinvolgeContanti ? 'Calcolato automaticamente dalle banconote indicate sopra' : undefined}
+          className={`${inputClass} ${coinvolgeContanti ? 'bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400 cursor-not-allowed' : ''}`}
           required
         />
       </div>

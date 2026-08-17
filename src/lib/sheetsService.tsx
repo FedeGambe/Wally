@@ -532,6 +532,98 @@ export const appendRowToSheet = async (
   }
 };
 
+// Gate indipendente per l'aggiornamento del portafoglio contanti (tab
+// "Portafoglio Raw"): a differenza dell'append qui si AGGIORNANO celle già
+// esistenti (i 5 contatori di banconote in riga 3), quindi va validato su un
+// foglio di prova prima di portarlo a `false` sul foglio reale — stesso
+// principio cautelativo di APPEND_TO_SHEETS_DISABLED.
+export const UPDATE_PORTAFOGLIO_DISABLED = false;
+
+// Struttura fissa del tab "Portafoglio Raw" sul foglio reale (verificata a
+// mano): riga 3 ("Portafoglio") ha un contatore per taglio di banconota,
+// colonne B:F = 5/10/20/50/100 euro, con una riga di TOTALI sotto calcolata
+// da formule (mai toccata qui). Non è in SHEETS_CONFIG perché non è una tab
+// transazionale: un'unica riga di contatori aggiornata sul posto, non una
+// riga per movimento.
+const PORTAFOGLIO_RAW_TAB = 'Portafoglio Raw';
+const PORTAFOGLIO_RAW_ROW = 3;
+export const PORTAFOGLIO_DENOMINAZIONI = [5, 10, 20, 50, 100] as const;
+export type PortafoglioDenominazione = typeof PORTAFOGLIO_DENOMINAZIONI[number];
+const PORTAFOGLIO_RAW_COLONNE: Record<PortafoglioDenominazione, string> = { 5: 'B', 10: 'C', 20: 'D', 50: 'E', 100: 'F' };
+
+/**
+ * Aggiorna i contatori di banconote sul tab "Portafoglio Raw": legge i valori
+ * attuali di B3:F3, applica i delta (positivi = banconote aggiunte al
+ * portafoglio, negativi = tolte) e riscrive SOLO le celle dei tagli
+ * effettivamente cambiati — mai l'intera riga, mai altre righe/tab. Se un
+ * delta negativo porterebbe un contatore sotto zero (più banconote tolte di
+ * quante il foglio ne registri), non scrive nulla e lancia un errore: un
+ * conteggio negativo non ha senso fisico ed è meglio segnalarlo che scrivere
+ * un dato palesemente sbagliato.
+ */
+export const updatePortafoglioRawCounts = async (
+  accessToken: string,
+  spreadsheetId: string,
+  deltas: Partial<Record<PortafoglioDenominazione, number>>
+): Promise<void> => {
+  if (UPDATE_PORTAFOGLIO_DISABLED) {
+    throw new Error('Aggiornamento del Portafoglio Raw temporaneamente disattivato (debug in corso). Nessun dato è stato inviato al foglio.');
+  }
+  const denominazioniAttive = PORTAFOGLIO_DENOMINAZIONI.filter(denom => deltas[denom]);
+  if (denominazioniAttive.length === 0) return;
+
+  const readRange = `${PORTAFOGLIO_RAW_TAB}!B${PORTAFOGLIO_RAW_ROW}:F${PORTAFOGLIO_RAW_ROW}`;
+  const readUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(readRange)}`;
+  const readResponse = await fetch(readUrl, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+  if (!readResponse.ok) {
+    if (readResponse.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    throw new Error(`Impossibile leggere il Portafoglio Raw (codice ${readResponse.status}).`);
+  }
+  const readResult = await readResponse.json();
+  const rigaAttuale: any[] = (readResult.values && readResult.values[0]) || [];
+  const attuali: Record<PortafoglioDenominazione, number> = { 5: 0, 10: 0, 20: 0, 50: 0, 100: 0 };
+  PORTAFOGLIO_DENOMINAZIONI.forEach((denom, idx) => {
+    attuali[denom] = Number(rigaAttuale[idx]) || 0;
+  });
+
+  const nuovi: Record<PortafoglioDenominazione, number> = { ...attuali };
+  denominazioniAttive.forEach(denom => {
+    nuovi[denom] = attuali[denom] + (deltas[denom] || 0);
+  });
+
+  const insufficienti = denominazioniAttive.filter(denom => nuovi[denom] < 0);
+  if (insufficienti.length > 0) {
+    const elenco = insufficienti
+      .map(denom => `${denom}€ (disponibili ${attuali[denom]}, richieste ${-(deltas[denom] || 0)})`)
+      .join(', ');
+    throw new Error(`Banconote insufficienti nel Portafoglio Raw: ${elenco}.`);
+  }
+
+  const data = denominazioniAttive.map(denom => ({
+    range: `${PORTAFOGLIO_RAW_TAB}!${PORTAFOGLIO_RAW_COLONNE[denom]}${PORTAFOGLIO_RAW_ROW}`,
+    values: [[nuovi[denom]]]
+  }));
+
+  const writeResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data })
+  });
+  if (!writeResponse.ok) {
+    if (writeResponse.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      const errBody = await writeResponse.json();
+      errorMsg = errBody?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile aggiornare il Portafoglio Raw: ${errorMsg || writeResponse.statusText || `Codice ${writeResponse.status}`}`);
+  }
+};
+
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
   if (WRITE_TO_SHEETS_DISABLED) return;
 

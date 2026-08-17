@@ -9,7 +9,7 @@ import { useFinanceData } from '../context/FinanceDataContext';
  * cancelli un record aggiunto in locale ma mai sincronizzato.
  */
 export function useSaveAndPush() {
-  const { pushToSheet, bumpVersion, accessToken, spreadsheetId } = useFinanceData();
+  const { pushToSheet, bumpVersion, accessToken, spreadsheetId, setSyncError } = useFinanceData();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,10 +38,13 @@ export function useSaveAndPush() {
   // `appends` è una lista di { tabTitle, record }: quasi sempre un elemento
   // solo, due quando un'Uscita porta con sé un Trasferimento collegato (vedi
   // AggiungiUscitaForm). `record` è lo stesso oggetto già passato a
-  // saveToLocalStorage dal form.
+  // saveToLocalStorage dal form. `contantiDelta` opzionale: quando la
+  // transazione coinvolge il conto Contanti, applica anche i delta di
+  // banconote al tab "Portafoglio Raw" (vedi updatePortafoglioRawCounts).
   const appendAndPush = useCallback(async (
     localSave: () => void,
-    appends: { tabTitle: string; record: Record<string, any> }[]
+    appends: { tabTitle: string; record: Record<string, any> }[],
+    contantiDelta?: Partial<Record<5 | 10 | 20 | 50 | 100, number>>
   ): Promise<boolean> => {
     setIsSaving(true);
     setError(null);
@@ -60,12 +63,22 @@ export function useSaveAndPush() {
       if (!accessToken) {
         throw new Error('Autenticazione scaduta. Effettua di nuovo l\'accesso.');
       }
-      const { appendRowToSheet } = await import('../lib/sheetsService');
+      const { appendRowToSheet, updatePortafoglioRawCounts } = await import('../lib/sheetsService');
       for (const { tabTitle, record } of appends) {
         await appendRowToSheet(accessToken, spreadsheetId, tabTitle, record);
       }
+      if (contantiDelta) {
+        await updatePortafoglioRawCounts(accessToken, spreadsheetId, contantiDelta);
+      }
     } catch (err: any) {
-      setError(`Salvato in locale, ma la sincronizzazione con Google Sheets non è riuscita: ${err?.message || 'errore sconosciuto'}. Riprova da Impostazioni.`);
+      const message = `Salvato in locale, ma la sincronizzazione con Google Sheets non è riuscita: ${err?.message || 'errore sconosciuto'}. Riprova da Impostazioni.`;
+      setError(message);
+      // Il popup del form si chiude subito dopo (il salvataggio locale è comunque
+      // riuscito), quindi l'errore sopra sparirebbe con lui prima di essere letto:
+      // lo mandiamo anche al toast persistente in basso a destra (stesso usato da
+      // pushToSheet), che sopravvive alla chiusura del popup.
+      setSyncError(message);
+      setTimeout(() => setSyncError(null), 8000);
     } finally {
       setIsSaving(false);
     }

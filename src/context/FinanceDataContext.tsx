@@ -31,6 +31,11 @@ interface FinanceDataContextValue {
   refreshData: () => Promise<void>;
   isRefreshing: boolean;
   syncError: string | null;
+  /** Espone il setter oltre al valore: usato da useSaveAndPush per far comparire nel
+   * toast persistente (in basso a destra) anche gli errori dei form "Aggiungi ..."
+   * (appendAndPush), che altrimenti sparirebbero col popup che si chiude subito dopo
+   * il salvataggio locale riuscito, prima che l'utente faccia in tempo a leggerli. */
+  setSyncError: (error: string | null) => void;
   bumpVersion: () => void;
   /**
    * Pusha lo stato attuale (getExportableData, MAI incognito) su Google Sheet.
@@ -187,6 +192,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
     refreshData,
     isRefreshing,
     syncError,
+    setSyncError,
     bumpVersion,
     pushToSheet,
     isPushing,

@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { Calendar, Tag, CreditCard } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
@@ -6,6 +6,7 @@ import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage, EntrataRecord } from '../../data/mockData';
 import { MESI_ITALIANI } from '../../utils/date';
 import DropdownMenu from '../DropdownMenu';
+import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
 
 interface AggiungiEntrataFormProps {
   onSaved: () => void;
@@ -31,6 +32,18 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
   const [categoria, setCategoria] = useState(categorieEntrate[0] || '');
   const [conto, setConto] = useState(conti.includes('Unicredit') ? 'Unicredit' : conti[0] || '');
   const [importo, setImporto] = useState('');
+  const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
+
+  // L'Importo deve corrispondere alla composizione di banconote scelta: lo
+  // ricalcoliamo automaticamente ogni volta che il conto è Contanti (anche
+  // appena selezionato, per non lasciare visibile un importo digitato a mano
+  // prima del cambio conto). Il campo Importo diventa di sola lettura in quel
+  // caso (vedi JSX più sotto).
+  useEffect(() => {
+    if (conto === 'Contanti') {
+      setImporto(String(contantiTotal(contantiCounts)));
+    }
+  }, [conto, contantiCounts]);
 
   const isValid = Boolean(categoria && conto && Number(importo) > 0);
 
@@ -49,9 +62,14 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
       importo: Number(importo)
     };
 
+    // Entrata in Contanti: le banconote indicate entrano nel portafoglio (delta positivo).
+    const contantiDelta = conto === 'Contanti'
+      ? Object.fromEntries(Object.entries(contantiCounts).filter(([, n]) => n > 0))
+      : undefined;
+
     const ok = await appendAndPush(() => {
       saveToLocalStorage({ entrate: [...data.entrate, nuovaEntrata] });
-    }, [{ tabTitle: 'Entrate', record: nuovaEntrata }]);
+    }, [{ tabTitle: 'Entrate', record: nuovaEntrata }], contantiDelta && Object.keys(contantiDelta).length > 0 ? contantiDelta : undefined);
     if (ok) onSaved();
   };
 
@@ -120,6 +138,14 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
         />
       </div>
 
+      {conto === 'Contanti' && (
+        <ContantiBreakdown
+          value={contantiCounts}
+          onChange={setContantiCounts}
+          hint="Banconote entrate nel portafoglio"
+        />
+      )}
+
       <div>
         <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
         <input
@@ -130,7 +156,9 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
           value={importo}
           onChange={e => setImporto(e.target.value)}
           placeholder="0.00"
-          className={inputClass}
+          readOnly={conto === 'Contanti'}
+          title={conto === 'Contanti' ? 'Calcolato automaticamente dalle banconote indicate sopra' : undefined}
+          className={`${inputClass} ${conto === 'Contanti' ? 'bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400 cursor-not-allowed' : ''}`}
           required
         />
       </div>
