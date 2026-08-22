@@ -309,7 +309,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
             role="radio"
             aria-checked={primaria}
             onClick={() => setPrimaria(true)}
-            className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'text-ink-soft'}`}
+            className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'bg-black/[0.03] dark:bg-white/[0.06] text-ink-soft hover:bg-black/[0.06] dark:hover:bg-white/10'}`}
           >
             Primaria
           </button>
@@ -318,7 +318,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
             role="radio"
             aria-checked={!primaria}
             onClick={() => setPrimaria(false)}
-            className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'text-ink-soft'}`}
+            className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'bg-black/[0.03] dark:bg-white/[0.06] text-ink-soft hover:bg-black/[0.06] dark:hover:bg-white/10'}`}
           >
             Secondaria
           </button>

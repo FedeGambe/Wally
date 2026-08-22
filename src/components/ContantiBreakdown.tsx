@@ -45,7 +45,7 @@ export default function ContantiBreakdown({ value, onChange, hint }: ContantiBre
               onChange={e => setCount(denom, Number(e.target.value))}
               placeholder="0"
               aria-label={`Numero banconote da ${denom} euro`}
-              className="w-full px-1.5 py-1.5 rounded-lg text-sm text-center bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              className="w-full px-1.5 py-1.5 rounded-lg text-sm text-center bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
             />
           </div>
         ))}

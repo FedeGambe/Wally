@@ -81,7 +81,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0";
   const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
