@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { Grid, Tag, CreditCard } from 'lucide-react';
+import { Grid, Tag, CreditCard, Repeat } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
@@ -8,6 +8,7 @@ import { iconPerMacroCategoria } from '../../data/datiBase';
 import { MESI_ITALIANI } from '../../utils/date';
 import { formatEuro } from '../../utils/format';
 import DropdownMenu from '../DropdownMenu';
+import AmountHero from '../AmountHero';
 import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
 
 const toInputDate = (d: Date) => {
@@ -161,41 +162,41 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <AmountHero
+        id={importoId}
+        label="Importo"
+        value={importo}
+        onChange={setImporto}
+        readOnly={conto === 'Contanti'}
+        readOnlyNote="Calcolato dalle banconote indicate qui sotto"
+      />
+
       {presetUscite.length > 0 && (
         <div>
-          <label className={labelClass}>Uscite ricorrenti da inserire — {targetMese} {targetAnno}</label>
+          <label className={labelClass}>Uscita ricorrente — {targetMese} {targetAnno}</label>
           {presetMancanti.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mb-2">
-              {presetMancanti.map(p => {
-                const collegato = hasTrasferimentoCollegato(p.nome);
-                const selezionato = presetSelezionatoId === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => applicaPreset(p.id)}
-                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                      selezionato
-                        ? 'bg-orange-700 text-white border-orange-700'
-                        : 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30 hover:bg-orange-100 dark:hover:bg-orange-500/20'
-                    }`}
-                  >
-                    {collegato && (
-                      <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5" title="Ha un trasferimento ricorrente collegato">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500" />
-                      </span>
-                    )}
-                    {p.nome} · {formatEuro(p.importo)}
-                  </button>
-                );
-              })}
-            </div>
+            <DropdownMenu
+              icon={Repeat}
+              label="Ricorrente"
+              accent="orange"
+              fullWidth
+              hideLabel
+              placeholder="Scegli quale inserire..."
+              value={presetSelezionatoId || ''}
+              displayValue={presetSelezionato ? `${presetSelezionato.nome} · ${formatEuro(presetSelezionato.importo)}${hasTrasferimentoCollegato(presetSelezionato.nome) ? ' · +trasferimento' : ''}` : ''}
+              options={presetMancanti.map(p => p.id)}
+              getOptionLabel={id => {
+                const p = presetMancanti.find(pm => pm.id === id);
+                if (!p) return '';
+                return `${p.nome} · ${formatEuro(p.importo)}${hasTrasferimentoCollegato(p.nome) ? ' · +trasferimento' : ''}`;
+              }}
+              onSelect={applicaPreset}
+            />
           ) : (
-            <p className="text-xs text-ink-soft mb-2">Nessuna uscita ricorrente ancora da inserire.</p>
+            <p className="text-xs text-ink-soft">Nessuna uscita ricorrente ancora da inserire.</p>
           )}
           {presetSelezionato && selezionatoHaTrasferimento && (
-            <label className="flex items-center gap-2 text-xs font-semibold text-ink-soft dark:text-slate-300 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs font-semibold text-ink-soft dark:text-slate-300 cursor-pointer select-none mt-2">
               <input
                 type="checkbox"
                 checked={ancheTrasferimento}
@@ -226,49 +227,51 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
         />
       </div>
 
-      <div>
-        <label className={labelClass}>Macro Categoria</label>
-        <DropdownMenu
-          icon={Grid}
-          label="Macro"
-          accent="orange"
-          fullWidth
-          hideLabel
-          value={macroCategoria}
-          displayValue={macroCategoria ? `${macroIconByNome[macroCategoria] || ''} ${macroCategoria}` : ''}
-          options={macroNomiList}
-          getOptionLabel={nome => `${macroIconByNome[nome] || ''} ${nome}`}
-          onSelect={handleMacroChange}
-        />
-      </div>
-
-      <div>
-        <label htmlFor={macroCategoria && categorieDisponibili.length === 0 ? categoriaLiberaId : undefined} className={labelClass}>Categoria</label>
-        {macroCategoria && categorieDisponibili.length === 0 ? (
-          // Macro a "inserimento libero" (es. Istruzione, Regalo): nessuna
-          // lista predefinita, la categoria si scrive a mano.
-          <input
-            id={categoriaLiberaId}
-            type="text"
-            value={categoria}
-            onChange={e => setCategoria(e.target.value)}
-            placeholder="Scrivi la categoria..."
-            className={inputClass}
-            required
-          />
-        ) : (
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass}>Macro Categoria</label>
           <DropdownMenu
-            icon={Tag}
-            label="Categoria"
+            icon={Grid}
+            label="Macro"
             accent="orange"
             fullWidth
             hideLabel
-            value={categoria}
-            displayValue={categoria}
-            options={categorieDisponibili}
-            onSelect={setCategoria}
+            value={macroCategoria}
+            displayValue={macroCategoria ? `${macroIconByNome[macroCategoria] || ''} ${macroCategoria}` : ''}
+            options={macroNomiList}
+            getOptionLabel={nome => `${macroIconByNome[nome] || ''} ${nome}`}
+            onSelect={handleMacroChange}
           />
-        )}
+        </div>
+
+        <div>
+          <label htmlFor={macroCategoria && categorieDisponibili.length === 0 ? categoriaLiberaId : undefined} className={labelClass}>Categoria</label>
+          {macroCategoria && categorieDisponibili.length === 0 ? (
+            // Macro a "inserimento libero" (es. Istruzione, Regalo): nessuna
+            // lista predefinita, la categoria si scrive a mano.
+            <input
+              id={categoriaLiberaId}
+              type="text"
+              value={categoria}
+              onChange={e => setCategoria(e.target.value)}
+              placeholder="Scrivi la categoria..."
+              className={inputClass}
+              required
+            />
+          ) : (
+            <DropdownMenu
+              icon={Tag}
+              label="Categoria"
+              accent="orange"
+              fullWidth
+              hideLabel
+              value={categoria}
+              displayValue={categoria}
+              options={categorieDisponibili}
+              onSelect={setCategoria}
+            />
+          )}
+        </div>
       </div>
 
       <div>
@@ -294,45 +297,27 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
         />
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
-          <input
-            id={importoId}
-            type="number"
-            step="0.01"
-            min="0.01"
-            value={importo}
-            onChange={e => setImporto(e.target.value)}
-            placeholder="0.00"
-            readOnly={conto === 'Contanti'}
-            title={conto === 'Contanti' ? 'Calcolato automaticamente dalle banconote indicate sopra' : undefined}
-            className={`${inputClass} ${conto === 'Contanti' ? 'bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400 cursor-not-allowed' : ''}`}
-            required
-          />
-        </div>
-        <div>
-          <span className={labelClass}>Tipologia</span>
-          <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-hairline dark:border-white/10 h-[42px]">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={primaria}
-              onClick={() => setPrimaria(true)}
-              className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'text-ink-soft'}`}
-            >
-              Primaria
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={!primaria}
-              onClick={() => setPrimaria(false)}
-              className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'text-ink-soft'}`}
-            >
-              Secondaria
-            </button>
-          </div>
+      <div>
+        <span className={labelClass}>Tipologia</span>
+        <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-hairline dark:border-white/10 h-[42px]">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={primaria}
+            onClick={() => setPrimaria(true)}
+            className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${primaria ? 'bg-orange-700 text-white' : 'text-ink-soft'}`}
+          >
+            Primaria
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!primaria}
+            onClick={() => setPrimaria(false)}
+            className={`flex-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${!primaria ? 'bg-orange-400 text-white' : 'text-ink-soft'}`}
+          >
+            Secondaria
+          </button>
         </div>
       </div>
 

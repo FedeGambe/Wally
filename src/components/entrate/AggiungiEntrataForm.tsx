@@ -6,6 +6,7 @@ import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage, EntrataRecord } from '../../data/mockData';
 import { MESI_ITALIANI } from '../../utils/date';
 import DropdownMenu from '../DropdownMenu';
+import AmountHero from '../AmountHero';
 import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
 
 interface AggiungiEntrataFormProps {
@@ -78,6 +79,15 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <AmountHero
+        id={importoId}
+        label="Importo"
+        value={importo}
+        onChange={setImporto}
+        readOnly={conto === 'Contanti'}
+        readOnlyNote="Calcolato dalle banconote indicate qui sotto"
+      />
+
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className={labelClass}>Mese</label>
@@ -145,23 +155,6 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
           hint="Banconote entrate nel portafoglio"
         />
       )}
-
-      <div>
-        <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
-        <input
-          id={importoId}
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={importo}
-          onChange={e => setImporto(e.target.value)}
-          placeholder="0.00"
-          readOnly={conto === 'Contanti'}
-          title={conto === 'Contanti' ? 'Calcolato automaticamente dalle banconote indicate sopra' : undefined}
-          className={`${inputClass} ${conto === 'Contanti' ? 'bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400 cursor-not-allowed' : ''}`}
-          required
-        />
-      </div>
 
       {error && <p className="text-xs text-down font-semibold">{error}</p>}
 

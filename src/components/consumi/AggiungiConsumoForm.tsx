@@ -2,6 +2,7 @@ import React, { useId, useState } from 'react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage } from '../../data/mockData';
+import AmountHero from '../AmountHero';
 
 const toInputDate = (d: Date) => {
   const y = d.getFullYear();
@@ -101,14 +102,16 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <AmountHero
+        id={costoId}
+        label="Costo"
+        value={costo}
+        onChange={handleCostoChange}
+      />
+
       <div>
         <label htmlFor={dataId} className={labelClass}>Data</label>
         <input id={dataId} type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
-      </div>
-
-      <div>
-        <label htmlFor={costoId} className={labelClass}>Costo (€)</label>
-        <input id={costoId} type="number" step="0.01" min="0.01" value={costo} onChange={e => handleCostoChange(e.target.value)} placeholder="0.00" className={inputClass} required />
       </div>
 
       <div>

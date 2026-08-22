@@ -1,7 +1,7 @@
 import React, { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X } from 'lucide-react';
+import { ChevronLeft, X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 
 /**
@@ -22,9 +22,12 @@ interface ModalProps {
   maxWidthClass?: string;
   /** Sfoca (backdrop-blur) il contenuto sotto l'overlay invece del solo scurimento. */
   blurBackdrop?: boolean;
+  /** Se presente, mostra un pulsante "indietro" prima del titolo (es. per tornare
+   * al selettore di AggiungiDatoModal senza chiudere il popup). */
+  onBack?: () => void;
 }
 
-export default function Modal({ isOpen, onClose, title, children, fullScreen = false, maxWidthClass = 'max-w-md', blurBackdrop = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, fullScreen = false, maxWidthClass = 'max-w-md', blurBackdrop = false, onBack }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   useFocusTrap(isOpen, onClose, panelRef);
@@ -69,8 +72,17 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
                   : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-hairline dark:border-white/10 outline-hidden`
               }
             >
-              <div className={`p-5 border-b border-hairline dark:border-white/10 flex items-center justify-between shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
-                <h3 id={titleId} className="text-base font-bold text-ink dark:text-slate-100 font-display">{title}</h3>
+              <div className={`p-5 border-b border-hairline dark:border-white/10 flex items-center gap-2.5 shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
+                {onBack && (
+                  <button
+                    onClick={onBack}
+                    aria-label="Indietro"
+                    className="w-9 h-9 rounded-xl bg-canvas dark:bg-white/5 border border-hairline dark:border-white/10 hover:bg-hairline/60 dark:hover:bg-white/10 flex items-center justify-center text-ink dark:text-slate-200 transition-colors cursor-pointer shrink-0"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                )}
+                <h3 id={titleId} className="text-base font-bold text-ink dark:text-slate-100 font-display flex-1">{title}</h3>
                 <button
                   onClick={onClose}
                   aria-label="Chiudi"

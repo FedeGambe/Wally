@@ -44,6 +44,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
+      onBack={tipo ? () => setTipo(null) : undefined}
       title={tipo ? TITOLI[tipo] : 'Aggiungi Dato'}
       maxWidthClass={tipo === 'usciteRicorrenti' ? 'max-w-lg' : 'max-w-md'}
     >

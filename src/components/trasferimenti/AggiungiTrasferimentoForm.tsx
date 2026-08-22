@@ -6,6 +6,7 @@ import { useSaveAndPush } from '../../hooks/useSaveAndPush';
 import { saveToLocalStorage, Trasferimento } from '../../data/mockData';
 import { MESI_ITALIANI } from '../../utils/date';
 import DropdownMenu from '../DropdownMenu';
+import AmountHero from '../AmountHero';
 import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
 
 interface AggiungiTrasferimentoFormProps {
@@ -85,6 +86,15 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <AmountHero
+        id={importoId}
+        label="Importo"
+        value={importo}
+        onChange={setImporto}
+        readOnly={coinvolgeContanti}
+        readOnlyNote="Calcolato dalle banconote indicate qui sotto"
+      />
+
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className={labelClass}>Mese</label>
@@ -167,23 +177,6 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
           hint={contoBeneficiario === 'Contanti' ? 'Banconote entrate nel portafoglio' : 'Banconote uscite dal portafoglio'}
         />
       )}
-
-      <div>
-        <label htmlFor={importoId} className={labelClass}>Importo (€)</label>
-        <input
-          id={importoId}
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={importo}
-          onChange={e => setImporto(e.target.value)}
-          placeholder="0.00"
-          readOnly={coinvolgeContanti}
-          title={coinvolgeContanti ? 'Calcolato automaticamente dalle banconote indicate sopra' : undefined}
-          className={`${inputClass} ${coinvolgeContanti ? 'bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-400 cursor-not-allowed' : ''}`}
-          required
-        />
-      </div>
 
       {error && <p className="text-xs text-down font-semibold">{error}</p>}
 

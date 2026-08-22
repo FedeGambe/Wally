@@ -86,7 +86,7 @@ export default function DropdownMenu({
   const [open, setOpen] = useState(false);
   // Coordinate (in pixel, relative alla viewport) a cui posizionare il pannello
   // quando è aperto. `null` finché non è ancora stato calcolato (prima apertura).
-  const [position, setPosition] = useState<{ top: number; left?: number; right?: number } | null>(null);
+  const [position, setPosition] = useState<{ top: number; left?: number; right?: number; width?: number } | null>(null);
   // Riferimento al bottone che apre il menu: serve per calcolarne la posizione
   // sullo schermo (getBoundingClientRect) e per riconoscere i click "dentro" il trigger.
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -105,12 +105,16 @@ export default function DropdownMenu({
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
+    // A piena larghezza il pannello deve combaciare col bottone che lo apre
+    // (altrimenti resta fisso a `widthClass`, troppo stretto per opzioni con
+    // testo lungo come "Nome preset · 123,45 € · +trasferimento").
+    const width = fullWidth ? rect.width : undefined;
     if (align === 'right') {
-      setPosition({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+      setPosition({ top: rect.bottom + 6, right: window.innerWidth - rect.right, width });
     } else {
-      setPosition({ top: rect.bottom + 6, left: rect.left });
+      setPosition({ top: rect.bottom + 6, left: rect.left, width });
     }
-  }, [open, align]);
+  }, [open, align, fullWidth]);
 
   // Chiude il menu quando si clicca fuori (né sul bottone né sul pannello).
   // L'ascoltatore viene aggiunto solo mentre il menu è aperto e rimosso alla
@@ -175,7 +179,7 @@ export default function DropdownMenu({
       {open && position && createPortal(
         <div
           ref={panelRef}
-          style={{ top: position.top, left: position.left, right: position.right }}
+          style={{ top: position.top, left: position.left, right: position.right, width: position.width }}
           className={`dropdown-menu-panel fixed ${widthClass} border rounded-2xl shadow-xl z-[80] p-1.5 ${layout === 'grid-2' ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-0.5'
             } max-h-64 overflow-y-auto animate-fadeIn`}
         >
