@@ -33,7 +33,7 @@ export default function AmountHero({ id, label, value, onChange, quickAmounts = 
   };
 
   return (
-    <div className="rounded-3xl bg-canvas dark:bg-white/5 border border-hairline dark:border-white/10 p-4 flex flex-col items-center gap-3">
+    <div className="rounded-3xl bg-canvas dark:bg-white/5 p-4 flex flex-col items-center gap-3">
       <label htmlFor={id} className="text-2xs font-bold text-ink-soft uppercase tracking-wider">{label}</label>
 
       <div className="flex items-baseline justify-center gap-1">
@@ -62,7 +62,7 @@ export default function AmountHero({ id, label, value, onChange, quickAmounts = 
               key={n}
               type="button"
               onClick={() => add(n)}
-              className="h-8 px-3 rounded-xl bg-white dark:bg-white/10 border border-hairline dark:border-white/10 text-sm font-bold text-ink dark:text-slate-200 hover:bg-canvas dark:hover:bg-white/15 transition-colors cursor-pointer"
+              className="h-8 px-3 rounded-xl bg-white dark:bg-white/10 text-sm font-bold text-ink dark:text-slate-200 hover:bg-canvas dark:hover:bg-white/15 transition-colors cursor-pointer"
             >
               +{n}
             </button>

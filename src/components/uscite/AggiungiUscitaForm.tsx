@@ -153,7 +153,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
   // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS
   // (funziona su Chrome/Edge/Safari, gli unici che espongono questo pseudo-elemento).
@@ -181,6 +181,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
               accent="orange"
               fullWidth
               hideLabel
+              borderless
               placeholder="Scegli quale inserire..."
               value={presetSelezionatoId || ''}
               displayValue={presetSelezionato ? `${presetSelezionato.nome} · ${formatEuro(presetSelezionato.importo)}${hasTrasferimentoCollegato(presetSelezionato.nome) ? ' · +trasferimento' : ''}` : ''}
@@ -236,6 +237,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
             accent="orange"
             fullWidth
             hideLabel
+            borderless
             value={macroCategoria}
             displayValue={macroCategoria ? `${macroIconByNome[macroCategoria] || ''} ${macroCategoria}` : ''}
             options={macroNomiList}
@@ -265,6 +267,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
               accent="orange"
               fullWidth
               hideLabel
+              borderless
               value={categoria}
               displayValue={categoria}
               options={categorieDisponibili}
@@ -282,6 +285,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
           accent="orange"
           fullWidth
           hideLabel
+          borderless
           value={conto}
           displayValue={conto}
           options={conti}
@@ -299,7 +303,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
       <div>
         <span className={labelClass}>Tipologia</span>
-        <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 border border-hairline dark:border-white/10 h-[42px]">
+        <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 h-[42px]">
           <button
             type="button"
             role="radio"

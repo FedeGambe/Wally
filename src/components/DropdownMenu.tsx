@@ -63,6 +63,10 @@ interface DropdownMenuProps {
    * è true e la label visiva del campo è resa come <label> separato non collegato via
    * htmlFor (il DropdownMenu è un <button>, non un <input>, quindi <label> da solo non basta). */
   ariaLabel?: string;
+  /** Toglie il bordo dal bottone e dal pannello, lasciando solo lo sfondo/ombra
+   * a delimitarli. Default false: non tocca l'aspetto degli usi esistenti
+   * (Header, barre filtri). */
+  borderless?: boolean;
 }
 
 export default function DropdownMenu({
@@ -81,7 +85,8 @@ export default function DropdownMenu({
   fullWidth = false,
   hideLabel = false,
   placeholder = 'Scegli...',
-  ariaLabel
+  ariaLabel,
+  borderless = false
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   // Coordinate (in pixel, relative alla viewport) a cui posizionare il pannello
@@ -156,9 +161,9 @@ export default function DropdownMenu({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel ?? (hideLabel ? `${label}: ${displayValue || placeholder}` : undefined)}
-        className={`flex items-center gap-1 sm:gap-1.5 bg-canvas dark:bg-slate-800/60 border border-hairline dark:border-slate-700/60 hover:border-hairline dark:hover:border-slate-600 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer ${
-          fullWidth ? 'w-full justify-between px-3 py-2.5' : 'px-2 py-1'
-        }`}
+        className={`flex items-center gap-1 sm:gap-1.5 bg-canvas dark:bg-slate-800/60 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer ${
+          borderless ? '' : 'border border-hairline dark:border-slate-700/60 hover:border-hairline dark:hover:border-slate-600'
+        } ${fullWidth ? 'w-full justify-between px-3 py-2.5' : 'px-2 py-1'}`}
       >
         <Icon className="w-3.5 h-3.5 text-ink-soft shrink-0" />
         <span className={`truncate ${fullWidth ? 'flex-1 text-left' : 'max-w-[10rem]'}`}>
@@ -180,7 +185,7 @@ export default function DropdownMenu({
         <div
           ref={panelRef}
           style={{ top: position.top, left: position.left, right: position.right, width: position.width }}
-          className={`dropdown-menu-panel fixed ${widthClass} border rounded-2xl shadow-xl z-[80] p-1.5 ${layout === 'grid-2' ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-0.5'
+          className={`dropdown-menu-panel fixed ${widthClass} ${borderless ? '' : 'border'} rounded-2xl shadow-xl z-[80] p-1.5 ${layout === 'grid-2' ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-0.5'
             } max-h-64 overflow-y-auto animate-fadeIn`}
         >
           {options.map(opt => {

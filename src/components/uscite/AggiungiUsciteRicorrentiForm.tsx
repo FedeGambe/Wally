@@ -147,10 +147,10 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
             return (
               <label
                 key={p.id}
-                className={`flex items-center gap-3 pl-3 pr-3.5 py-2.5 rounded-2xl text-sm border cursor-pointer select-none transition-all ${
+                className={`flex items-center gap-3 pl-3 pr-3.5 py-2.5 rounded-2xl text-sm cursor-pointer select-none transition-all ${
                   selezionato
-                    ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40'
-                    : 'bg-canvas dark:bg-white/5 border-hairline dark:border-white/10 opacity-55 hover:opacity-80'
+                    ? 'bg-amber-50 dark:bg-amber-500/10'
+                    : 'bg-canvas dark:bg-white/5 opacity-55 hover:opacity-80'
                 }`}
               >
                 <input
@@ -163,7 +163,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
                   ? <CheckCircle2 className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
                   : <Circle className="w-5 h-5 text-ink-soft/50 shrink-0" />}
 
-                <span className="w-9 h-9 rounded-xl bg-white dark:bg-white/10 border border-hairline dark:border-white/10 flex items-center justify-center text-base shrink-0">
+                <span className="w-9 h-9 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center text-base shrink-0">
                   {iconPerMacroCategoria(p.macroCategoria)}
                 </span>
 
@@ -172,7 +172,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
                     <span className="font-bold text-ink dark:text-slate-200 truncate">{p.nome}</span>
                     {collegato && (
                       <span
-                        className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full text-3xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30"
+                        className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full text-3xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10"
                         title="Ha un trasferimento ricorrente collegato"
                       >
                         <ArrowLeftRight className="w-2.5 h-2.5" />
@@ -203,7 +203,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
       {error && <p className="text-xs text-down font-semibold">{error}</p>}
 
       {presetMancanti.length > 0 && (
-        <div className="pt-1 border-t border-hairline dark:border-white/10 space-y-3">
+        <div className="pt-1 space-y-3">
           <div className="flex items-center justify-between text-sm pt-3">
             <span className="text-ink-soft">
               {presetSelezionati.length} uscit{presetSelezionati.length === 1 ? 'a' : 'e'} selezionat{presetSelezionati.length === 1 ? 'a' : 'e'}

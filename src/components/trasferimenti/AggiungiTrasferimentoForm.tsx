@@ -81,7 +81,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500";
   const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
@@ -111,6 +111,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
               accent="blue"
               fullWidth
               hideLabel
+              borderless
               value={MESI_ITALIANI[meseIdx]}
               displayValue={MESI_ITALIANI[meseIdx]}
               options={MESI_ITALIANI}
@@ -145,6 +146,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
           accent="blue"
           fullWidth
           hideLabel
+          borderless
           value={contoOrdinante}
           displayValue={contoOrdinante}
           options={conti}
@@ -160,6 +162,7 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
           accent="blue"
           fullWidth
           hideLabel
+          borderless
           value={contoBeneficiario}
           displayValue={contoBeneficiario}
           options={conti}

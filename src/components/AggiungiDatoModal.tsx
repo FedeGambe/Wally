@@ -47,13 +47,14 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
       onBack={tipo ? () => setTipo(null) : undefined}
       title={tipo ? TITOLI[tipo] : 'Aggiungi Dato'}
       maxWidthClass={tipo === 'usciteRicorrenti' ? 'max-w-lg' : 'max-w-md'}
+      borderless
     >
       {!tipo && (
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setTipo('entrata')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-canvas dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all cursor-pointer"
           >
             <ArrowUpRight className="w-6 h-6 text-up" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Entrata</span>
@@ -61,7 +62,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           <button
             type="button"
             onClick={() => setTipo('uscita')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:border-orange-300 dark:hover:border-orange-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-canvas dark:bg-white/5 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all cursor-pointer"
           >
             <ArrowDownRight className="w-6 h-6 text-orange-600" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Uscita</span>
@@ -69,7 +70,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           <button
             type="button"
             onClick={() => setTipo('consumo')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-canvas dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all cursor-pointer"
           >
             <Fuel className="w-6 h-6 text-rose-500" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Consumo</span>
@@ -77,7 +78,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           <button
             type="button"
             onClick={() => setTipo('trasferimento')}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:border-blue-300 dark:hover:border-blue-500/40 transition-all cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl bg-canvas dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all cursor-pointer"
           >
             <ArrowLeftRight className="w-6 h-6 text-blue-600" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Trasferimento</span>
@@ -85,7 +86,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           <button
             type="button"
             onClick={() => setTipo('usciteRicorrenti')}
-            className="col-span-2 flex items-center justify-center gap-2 p-4 rounded-2xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:border-amber-300 dark:hover:border-amber-500/40 transition-all cursor-pointer"
+            className="col-span-2 flex items-center justify-center gap-2 p-4 rounded-2xl bg-canvas dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all cursor-pointer"
           >
             <Repeat className="w-5 h-5 text-amber-600" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Uscite Ricorrenti</span>

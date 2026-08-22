@@ -31,7 +31,7 @@ export default function ContantiBreakdown({ value, onChange, hint }: ContantiBre
   };
 
   return (
-    <div className="rounded-xl border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 p-3">
+    <div className="rounded-xl bg-canvas dark:bg-white/5 p-3">
       <p className="text-2xs font-bold text-ink-soft uppercase tracking-wider mb-2">{hint}</p>
       <div className="grid grid-cols-5 gap-2">
         {PORTAFOGLIO_DENOMINAZIONI.map(denom => (
@@ -45,7 +45,7 @@ export default function ContantiBreakdown({ value, onChange, hint }: ContantiBre
               onChange={e => setCount(denom, Number(e.target.value))}
               placeholder="0"
               aria-label={`Numero banconote da ${denom} euro`}
-              className="w-full px-1.5 py-1.5 rounded-lg text-sm text-center border border-hairline dark:border-white/10 bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              className="w-full px-1.5 py-1.5 rounded-lg text-sm text-center bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
         ))}

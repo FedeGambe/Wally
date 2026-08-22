@@ -74,7 +74,7 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500";
   const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
 
   return (
@@ -104,6 +104,7 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
               accent="emerald"
               fullWidth
               hideLabel
+              borderless
               value={MESI_ITALIANI[meseIdx]}
               displayValue={MESI_ITALIANI[meseIdx]}
               options={MESI_ITALIANI}
@@ -126,6 +127,7 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
           accent="emerald"
           fullWidth
           hideLabel
+          borderless
           value={categoria}
           displayValue={categoria}
           options={categorieEntrate}
@@ -141,6 +143,7 @@ export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProp
           accent="emerald"
           fullWidth
           hideLabel
+          borderless
           value={conto}
           displayValue={conto}
           options={conti}

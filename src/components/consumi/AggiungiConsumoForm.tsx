@@ -94,7 +94,7 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
     if (ok) onSaved();
   };
 
-  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500";
+  const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500";
   // Il calendario nativo del browser disegna l'iconcina in nero fisso: su
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS.
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;

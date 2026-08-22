@@ -25,9 +25,13 @@ interface ModalProps {
   /** Se presente, mostra un pulsante "indietro" prima del titolo (es. per tornare
    * al selettore di AggiungiDatoModal senza chiudere il popup). */
   onBack?: () => void;
+  /** Toglie i bordi della card, dell'header e dei bottoni indietro/chiudi,
+   * lasciando solo lo sfondo/ombra a delimitare il popup. Default false: non
+   * tocca l'aspetto degli altri popup che usano questo componente. */
+  borderless?: boolean;
 }
 
-export default function Modal({ isOpen, onClose, title, children, fullScreen = false, maxWidthClass = 'max-w-md', blurBackdrop = false, onBack }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, fullScreen = false, maxWidthClass = 'max-w-md', blurBackdrop = false, onBack, borderless = false }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   useFocusTrap(isOpen, onClose, panelRef);
@@ -69,15 +73,15 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
               className={
                 fullScreen
                   ? 'w-full h-full bg-[#ffffff] dark:bg-[#0b0f19] flex flex-col outline-hidden'
-                  : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl border border-hairline dark:border-white/10 outline-hidden`
+                  : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl outline-hidden ${borderless ? '' : 'border border-hairline dark:border-white/10'}`
               }
             >
-              <div className={`p-5 border-b border-hairline dark:border-white/10 flex items-center gap-2.5 shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'}`}>
+              <div className={`p-5 flex items-center gap-2.5 shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'} ${borderless ? '' : 'border-b border-hairline dark:border-white/10'}`}>
                 {onBack && (
                   <button
                     onClick={onBack}
                     aria-label="Indietro"
-                    className="w-9 h-9 rounded-xl bg-canvas dark:bg-white/5 border border-hairline dark:border-white/10 hover:bg-hairline/60 dark:hover:bg-white/10 flex items-center justify-center text-ink dark:text-slate-200 transition-colors cursor-pointer shrink-0"
+                    className={`w-9 h-9 rounded-xl bg-canvas dark:bg-white/5 hover:bg-hairline/60 dark:hover:bg-white/10 flex items-center justify-center text-ink dark:text-slate-200 transition-colors cursor-pointer shrink-0 ${borderless ? '' : 'border border-hairline dark:border-white/10'}`}
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -86,7 +90,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
                 <button
                   onClick={onClose}
                   aria-label="Chiudi"
-                  className="w-9 h-9 rounded-xl bg-down/15 border border-down/30 hover:bg-down/25 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0"
+                  className={`w-9 h-9 rounded-xl bg-down/15 hover:bg-down/25 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0 ${borderless ? '' : 'border border-down/30'}`}
                 >
                   <X className="w-5 h-5" />
                 </button>
