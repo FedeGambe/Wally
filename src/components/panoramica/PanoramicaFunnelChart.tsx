@@ -61,6 +61,8 @@ export default function PanoramicaFunnelChart({ data, mese, anno, theme }: Panor
         <ResponsiveContainer width="100%" height="100%">
           <Sankey
             data={{ nodes, links }}
+            sort={false}
+            verticalAlign="top"
             nodeWidth={12}
             nodePadding={20}
             linkCurvature={0.55}
