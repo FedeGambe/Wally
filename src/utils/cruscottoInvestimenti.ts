@@ -281,7 +281,8 @@ export function computeCruscottoData(sheetsData: any): any[] {
 export function computeRealAssetAllocation(
   sheetsData: any,
   targetMonth?: number,
-  targetYear?: number
+  targetYear?: number,
+  mode: 'upTo' | 'exact' = 'upTo'
 ): { macroData: any[]; detailData: any[] } {
   if (!sheetsData) {
     return { macroData: [], detailData: [] };
@@ -356,9 +357,12 @@ export function computeRealAssetAllocation(
 
   // Se non viene passato un mese/anno target, usiamo tutta la storia disponibile (comportamento
   // precedente equivalente: sommare tutto invece di leggere solo l'ultima riga da' comunque il
-  // totale investito ad oggi).
+  // totale investito ad oggi). mode='exact' (usato dal funnel mensile di Panoramica) restringe
+  // invece alle sole righe DI QUEL mese, non cumulate: ogni riga Scalable/Trade Republic e' gia'
+  // il versamento del solo mese in cui si trova (vedi commento in cima alla funzione).
   const isUpToTarget = (r: MonthYear): boolean => {
     if (targetYear === undefined || targetMonth === undefined) return true;
+    if (mode === 'exact') return r.year === targetYear && r.month === targetMonth;
     return r.year < targetYear || (r.year === targetYear && r.month <= targetMonth);
   };
 

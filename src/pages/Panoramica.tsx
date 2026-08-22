@@ -25,8 +25,10 @@ import PanoramicaWealthCards from '../components/panoramica/PanoramicaWealthCard
 import PanoramicaRendicontoWidget from '../components/panoramica/PanoramicaRendicontoWidget';
 import PanoramicaMeseCorrenteStrip from '../components/panoramica/PanoramicaMeseCorrenteStrip';
 import PanoramicaTrendChart from '../components/panoramica/PanoramicaTrendChart';
+import PanoramicaFunnelChart from '../components/panoramica/PanoramicaFunnelChart';
 import PanoramicaBilancioStorico from '../components/panoramica/PanoramicaBilancioStorico';
 import { usePanoramicaData } from '../hooks/usePanoramicaData';
+import { useFinanceData } from '../context/FinanceDataContext';
 
 interface PanoramicaProps {
   selectedYear: string;
@@ -44,6 +46,7 @@ export default function Panoramica({
   setActiveView
 }: PanoramicaProps) {
   const isMobile = useIsMobile();
+  const { data: financeData } = useFinanceData();
   const {
     localSelectedMonth,
     drawerOpen, setDrawerOpen,
@@ -131,6 +134,12 @@ export default function Panoramica({
           {rendicontoWidget}
         </div>
       </div>
+
+      <PanoramicaFunnelChart
+        data={financeData}
+        mese={currentMonthData.mese}
+        anno={currentMonthData.anno}
+      />
 
       <PanoramicaBilancioStorico
         filteredRisparmio={filteredRisparmio}
