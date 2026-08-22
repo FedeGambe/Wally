@@ -8,6 +8,7 @@ interface PanoramicaFunnelChartProps {
   data: any;
   mese: string;
   anno: number;
+  theme: 'dark' | 'light';
 }
 
 const truncate = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
@@ -21,7 +22,7 @@ const truncate = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}
  * nodi "riassuntivi" — i singoli strumenti restano senza etichetta fissa,
  * visibili passando il mouse sul collegamento).
  */
-export default function PanoramicaFunnelChart({ data, mese, anno }: PanoramicaFunnelChartProps) {
+export default function PanoramicaFunnelChart({ data, mese, anno, theme }: PanoramicaFunnelChartProps) {
   const funnel = usePanoramicaFunnelData(data, mese, anno);
   const [hoveredLink, setHoveredLink] = useState<number | null>(null);
 
@@ -30,6 +31,11 @@ export default function PanoramicaFunnelChart({ data, mese, anno }: PanoramicaFu
   const { nodes, links } = funnel;
   const hovered = hoveredLink !== null ? links[hoveredLink] : null;
   const hoveredLabel = hovered ? `${nodes[hovered.source].name} → ${nodes[hovered.target].name}` : null;
+
+  // In tema scuro i link a bassa opacità risultano troppo sbiaditi sullo
+  // sfondo scuro della card: qui più pieni, in chiaro restano tenui come prima.
+  const linkOpacity = theme === 'dark' ? 0.55 : 0.32;
+  const linkOpacityDimmed = theme === 'dark' ? 0.12 : 0.08;
 
   const nodeIsActive = (index: number) =>
     hoveredLink === null || links[hoveredLink].source === index || links[hoveredLink].target === index;
@@ -58,7 +64,7 @@ export default function PanoramicaFunnelChart({ data, mese, anno }: PanoramicaFu
             nodeWidth={12}
             nodePadding={20}
             linkCurvature={0.55}
-            margin={{ top: 8, right: 150, bottom: 8, left: 8 }}
+            margin={{ top: 8, right: 175, bottom: 8, left: 8 }}
             node={(props: any) => {
               const { x, y, width, height, payload, index } = props;
               const active = nodeIsActive(index);
@@ -88,7 +94,7 @@ export default function PanoramicaFunnelChart({ data, mese, anno }: PanoramicaFu
                   fill="none"
                   stroke={color}
                   strokeWidth={Math.max(linkWidth, 1)}
-                  strokeOpacity={dimmed ? 0.08 : 0.32}
+                  strokeOpacity={dimmed ? linkOpacityDimmed : linkOpacity}
                   style={{ cursor: 'pointer', transition: 'stroke-opacity 0.15s ease' }}
                   onMouseEnter={() => setHoveredLink(index)}
                   onMouseLeave={() => setHoveredLink(null)}

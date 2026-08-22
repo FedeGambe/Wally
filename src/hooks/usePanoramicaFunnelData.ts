@@ -93,7 +93,7 @@ export function usePanoramicaFunnelData(data: any, mese: string, anno: number): 
         links.push({ source: investIdx, target: tipoIdx, value: tipoTotale });
 
         items.filter(i => i.importoInvestito > 0).forEach(i => {
-          const strumentoIdx = pushNode({ name: i.nome, color, showLabel: false });
+          const strumentoIdx = pushNode({ name: i.nome, color, showLabel: true });
           links.push({ source: tipoIdx, target: strumentoIdx, value: i.importoInvestito });
         });
       });

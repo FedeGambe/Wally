@@ -509,6 +509,7 @@ function DashboardShell({
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
             setActiveView={setActiveView}
+            theme={theme}
           />
         );
       case 'entrate':
@@ -561,6 +562,7 @@ function DashboardShell({
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
             setActiveView={setActiveView}
+            theme={theme}
           />
         );
     }

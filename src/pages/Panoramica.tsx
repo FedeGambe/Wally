@@ -36,6 +36,7 @@ interface PanoramicaProps {
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   setActiveView?: (view: string) => void;
+  theme: 'dark' | 'light';
 }
 
 export default function Panoramica({
@@ -43,7 +44,8 @@ export default function Panoramica({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  setActiveView
+  setActiveView,
+  theme
 }: PanoramicaProps) {
   const isMobile = useIsMobile();
   const { data: financeData } = useFinanceData();
@@ -139,6 +141,7 @@ export default function Panoramica({
         data={financeData}
         mese={currentMonthData.mese}
         anno={currentMonthData.anno}
+        theme={theme}
       />
 
       <PanoramicaBilancioStorico
