@@ -303,7 +303,7 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
 
       <div>
         <span className={labelClass}>Tipologia</span>
-        <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-0.5 h-[42px]">
+        <div role="radiogroup" aria-label="Tipologia" className="flex bg-canvas dark:bg-white/5 p-1 rounded-xl gap-2 h-[42px]">
           <button
             type="button"
             role="radio"
