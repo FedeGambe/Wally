@@ -42,7 +42,7 @@ export default function Impostazioni({
   // Stato iniziale letto una sola volta da localStorage (funzione lazy passata a useState);
   // se non c'è ancora un ID salvato si usa lo spreadsheet di default del progetto.
   const [spreadsheetId, setSpreadsheetId] = useState(() => {
-    return localStorage.getItem('sf_spreadsheet_id') || '1xfDnJX-Rx0F8d03ituBTY7HRp1Mw4FCjy4rEueTg9YA';
+    return localStorage.getItem('sf_spreadsheet_id') || import.meta.env.VITE_DEFAULT_SPREADSHEET_ID || '';
   });
   const [saveSuccess, setSaveSuccess] = useState(false);
 

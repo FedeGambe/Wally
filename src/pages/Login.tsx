@@ -20,7 +20,6 @@ interface LoginProps {
 }
 
 export default function Login({ onLogin }: LoginProps) {
-  const [selectedUser, setSelectedUser] = useState<string>('federico.gamberini.fg@gmail.com');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errMessage, setErrMessage] = useState<string | null>(null);
 
@@ -35,7 +34,7 @@ export default function Login({ onLogin }: LoginProps) {
       const res = await googleSignIn();
       if (res) {
         onLogin(
-          res.user.email || 'federico.gamberini.fg@gmail.com',
+          res.user.email || '',
           res.accessToken,
           res.user.photoURL,
           res.user.displayName
@@ -97,27 +96,6 @@ export default function Login({ onLogin }: LoginProps) {
           <p className="text-xs text-ink-soft text-center mb-6">
             Accesso autorizzato unicamente per l'amministratore del conto tramite autenticazione protetta.
           </p>
-
-          {/* Utente Autorizzato Card */}
-          <div className="bg-canvas border border-hairline p-4 rounded-xl mb-6">
-            <span className="text-3xs font-bold text-ink-soft uppercase tracking-wider block mb-2 text-left">
-              Utente di Riferimento
-            </span>
-            <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-hairline shadow-2xs">
-              <div className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center font-bold uppercase shrink-0">
-                F
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-sm font-bold text-ink truncate">Federico</p>
-                <p className="text-xs text-ink-soft truncate">federico.gamberini.fg@gmail.com</p>
-              </div>
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
-                  <span className="text-3xs font-black">✓</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Graphical Separation Line with Text */}
           <div className="relative my-6 flex py-1 items-center">

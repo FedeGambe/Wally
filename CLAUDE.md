@@ -38,7 +38,7 @@ A header toggle (`toggleIncognito` from the context) swaps the entire dashboard 
 
 - **localStorage keys are all prefixed `sf_`** (`sf_transactions`, `sf_spreadsheet_id`, `sf_theme`, `sf_incognito_mode`, `sf_device_remembered_*`, …).
 - **UI-filter state** (`selectedYear`, `selectedMonth`, `theme`, sidebar collapse, active view) lives in `App.tsx` and is passed as props — it is deliberately *not* in `FinanceDataContext`, which holds only finance data + sync state.
-- **Firebase config comes from `VITE_FIREBASE_*` env vars** (see `src/lib/googleAuth.ts`, typed in `src/vite-env.d.ts`). Locally use `.env.local` (gitignored); on Vercel set them as Environment Variables. `firebase-applet-config.json` is a placeholder-only leftover and is no longer read.
+- **Firebase config comes from `VITE_FIREBASE_*` env vars** (see `src/lib/googleAuth.ts`, typed in `src/vite-env.d.ts`). Locally use `.env.local` (gitignored); on Vercel set them as Environment Variables.
 - **Google OAuth access tokens expire after ~1h**; `googleAuth.ts` treats them as valid within a 50-minute window and forces re-login otherwise.
 - A recurring class of bug: pages reading a **wrong/stale key** off the data object and silently falling back to hardcoded values (e.g. `contiPatrimonio` vs the real key `patrimonio`). When wiring a page to `useFinanceData()`, confirm the key names against what `getExportableData` actually returns.
 - Deployment target is **Vercel** (auto-deploy from GitHub `main`). Vercel blocks deploys when the commit-author email isn't a verified email on the pushing GitHub account.

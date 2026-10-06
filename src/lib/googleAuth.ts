@@ -254,7 +254,7 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     
     // Save to remember session for 7 days
     localStorage.setItem('sf_device_remembered', 'true');
-    localStorage.setItem('sf_device_remembered_email', result.user.email || 'federico.gamberini.fg@gmail.com');
+    localStorage.setItem('sf_device_remembered_email', result.user.email || '');
     localStorage.setItem('sf_device_remembered_token', cachedAccessToken);
     localStorage.setItem('sf_device_remember_time', String(Date.now()));
     if (result.user.photoURL) {

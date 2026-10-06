@@ -183,7 +183,7 @@ export default function Uscite({
         />
       </div>
 
-      {/* Interactive table list filtering federico's real inputs */}
+      {/* Interactive table list filtering real inputs */}
       <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 intense-search-bar">
           <div>

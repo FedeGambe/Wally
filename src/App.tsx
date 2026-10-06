@@ -268,13 +268,15 @@ export default function App() {
   useEffect(() => {
     const initialized = localStorage.getItem('sf_spreadsheet_initialized');
     if (!initialized) {
-      localStorage.setItem('sf_spreadsheet_id', '1xfDnJX-Rx0F8d03ituBTY7HRp1Mw4FCjy4rEueTg9YA');
+      localStorage.setItem('sf_spreadsheet_id', import.meta.env.VITE_DEFAULT_SPREADSHEET_ID || '');
+      const configId = import.meta.env.VITE_DEFAULT_CONFIG_SPREADSHEET_ID;
+      if (configId) localStorage.setItem('sf_config_spreadsheet_id', configId);
       localStorage.setItem('sf_spreadsheet_initialized', 'true');
     }
 
     const unsubscribe = initAuth(
       (user, token) => {
-        setUserEmail(user.email || 'federico.gamberini.fg@gmail.com');
+        setUserEmail(user.email || '');
         setUserPhoto(user.photoURL || localStorage.getItem('sf_device_remembered_photo'));
         setUserDisplayName(user.displayName || localStorage.getItem('sf_device_remembered_name'));
         setAccessToken(token);

@@ -82,19 +82,15 @@ export default function Sidebar({
   };
 
   // Ricava l'iniziale da mostrare nell'avatar quando l'utente non ha una foto profilo.
-  // L'email personale dello sviluppatore è gestita come caso speciale ("F" fisso)
-  // perché il suo indirizzo Gmail non segue lo schema "nome.cognome@dominio".
   const getProfileInitials = (email: string) => {
-    if (email === 'federico.gamberini.fg@gmail.com') return 'F';
-    if (!email) return 'F';
+    if (!email) return '?';
     const namePart = email.split('@')[0];
     return namePart[0].toUpperCase();
   };
 
   // Ricava un nome "leggibile" dall'indirizzo email (prima parte prima del punto,
-  // con iniziale maiuscola), con lo stesso caso speciale di getProfileInitials sopra.
+  // con iniziale maiuscola).
   const getDisplayName = (email: string) => {
-    if (email === 'federico.gamberini.fg@gmail.com') return 'Federico';
     const namePart = email.split('@')[0];
     const firstWord = namePart.split('.')[0];
     return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
