@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 import {
   XAxis,
   YAxis,
@@ -49,6 +50,7 @@ export default function UsciteTrendChart({
   handleChartClick
 }: UsciteTrendChartProps) {
   const isMobile = useIsMobile();
+  const [zoomedOut, setZoomedOut] = useState(false);
 
   // Massimo assoluto delle serie effettivamente disegnate (dipende dal filtro
   // primarie/secondarie/all): decide se l'asse Y può usare la notazione compatta
@@ -58,6 +60,18 @@ export default function UsciteTrendChart({
       : activeChartFilter === 'primarie' ? ['spesePrimarie'] : ['speseSecondarie'];
     return keys.reduce((mm, k) => Math.max(mm, Math.abs(Number(r[k]) || 0)), m);
   }, 0);
+
+  // Asse Y "zoomato": massimo = media della somma mensile delle serie visibili + un margine,
+  // così un mese anomalo (outlier) non schiaccia gli altri. Il bottone "Zoom out" torna alla
+  // scala automatica per vedere anche i valori molto alti.
+  const visibleKeys = activeChartFilter === 'all' ? ['spesePrimarie', 'speseSecondarie']
+    : activeChartFilter === 'primarie' ? ['spesePrimarie'] : ['speseSecondarie'];
+  const monthlySums = rolling12MonthsData.map(r => visibleKeys.reduce((t, k) => t + (Number(r[k]) || 0), 0));
+  const avgMonthly = monthlySums.length ? monthlySums.reduce((a, b) => a + b, 0) / monthlySums.length : 0;
+  const Y_GAP = 1.25; // margine sopra la media (+25%)
+  const zoomedMax = Math.max(100, Math.ceil((avgMonthly * Y_GAP) / 100) * 100);
+  const hasOutliers = yAxisMaxAbs > zoomedMax;
+  const clipY = hasOutliers && !zoomedOut;
 
   // Tooltip custom: Recharts passa "label" = valore dell'asse X (il mese), qui
   // lo cerchiamo in rolling12MonthsData per recuperare anche l'anno da mostrare.
@@ -88,7 +102,17 @@ export default function UsciteTrendChart({
   };
 
   return (
-    <div className="h-72 mt-6 pointer-events-none md:pointer-events-auto">
+    <div className="relative h-72 mt-6 pointer-events-none md:pointer-events-auto">
+      {hasOutliers && (
+        <button
+          onClick={() => setZoomedOut(z => !z)}
+          className="absolute top-0 right-0 z-10 pointer-events-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 text-3xs font-bold transition cursor-pointer"
+          title={zoomedOut ? 'Torna alla scala sulla media' : 'Mostra anche i valori molto alti'}
+        >
+          {zoomedOut ? <ZoomIn className="w-3 h-3" /> : <ZoomOut className="w-3 h-3" />}
+          {zoomedOut ? 'Zoom in' : 'Zoom out'}
+        </button>
+      )}
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={rolling12MonthsData}
@@ -124,6 +148,8 @@ export default function UsciteTrendChart({
             tickLine={false}
             axisLine={false}
             width={isMobile ? 44 : 60}
+            domain={clipY ? [0, zoomedMax] : [0, 'auto']}
+            allowDataOverflow={clipY}
             tickFormatter={(val) => isMobile
               ? formatAxisCompact(val, yAxisMaxAbs)
               : `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
