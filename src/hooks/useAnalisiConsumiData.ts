@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CSSProperties } from 'react';
 import { useFinanceData } from '../context/FinanceDataContext';
+import { dividiSeBisettimanale } from '../utils/consumiSettimane';
 import { calcolaEsitiSettimanali, EsitoSettimana } from '../utils/esitoSettimanale';
 import { kpiColorAlpha, kpiTextColor, median, KpiRange } from '../utils/kpiColorScale';
 
@@ -154,7 +155,7 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
     // Prima passata: aggrega i campi "base" per settimana — costo/litri/km effettuati sommati,
     // prezzo/efficienza in media pesata sui litri (rifornimenti più grandi pesano di più), km
     // finali e data presi dal rifornimento più recente della settimana.
-    const settimaneBase = Array.from(gruppi.entries())
+    const settimaneBase = dividiSeBisettimanale(Array.from(gruppi.entries())
       .map(([key, righe]) => {
         const ordinate = [...righe].sort((a, b) => a.date.getTime() - b.date.getTime());
         const totaleLitri = ordinate.reduce((s, r) => s + r.quantitaLitri, 0);
@@ -179,7 +180,7 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
           efficienzaPercentuale
         };
       })
-      .sort((a, b) => a.anchorTime - b.anchorTime);
+      .sort((a, b) => a.anchorTime - b.anchorTime));
 
     // Seconda passata: Km persi/Costo extra confrontano ogni settimana con il MAX (record
     // personale) e la MEDIANA di km/litro su TUTTO lo storico (stesse formule della colonna

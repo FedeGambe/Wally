@@ -2,7 +2,7 @@ import React from 'react';
 import { Car } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { formatSettimanaTick, formatAxisNumber, formatAxisEuro, TimeRangeToggle } from './ConsumiChartHelpers';
+import { monthAxisProps, formatAxisKm, formatAxisPrezzo, fmtNum, TimeRangeToggle } from './ConsumiChartHelpers';
 import type { RecordConsumo, TimeRange } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 2 "Percorrenza & Prezzo
@@ -59,13 +59,13 @@ export default function ConsumiPercorrenzaPrezzo({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                  <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(kmChartData, isMobile)} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisKm} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                     itemStyle={{ color: '#fda4af' }}
-                    formatter={(value: any) => [`${value} Km`, 'Km Effettuati']}
+                    formatter={(value: any) => [`${fmtNum(value, 0)} Km`, 'Km Effettuati']}
                   />
                   <Area
                     type="monotone"
@@ -108,13 +108,13 @@ export default function ConsumiPercorrenzaPrezzo({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
-                  <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                  <XAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(prezzoChartData, isMobile)} />
+                  <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisPrezzo} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                     itemStyle={{ color: '#f59e0b' }}
-                    formatter={(value: any) => [`€${value}`, 'Prezzo al Lt']}
+                    formatter={(value: any) => [`€${fmtNum(value, 3)}`, 'Prezzo al Lt']}
                   />
                   <Area type="monotone" dataKey="prezzoAlLitro" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrezzoAlLitro)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
                 </AreaChart>

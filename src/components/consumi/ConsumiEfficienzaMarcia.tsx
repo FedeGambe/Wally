@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { formatEuro } from '../../utils/format';
-import { formatSettimanaTick, formatAxisNumber, formatAxisEuro, KmLtTooltip, TimeRangeToggle } from './ConsumiChartHelpers';
+import { monthAxisProps, formatAxisNumber, formatAxisEuro, KmLtTooltip, TimeRangeToggle } from './ConsumiChartHelpers';
 import type { RecordConsumo, TimeRange } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 1 "Efficienza di Marcia"
@@ -70,7 +70,7 @@ export default function ConsumiEfficienzaMarcia({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                  <XAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(kmLtChartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin - 0.75), (dataMax: number) => dataMax + 0.75]} />
                   <Tooltip content={<KmLtTooltip />} />
                   <Line type="monotone" dataKey="kmAlLitroAuto" stroke="#94a3b8" strokeOpacity={0.6} strokeWidth={2} strokeDasharray="4 4" dot={false} activeDot={false} connectNulls={false} />
@@ -105,7 +105,7 @@ export default function ConsumiEfficienzaMarcia({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                  <XAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(euro100ChartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}

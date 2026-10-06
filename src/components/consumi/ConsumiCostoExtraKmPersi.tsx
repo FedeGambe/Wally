@@ -3,7 +3,7 @@ import { AlertOctagon } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { formatEuro } from '../../utils/format';
-import { formatSettimanaTick, formatAxisNumber, formatAxisEuro, SegmentedToggle, TimeRangeToggle } from './ConsumiChartHelpers';
+import { monthAxisProps, fmtNum, formatAxisNumber, formatAxisEuro, SegmentedToggle, TimeRangeToggle } from './ConsumiChartHelpers';
 import type { RecordConsumo, TimeRange, ExtraMode } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 3 "Costo Extra & Km Persi"
@@ -71,16 +71,14 @@ export default function ConsumiCostoExtraKmPersi({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                  <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(costoExtraChartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                     itemStyle={{ color: '#f97316' }}
                     formatter={(value: any) => [
-                      extraMode === 'perKm'
-                        ? new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(Number(value))
-                        : formatEuro(value),
+                      formatEuro(value),
                       extraMode === 'perKm' ? 'Costo Extra/Km' : 'Costo Extra'
                     ]}
                   />
@@ -115,13 +113,13 @@ export default function ConsumiCostoExtraKmPersi({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis dataKey="settimana" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatSettimanaTick} />
+                  <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(kmPersiChartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                     itemStyle={{ color: '#fda4af' }}
-                    formatter={(value: any) => [`${Number(value).toFixed(1)} Km`, extraMode === 'perKm' ? 'Km Persi/Km' : 'Km Persi']}
+                    formatter={(value: any) => [`${fmtNum(value)} Km`, extraMode === 'perKm' ? 'Km Persi/Km' : 'Km Persi']}
                   />
                   <Area type="monotone" dataKey="kmPersi" stroke="#e11d48" strokeWidth={2.5} fillOpacity={1} fill="url(#colorKmPersi)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
                 </AreaChart>
