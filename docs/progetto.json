@@ -1,0 +1,9 @@
+{
+    "repo": "Wally",
+    "t": "Wally",
+    "d": "App di finanza personale: entrate, spese e consumi sempre sotto controllo.",
+    "tags": ["Finanza", "App"],
+    "y": 2026,
+    "live": "https://finanza-personale-rose.vercel.app",
+    "img": "img/cover_verticale.svg"
+}
