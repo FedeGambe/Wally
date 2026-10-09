@@ -1,14 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice"><defs><clipPath id="c"><rect width="1600" height="900" /></clipPath>
-<filter id="o" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#00110d" flood-opacity=".55" /></filter>
-<filter id="gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="5" /><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .9 -.25" /></filter></defs>
-<g clip-path="url(#c)"><rect width="1600" height="900" fill="#0a6460" />
-<g opacity=".5"><circle cx="1420" cy="170" r="270" fill="#0d6b69" />
-<circle cx="1420" cy="170" r="170" fill="#0a5a34" />
-<circle cx="1420" cy="170" r="72" fill="#7fe0d8" opacity=".85" /></g>
-<path d="M0 380 A260 260 0 0 1 260 640 L0 640 Z" fill="#05403d" />
-<path d="M0 640 L260 640 A260 260 0 0 1 0 900 Z" fill="#3fd17a" opacity=".8" />
-<rect x="1150" y="560" width="450" height="52" fill="#7fe0d8" opacity=".55" />
-<rect x="1260" y="630" width="340" height="52" fill="#3fd17a" opacity=".6" />
-<rect x="1370" y="700" width="230" height="52" fill="#05403d" />
-<rect width="1600" height="900" filter="url(#gr)" opacity=".5" />
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice"><defs><clipPath id="c"><rect width="1600" height="900"/></clipPath><filter id="gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .9 -.25"/></filter></defs><g clip-path="url(#c)"><rect width="1600" height="900" fill="#0a6460"/><g opacity=".5"><circle cx="1090" cy="70" r="190" fill="#0d6b69"/><circle cx="1090" cy="70" r="120" fill="#0a5a34"/><circle cx="1090" cy="70" r="50" fill="#7fe0d8" opacity=".85"/></g><path d="M500 420 A190 190 0 0 1 690 610 L500 610 Z" fill="#05403d"/><path d="M500 610 L690 610 A190 190 0 0 1 500 800 Z" fill="#3fd17a" opacity=".8"/><rect x="1010" y="560" width="40" height="340" fill="#7fe0d8" opacity=".55"/><rect x="1060" y="650" width="40" height="250" fill="#3fd17a" opacity=".6"/><rect x="1110" y="740" width="40" height="160" fill="#05403d"/><rect width="1600" height="900" filter="url(#gr)" opacity=".5"/></g></svg>
