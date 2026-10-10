@@ -22,7 +22,7 @@
  *    silentTokenRefresh.
  */
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, User, UserCredential, signOut } from 'firebase/auth';
 
 // Stessi scope richiesti dal provider Firebase qui sotto: servono identici
 // anche al token client GIS, altrimenti il rinnovo silenzioso otterrebbe un
@@ -66,6 +66,51 @@ provider.addScope('https://www.googleapis.com/auth/drive.readonly');
 
 let isSigningIn = false;
 let cachedAccessToken: string | null = null;
+
+// App aperta dall'icona sulla schermata Home (iOS "Aggiungi a Home" o PWA
+// installata): lì il popup di login si apre in un contesto Safari separato,
+// con uno storage diverso da quello dell'app, e Firebase fallisce con
+// "missing initial state". In quel caso si usa il redirect, che resta nella
+// stessa finestra (richiede authDomain = dominio dell'app, vedi vercel.json).
+const isStandaloneApp = (): boolean =>
+  (navigator as any).standalone === true ||
+  window.matchMedia('(display-mode: standalone)').matches;
+
+// Salva token + profilo in localStorage dopo un login riuscito (popup o redirect).
+const storeSignInResult = (result: UserCredential): string => {
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  if (!credential?.accessToken) {
+    throw new Error('Failed to get access token from Firebase Auth');
+  }
+
+  cachedAccessToken = credential.accessToken;
+
+  localStorage.setItem('sf_device_remembered', 'true');
+  localStorage.setItem('sf_device_remembered_email', result.user.email || '');
+  localStorage.setItem('sf_device_remembered_token', cachedAccessToken);
+  localStorage.setItem('sf_device_remember_time', String(Date.now()));
+  if (result.user.photoURL) {
+    localStorage.setItem('sf_device_remembered_photo', result.user.photoURL);
+  } else {
+    localStorage.removeItem('sf_device_remembered_photo');
+  }
+  if (result.user.displayName) {
+    localStorage.setItem('sf_device_remembered_name', result.user.displayName);
+  } else {
+    localStorage.removeItem('sf_device_remembered_name');
+  }
+  return cachedAccessToken;
+};
+
+// Al ritorno da un signInWithRedirect il token OAuth arriva solo da
+// getRedirectResult: va letto PRIMA di gestire onAuthStateChanged, altrimenti
+// quest'ultimo vedrebbe un utente senza token e farebbe logout.
+const redirectResultPromise: Promise<string | null> = getRedirectResult(auth)
+  .then(result => (result ? storeSignInResult(result) : null))
+  .catch(err => {
+    console.error('Redirect sign in error:', err);
+    return null;
+  });
 
 let gisTokenClient: ReturnType<NonNullable<Window['google']>['accounts']['oauth2']['initTokenClient']> | null = null;
 let pendingRefreshResolvers: Array<(token: string | null) => void> = [];
@@ -193,6 +238,8 @@ export const initAuth = (
       return;
     }
 
+    await redirectResultPromise;
+
     if (user) {
       if (cachedAccessToken) {
         if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
@@ -244,31 +291,15 @@ export const initAuth = (
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
   try {
     isSigningIn = true;
+    if (isStandaloneApp()) {
+      // La pagina lascia l'app e ci torna a login finito: il risultato lo
+      // raccoglie redirectResultPromise al prossimo avvio (initAuth).
+      return await signInWithRedirect(auth, provider);
+    }
     const result = await signInWithPopup(auth, provider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (!credential?.accessToken) {
-      throw new Error('Failed to get access token from Firebase Auth');
-    }
+    const accessToken = storeSignInResult(result);
 
-    cachedAccessToken = credential.accessToken;
-    
-    // Save to remember session for 7 days
-    localStorage.setItem('sf_device_remembered', 'true');
-    localStorage.setItem('sf_device_remembered_email', result.user.email || '');
-    localStorage.setItem('sf_device_remembered_token', cachedAccessToken);
-    localStorage.setItem('sf_device_remember_time', String(Date.now()));
-    if (result.user.photoURL) {
-      localStorage.setItem('sf_device_remembered_photo', result.user.photoURL);
-    } else {
-      localStorage.removeItem('sf_device_remembered_photo');
-    }
-    if (result.user.displayName) {
-      localStorage.setItem('sf_device_remembered_name', result.user.displayName);
-    } else {
-      localStorage.removeItem('sf_device_remembered_name');
-    }
-
-    return { user: result.user, accessToken: cachedAccessToken };
+    return { user: result.user, accessToken };
   } catch (error: any) {
     console.error('Sign in error:', error);
     throw error;
