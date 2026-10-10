@@ -48,7 +48,10 @@ declare global {
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  // In produzione il login passa dal dominio dell'app stessa (proxy /__/auth
+  // in vercel.json), così popup/redirect condividono lo storage dell'app anche
+  // dall'icona sulla Home di iOS. In locale si usa il valore di .env.local.
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || window.location.host,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
