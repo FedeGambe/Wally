@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseLocalizedNumber, parseDateString, valoreAccodato, intervalloSomma, parsePresetInvestimentiMatrix, buildPresetInvestimentiMatrix } from './sheetsService';
+import { parseLocalizedNumber, parseDateString, valoreAccodato, intervalloSomma, parsePresetInvestimentiMatrix, buildPresetInvestimentiMatrix, normalizzaIntestazione } from './sheetsService';
 
 describe('parseLocalizedNumber', () => {
   it('parses plain numbers unchanged', () => {
@@ -165,5 +165,17 @@ describe('matrice Preset Investimenti Ricorrenti', () => {
     const preset = parsePresetInvestimentiMatrix([['Conto', 'A', 'B'], ['Scalable', '€139,22', '']]);
     expect(preset).toHaveLength(1);
     expect(preset[0].importo).toBe(139.22);
+  });
+});
+
+describe('normalizzaIntestazione', () => {
+  it('riconosce le intestazioni reali dei tab broker', () => {
+    expect(normalizzaIntestazione(' Rendimento comulativo')).toBe(normalizzaIntestazione('Rendimento comulativo'));
+    expect(normalizzaIntestazione(' Saldo Conto Completo')).toBe('saldocontocompleto');
+  });
+
+  it('non confonde colonne simili', () => {
+    expect(normalizzaIntestazione('Rendimento comulativo %')).not.toBe(normalizzaIntestazione('Rendimento comulativo'));
+    expect(normalizzaIntestazione('Saldo Conto')).not.toBe(normalizzaIntestazione('Saldo Conto Completo'));
   });
 });

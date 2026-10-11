@@ -45,3 +45,13 @@ export function importoGiaInserito(data: DatiBroker, broker: string, strumento: 
   if (!riga) return 0;
   return parseLocalizedNumber(riga[toValidFieldName(strumento)]);
 }
+
+// Valore numerico (dall'ultimo pull) di un campo della riga del mese, es.
+// saldoConto di "ottobre 2026"; null se la riga manca o la cella è vuota/zero.
+export function valoreCampoBroker(data: DatiBroker, broker: string, campo: string, meseLabel: string): number | null {
+  const { rows } = datiDelBroker(data, broker);
+  const riga = rows.find(r => String(r.mese || '').trim().toLowerCase() === meseLabel);
+  if (!riga) return null;
+  const valore = parseLocalizedNumber(riga[campo]);
+  return valore !== 0 ? valore : null;
+}

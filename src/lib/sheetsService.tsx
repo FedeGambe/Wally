@@ -878,6 +878,89 @@ export const addStrumentoBrokerColumn = async (
   }
 };
 
+// Confronto intestazioni tollerante a spazi/maiuscole/punteggiatura e al refuso
+// "comulativo" del foglio (stessa normalizzazione di mapFromRowsWithHeaders).
+export const normalizzaIntestazione = (h: any): string =>
+  String(h || '').toLowerCase().replace(/[^a-z0-9%]/g, '').replace(/comulativ/g, 'cumulativ');
+
+/**
+ * Verifica mensile dei broker: scrive valori singoli (saldo, interessi,
+ * saveback, rendimento cumulativo) in celle già esistenti del tab, ognuna
+ * individuata da intestazione (riga 1) + mese (colonna A) — le voci possono
+ * stare su mesi diversi (es. interessi e saveback vanno nella riga del mese
+ * dopo). Come gli altri percorsi di scrittura: se anche una sola cella
+ * contiene già un valore o una formula non scrive NULLA e lancia un errore.
+ */
+export const writeVerificaMensileToSheet = async (
+  accessToken: string,
+  spreadsheetId: string,
+  tabTitle: string,
+  voci: { intestazione: string; meseLabel: string; valore: number }[]
+): Promise<void> => {
+  if (APPEND_TO_SHEETS_DISABLED) {
+    throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
+  }
+  if (voci.length === 0) return;
+  const authHeaders = { 'Authorization': `Bearer ${accessToken}` };
+  const getValues = async (range: string): Promise<any[][]> => {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`;
+    const response = await fetch(url, { headers: authHeaders, cache: 'no-store' });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+      }
+      throw new Error(`Impossibile leggere "${tabTitle}" (codice ${response.status}).`);
+    }
+    return (await response.json()).values || [];
+  };
+
+  const intestazioni = ((await getValues(`${tabTitle}!1:1`))[0] || []).map(normalizzaIntestazione);
+  const mesi = (await getValues(`${tabTitle}!A:A`)).map(r => String(r?.[0] || '').trim().toLowerCase());
+  const celle = voci.map(v => {
+    const col = intestazioni.indexOf(normalizzaIntestazione(v.intestazione));
+    if (col === -1) {
+      throw new Error(`Colonna "${v.intestazione}" non trovata nella riga 1 di "${tabTitle}".`);
+    }
+    const riga = mesi.indexOf(v.meseLabel.trim().toLowerCase());
+    if (riga === -1) {
+      throw new Error(`Riga "${v.meseLabel}" non trovata nella colonna A di "${tabTitle}".`);
+    }
+    return `${tabTitle}!${columnLetterForIndexWide(col)}${riga + 1}`;
+  });
+
+  const rangesParam = celle.map(r => `ranges=${encodeURIComponent(r)}`).join('&');
+  const attualiResponse = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${rangesParam}&valueRenderOption=FORMULA`,
+    { headers: authHeaders, cache: 'no-store' }
+  );
+  if (!attualiResponse.ok) {
+    throw new Error(`Impossibile leggere le celle da aggiornare su "${tabTitle}" (codice ${attualiResponse.status}).`);
+  }
+  const attuali = ((await attualiResponse.json()).valueRanges || []).map((vr: any) => vr?.values?.[0]?.[0]);
+  const conflitti = voci
+    .map((v, i) => (attuali[i] !== undefined && attuali[i] !== null && attuali[i] !== '' ? `${v.intestazione} di ${v.meseLabel} (già ${attuali[i]})` : ''))
+    .filter(Boolean);
+  if (conflitti.length > 0) {
+    throw new Error(`Nessun dato scritto su "${tabTitle}": celle già valorizzate — ${conflitti.join(', ')}.`);
+  }
+
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    headers: { ...authHeaders, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data: voci.map((v, i) => ({ range: celle[i], values: [[v.valore]] })) })
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      errorMsg = (await response.json())?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile scrivere su "${tabTitle}": ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
+};
+
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
   if (WRITE_TO_SHEETS_DISABLED) return;
 

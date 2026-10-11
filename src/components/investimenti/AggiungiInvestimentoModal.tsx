@@ -3,8 +3,9 @@ import { TrendingUp, Sparkles, ClipboardCheck } from 'lucide-react';
 import Modal from '../Modal';
 import AggiungiInvestimentiRicorrentiForm from './AggiungiInvestimentiRicorrentiForm';
 import AggiungiInvestimentoUnaTantumForm from './AggiungiInvestimentoUnaTantumForm';
+import VerificaMensileForm from './VerificaMensileForm';
 
-type TipoInvestimento = 'ricorrenti' | 'unaTantum' | null;
+type TipoInvestimento = 'ricorrenti' | 'unaTantum' | 'verifica' | null;
 
 interface AggiungiInvestimentoModalProps {
   isOpen: boolean;
@@ -13,13 +14,14 @@ interface AggiungiInvestimentoModalProps {
 
 const TITOLI: Record<Exclude<TipoInvestimento, null>, string> = {
   ricorrenti: 'Investimenti Ricorrenti',
-  unaTantum: 'Investimento Una Tantum'
+  unaTantum: 'Investimento Una Tantum',
+  verifica: 'Verifica Mensile'
 };
 
 /**
  * Bottone "+" della pagina Investimenti: come AggiungiDatoModal, prima si
- * sceglie cosa inserire, poi si apre lo STESSO form usato da Aggiungi Dato.
- * "Verifica mensile" è prevista ma non ancora costruita (bottone disattivato).
+ * sceglie cosa inserire, poi si apre lo STESSO form usato da Aggiungi Dato
+ * (ricorrenti e una tantum), oppure la verifica di fine mese dei broker.
  */
 export default function AggiungiInvestimentoModal({ isOpen, onClose }: AggiungiInvestimentoModalProps) {
   const [tipo, setTipo] = useState<TipoInvestimento>(null);
@@ -68,19 +70,20 @@ export default function AggiungiInvestimentoModal({ isOpen, onClose }: AggiungiI
           </button>
           <button
             type="button"
-            disabled
-            className={`${bottoneClass} opacity-50 cursor-not-allowed`}
+            onClick={() => setTipo('verifica')}
+            className={`${bottoneClass} hover:bg-sky-50 dark:hover:bg-sky-500/10 cursor-pointer`}
           >
-            <ClipboardCheck className="w-5 h-5 text-ink-soft shrink-0" />
+            <ClipboardCheck className="w-5 h-5 text-sky-600 shrink-0" />
             <span>
               <span className="block text-sm font-bold text-ink dark:text-slate-200">Verifica mensile</span>
-              <span className="block text-xs text-ink-soft">In arrivo</span>
+              <span className="block text-xs text-ink-soft">Saldi, interessi, saveback e rendimento di fine mese</span>
             </span>
           </button>
         </div>
       )}
       {tipo === 'ricorrenti' && <AggiungiInvestimentiRicorrentiForm onSaved={handleClose} />}
       {tipo === 'unaTantum' && <AggiungiInvestimentoUnaTantumForm onSaved={handleClose} />}
+      {tipo === 'verifica' && <VerificaMensileForm onSaved={handleClose} />}
     </Modal>
   );
 }

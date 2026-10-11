@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { strumentiBroker, meseLabelBroker, importoGiaInserito } from './investimentiRicorrenti';
+import { strumentiBroker, meseLabelBroker, importoGiaInserito, valoreCampoBroker } from './investimentiRicorrenti';
 
 // Forma dei dati come la produce fetchSpreadsheetData per il tab Trade Republic.
 const data = {
@@ -26,5 +26,24 @@ describe('investimentiRicorrenti', () => {
     expect(importoGiaInserito(data, 'Trade Republic', 'MSCI World Small Cap', 'ottobre 2026')).toBe(80);
     expect(importoGiaInserito(data, 'Trade Republic', 'FTSE Dev Asia', 'ottobre 2026')).toBe(0);
     expect(importoGiaInserito(data, 'Trade Republic', 'FTSE Dev Asia', 'novembre 2026')).toBe(0);
+  });
+});
+
+describe('valoreCampoBroker (verifica mensile)', () => {
+  const dati = {
+    tradeRepublic: [
+      { mese: 'settembre 2026', saldoConto: '€ 4.431,39', interessiConto: 6.9 },
+      { mese: 'ottobre 2026', saldoConto: 0, interessiConto: '€ 4,48' }
+    ]
+  };
+
+  it('valore presente nella riga del mese', () => {
+    expect(valoreCampoBroker(dati, 'Trade Republic', 'saldoConto', 'settembre 2026')).toBe(4431.39);
+    expect(valoreCampoBroker(dati, 'Trade Republic', 'interessiConto', 'ottobre 2026')).toBe(4.48);
+  });
+
+  it('null se vuoto/zero o mese assente', () => {
+    expect(valoreCampoBroker(dati, 'Trade Republic', 'saldoConto', 'ottobre 2026')).toBeNull();
+    expect(valoreCampoBroker(dati, 'Trade Republic', 'saldoConto', 'novembre 2026')).toBeNull();
   });
 });
