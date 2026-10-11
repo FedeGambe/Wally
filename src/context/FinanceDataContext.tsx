@@ -59,11 +59,14 @@ const FinanceDataContext = createContext<FinanceDataContextValue | null>(null);
 interface FinanceDataProviderProps {
   accessToken: string | null;
   onAuthError: () => void;
+  /** Solo per la demo della documentazione (src/demo/main.tsx): dati sempre fittizi,
+   * il toggle incognito non torna mai ai dati reali. */
+  forceIncognito?: boolean;
   children: React.ReactNode;
 }
 
-export function FinanceDataProvider({ accessToken, onAuthError, children }: FinanceDataProviderProps) {
-  const [isIncognito, setIsIncognito] = useState<boolean>(() => isIncognitoModeEnabled());
+export function FinanceDataProvider({ accessToken, onAuthError, forceIncognito = false, children }: FinanceDataProviderProps) {
+  const [isIncognito, setIsIncognito] = useState<boolean>(() => forceIncognito || isIncognitoModeEnabled());
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
@@ -76,10 +79,11 @@ export function FinanceDataProvider({ accessToken, onAuthError, children }: Fina
   }, []);
 
   const toggleIncognito = useCallback((enabled: boolean) => {
+    if (forceIncognito) return;
     setIncognitoModeEnabled(enabled);
     setIsIncognito(enabled);
     bumpVersion();
-  }, [bumpVersion]);
+  }, [bumpVersion, forceIncognito]);
 
   const refreshData = useCallback(async () => {
     const savedId = localStorage.getItem('sf_spreadsheet_id');

@@ -28,31 +28,3 @@ export function minimoAsseConScarto(valori: number[], maxVisibile?: number): num
   const passo = passoTondo(max);
   return Math.max(0, Math.floor((min - scarto) / passo) * passo);
 }
-
-/**
- * Media dei valori senza quelli anomali verso l'alto: è anomalo un valore oltre
- * Q3 + 1,5 × (Q3 − Q1), il criterio classico dei box plot. Con meno di 4 valori
- * i quartili non hanno senso e si usa la media semplice.
- */
-export function mediaSenzaAnomaliAlti(valori: number[]): number {
-  const v = valori.filter(n => Number.isFinite(n)).sort((a, b) => a - b);
-  if (v.length === 0) return 0;
-  const media = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
-  if (v.length < 4) return media(v);
-  const quantile = (q: number) => {
-    const pos = (v.length - 1) * q;
-    const base = Math.floor(pos);
-    const resto = pos - base;
-    return v[base + 1] !== undefined ? v[base] + resto * (v[base + 1] - v[base]) : v[base];
-  };
-  const q1 = quantile(0.25);
-  const q3 = quantile(0.75);
-  const sogliaAnomali = q3 + 1.5 * (q3 - q1);
-  return media(v.filter(n => n <= sogliaAnomali));
-}
-
-/** Arrotonda per eccesso a una cifra tonda (stesso passo usato per il minimo). */
-export function arrotondaPerEccesso(valore: number): number {
-  const passo = passoTondo(valore);
-  return Math.ceil(valore / passo) * passo;
-}

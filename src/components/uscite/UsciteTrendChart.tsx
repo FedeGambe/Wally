@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { formatAxisCompact, formatEuro } from '../../utils/format';
-import { minimoAsseConScarto, mediaSenzaAnomaliAlti, arrotondaPerEccesso } from '../../utils/chartScale';
+import { minimoAsseConScarto } from '../../utils/chartScale';
 
 // Estratto da Uscite.tsx: il grafico ad area con lo storico spese ultimi 12
 // mesi (primarie/secondarie), filtrabile e cliccabile per cambiare il mese
@@ -62,21 +62,22 @@ export default function UsciteTrendChart({
     return keys.reduce((mm, k) => Math.max(mm, Math.abs(Number(r[k]) || 0)), m);
   }, 0);
 
-  // Asse Y: il minimo parte poco sotto il valore più basso (non da 0); il massimo
-  // "zoomato" è la media della serie visibile più alta, calcolata senza i mesi
-  // anomali verso l'alto, più un margine — così un mese eccezionale non schiaccia
-  // gli altri. Le due serie sono aree separate (non impilate), quindi la media è
-  // per serie e non sulla loro somma. Il bottone "Zoom out" torna a mostrare
-  // anche i valori molto alti.
+  // Asse Y "zoomato": massimo = media della somma mensile delle serie visibili + un margine,
+  // così un mese anomalo (outlier) non schiaccia gli altri. Il bottone "Zoom out" torna alla
+  // scala automatica per vedere anche i valori molto alti. Il minimo invece parte poco
+  // sotto il valore più basso, non da 0 (vedi utils/chartScale.ts).
   const visibleKeys = activeChartFilter === 'all' ? ['spesePrimarie', 'speseSecondarie']
     : activeChartFilter === 'primarie' ? ['spesePrimarie'] : ['speseSecondarie'];
-  const valoriPerSerie = visibleKeys.map(k => rolling12MonthsData.map(r => Number(r[k]) || 0));
-  const mediaPiuAlta = Math.max(0, ...valoriPerSerie.map(mediaSenzaAnomaliAlti));
+  const monthlySums = rolling12MonthsData.map(r => visibleKeys.reduce((t, k) => t + (Number(r[k]) || 0), 0));
+  const avgMonthly = monthlySums.length ? monthlySums.reduce((a, b) => a + b, 0) / monthlySums.length : 0;
   const Y_GAP = 1.25; // margine sopra la media (+25%)
-  const zoomedMax = Math.max(100, arrotondaPerEccesso(mediaPiuAlta * Y_GAP));
+  const zoomedMax = Math.max(100, Math.ceil((avgMonthly * Y_GAP) / 100) * 100);
   const hasOutliers = yAxisMaxAbs > zoomedMax;
   const clipY = hasOutliers && !zoomedOut;
-  const yMin = minimoAsseConScarto(valoriPerSerie.flat(), clipY ? zoomedMax : undefined);
+  const yMin = minimoAsseConScarto(
+    visibleKeys.flatMap(k => rolling12MonthsData.map(r => Number(r[k]) || 0)),
+    clipY ? zoomedMax : undefined
+  );
 
   // Tooltip custom: Recharts passa "label" = valore dell'asse X (il mese), qui
   // lo cerchiamo in rolling12MonthsData per recuperare anche l'anno da mostrare.
