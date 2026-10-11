@@ -1,8 +1,18 @@
 import React, { useId, useState } from 'react';
+import { CreditCard } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
+import { useDatiBase } from '../../hooks/useDatiBase';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
-import { saveToLocalStorage } from '../../data/mockData';
+import { saveToLocalStorage, Transaction } from '../../data/mockData';
+import { iconPerMacroCategoria } from '../../data/datiBase';
+import { MESI_ITALIANI } from '../../utils/date';
+import { formatEuro } from '../../utils/format';
 import AmountHero from '../AmountHero';
+import DropdownMenu from '../DropdownMenu';
+import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, type ContantiCounts } from '../ContantiBreakdown';
+
+// Valori fissi dell'uscita proposta dopo un rifornimento: l'utente sceglie solo il conto.
+const USCITA_RIFORNIMENTO = { descrizione: 'Benzina', macroCategoria: 'Automobile', categoria: 'Rifornimento', primaria: true };
 
 const toInputDate = (d: Date) => {
   const y = d.getFullYear();
@@ -33,6 +43,7 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   const kmFinaliId = useId();
   const kmAlLitroId = useId();
   const { data } = useFinanceData();
+  const { conti } = useDatiBase();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
 
   const [dataStr, setDataStr] = useState(() => toInputDate(new Date()));
@@ -46,6 +57,16 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   // cambia il Costo si ricalcola quello NON guidato invece di sovrascrivere quello che l'utente
   // ha appena digitato.
   const [campoGuida, setCampoGuida] = useState<'litri' | 'prezzo' | null>(null);
+  // Dopo il salvataggio del consumo il form lascia il posto alla domanda "aggiungo
+  // anche l'uscita?": qui restano data (dd/mm/yyyy) e costo del consumo appena salvato.
+  const [consumoSalvato, setConsumoSalvato] = useState<{ data: string; costo: number } | null>(null);
+  // Conto proposto: quello dell'ultimo rifornimento registrato tra le uscite, altrimenti
+  // lo stesso default del form Aggiungi Uscita.
+  const [contoUscita, setContoUscita] = useState(() => {
+    const ultimo = [...data.uscite].reverse().find(t => t.categoria === USCITA_RIFORNIMENTO.categoria && conti.includes(t.conto));
+    return ultimo?.conto || (conti.includes('Trade Republic') ? 'Trade Republic' : conti[0] || '');
+  });
+  const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
 
   const ricalcolaDaCosto = (costoStr: string, guida: 'litri' | 'prezzo' | null, valoreGuida: string) => {
     const c = Number(costoStr);
@@ -91,6 +112,34 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
     const ok = await appendAndPush(() => {
       saveToLocalStorage({ analisiConsumi: [...data.analisiConsumi, nuovoRecord] as any });
     }, [{ tabTitle: 'Analisi consumi', record: nuovoRecord }]);
+    if (ok) setConsumoSalvato({ data: nuovoRecord.data, costo: nuovoRecord.costo });
+  };
+
+  const handleAggiungiUscita = async () => {
+    if (!consumoSalvato || !contoUscita) return;
+    const [, m] = consumoSalvato.data.split('/');
+    const nuovaUscita: Transaction = {
+      id: `manual-${Date.now()}`,
+      data: consumoSalvato.data,
+      mese: MESI_ITALIANI[parseInt(m, 10) - 1],
+      descrizione: USCITA_RIFORNIMENTO.descrizione,
+      macroCategoria: USCITA_RIFORNIMENTO.macroCategoria,
+      categoria: USCITA_RIFORNIMENTO.categoria,
+      icon: iconPerMacroCategoria(USCITA_RIFORNIMENTO.macroCategoria),
+      conto: contoUscita,
+      importo: consumoSalvato.costo,
+      primaria: USCITA_RIFORNIMENTO.primaria
+    };
+    // Come in AggiungiUscitaForm: in Contanti le banconote indicate escono dal portafoglio.
+    const contantiDelta = contoUscita === 'Contanti'
+      ? Object.fromEntries(
+          Object.entries(contantiCounts).filter(([, n]) => n > 0).map(([denom, n]) => [denom, -n])
+        )
+      : undefined;
+    const ok = await appendAndPush(() => {
+      saveToLocalStorage({ uscite: [...data.uscite, nuovaUscita] });
+    }, [{ tabTitle: 'Uscite', record: nuovaUscita as Record<string, any> }],
+      contantiDelta && Object.keys(contantiDelta).length > 0 ? contantiDelta : undefined);
     if (ok) onSaved();
   };
 
@@ -99,6 +148,67 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   // sfondo scuro diventa quasi invisibile, la "invertiamo" via filtro CSS.
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
   const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
+
+  if (consumoSalvato) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl bg-canvas dark:bg-white/5 p-4">
+          <p className="text-sm font-bold text-ink dark:text-slate-100">Consumo salvato.</p>
+          <p className="text-sm text-ink-soft dark:text-slate-300 mt-1">
+            Vuoi aggiungere anche l'uscita di {formatEuro(consumoSalvato.costo)} del {consumoSalvato.data}?
+          </p>
+          <p className="text-2xs text-ink-soft mt-2">
+            {USCITA_RIFORNIMENTO.descrizione} · {USCITA_RIFORNIMENTO.macroCategoria} › {USCITA_RIFORNIMENTO.categoria} · Primaria
+          </p>
+        </div>
+
+        <div>
+          <label className={labelClass}>Conto Utilizzato</label>
+          <DropdownMenu
+            icon={CreditCard}
+            label="Conto"
+            accent="orange"
+            fullWidth
+            hideLabel
+            borderless
+            value={contoUscita}
+            displayValue={contoUscita}
+            options={conti}
+            onSelect={setContoUscita}
+          />
+        </div>
+
+        {contoUscita === 'Contanti' && (
+          <ContantiBreakdown
+            value={contantiCounts}
+            onChange={setContantiCounts}
+            hint="Banconote uscite dal portafoglio"
+          />
+        )}
+
+        {error && <p className="text-xs text-down font-semibold">{error}</p>}
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={onSaved}
+            disabled={isSaving}
+            className="py-3 bg-canvas dark:bg-white/10 text-ink dark:text-slate-200 font-bold text-sm rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+          >
+            No, grazie
+          </button>
+          <button
+            type="button"
+            onClick={handleAggiungiUscita}
+            disabled={!contoUscita || isSaving}
+            className="py-3 bg-orange-700 hover:bg-orange-800 text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isSaving ? 'Salvataggio...' : 'Aggiungi Uscita'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

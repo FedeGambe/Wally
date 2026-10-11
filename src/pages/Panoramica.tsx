@@ -18,8 +18,8 @@
 // ============================================================================
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { Plus } from 'lucide-react';
 import AggiungiDatoModal from '../components/AggiungiDatoModal';
+import FloatingAddButton from '../components/FloatingAddButton';
 import Drawer from '../components/Drawer';
 import PanoramicaWealthCards from '../components/panoramica/PanoramicaWealthCards';
 import PanoramicaRendicontoWidget from '../components/panoramica/PanoramicaRendicontoWidget';
@@ -78,14 +78,7 @@ export default function Panoramica({
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Panoramica</h1>
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowAddDataModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Aggiungi Dato
-        </button>
-      </div>
+      <FloatingAddButton label="Aggiungi Dato" colorClass="bg-blue-600 hover:bg-blue-700" onClick={() => setShowAddDataModal(true)} />
 
       <PanoramicaWealthCards
         capitaleDisponibile={capitaleDisponibile}

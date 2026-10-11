@@ -15,9 +15,10 @@
 // ============================================================================
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { Grid, CreditCard, Plus } from 'lucide-react';
+import { Grid, CreditCard } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import Modal from '../components/Modal';
+import FloatingAddButton from '../components/FloatingAddButton';
 import AggiungiEntrataForm from '../components/entrate/AggiungiEntrataForm';
 import EntrateBentoCards from '../components/entrate/EntrateBentoCards';
 import EntrateTrendChart from '../components/entrate/EntrateTrendChart';
@@ -57,14 +58,7 @@ export default function Entrate({
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Entrate</h1>
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Aggiungi Entrata
-        </button>
-      </div>
+      <FloatingAddButton label="Aggiungi Entrata" colorClass="bg-emerald-600 hover:bg-emerald-700" onClick={() => setShowAddModal(true)} />
 
       <EntrateBentoCards
         selectedRecord={selectedRecord}

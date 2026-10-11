@@ -23,12 +23,12 @@ import {
   Filter,
   Search,
   Grid,
-  CreditCard,
-  Plus
+  CreditCard
 } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DropdownMenu from '../components/DropdownMenu';
 import Modal from '../components/Modal';
+import FloatingAddButton from '../components/FloatingAddButton';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
 import UsciteTrendChart from '../components/uscite/UsciteTrendChart';
@@ -87,14 +87,7 @@ export default function Uscite({
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Uscite</h1>
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-orange-700 hover:bg-orange-800 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Aggiungi Uscita
-        </button>
-      </div>
+      <FloatingAddButton label="Aggiungi Uscita" colorClass="bg-orange-700 hover:bg-orange-800" onClick={() => setShowAddModal(true)} />
 
       <UsciteKpiCards
         selectedRecord={selectedRecord}

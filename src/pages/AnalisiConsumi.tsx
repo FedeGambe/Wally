@@ -10,8 +10,8 @@
  * Tutti i grafici sono cliccabili per cambiare la settimana selezionata.
  */
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
 import Modal from '../components/Modal';
+import FloatingAddButton from '../components/FloatingAddButton';
 import ConsumiRiepilogoSettimanale from '../components/consumi/ConsumiRiepilogoSettimanale';
 import ConsumiEfficienzaMarcia from '../components/consumi/ConsumiEfficienzaMarcia';
 import ConsumiPercorrenzaPrezzo from '../components/consumi/ConsumiPercorrenzaPrezzo';
@@ -46,14 +46,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   return (
     <div className="space-y-6 animate-fadeIn">
       <h1 className="sr-only">Analisi Consumi</h1>
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> Aggiungi Consumo
-        </button>
-      </div>
+      <FloatingAddButton label="Aggiungi Consumo" colorClass="bg-rose-600 hover:bg-rose-700" onClick={() => setShowAddModal(true)} />
 
       <ConsumiRiepilogoSettimanale
         selectedWeek={selectedWeek}
