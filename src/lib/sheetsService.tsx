@@ -645,16 +645,20 @@ const columnLetterForIndexWide = (index: number): string => {
  * "ottobre 2026", righe pre-create fino a qualche anno avanti) e ogni ETF ha
  * una colonna con il nome in riga 1: qui si AGGIORNANO solo le celle
  * mese×strumento indicate, mai altre celle/righe/tab. Prima di scrivere
- * controlla ogni cella: se contiene una formula o un importo diverso da zero
- * non scrive NULLA e lancia un errore — meglio segnalare che sovrascrivere
- * un dato inserito a mano o una formula.
+ * controlla ogni cella: se contiene una formula non scrive NULLA e lancia un
+ * errore. Con `somma` = false (preset ricorrenti) vale lo stesso per una cella
+ * con un importo già diverso da zero — meglio segnalare che sovrascrivere un
+ * dato inserito a mano. Con `somma` = true (investimento extra) l'importo si
+ * accoda a quello presente come fa l'utente a mano sul foglio: "=40*2" diventa
+ * "=40*2+50", "40" diventa "=40+50" (anche formule come "=R23", i saveback).
  */
 export const writeInvestimentiRicorrentiToSheet = async (
   accessToken: string,
   spreadsheetId: string,
   tabTitle: string,
   meseLabel: string, // es. "ottobre 2026", come appare in colonna A
-  voci: { strumento: string; importo: number }[]
+  voci: { strumento: string; importo: number }[],
+  somma = false
 ): Promise<void> => {
   if (APPEND_TO_SHEETS_DISABLED) {
     throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
@@ -695,11 +699,17 @@ export const writeInvestimentiRicorrentiToSheet = async (
   const lastCol = columnLetterForIndexWide(Math.max(...colonne));
   const formuleRiga = (await getValues(`${tabTitle}!A${rowNumber}:${lastCol}${rowNumber}`, 'FORMULA'))[0] || [];
   const conflitti: string[] = [];
+  const attuali: number[] = [];
   voci.forEach((v, i) => {
     const attuale = formuleRiga[colonne[i]];
+    const numero = attuale === undefined || attuale === null || attuale === '' || (typeof attuale === 'string' && attuale.startsWith('='))
+      ? 0
+      : parseLocalizedNumber(attuale);
+    attuali.push(numero);
+    if (somma) return;
     if (typeof attuale === 'string' && attuale.startsWith('=')) {
       conflitti.push(`${v.strumento} (contiene una formula)`);
-    } else if (attuale !== undefined && attuale !== null && attuale !== '' && parseLocalizedNumber(attuale) !== 0) {
+    } else if (numero !== 0) {
       conflitti.push(`${v.strumento} (già ${attuale})`);
     }
   });
@@ -707,9 +717,18 @@ export const writeInvestimentiRicorrentiToSheet = async (
     throw new Error(`Nessun dato scritto su "${tabTitle}": celle di ${meseLabel} già valorizzate — ${conflitti.join(', ')}.`);
   }
 
+  // Le formule lette/scritte via API sono in sintassi en_US (punto decimale),
+  // qualunque sia il locale del foglio.
+  const nuovoValore = (i: number, importo: number): any => {
+    if (!somma) return importo;
+    const attuale = formuleRiga[colonne[i]];
+    if (typeof attuale === 'string' && attuale.startsWith('=')) return `${attuale}+${importo}`;
+    if (attuali[i] !== 0) return `=${attuali[i]}+${importo}`;
+    return importo;
+  };
   const data = voci.map((v, i) => ({
     range: `${tabTitle}!${columnLetterForIndexWide(colonne[i])}${rowNumber}`,
-    values: [[v.importo]]
+    values: [[nuovoValore(i, v.importo)]]
   }));
   const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
     method: 'POST',
@@ -726,6 +745,127 @@ export const writeInvestimentiRicorrentiToSheet = async (
       errorMsg = errBody?.error?.message;
     } catch (_) {}
     throw new Error(`Impossibile scrivere su "${tabTitle}": ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
+};
+
+const columnIndexForLetter = (letters: string): number =>
+  letters.toUpperCase().split('').reduce((acc, ch) => acc * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
+
+/**
+ * Aggiunge uno strumento NUOVO a un tab broker (acquisto una tantum di un ETF/
+ * azione che non ha ancora una colonna) e ci scrive l'importo del mese.
+ *
+ * Dove inserire la colonna non è indifferente: "Importo investito Mensile" è
+ * una formula che somma un INTERVALLO di colonne strumento (Trade Republic
+ * SUM(B:I)+S, Scalable SUM(B:H)+J+L+N+Z). Una colonna aggiunta fuori
+ * dall'intervallo non verrebbe contata. Leggiamo quindi quella formula sulla
+ * riga del mese e inseriamo la colonna PRIMA dell'ultima colonna
+ * dell'intervallo: Sheets allarga da solo il range e sposta tutti i
+ * riferimenti (anche quelli degli altri tab). Se la formula non si trova o non
+ * contiene un intervallo SUM, non tocca nulla e lancia un errore.
+ */
+export const addStrumentoBrokerColumn = async (
+  accessToken: string,
+  spreadsheetId: string,
+  tabTitle: string,
+  nome: string,
+  assetClass: string, // 'Azioni' | 'Obbligazioni' | 'Monetario' (riga 2)
+  meseLabel: string,
+  importo: number
+): Promise<void> => {
+  if (APPEND_TO_SHEETS_DISABLED) {
+    throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
+  }
+  const authHeaders = { 'Authorization': `Bearer ${accessToken}` };
+  const getValues = async (range: string, render: 'FORMATTED_VALUE' | 'FORMULA' = 'FORMATTED_VALUE'): Promise<any[][]> => {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=${render}`;
+    const response = await fetch(url, { headers: authHeaders, cache: 'no-store' });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+      }
+      throw new Error(`Impossibile leggere "${tabTitle}" (codice ${response.status}).`);
+    }
+    return (await response.json()).values || [];
+  };
+
+  const headerRow = (await getValues(`${tabTitle}!1:1`))[0] || [];
+  const headersNorm = headerRow.map((h: any) => String(h || '').trim().toLowerCase());
+  if (headersNorm.includes(nome.trim().toLowerCase())) {
+    throw new Error(`"${nome}" esiste già nel tab "${tabTitle}": usa l'investimento extra su quello strumento.`);
+  }
+  const colImporto = headersNorm.findIndex((h: string) => h.replace(/[^a-z]/g, '') === 'importoinvestitomensile');
+  if (colImporto === -1) {
+    throw new Error(`Colonna "Importo investito Mensile" non trovata in "${tabTitle}": nessuna colonna aggiunta.`);
+  }
+
+  const colonnaMesi = await getValues(`${tabTitle}!A:A`);
+  const rowIdx = colonnaMesi.findIndex(r => String(r?.[0] || '').trim().toLowerCase() === meseLabel.trim().toLowerCase());
+  if (rowIdx === -1) {
+    throw new Error(`Riga "${meseLabel}" non trovata nella colonna A di "${tabTitle}".`);
+  }
+  const rowNumber = rowIdx + 1;
+
+  const letteraImporto = columnLetterForIndexWide(colImporto);
+  const formula = String((await getValues(`${tabTitle}!${letteraImporto}${rowNumber}`, 'FORMULA'))[0]?.[0] || '');
+  const match = formula.match(/(?:SUM|SOMMA)\(\s*\$?([A-Z]+)\$?\d+\s*:\s*\$?([A-Z]+)\$?\d+\s*\)/i);
+  if (!match) {
+    throw new Error(`La formula di "Importo investito Mensile" di ${meseLabel} non contiene un intervallo da sommare: nessuna colonna aggiunta.`);
+  }
+  const inizio = columnIndexForLetter(match[1]);
+  const fine = columnIndexForLetter(match[2]);
+  if (fine <= inizio || fine >= colImporto) {
+    throw new Error(`Intervallo ${match[1]}:${match[2]} di "Importo investito Mensile" inatteso: nessuna colonna aggiunta.`);
+  }
+
+  const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title)`;
+  const metaResponse = await fetch(metaUrl, { headers: authHeaders, cache: 'no-store' });
+  if (!metaResponse.ok) {
+    throw new Error(`Impossibile leggere le proprietà del foglio "${tabTitle}" (codice ${metaResponse.status}).`);
+  }
+  const sheetMeta = ((await metaResponse.json()).sheets || [])
+    .find((s: any) => String(s.properties?.title || '').toLowerCase() === tabTitle.toLowerCase());
+  if (!sheetMeta) {
+    throw new Error(`Tab "${tabTitle}" non trovata sul foglio Google.`);
+  }
+
+  // Nuova colonna all'indice `fine`: l'ultima colonna dell'intervallo scala a
+  // destra e il range si allarga di uno. Formato ereditato dalla colonna a sinistra.
+  const insertResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
+    method: 'POST',
+    headers: { ...authHeaders, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      requests: [{
+        insertDimension: {
+          range: { sheetId: sheetMeta.properties.sheetId, dimension: 'COLUMNS', startIndex: fine, endIndex: fine + 1 },
+          inheritFromBefore: true
+        }
+      }]
+    })
+  });
+  if (!insertResponse.ok) {
+    throw new Error(`Impossibile aggiungere la colonna su "${tabTitle}" (codice ${insertResponse.status}).`);
+  }
+
+  const lettera = columnLetterForIndexWide(fine);
+  const writeResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    headers: { ...authHeaders, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      valueInputOption: 'USER_ENTERED',
+      data: [
+        { range: `${tabTitle}!${lettera}1`, values: [[nome.trim()]] },
+        { range: `${tabTitle}!${lettera}2`, values: [[assetClass]] },
+        { range: `${tabTitle}!${lettera}${rowNumber}`, values: [[importo]] }
+      ]
+    })
+  });
+  if (!writeResponse.ok) {
+    let errorMsg = '';
+    try {
+      errorMsg = (await writeResponse.json())?.error?.message;
+    } catch (_) {}
+    throw new Error(`Colonna aggiunta su "${tabTitle}" (${lettera}) ma scrittura non riuscita: ${errorMsg || `codice ${writeResponse.status}`}. Completa a mano nome, asset class e importo.`);
   }
 };
 

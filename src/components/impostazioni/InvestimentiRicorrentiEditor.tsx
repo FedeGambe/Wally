@@ -43,7 +43,7 @@ export default function InvestimentiRicorrentiEditor() {
   return (
     <div>
       <p className="text-xs text-ink-soft dark:text-slate-400 mb-6 leading-relaxed">
-        Contributi mensili sui broker. Lo strumento è il nome della colonna dell'ETF nel tab
+        Investimenti mensili sui broker. Lo strumento è il nome della colonna dell'ETF nel tab
         Scalable o Trade Republic: da "Aggiungi Dato → Investimenti Ricorrenti" gli importi
         vengono scritti nella riga del mese corrente.
       </p>

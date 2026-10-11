@@ -11,7 +11,7 @@ type Voce = 'usciteRicorrenti' | 'trasferimentiRicorrenti' | 'investimentiRicorr
 const VOCI: { id: Exclude<Voce, null>; label: string; desc: string; icon: React.ComponentType<{ className?: string }>; iconColor: string }[] = [
   { id: 'usciteRicorrenti', label: 'Uscite Ricorrenti', desc: 'Preset per uscite quasi identiche ogni mese (es. accantonamento)', icon: Repeat, iconColor: 'text-orange-600' },
   { id: 'trasferimentiRicorrenti', label: 'Trasferimenti Ricorrenti', desc: 'Preset per trasferimenti fissi tra conti', icon: ArrowLeftRight, iconColor: 'text-blue-600' },
-  { id: 'investimentiRicorrenti', label: 'Investimenti Ricorrenti', desc: 'Contributi mensili su Scalable e Trade Republic', icon: TrendingUp, iconColor: 'text-sky-600' },
+  { id: 'investimentiRicorrenti', label: 'Investimenti Ricorrenti', desc: 'Investimenti mensili su Scalable e Trade Republic', icon: TrendingUp, iconColor: 'text-sky-600' },
   { id: 'fondoPensione', label: 'Quota Fondo Pensione', desc: 'Quota TFR mensile, aggiunta insieme allo stipendio', icon: PiggyBank, iconColor: 'text-up' }
 ];
 

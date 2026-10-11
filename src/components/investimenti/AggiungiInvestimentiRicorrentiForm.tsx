@@ -11,7 +11,7 @@ interface AggiungiInvestimentiRicorrentiFormProps {
 }
 
 /**
- * Scrive in blocco i contributi mensili dei preset "Investimenti Ricorrenti"
+ * Scrive in blocco gli investimenti mensili dei preset "Investimenti Ricorrenti"
  * nei tab "Scalable"/"Trade Republic", sulla riga del mese corrente (già
  * presente sul foglio) e nella colonna di ogni strumento. Come
  * AggiungiUsciteRicorrentiForm mostra solo i preset ancora mancanti questo
@@ -111,7 +111,7 @@ export default function AggiungiInvestimentiRicorrentiForm({ onSaved }: Aggiungi
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-bold text-ink dark:text-slate-200">{MESI_ITALIANI[oggi.getMonth()]} {oggi.getFullYear()}</p>
-          <p className="text-2xs text-ink-soft uppercase tracking-wider font-bold">Contributi mancanti questo mese</p>
+          <p className="text-2xs text-ink-soft uppercase tracking-wider font-bold">Investimenti mancanti questo mese</p>
         </div>
         {presetValidi.length > 0 && (
           <button

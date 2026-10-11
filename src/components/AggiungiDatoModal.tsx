@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight, Repeat, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight, Repeat, TrendingUp, Sparkles } from 'lucide-react';
 import Modal from './Modal';
 import AggiungiUscitaForm from './uscite/AggiungiUscitaForm';
 import AggiungiEntrataForm from './entrate/AggiungiEntrataForm';
@@ -7,8 +7,9 @@ import AggiungiConsumoForm from './consumi/AggiungiConsumoForm';
 import AggiungiTrasferimentoForm from './trasferimenti/AggiungiTrasferimentoForm';
 import AggiungiUsciteRicorrentiForm from './uscite/AggiungiUsciteRicorrentiForm';
 import AggiungiInvestimentiRicorrentiForm from './investimenti/AggiungiInvestimentiRicorrentiForm';
+import AggiungiInvestimentoUnaTantumForm from './investimenti/AggiungiInvestimentoUnaTantumForm';
 
-type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | 'investimentiRicorrenti' | null;
+type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | 'investimentiRicorrenti' | 'investimentoUnaTantum' | null;
 
 interface AggiungiDatoModalProps {
   isOpen: boolean;
@@ -21,7 +22,8 @@ const TITOLI: Record<Exclude<TipoDato, null>, string> = {
   consumo: 'Aggiungi Consumo',
   trasferimento: 'Aggiungi Trasferimento',
   usciteRicorrenti: 'Uscite Ricorrenti',
-  investimentiRicorrenti: 'Investimenti Ricorrenti'
+  investimentiRicorrenti: 'Investimenti Ricorrenti',
+  investimentoUnaTantum: 'Investimento Una Tantum'
 };
 
 /**
@@ -96,10 +98,18 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
           <button
             type="button"
             onClick={() => setTipo('investimentiRicorrenti')}
-            className="col-span-2 flex items-center justify-center gap-2 p-4 rounded-2xl bg-canvas dark:bg-white/10 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-canvas dark:bg-white/10 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all cursor-pointer"
           >
-            <TrendingUp className="w-5 h-5 text-sky-600" />
+            <TrendingUp className="w-5 h-5 text-sky-600 shrink-0" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Investimenti Ricorrenti</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipo('investimentoUnaTantum')}
+            className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-canvas dark:bg-white/10 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all cursor-pointer"
+          >
+            <Sparkles className="w-5 h-5 text-sky-600 shrink-0" />
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Investimento Una Tantum</span>
           </button>
         </div>
       )}
@@ -109,6 +119,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
       {tipo === 'trasferimento' && <AggiungiTrasferimentoForm onSaved={handleClose} />}
       {tipo === 'usciteRicorrenti' && <AggiungiUsciteRicorrentiForm onSaved={handleClose} />}
       {tipo === 'investimentiRicorrenti' && <AggiungiInvestimentiRicorrentiForm onSaved={handleClose} />}
+      {tipo === 'investimentoUnaTantum' && <AggiungiInvestimentoUnaTantumForm onSaved={handleClose} />}
     </Modal>
   );
 }
