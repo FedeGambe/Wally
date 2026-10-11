@@ -122,7 +122,7 @@ export default function Header({
         onClick={onOpenMobileSettings}
         title="Impostazioni"
         aria-label="Impostazioni"
-        className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-canvas cursor-pointer shrink-0"
+        className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-canvas cursor-pointer shrink-0"
       >
         <Sliders className="w-4.5 h-4.5 text-accent shrink-0" />
       </button>

@@ -101,7 +101,9 @@ export default function PanoramicaTrendChart({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 pointer-events-none md:pointer-events-auto">
+      {/* Su desktop l'altezza la dà la card Rendiconto accanto (stessa riga della
+          griglia); sotto lg la card è da sola e senza min-h il grafico restava a 0px. */}
+      <div className="flex-1 min-h-[240px] pointer-events-none md:pointer-events-auto">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={trendChartMode === 'cumulato' ? cumulativeChartData : chartData}

@@ -52,7 +52,7 @@ export default function ConsumiRiepilogoSettimanale({
           <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h3>
           <p className="text-2xs text-ink-soft dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
         </div>
-        <div className="flex items-center gap-8 pr-4">
+        <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-8 sm:pr-4 w-full sm:w-auto min-w-0">
           <span
             className="px-4 py-1.5 rounded-full text-sm uppercase tracking-wider font-bold text-white transition-all"
             style={{
@@ -101,7 +101,7 @@ export default function ConsumiRiepilogoSettimanale({
             {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
           </span>
           <span className="text-3xs text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">
-            Rifornimento: {selectedWeek.data} • {selectedWeek.quantitaLitri} Lt • {selectedWeek.prezzoAlLitro} €/Lt
+            Rifornimento: {selectedWeek.data} • {Number(selectedWeek.quantitaLitri).toFixed(2)} Lt • {Number(selectedWeek.prezzoAlLitro).toFixed(3)} €/Lt
           </span>
           {previousWeek && (
             <div className="mt-1.5 space-y-0.5">

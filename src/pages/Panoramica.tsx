@@ -130,6 +130,7 @@ export default function Panoramica({
         </div>
       </div>
 
+      {/* Flusso del Mese (Sankey): solo desktop, su schermo stretto è illeggibile */}
       <PanoramicaFunnelChart
         data={financeData}
         mese={currentMonthData.mese}

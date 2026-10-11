@@ -355,3 +355,38 @@ body {
 
 
 
+
+/* Campi dei form su telefono.
+   1) Safari iOS ingrandisce la pagina quando si tocca un campo con testo sotto i
+      16px (i form usano text-sm/text-xs) e poi non la riporta indietro: la pagina
+      resta zoomata e "scappa" di lato. A 16px lo zoom non scatta.
+   2) Sempre su iOS il campo data ha una larghezza minima sua e ignora w-full,
+      uscendo dal popup: togliendo l'aspetto nativo torna a rispettare la larghezza. */
+@media (max-width: 767px) {
+  input.text-sm, input.text-xs, input.text-2xs, input.text-3xs,
+  textarea.text-sm, textarea.text-xs, select.text-sm, select.text-xs {
+    font-size: 16px;
+  }
+}
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  display: block;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* Area minima di tocco su telefono: molti chip/filtri (Mensile/Cumulato, Storico,
+   Anno/Mese, frecce delle legende) erano alti 22-30px, troppo poco per un dito.
+   Solo sotto md e solo per i pulsanti delle pagine e dell'header: i form nei
+   popup hanno già misure adatte. I radio a segmenti stanno in contenitori ad
+   altezza fissa, quindi restano esclusi. */
+@media (max-width: 767px) {
+  main button:not([role="radio"]),
+  header button {
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+  }
+}
