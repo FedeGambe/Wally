@@ -79,6 +79,29 @@ export interface PresetTrasferimento {
 export const PRESET_TRASFERIMENTI_SEED: PresetTrasferimento[] = [];
 
 /**
+ * Preset per i contributi mensili sui broker (tab "Scalable"/"Trade Republic"
+ * del foglio principale): `strumento` è l'intestazione della colonna ETF in
+ * riga 1 del tab del broker, `importo` va scritto nella cella mese×strumento.
+ * Seed vuoto di proposito, stesso motivo di PRESET_USCITE_SEED.
+ */
+export interface PresetInvestimento {
+  id: string;
+  broker: string; // 'Scalable' | 'Trade Republic' (= nome del tab)
+  strumento: string;
+  importo: number;
+}
+
+export const PRESET_INVESTIMENTI_SEED: PresetInvestimento[] = [];
+
+/**
+ * Quota TFR mensile versata nel fondo pensione (tab "Preset Fondo Pensione"
+ * del foglio di configurazione). Proposta nel form "Aggiungi Entrata" quando
+ * la categoria è Stipendio: scrive una riga nel tab "Fondo Pensione", dove le
+ * contribuzioni si calcolano da sole. 0 = non configurata.
+ */
+export const QUOTA_FONDO_PENSIONE_SEED = 0;
+
+/**
  * Soglie percentuali target per l'allocazione del reddito (quanto % dovrebbe
  * andare a spese primarie/secondarie/investimenti/risparmio). Seed allineato
  * ai default di src/config/targets.ts — se l'utente collega un foglio di

@@ -6,13 +6,14 @@
  * aggiornare gli import esistenti (`from '../../data/datiBase'`) nei
  * componenti di Impostazioni — la fonte vera è src/data/mockData.ts.
  */
-export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento, Soglia } from './mockData';
+export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento, PresetInvestimento, Soglia } from './mockData';
 export {
   CONTI,
   CATEGORIE_ENTRATE,
   MACRO_CATEGORIE_USCITE,
   PRESET_USCITE,
   PRESET_TRASFERIMENTI,
+  PRESET_INVESTIMENTI,
   SOGLIE,
   iconPerMacroCategoria
 } from './mockData';
@@ -22,5 +23,7 @@ export {
   CONTI_SEED,
   PRESET_USCITE_SEED,
   PRESET_TRASFERIMENTI_SEED,
+  PRESET_INVESTIMENTI_SEED,
+  QUOTA_FONDO_PENSIONE_SEED,
   SOGLIE_SEED
 } from '../config/datiBaseSeed';

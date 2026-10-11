@@ -126,6 +126,27 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     dataKey: 'presetTrasferimentiRows'
   },
   {
+    // Un solo valore: la quota TFR mensile (A2), sotto l'intestazione in A1.
+    title: 'Preset Fondo Pensione',
+    range: 'Preset Fondo Pensione!A:A',
+    fields: ['quota'],
+    headers: ['Quota Fondo Pensione'],
+    numberFields: ['quota'],
+    dataKey: 'presetFondoPensioneRows'
+  },
+  {
+    // Tab a MATRICE, non a righe piatte: riga 1 = "Conto" + un nome di
+    // strumento per colonna, poi una riga per broker con l'importo mensile
+    // nella colonna dello strumento. Letto/scritto a mano da
+    // fetchDatiBaseFromConfigSheet/pushDatiBaseToConfigSheet: fields/headers
+    // qui sotto servono solo come segnaposto.
+    title: 'Preset Investimenti Ricorrenti',
+    range: 'Preset Investimenti Ricorrenti!A:ZZ',
+    fields: ['conto'],
+    headers: ['Conto'],
+    dataKey: 'presetInvestimentiRows'
+  },
+  {
     title: 'Uscite',
     range: 'Uscite!A:I',
     fields: ['data', 'mese', 'descrizione', 'macroCategoria', 'categoria', 'icon', 'conto', 'importo', 'primaria'],
@@ -200,6 +221,11 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     fields: ['mese', 'tfr', 'contrBase', 'contrVolontaria', 'contrAzienda', 'totMensile', 'totAccumulato'],
     headers: ['Mese', 'TFR', 'Contribuzione base', 'Contribuzione volontaria', 'Contribuzione azienda', 'Totale mensile', 'Totale accumulato'],
     numberFields: ['tfr', 'contrBase', 'contrVolontaria', 'contrAzienda', 'totMensile', 'totAccumulato'],
+    // Sul foglio reale si scrive solo il TFR: le contribuzioni sono formule
+    // sulle percentuali di riga 2, i totali somme. "Mese" è una data (giorno 1)
+    // mostrata come nome del mese.
+    formulaFields: ['contrBase', 'contrVolontaria', 'contrAzienda', 'totMensile', 'totAccumulato'],
+    monthDateFields: ['mese'],
     dataKey: 'fondoPensione'
   },
   {
@@ -244,6 +270,8 @@ const TAB_NON_AUTOCREABILI = [
   'Categorie Uscite',
   'Preset Uscite Ricorrenti',
   'Preset Trasferimenti Ricorrenti',
+  'Preset Investimenti Ricorrenti',
+  'Preset Fondo Pensione',
   'Fondo Pensione'
 ];
 

@@ -33,16 +33,19 @@ import {
   MacroCategoriaUscita,
   PresetUscita,
   PresetTrasferimento,
+  PresetInvestimento,
   Soglia,
   MACRO_CATEGORIE_USCITE_SEED,
   CATEGORIE_ENTRATE_SEED,
   CONTI_SEED,
   PRESET_USCITE_SEED,
   PRESET_TRASFERIMENTI_SEED,
+  PRESET_INVESTIMENTI_SEED,
+  QUOTA_FONDO_PENSIONE_SEED,
   SOGLIE_SEED
 } from '../config/datiBaseSeed';
 
-export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento, Soglia };
+export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento, PresetInvestimento, Soglia };
 
 export interface Transaction {
   id: string;
@@ -314,6 +317,15 @@ export const PRESET_TRASFERIMENTI: PresetTrasferimento[] = (() => {
   }
 })();
 
+export const PRESET_INVESTIMENTI: PresetInvestimento[] = (() => {
+  try {
+    const val = localStorage.getItem('sf_preset_investimenti');
+    return val ? JSON.parse(val) : PRESET_INVESTIMENTI_SEED;
+  } catch {
+    return PRESET_INVESTIMENTI_SEED;
+  }
+})();
+
 export const SOGLIE: Soglia[] = (() => {
   try {
     const val = localStorage.getItem('sf_soglie');
@@ -482,6 +494,8 @@ export const saveToLocalStorage = (data: {
   macroCategorieUscite?: MacroCategoriaUscita[];
   presetUscite?: PresetUscita[];
   presetTrasferimenti?: PresetTrasferimento[];
+  presetInvestimenti?: PresetInvestimento[];
+  quotaFondoPensione?: number;
   soglie?: Soglia[];
   capitaleImpegnato?: CapitaleImpegnato[];
   risparmioHeaders?: string[];
@@ -546,6 +560,14 @@ export const saveToLocalStorage = (data: {
     safeSetItem('sf_preset_trasferimenti', JSON.stringify(data.presetTrasferimenti));
     PRESET_TRASFERIMENTI.length = 0;
     PRESET_TRASFERIMENTI.push(...data.presetTrasferimenti);
+  }
+  if (data.quotaFondoPensione !== undefined) {
+    safeSetItem('sf_quota_fondo_pensione', String(data.quotaFondoPensione));
+  }
+  if (data.presetInvestimenti) {
+    safeSetItem('sf_preset_investimenti', JSON.stringify(data.presetInvestimenti));
+    PRESET_INVESTIMENTI.length = 0;
+    PRESET_INVESTIMENTI.push(...data.presetInvestimenti);
   }
   if (data.soglie) {
     safeSetItem('sf_soglie', JSON.stringify(data.soglie));
@@ -640,6 +662,8 @@ const getDemoExportableData = () => ({
   macroCategorieUscite: MACRO_CATEGORIE_USCITE_SEED,
   presetUscite: PRESET_USCITE_SEED,
   presetTrasferimenti: PRESET_TRASFERIMENTI_SEED,
+  presetInvestimenti: PRESET_INVESTIMENTI_SEED,
+  quotaFondoPensione: QUOTA_FONDO_PENSIONE_SEED,
   soglie: SOGLIE_SEED,
   capitaleImpegnato: DEMO_CAPITALE_IMPEGNATO,
   risparmioHeaders: DEMO_RISPARMIO_HEADERS,
@@ -714,6 +738,14 @@ export const getExportableData = (incognito: boolean = false) => {
     tradeRepublicColumnCategories = val ? JSON.parse(val) : {};
   } catch {}
 
+  // Valore singolo, non un array: letto qui ad ogni ricalcolo invece di
+  // tenerlo in uno stato in-memory come gli array sopra.
+  let quotaFondoPensione = QUOTA_FONDO_PENSIONE_SEED;
+  try {
+    const val = localStorage.getItem('sf_quota_fondo_pensione');
+    if (val !== null && !isNaN(Number(val))) quotaFondoPensione = Number(val);
+  } catch {}
+
   let fondoPensione: any[] = [];
   try {
     const val = localStorage.getItem('sf_fondo_pensione');
@@ -735,6 +767,8 @@ export const getExportableData = (incognito: boolean = false) => {
     macroCategorieUscite: MACRO_CATEGORIE_USCITE,
     presetUscite: PRESET_USCITE,
     presetTrasferimenti: PRESET_TRASFERIMENTI,
+    presetInvestimenti: PRESET_INVESTIMENTI,
+    quotaFondoPensione,
     soglie: SOGLIE,
     capitaleImpegnato: CAPITALE_IMPEGNATO,
     risparmioHeaders: RISPARMIO_HEADERS_STATE,

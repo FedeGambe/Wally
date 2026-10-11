@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight, Repeat } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight, Repeat, TrendingUp } from 'lucide-react';
 import Modal from './Modal';
 import AggiungiUscitaForm from './uscite/AggiungiUscitaForm';
 import AggiungiEntrataForm from './entrate/AggiungiEntrataForm';
 import AggiungiConsumoForm from './consumi/AggiungiConsumoForm';
 import AggiungiTrasferimentoForm from './trasferimenti/AggiungiTrasferimentoForm';
 import AggiungiUsciteRicorrentiForm from './uscite/AggiungiUsciteRicorrentiForm';
+import AggiungiInvestimentiRicorrentiForm from './investimenti/AggiungiInvestimentiRicorrentiForm';
 
-type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | null;
+type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | 'investimentiRicorrenti' | null;
 
 interface AggiungiDatoModalProps {
   isOpen: boolean;
@@ -19,7 +20,8 @@ const TITOLI: Record<Exclude<TipoDato, null>, string> = {
   uscita: 'Aggiungi Uscita',
   consumo: 'Aggiungi Consumo',
   trasferimento: 'Aggiungi Trasferimento',
-  usciteRicorrenti: 'Uscite Ricorrenti'
+  usciteRicorrenti: 'Uscite Ricorrenti',
+  investimentiRicorrenti: 'Investimenti Ricorrenti'
 };
 
 /**
@@ -46,7 +48,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
       onClose={handleClose}
       onBack={tipo ? () => setTipo(null) : undefined}
       title={tipo ? TITOLI[tipo] : 'Aggiungi Dato'}
-      maxWidthClass={tipo === 'usciteRicorrenti' ? 'max-w-lg' : 'max-w-md'}
+      maxWidthClass={tipo === 'usciteRicorrenti' || tipo === 'investimentiRicorrenti' ? 'max-w-lg' : 'max-w-md'}
       borderless
     >
       {!tipo && (
@@ -91,6 +93,14 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
             <Repeat className="w-5 h-5 text-amber-600" />
             <span className="text-sm font-bold text-ink dark:text-slate-200">Uscite Ricorrenti</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setTipo('investimentiRicorrenti')}
+            className="col-span-2 flex items-center justify-center gap-2 p-4 rounded-2xl bg-canvas dark:bg-white/10 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition-all cursor-pointer"
+          >
+            <TrendingUp className="w-5 h-5 text-sky-600" />
+            <span className="text-sm font-bold text-ink dark:text-slate-200">Investimenti Ricorrenti</span>
+          </button>
         </div>
       )}
       {tipo === 'entrata' && <AggiungiEntrataForm onSaved={handleClose} />}
@@ -98,6 +108,7 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
       {tipo === 'consumo' && <AggiungiConsumoForm onSaved={handleClose} />}
       {tipo === 'trasferimento' && <AggiungiTrasferimentoForm onSaved={handleClose} />}
       {tipo === 'usciteRicorrenti' && <AggiungiUsciteRicorrentiForm onSaved={handleClose} />}
+      {tipo === 'investimentiRicorrenti' && <AggiungiInvestimentiRicorrentiForm onSaved={handleClose} />}
     </Modal>
   );
 }

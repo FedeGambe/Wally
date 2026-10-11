@@ -3,15 +3,16 @@ import { ChevronRight, Repeat, ArrowLeftRight, TrendingUp, PiggyBank } from 'luc
 import Modal from '../Modal';
 import UsciteRicorrentiEditor from './UsciteRicorrentiEditor';
 import TrasferimentiRicorrentiEditor from './TrasferimentiRicorrentiEditor';
-import InArrivoPlaceholder from './InArrivoPlaceholder';
+import InvestimentiRicorrentiEditor from './InvestimentiRicorrentiEditor';
+import FondoPensioneQuotaEditor from './FondoPensioneQuotaEditor';
 
 type Voce = 'usciteRicorrenti' | 'trasferimentiRicorrenti' | 'investimentiRicorrenti' | 'fondoPensione' | null;
 
 const VOCI: { id: Exclude<Voce, null>; label: string; desc: string; icon: React.ComponentType<{ className?: string }>; iconColor: string }[] = [
   { id: 'usciteRicorrenti', label: 'Uscite Ricorrenti', desc: 'Preset per uscite quasi identiche ogni mese (es. accantonamento)', icon: Repeat, iconColor: 'text-orange-600' },
   { id: 'trasferimentiRicorrenti', label: 'Trasferimenti Ricorrenti', desc: 'Preset per trasferimenti fissi tra conti', icon: ArrowLeftRight, iconColor: 'text-blue-600' },
-  { id: 'investimentiRicorrenti', label: 'Investimenti Ricorrenti', desc: 'Preset per contributi mensili investimento', icon: TrendingUp, iconColor: 'text-sky-600' },
-  { id: 'fondoPensione', label: 'Quota Fondo Pensione', desc: 'Contributo mensile ricorrente al fondo pensione', icon: PiggyBank, iconColor: 'text-up' }
+  { id: 'investimentiRicorrenti', label: 'Investimenti Ricorrenti', desc: 'Contributi mensili su Scalable e Trade Republic', icon: TrendingUp, iconColor: 'text-sky-600' },
+  { id: 'fondoPensione', label: 'Quota Fondo Pensione', desc: 'Quota TFR mensile, aggiunta insieme allo stipendio', icon: PiggyBank, iconColor: 'text-up' }
 ];
 
 const TITOLI: Record<Exclude<Voce, null>, string> = {
@@ -26,8 +27,9 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
  * valori che si ripetono quasi identici ogni mese (Fase 2 del piano,
  * docs/archive/PIANO-INSERIMENTO-DATI.md). "Uscite Ricorrenti" e "Trasferimenti
  * Ricorrenti" hanno un editor vero (usati anche da AggiungiUscitaForm per il
- * flag "aggiungi anche il trasferimento"); Investimenti Ricorrenti e Quota
- * Fondo Pensione sono ancora da costruire.
+ * flag "aggiungi anche il trasferimento"), "Investimenti Ricorrenti" scrive i
+ * contributi mensili nei tab dei broker, "Quota Fondo Pensione" la quota TFR
+ * proposta da AggiungiEntrataForm insieme allo stipendio.
  */
 export default function PresetRicorrentiSettings() {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
@@ -68,8 +70,8 @@ export default function PresetRicorrentiSettings() {
       <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>
         {voceAperta === 'usciteRicorrenti' && <UsciteRicorrentiEditor />}
         {voceAperta === 'trasferimentiRicorrenti' && <TrasferimentiRicorrentiEditor />}
-        {voceAperta === 'investimentiRicorrenti' && <InArrivoPlaceholder label="Investimenti Ricorrenti" />}
-        {voceAperta === 'fondoPensione' && <InArrivoPlaceholder label="Quota Fondo Pensione" />}
+        {voceAperta === 'investimentiRicorrenti' && <InvestimentiRicorrentiEditor />}
+        {voceAperta === 'fondoPensione' && <FondoPensioneQuotaEditor />}
       </Modal>
     </div>
   );

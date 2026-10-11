@@ -35,6 +35,8 @@ export interface SheetsData {
   macroCategorieUscite?: any[];
   presetUscite?: any[];
   presetTrasferimenti?: any[];
+  presetInvestimenti?: any[];
+  quotaFondoPensione?: number;
   soglie?: any[];
   capitaleImpegnato?: any[];
   risparmioHeaders?: string[];
@@ -624,6 +626,109 @@ export const updatePortafoglioRawCounts = async (
   }
 };
 
+// Lettera di colonna per indici oltre la Z (AA, AB, ...): i tab dei broker
+// arrivano fino ad AB/AC, columnLetterForIndex copre solo A-Z.
+const columnLetterForIndexWide = (index: number): string => {
+  let n = index + 1;
+  let out = '';
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    out = String.fromCharCode(65 + rem) + out;
+    n = Math.floor((n - 1) / 26);
+  }
+  return out;
+};
+
+/**
+ * Scrive i contributi mensili ricorrenti su un tab broker ("Scalable" /
+ * "Trade Republic"). Sul foglio reale ogni mese ha già la sua riga (colonna A
+ * "ottobre 2026", righe pre-create fino a qualche anno avanti) e ogni ETF ha
+ * una colonna con il nome in riga 1: qui si AGGIORNANO solo le celle
+ * mese×strumento indicate, mai altre celle/righe/tab. Prima di scrivere
+ * controlla ogni cella: se contiene una formula o un importo diverso da zero
+ * non scrive NULLA e lancia un errore — meglio segnalare che sovrascrivere
+ * un dato inserito a mano o una formula.
+ */
+export const writeInvestimentiRicorrentiToSheet = async (
+  accessToken: string,
+  spreadsheetId: string,
+  tabTitle: string,
+  meseLabel: string, // es. "ottobre 2026", come appare in colonna A
+  voci: { strumento: string; importo: number }[]
+): Promise<void> => {
+  if (APPEND_TO_SHEETS_DISABLED) {
+    throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
+  }
+  if (voci.length === 0) return;
+
+  const getValues = async (range: string, render: 'FORMATTED_VALUE' | 'FORMULA' = 'FORMATTED_VALUE'): Promise<any[][]> => {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=${render}`;
+    const response = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` }, cache: 'no-store' });
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+      }
+      throw new Error(`Impossibile leggere "${tabTitle}" (codice ${response.status}).`);
+    }
+    const result = await response.json();
+    return result.values || [];
+  };
+
+  const headerRow = (await getValues(`${tabTitle}!1:1`))[0] || [];
+  const headersNorm = headerRow.map((h: any) => String(h || '').trim().toLowerCase());
+  const colonne = voci.map(v => {
+    const idx = headersNorm.indexOf(v.strumento.trim().toLowerCase());
+    if (idx === -1) {
+      throw new Error(`Colonna "${v.strumento}" non trovata nella riga 1 di "${tabTitle}".`);
+    }
+    return idx;
+  });
+
+  const colonnaMesi = await getValues(`${tabTitle}!A:A`);
+  const target = meseLabel.trim().toLowerCase();
+  const rowIdx = colonnaMesi.findIndex(r => String(r?.[0] || '').trim().toLowerCase() === target);
+  if (rowIdx === -1) {
+    throw new Error(`Riga "${meseLabel}" non trovata nella colonna A di "${tabTitle}".`);
+  }
+  const rowNumber = rowIdx + 1;
+
+  const lastCol = columnLetterForIndexWide(Math.max(...colonne));
+  const formuleRiga = (await getValues(`${tabTitle}!A${rowNumber}:${lastCol}${rowNumber}`, 'FORMULA'))[0] || [];
+  const conflitti: string[] = [];
+  voci.forEach((v, i) => {
+    const attuale = formuleRiga[colonne[i]];
+    if (typeof attuale === 'string' && attuale.startsWith('=')) {
+      conflitti.push(`${v.strumento} (contiene una formula)`);
+    } else if (attuale !== undefined && attuale !== null && attuale !== '' && parseLocalizedNumber(attuale) !== 0) {
+      conflitti.push(`${v.strumento} (già ${attuale})`);
+    }
+  });
+  if (conflitti.length > 0) {
+    throw new Error(`Nessun dato scritto su "${tabTitle}": celle di ${meseLabel} già valorizzate — ${conflitti.join(', ')}.`);
+  }
+
+  const data = voci.map((v, i) => ({
+    range: `${tabTitle}!${columnLetterForIndexWide(colonne[i])}${rowNumber}`,
+    values: [[v.importo]]
+  }));
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data })
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('UNAUTHENTICATED: La sessione di Google è scaduta.');
+    }
+    let errorMsg = '';
+    try {
+      const errBody = await response.json();
+      errorMsg = errBody?.error?.message;
+    } catch (_) {}
+    throw new Error(`Impossibile scrivere su "${tabTitle}": ${errorMsg || response.statusText || `Codice ${response.status}`}`);
+  }
+};
+
 export const ensureSheetsExist = async (accessToken: string, spreadsheetId: string): Promise<void> => {
   if (WRITE_TO_SHEETS_DISABLED) return;
 
@@ -888,6 +993,8 @@ export const fetchSpreadsheetData = async (accessToken: string, spreadsheetId: s
   delete outputData.soglieRows;
 
   delete outputData.presetTrasferimentiRows;
+  delete outputData.presetInvestimentiRows;
+  delete outputData.presetFondoPensioneRows;
 
   // Intestazioni per il Risparmio
   const risparmioRows = getValueRangeForSheet('Risparmio');
@@ -1082,6 +1189,41 @@ export const pushSpreadsheetData = async (
   }
 };
 
+// Tab "Preset Investimenti Ricorrenti" del foglio di configurazione, a matrice:
+// riga 1 = "Conto" + nomi degli strumenti, una riga per broker, importo nella
+// cella broker×strumento (vuota = nessun contributo per quello strumento).
+const parsePresetInvestimentiMatrix = (rows: any[][]): any[] => {
+  if (!rows || rows.length < 2) return [];
+  const strumenti = (rows[0] || []).map((h: any) => String(h || '').trim());
+  const out: any[] = [];
+  rows.slice(1).forEach(row => {
+    const broker = String(row?.[0] || '').trim();
+    if (!broker) return;
+    for (let col = 1; col < strumenti.length; col++) {
+      const importo = parseLocalizedNumber(row[col]);
+      if (strumenti[col] && importo > 0) {
+        out.push({ id: `preset-i-${broker}-${col}`, broker, strumento: strumenti[col], importo });
+      }
+    }
+  });
+  return out;
+};
+
+// Inverso di parsePresetInvestimentiMatrix: colonne nell'ordine in cui gli
+// strumenti compaiono nei preset, una riga per broker.
+const buildPresetInvestimentiMatrix = (preset: any[]): any[][] => {
+  const strumenti: string[] = [];
+  const broker: string[] = [];
+  preset.forEach(p => {
+    if (!strumenti.includes(p.strumento)) strumenti.push(p.strumento);
+    if (!broker.includes(p.broker)) broker.push(p.broker);
+  });
+  return [
+    ['Conto', ...strumenti],
+    ...broker.map(b => [b, ...strumenti.map(st => preset.find(p => p.broker === b && p.strumento === st)?.importo ?? '')])
+  ];
+};
+
 // Legge Conti/Categorie Entrate/Categorie Uscite/Soglie da un foglio Google SEPARATO
 // (il "foglio di configurazione", vedi sf_config_spreadsheet_id in Impostazioni),
 // per popolare i "Dati Base" con valori curati altrove invece del seed hardcoded.
@@ -1097,9 +1239,11 @@ export const fetchDatiBaseFromConfigSheet = async (
   soglie?: any[];
   presetUscite?: any[];
   presetTrasferimenti?: any[];
+  presetInvestimenti?: any[];
+  quotaFondoPensione?: number;
 }> => {
   let sheets = SHEETS_CONFIG.filter(s =>
-    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie', 'Preset Uscite Ricorrenti', 'Preset Trasferimenti Ricorrenti'].includes(s.title)
+    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie', 'Preset Uscite Ricorrenti', 'Preset Trasferimenti Ricorrenti', 'Preset Investimenti Ricorrenti', 'Preset Fondo Pensione'].includes(s.title)
   );
 
   // Come in fetchSpreadsheetData: un solo range invalido fa fallire l'INTERO batchGet
@@ -1148,11 +1292,18 @@ export const fetchDatiBaseFromConfigSheet = async (
 
   const out: {
     conti?: string[]; categorieEntrate?: string[]; macroCategorieUscite?: any[]; soglie?: any[];
-    presetUscite?: any[]; presetTrasferimenti?: any[];
+    presetUscite?: any[]; presetTrasferimenti?: any[]; presetInvestimenti?: any[];
+    quotaFondoPensione?: number;
   } = {};
 
   sheets.forEach(sheet => {
     const rows = getValueRangeForSheet(sheet.title);
+
+    if (sheet.title === 'Preset Investimenti Ricorrenti') {
+      out.presetInvestimenti = parsePresetInvestimentiMatrix(rows);
+      return;
+    }
+
     const items = mapFromRowsWithHeaders(rows, sheet.fields, sheet.headers, sheet.booleanFields || [], sheet.numberFields || []);
 
     if (sheet.title === 'Preset Uscite Ricorrenti') {
@@ -1178,6 +1329,9 @@ export const fetchDatiBaseFromConfigSheet = async (
           importo: Number(r.importo || 0)
         }))
         .filter((p: any) => p.categoria);
+    } else if (sheet.title === 'Preset Fondo Pensione') {
+      const quota = Number(items[0]?.quota || 0);
+      if (quota > 0) out.quotaFondoPensione = quota;
     } else if (sheet.title === 'Conti') {
       out.conti = items.map((r: any) => String(r.nome || '').trim()).filter(Boolean);
     } else if (sheet.title === 'Categorie Entrate') {
@@ -1225,13 +1379,15 @@ export const pushDatiBaseToConfigSheet = async (
     soglie?: any[];
     presetUscite?: any[];
     presetTrasferimenti?: any[];
+    presetInvestimenti?: any[];
+    quotaFondoPensione?: number;
   }
 ): Promise<void> => {
   // Nessun controllo su WRITE_TO_SHEETS_DISABLED qui: quel kill-switch copre solo
   // il foglio principale (vedi commento sopra la costante), questo scrive sul
   // foglio di configurazione, un percorso separato.
   let sheets = SHEETS_CONFIG.filter(s =>
-    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie', 'Preset Uscite Ricorrenti', 'Preset Trasferimenti Ricorrenti'].includes(s.title)
+    ['Conti', 'Categorie Entrate', 'Categorie Uscite', 'Soglie', 'Preset Uscite Ricorrenti', 'Preset Trasferimenti Ricorrenti', 'Preset Investimenti Ricorrenti', 'Preset Fondo Pensione'].includes(s.title)
   );
 
   try {
@@ -1279,10 +1435,27 @@ export const pushDatiBaseToConfigSheet = async (
     importo: p.importo
   }));
 
+  const presetFondoPensioneRows = data.quotaFondoPensione !== undefined ? [{ quota: data.quotaFondoPensione }] : [];
+
   const dataMapForPush: Record<string, any[]> = {
     contiRows, categorieEntrateRows, categorieUsciteRows, soglieRows,
-    presetUsciteRows, presetTrasferimentiRows
+    presetUsciteRows, presetTrasferimentiRows, presetFondoPensioneRows
   };
+
+  // La matrice degli investimenti può restringersi (preset rimosso = colonna
+  // o riga in meno): la svuotiamo prima di riscriverla, altrimenti le celle
+  // in eccesso resterebbero sul foglio e tornerebbero al pull successivo.
+  // Solo se presetInvestimenti è nell'update, per non toccarla negli altri casi.
+  const pushInvestimenti = data.presetInvestimenti !== undefined &&
+    sheets.some(s => s.title === 'Preset Investimenti Ricorrenti');
+  sheets = sheets.filter(s => s.title !== 'Preset Investimenti Ricorrenti');
+  if (pushInvestimenti) {
+    const clearUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent('Preset Investimenti Ricorrenti!A:ZZ')}:clear`;
+    const clearResponse = await fetch(clearUrl, { method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}` } });
+    if (!clearResponse.ok) {
+      throw new Error(`Impossibile aggiornare i preset investimenti sul foglio di configurazione (codice ${clearResponse.status}).`);
+    }
+  }
 
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`;
   const valueData = sheets.map(sheet => {
@@ -1290,6 +1463,9 @@ export const pushDatiBaseToConfigSheet = async (
     const rows = mapToRows(sheet.headers, targetData, sheet.fields, sheet.dateFields);
     return { range: `${sheet.title}!A1`, values: rows };
   });
+  if (pushInvestimenti) {
+    valueData.push({ range: 'Preset Investimenti Ricorrenti!A1', values: buildPresetInvestimentiMatrix(data.presetInvestimenti || []) });
+  }
 
   const response = await fetch(url, {
     method: 'POST',
