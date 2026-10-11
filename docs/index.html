@@ -1,703 +1,300 @@
 <!doctype html>
 <html lang="it">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wally, finanza personale su un Google Sheet</title>
+<title>Wally</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"%3E%3Cdefs%3E%3ClinearGradient id="f" x1="0" y1="0" x2="1" y2="1"%3E%3Cstop offset="0" stop-color="%232cc1bd"/%3E%3Cstop offset=".55" stop-color="%230aa69b"/%3E%3Cstop offset="1" stop-color="%2316a34a"/%3E%3C/linearGradient%3E%3CclipPath id="r"%3E%3Crect width="64" height="64" rx="14"/%3E%3C/clipPath%3E%3C/defs%3E%3Cg clip-path="url%28%23r%29"%3E%3Crect width="64" height="64" fill="url%28%23f%29"/%3E%3Cg fill="%23fff"%3E%3Cpath d="M13 17l6 4v13l-6-4z"/%3E%3Cpath d="M22 22l6 4v21l-6-4z"/%3E%3Cpath d="M31 13l6 4v32l-6-4z"/%3E%3Cpath d="M40 21l6 4v17l-6-4z"/%3E%3Cpath d="M49 15l6 4v17l-6-4z"/%3E%3C/g%3E%3Cg fill="%23c3ece8"%3E%3Cpath d="M13 17l6 4v5l-6-4z"/%3E%3Cpath d="M22 22l6 4v5l-6-4z"/%3E%3Cpath d="M49 15l6 4v6l-6-4z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
-<meta name="description" content="Wally: dashboard di finanza personale in React che legge e scrive i dati su un Google Sheet. Documentazione con pezzi dell'app interattivi e dati fittizi.">
+<meta name="description" content="Wally, dashboard di finanza personale su un Google Sheet: apri l'app o leggi la documentazione con le pagine vere dell'app e dati fittizi.">
 <style>
-/* Stile di FedeGambe.github.io: carta calda con grana, Georgia per i titoli, Inter per il testo, monospace maiuscolo per le etichette,
-   righe nere da 3px, pillole. COLORI DERIVATI DALLA COVER: --c2 = colore caldo (il pezzo che colora il titolo <em>, in genere a metà del gradiente del sole/forma principale),
-   --c1 = colore freddo/secondario della cover (linee, griglia). Versione chiara = scurito per il contrasto, scura = chiaro. --c1 = data-parte="a", --c2 = data-parte="b".
-   Fondi scuri (--g*, --bg, --surface) = il colore di fondo della cover, schiarito di pochissimo. Cambia solo le variabili :root. */
+/* Identità del sito FedeGambe: teal = effetto positivo/principale, arancio = negativo/accento. Variabili --* , niente colori fissi. */
 :root{
-  --barra:60px;
-  --cover:#0a6460; --c2-cover:#9df0b8;  /* fondo della cover e colore caldo sulla cover (uguali nei due temi) */
-  --g1:#fff3dc; --g2:#e9c9a0; --g3:#e2d6bf; --bg:#f4efe6; --surface:#fbf8f2; --ink:#1c1b19; --ink-2:#44413a; --ink-3:#6b665c; --line:#d9d1c0;
-  --c1:#0a6e68; --c1-ink:#0a6e68; --c2:#169a4f; --c2-ink:#0f7a3c; --argento:#c9bda3;
-  --accent:var(--c1-ink); --accent-soft:#d9ece9; --c2-soft:#dcf1e2;
-  --grigio:#6b665c; --grigio-linea:#a39c8b;
+  --barra:60px; --g1:#fff7e6; --g2:#e6dfcb; --g3:#e9e4d3; --bg:#f4f0e6; --surface:#fbf9f3; --surface-2:#efe9db; --ink:#111111; --ink-2:#45484c; --ink-3:#6b6e72; --line:#e4e0d6; --track:#ece8df;
+  --teal:#3f93aa; --teal-ink:#2a7a90; --teal-soft:#e6f1f4; --arancio:#e2462a; --arancio-ink:#c8361c; --arancio-soft:#fbe8e3; --sabbia:#ddd4c1;
+  --scelto-bg:#263a5a; --scelto-ink:#ffffff;
+  --ombra:0 1px 2px rgba(17,17,17,.04), 0 8px 24px -12px rgba(17,17,17,.12);
   --f-display:Georgia,"Times New Roman",serif;
   --f-body:"Inter",system-ui,sans-serif;
   --f-data:ui-monospace,Consolas,monospace;
 }
 :root[data-theme="dark"]{
-  --g1:#0d3a36; --g2:#082b29; --g3:#041513; --bg:#061a18; --surface:#0b2422; --ink:#efe9dc; --ink-2:#c4bdae; --ink-3:#9aa9a4; --line:#1d3c39;
-  --c1:#7fe0d8; --c1-ink:#7fe0d8; --c2:#3fd17a; --c2-ink:#5fe093; --argento:#4f6b66;
-  --accent-soft:#0f3431; --c2-soft:#0f3320; --grigio:#9a9486; --grigio-linea:#6b665c;
+  --g1:#17222a; --g2:#0c1518; --g3:#08090a; --bg:#0f1011; --surface:#17191b; --surface-2:#202326; --ink:#f2f1ed; --ink-2:#bdbcb6; --ink-3:#97968f; --line:#2e3032; --track:#2a2c2e;
+  --teal:#4fa6bd; --teal-ink:#6dbbd0; --teal-soft:#18292e; --arancio:#ee6141; --arancio-ink:#f07a5e; --arancio-soft:#33201a; --sabbia:#5d574b;
+  --scelto-bg:#8ea6d0; --scelto-ink:#0f1216; --ombra:none;
   color-scheme:dark; }
 
 *{box-sizing:border-box}
-html{scroll-behavior:smooth; scroll-padding-top:calc(var(--barra) + var(--h-filtri,0px) + 20px)}
-@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
-body{margin:0; color:var(--ink); font:16px/1.6 var(--f-body); min-height:100vh;
+body{margin:0; color:var(--ink); font:16px/1.55 var(--f-body); min-height:100vh; -webkit-font-smoothing:antialiased;
   background:radial-gradient(900px 600px at 10% 0%,var(--g1),transparent 70%),radial-gradient(900px 700px at 100% 100%,var(--g2),transparent 70%),var(--g3); background-attachment:fixed}
 body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; opacity:.55;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
-.impianto{max-width:1320px; margin:0 auto; padding-inline:20px; padding-block:40px 80px;
-  display:grid; grid-template-columns:minmax(0,1fr); gap:0 48px}
-@media (min-width:1180px){ .impianto{grid-template-columns:230px minmax(0,1fr)} }
-main{min-width:0; max-width:1020px}
-h1,h2{font-family:var(--f-display); line-height:1; text-wrap:balance; margin:0; letter-spacing:-.03em}
-h1{font-size:clamp(2.4rem,7vw,5.2rem); font-weight:800}
-h1 em{color:var(--c2); font-style:italic}
-h2{font-size:clamp(1.7rem,3.6vw,2.5rem); font-weight:800; padding-bottom:12px; border-bottom:3px solid var(--ink)}
-h2::before{content:attr(data-n); display:block; font:600 .72rem/1 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--argento); margin-bottom:10px}
-.parte-a h2::before{color:var(--c1)} .parte-b h2::before{color:var(--c2)}
-.capitolo{margin-top:56px; padding-bottom:16px}
-.capitolo:first-child{margin-top:0}
-.capitolo:first-child{margin-top:0}
-p{margin:20px 0}
-h2 + p{margin-top:20px}
-strong{font-weight:600}
-a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:3px}
-a:focus-visible,button:focus-visible{outline:2px solid var(--c2); outline-offset:2px}
-code{font-family:var(--f-data); font-size:.88em; background:var(--accent-soft); padding:1px 6px; border-radius:3px}
-ul{padding-left:22px} li{margin:8px 0}
+.pagina{max-width:1200px; margin:0 auto; padding:calc(var(--barra) + 28px) 16px 96px}
+h1,h2,legend{font-family:var(--f-display); letter-spacing:-.03em}
+h1{font-size:clamp(2rem,5vw,3.4rem); font-weight:800; line-height:1.05; margin:10px 0 0; padding-bottom:14px; border-bottom:3px solid var(--ink); text-wrap:balance}
+h1 em{color:var(--arancio-ink); font-style:italic}
+h2{font-size:1.05rem; font-weight:800; margin:0; line-height:1.2}
+.num{font-family:var(--f-data); font-variant-numeric:tabular-nums}
+a{color:var(--teal-ink)}
+:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
+button{font:inherit; color:inherit; cursor:pointer}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
 
-/* Indice */
-.indice{font-size:.9rem}
-.indice .titolo{font:600 .72rem/1 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:12px}
-.indice ol{list-style:none; margin:0; padding:0}
-.indice li{margin:0 0 4px}
-.indice a{color:var(--ink); text-decoration:none; display:block; padding:4px 0 4px 10px; border-left:2px solid transparent; font:600 .8rem/1.35 var(--f-data); letter-spacing:.02em}
-.indice a:hover{color:var(--c1-ink)}
-.indice a.attivo{border-left-color:var(--c1); color:var(--c1-ink)}
-.indice .link-b:hover{color:var(--c2-ink)}
-.indice .link-b.attivo{border-left-color:var(--c2); color:var(--c2-ink)}
-.indice .gruppo-grigio a:hover{color:var(--grigio)}
-.indice .gruppo-grigio a.attivo{border-left-color:var(--grigio-linea); color:var(--grigio)}
-@media (min-width:1180px){
-  .indice{position:sticky; top:calc(var(--barra) + 20px); align-self:start; max-height:calc(100vh - var(--barra) - 40px); overflow:auto; padding-top:8px}
-}
-@media (max-width:1179px){
-  .indice{position:fixed; z-index:19; top:var(--barra); left:0; right:0; max-height:calc(100dvh - var(--barra)); overflow:auto;
-    background:var(--surface); border-bottom:1px solid var(--line); box-shadow:0 14px 28px #0003; padding:18px 20px 24px; display:none}
-  .indice.aperto{display:block}
-  .indice > ol{columns:2; column-gap:28px}
-  .indice li{break-inside:avoid}
-}
-@media (max-width:560px){ .indice > ol{columns:1} }
-
-/* Barra in alto */
+/* Testata */
 .barra{position:fixed; z-index:20; inset:0 0 auto; height:calc(var(--barra) + env(safe-area-inset-top,0px)); padding:env(safe-area-inset-top,0px) 20px 0;
-  display:flex; align-items:center; gap:16px; transition:background .35s, box-shadow .35s; --colore-parte:var(--grigio-linea)}
-.barra[data-parte="a"]{--colore-parte:var(--c1)} .barra[data-parte="b"]{--colore-parte:var(--c2)}
-.barra.compatta{background:color-mix(in srgb, var(--bg) 60%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 1px 0 var(--line)}
-.dove{flex:1; min-width:0; opacity:0; transform:translateY(-6px); transition:opacity .25s, transform .25s; pointer-events:none}
-.barra.compatta .dove{opacity:1; transform:none; pointer-events:auto}
-.dove .progetto{display:block; width:max-content; max-width:100%; font:600 .68rem/1.3 var(--f-data); letter-spacing:.08em; text-transform:uppercase;
-  color:var(--ink-3); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.dove .progetto:hover{color:var(--ink)}
-.posizione{font:700 1rem/1.3 var(--f-display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; position:relative; padding-left:16px}
-.posizione::before{content:""; position:absolute; left:0; top:.4em; width:.55em; height:.55em; border-radius:50%; background:var(--colore-parte)}
-.azioni{display:flex; gap:8px; flex:none; margin-left:auto}
+  display:flex; align-items:center; justify-content:flex-end; gap:8px; background:color-mix(in srgb, var(--bg) 60%, transparent);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 1px 0 var(--line)}
 .bottone-barra{font:600 .8rem/1 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--ink); background:none; border:1px solid var(--ink); border-radius:999px;
-  padding:8px 12px; cursor:pointer; white-space:nowrap}
-.bottone-barra{text-decoration:none; display:inline-flex; align-items:center; gap:8px}
+  padding:8px 12px; cursor:pointer; text-decoration:none; white-space:nowrap; display:inline-flex; align-items:center; gap:8px}
 .bottone-barra:hover{background:var(--ink); color:var(--bg)}
-.barra:not(.compatta) .bottone-barra{color:#efe3c8; border-color:#efe3c8}
-.barra:not(.compatta) .bottone-barra:hover{background:#efe3c8; color:var(--cover)}
-#apri-indice{display:none}
-@media (max-width:1179px){ #apri-indice{display:inline-block} }
-.avanzamento{position:absolute; left:0; bottom:0; width:100%; height:3px; background:var(--colore-parte);
-  transform-origin:left; transform:scaleX(var(--avanzamento,0)); opacity:0; transition:opacity .25s}
-.barra.compatta .avanzamento{opacity:1}
-@media (prefers-reduced-motion: reduce){ .barra,.dove,.avanzamento{transition:none} }
-
-/* Copertina a schermo intero: l'illustrazione riempie lo schermo, titolo in alto a tutta larghezza, diciture in basso */
-.copertina{position:relative; display:flex; flex-direction:column; justify-content:space-between; height:100svh; min-height:560px; overflow:hidden;
-  background:var(--cover); color:#efe3c8; --margine:max(20px, calc(50vw - 640px)); border-bottom:3px solid var(--ink)}
-.bauhaus{position:absolute; inset:0; width:100%; height:100%; z-index:0}
-.bauhaus-v{display:none}
-@media (orientation:portrait){ .bauhaus-o{display:none} .bauhaus-v{display:block} }  /* schermo verticale: cover verticale */
-.slide-testa{position:relative; z-index:1; padding:calc(var(--barra) + clamp(16px,3vw,48px)) var(--margine) 0;
-  opacity:calc(1 - 1.3 * var(--p,0)); transform:translateY(calc(var(--p,0) * 40px))}
-.slide-testa h1{font-size:clamp(2.4rem,7.5vw,5.6rem); line-height:.95; letter-spacing:-.04em; text-wrap:pretty;
-  transform-origin:left bottom; transform:scale(calc(1 - .3 * var(--p,0)))}
-.copertina h1 em{color:var(--c2-cover)}
-.copertina .sottotitolo{font-size:clamp(1rem,1.7vw,1.2rem); margin:20px 0 0; color:#d9ccaf}
-.copertina .sottotitolo p{margin:0}
-.copertina .sottotitolo strong{color:#efe3c8}
-
-.tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:20px}
-.tags span{font:600 .7rem/1 var(--f-data); border:1px solid #ffffff55; padding:5px 8px; border-radius:999px; color:#fffd}
-
-/* Tabelle e grafici */
-.tabella{overflow-x:auto; margin:16px 0; border:1px solid var(--line); border-radius:6px; background:var(--surface)}
-table{border-collapse:collapse; width:100%; font-size:.86rem; line-height:1.4}
-th,td{padding:8px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top}
-tr:last-child td{border-bottom:0}
-th{font:600 .72rem/1.4 var(--f-data); color:var(--ink-3); background:var(--bg); letter-spacing:.06em; text-transform:uppercase; white-space:nowrap}
-tbody tr:hover td{background:color-mix(in srgb, var(--accent-soft) 55%, transparent)}
-.parte-b tbody tr:hover td{background:color-mix(in srgb, var(--c2-soft) 55%, transparent)}
-figure{margin:20px 0 8px; background:var(--cover); border-radius:6px; padding:8px; min-width:0; overflow:hidden; box-shadow:0 18px 40px -22px #000a}  /* cornice scura in entrambi i temi */
-.conclusione{border-left:4px solid var(--c2); background:var(--surface); padding:6px 18px; border-radius:0 6px 6px 0; margin:20px 0; box-shadow:0 1px 0 var(--line), 0 12px 30px -18px rgba(28,27,25,.35)}
-footer{margin-top:80px; padding-top:18px; border-top:3px solid var(--ink); font:600 .78rem/1.6 var(--f-data); text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3)}
-footer a{color:inherit} footer a:hover{color:var(--c2)}
-.logo-cover{position:absolute; z-index:1; right:var(--margine); bottom:0; padding:0 0 26px; opacity:calc(1 - 1.3 * var(--p,0))}
-.logo-cover::before{content:""; position:absolute; z-index:-1; right:calc(-1 * var(--margine)); bottom:0; width:min(620px,90vw); height:340px;
-  background:radial-gradient(ellipse at 100% 100%, var(--cover) 0%, color-mix(in srgb, var(--cover) 82%, transparent) 30%, transparent 70%)}
-.logo-cover svg{display:block}
+@media (max-width:560px){ .solo-largo{display:none} }
 .firma{display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; font:600 .9rem/1 var(--f-data); letter-spacing:.06em}
-.firma:hover{color:var(--c2)}
+.firma:hover{color:var(--arancio)}
+.intro{color:var(--ink-2); max-width:68ch; margin:12px 0 14px; font-size:1.02rem}
+.dati-modello{display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none}
+.dati-modello li{font-size:.82rem; color:var(--ink-2); background:var(--surface-2); border-radius:999px; padding:4px 12px}
+.dati-modello b{font-family:var(--f-data); font-weight:600; color:var(--ink)}
 
-/* Filtri globali, grafici Plotly, KPI, tabella ordinabile (dall'esempio docs/index.html di bond-etf-target-maturity-analysis) */
+/* Barra degli esempi */
+.esempi{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:26px 0 18px}
+.esempi .titolo{font-size:.88rem; font-weight:600; color:var(--ink-2); margin-right:4px}
+.pulsante{min-height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--line); background:var(--surface);
+  font-size:.9rem; font-weight:600; display:inline-flex; align-items:center; gap:8px; transition:border-color .15s, background .15s}
+.pulsante:hover{border-color:var(--ink-3)}
+.pulsante .punto{width:8px; height:8px; border-radius:50%}
+.pulsante.leggero{border-color:transparent; background:transparent; color:var(--ink-2)}
+.pulsante.leggero:hover{background:var(--surface-2)}
+.esempi .spinta{margin-left:auto; display:flex; gap:4px}
+@media (max-width:640px){ .esempi .spinta{margin-left:0} }
 
-.barra-filtri{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; padding:12px 16px; margin-top:32px; border:1px solid var(--line); border-radius:10px; background:color-mix(in srgb,var(--bg) 88%,transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:15}
-@media (min-width:900px){ .barra-filtri{position:sticky; top:calc(var(--barra) + 10px) } }  /* 10px di respiro trasparente sotto la barra */
-.barra-filtri .titolo-filtri{flex:1 0 100%; margin:0; font:600 .72rem/1.3 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2)}
-.barra-filtri .titolo-filtri b{color:var(--c2-ink)}
-.plot{width:100%; height:430px} #g-avg{height:340px}
-@media (max-width:560px){ .plot{height:360px} }
-figure{background:#ffffff03; backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); border:1px solid #ffffff1f; border-radius:10px; padding:10px 12px 6px; box-shadow:0 18px 40px -22px #000a, inset 0 1px 0 #ffffff14}
-:root:not([data-theme="dark"]) figure{background:#0d1a2bd9}  /* tema chiaro: i grafici hanno testi chiari, il vetro deve restare scuro */
-.modebar-container{top:6px!important; right:8px!important}
-.modebar{display:flex!important; flex-wrap:nowrap!important; width:auto!important; white-space:nowrap} .modebar-group{display:flex!important; float:none!important; padding-left:4px!important}
-.kpi{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:24px 0}
-.kpi div{background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--c2); border-radius:6px; padding:14px}
-.kpi b{display:block; font:800 1.8rem/1 var(--f-display); letter-spacing:-.03em; margin-bottom:6px}
-.kpi span{font:600 .7rem/1.3 var(--f-data); letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
-.filtri{display:flex; flex-wrap:wrap; gap:12px 18px; align-items:center; margin:20px 0}
-.gruppo{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
-.gruppo .et{font:600 .68rem/1 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-right:4px}
-.gruppo button{font:600 .78rem/1 var(--f-data); color:var(--ink); background:none; border:1px solid var(--line); border-radius:999px; padding:7px 12px; cursor:pointer}
-.gruppo button.on{background:var(--c1); border-color:var(--c1); color:var(--cover)}
-select,input[type=search]{font:600 .8rem/1 var(--f-data); color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:8px 10px}
-input[type=search]{min-width:220px; flex:1}
-th[data-k]{cursor:pointer; user-select:none} th[data-k]:hover{color:var(--ink)} th.on::after{content:" ▼"; font-size:.7em} th.on.asc::after{content:" ▲"}
-td.num,th.num{text-align:right; font-variant-numeric:tabular-nums}
-td.netto{font-weight:700; color:var(--c1-ink)}
-.badge{font:600 .66rem/1 var(--f-data); padding:3px 6px; border-radius:999px; border:1px solid var(--line)}
-.badge.corp{border-color:var(--c2); color:var(--c2-ink)} .badge.govt{border-color:var(--c1); color:var(--c1-ink)}
-.pager{display:flex; align-items:center; gap:12px; font:600 .78rem/1 var(--f-data); color:var(--ink-3); margin-bottom:8px}
-.pager label{margin-left:auto}
-.pager button:disabled{opacity:.35; cursor:default}
-figure svg{display:block; width:100%; height:auto}
-figure text{fill:#b9ae95; font:11px ui-monospace,Consolas,monospace}
-.leg{display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px 12px 10px; font:600 .72rem/1.3 var(--f-data); color:#d9ccaf}
-.leg i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:-1px}
-/* COVER A DUE LIVELLI: img/cover_sfondo.svg riempie la cover (fondo continuo, anche dietro ai testi);
-   <img class="soggetto" src="img/cover_soggetto.svg"> è il soggetto (classe "largo" se è una striscia a tutta larghezza: si tagliano i lati).
-   Desktop: testi in alto, il soggetto parte da metà schermo (o dopo i testi, se sono più lunghi) e arriva in fondo.
-   Telefono (fino a 700px): la cover non è a tutto schermo; solo il titolo sta prima della grafica, testo introduttivo e tag stanno sopra
-   la parte bassa del soggetto su una sfumatura del colore di fondo. Niente logo in basso a destra.
-   Senza i due livelli si usa la cover orizzontale/verticale intera (.bauhaus). */
-.copertina .soggetto{display:none}
-.copertina:has(.soggetto){background:var(--cover) url("img/cover_sfondo.svg") 50% 100% / cover no-repeat}
-.copertina:has(.soggetto) .bauhaus{display:none}
-@media (min-width:701px){
-  .copertina:has(.soggetto){display:flex; flex-direction:column; justify-content:flex-start}
-  .copertina:has(.soggetto) .slide-testa{flex:none; min-height:50%; box-sizing:border-box; padding-right:var(--margine); padding-bottom:28px}
-  .copertina .soggetto{display:block; flex:1 1 0; min-height:0; width:100%; box-sizing:border-box; padding:0 var(--margine) max(40px, 7vh);
-    object-fit:contain; object-position:50% 0; position:relative; z-index:0}  /* parte da metà schermo, con margine in basso */
-  .copertina .soggetto.largo{object-fit:cover; object-position:50% 100%; padding:0}  /* le strisce a tutta larghezza arrivano al bordo */
+/* Griglia */
+.griglia{display:grid; grid-template-columns:minmax(0,1fr); gap:20px; align-items:start}
+@media (min-width:980px){
+  .griglia{grid-template-columns:minmax(0,1fr) minmax(0,480px)}
+  .esiti{position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; scrollbar-width:thin}
 }
+.scheda{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:22px; box-shadow:var(--ombra)}
+
+/* Form */
+form{display:grid; gap:20px}
+fieldset{border:0; margin:0; padding:0; min-width:0}
+.sezione > legend{display:flex; align-items:center; gap:10px; font-size:1.1rem; font-weight:800; padding:0; margin-bottom:18px; float:left; width:100%}
+.sezione > legend + *{clear:both}
+.sezione > legend .passo{display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%;
+  background:var(--arancio-soft); color:var(--arancio-ink); font:700 .82rem var(--f-data)}
+.campi{display:grid; grid-template-columns:minmax(0,1fr); gap:20px 22px}
+@media (min-width:600px){ .campi{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.largo{grid-column:1/-1}
+.etichetta,.campo > legend{display:block; font:600 .88rem var(--f-body); letter-spacing:0; color:var(--ink-2); margin:0 0 7px; padding:0}
+.aiuto{font-size:.8rem; color:var(--ink-3); margin:6px 0 0; min-height:1.2em}
+.aiuto:empty{display:none}
+.errore-campo{font-size:.8rem; color:var(--arancio-ink); font-weight:600; margin:6px 0 0}
+
+/* Controlli segmentati (radio) */
+.segmenti{display:flex; flex-wrap:wrap; gap:6px}
+.segmenti.colonne{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.segmento{position:relative; flex:1 1 auto}
+.segmento input{position:absolute; opacity:0; inset:0; margin:0; cursor:pointer}
+.segmento span{display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; min-height:44px; height:100%; padding:6px 12px;
+  border:1px solid var(--line); border-radius:8px; background:var(--bg); font-size:.9rem; line-height:1.2;
+  transition:background .15s, border-color .15s, color .15s}
+.segmento small{font:500 .7rem var(--f-data); color:var(--ink-3); margin-top:2px}
+.segmento:hover span{border-color:var(--ink-3)}
+.segmento input:checked + span{background:var(--scelto-bg); border-color:var(--scelto-bg); color:var(--scelto-ink); font-weight:600}
+.segmento input:checked + span small{color:inherit; opacity:.8}
+.segmento input:focus-visible + span{outline:2px solid var(--teal); outline-offset:2px}
+
+select,input[type=number]{width:100%; font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:0 12px; min-height:44px}
+select{appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size:5px 5px; background-repeat:no-repeat; padding-right:36px}
+input[type=number]{font-family:var(--f-data); font-variant-numeric:tabular-nums}
+input[aria-invalid=true]{border-color:var(--arancio); background:var(--arancio-soft)}
+.con-unita{position:relative}
+.con-unita input{padding-right:76px}
+.con-unita .unita{position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.82rem; color:var(--ink-3); pointer-events:none}
+.contatore{display:grid; grid-template-columns:44px minmax(0,1fr) 44px; gap:6px}
+.contatore input{text-align:center; padding:0 4px; -moz-appearance:textfield}
+.contatore input::-webkit-inner-spin-button,.contatore input::-webkit-outer-spin-button{-webkit-appearance:none; margin:0}
+.contatore button{border:1px solid var(--line); background:var(--surface-2); border-radius:8px; font-size:1.2rem; line-height:1}
+.contatore button:hover:not(:disabled){border-color:var(--ink-3)}
+.contatore button:disabled{opacity:.4; cursor:not-allowed}
+
+.cursore{display:flex; align-items:center; gap:14px}
+input[type=range]{flex:1; accent-color:var(--teal); min-height:44px; margin:0}
+.cursore output{font:600 1rem var(--f-data); min-width:3.6em; text-align:right}
+.estremi-cursore{display:flex; justify-content:space-between; font-size:.78rem; color:var(--ink-3); margin-right:calc(3.6em + 14px)}
+
+/* Risultato */
+.esiti{display:grid; gap:16px}
+.risultato{text-align:center}
+.risultato h2{text-align:left}
+.indicatore{display:block; width:100%; max-width:250px; margin:4px auto 0}
+.indicatore .traccia{stroke:var(--track)}
+.indicatore .valore{stroke:var(--teal); transition:stroke-dasharray .35s cubic-bezier(.2,.7,.2,1)}
+.indicatore .valore.basso{stroke:var(--arancio)}
+.indicatore .media{stroke:var(--ink); stroke-width:2.5}
+.indicatore .grande{fill:var(--ink); font:800 38px var(--f-display); font-variant-numeric:tabular-nums}
+.indicatore .estremi{fill:var(--ink-3); font:12px var(--f-data)}
+.delta{font:600 .85rem var(--f-data); min-height:1.4em; margin:2px 0 10px; color:var(--ink-3)}
+.delta.su{color:var(--teal-ink)} .delta.giu{color:var(--arancio-ink)}
+.verdetto{display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:999px; font-weight:700; font-size:.95rem}
+.verdetto svg{width:18px; height:18px; flex:none}
+.verdetto.bev{background:var(--teal-soft); color:var(--teal-ink)}
+.verdetto.altro{background:var(--arancio-soft); color:var(--arancio-ink)}
+.confronto{font-size:.84rem; color:var(--ink-3); margin:12px 0 0}
+.confronto .tacca{display:inline-block; width:3px; height:12px; background:var(--ink); vertical-align:-1px; margin-right:6px}
+.inattivo{opacity:.4; transition:opacity .2s}
+.avviso{background:var(--arancio-soft); color:var(--arancio-ink); border-radius:8px; padding:10px 14px; font-size:.88rem; font-weight:600; text-align:left; margin:12px 0 0}
+
+/* Cascata */
+.sottotitolo{font-size:.86rem; color:var(--ink-3); margin:4px 0 12px}
+.cascata{display:grid; gap:4px}
+.riga{display:grid; grid-template-columns:minmax(0,10em) minmax(0,1fr) 4.2em; gap:10px; align-items:center; min-height:31px}
+.riga .nome{font-size:.86rem; line-height:1.2; min-width:0}
+.riga .nome b{display:block; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.riga .nome span{display:block; font-size:.76rem; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.riga .pista{position:relative; height:18px}
+.riga .pista::before{content:""; position:absolute; inset:50% 0 auto; height:1px; background:var(--line)}
+.riga .seg{position:absolute; top:0; bottom:0; border-radius:3px; min-width:2px; transition:left .3s, width .3s}
+.riga .seg.su{background:var(--teal)} .riga .seg.giu{background:var(--arancio)}
+.riga .segno{position:absolute; top:-3px; bottom:-3px; width:3px; margin-left:-1.5px; border-radius:2px; background:var(--ink-3)}
+.riga .val{font:500 .8rem var(--f-data); text-align:right; white-space:nowrap}
+.riga .val.su{color:var(--teal-ink)} .riga .val.giu{color:var(--arancio-ink)}
+.riga.estremo{border-top:1px dashed var(--line); padding-top:4px}
+.riga.estremo:first-child{border-top:0; border-bottom:1px dashed var(--line); padding:0 0 4px}
+.riga.estremo .val{font-weight:600; color:var(--ink)}
+.riga.finale .segno{background:var(--ink); width:4px; margin-left:-2px}
+.asse-x{display:grid; grid-template-columns:minmax(0,10em) minmax(0,1fr) 4.2em; gap:10px; margin-top:2px}
+.asse-x .tacche{position:relative; height:16px; font:11px var(--f-data); color:var(--ink-3)}
+.asse-x .tacche span{position:absolute; transform:translateX(-50%)}
+.legenda{display:flex; flex-wrap:wrap; gap:14px; font-size:.8rem; color:var(--ink-2); margin:14px 0 0}
+.legenda i{display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:6px}
+details.metodo{margin-top:14px; border-top:1px solid var(--line); padding-top:10px; font-size:.84rem; color:var(--ink-2)}
+details.metodo summary{cursor:pointer; font-weight:600; min-height:32px; display:flex; align-items:center}
+details.metodo p{margin:6px 0}
+
+/* Barra fissa su mobile */
+.barra-mobile{position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px)); z-index:10;
+  display:flex; align-items:center; gap:12px; padding:10px 10px 10px 16px; border-radius:14px;
+  background:var(--ink); color:var(--bg); box-shadow:0 10px 30px -10px rgba(0,0,0,.4);
+  transform:translateY(160%); transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+.barra-mobile.visibile{transform:none}
+.barra-mobile .etic{font-size:.8rem; opacity:.8}
+.barra-mobile strong{font:800 1.3rem var(--f-display); font-variant-numeric:tabular-nums}
+.barra-mobile .mdelta{font:500 .8rem var(--f-data); opacity:.85}
+.barra-mobile a{margin-left:auto; color:var(--bg); background:color-mix(in srgb, var(--bg) 16%, transparent); border-radius:10px; padding:0 14px;
+  min-height:44px; display:inline-flex; align-items:center; text-decoration:none; font-weight:600; font-size:.88rem}
+@media (min-width:980px){ .barra-mobile{display:none} }
+
+footer{margin-top:48px; padding-top:18px; border-top:3px solid var(--ink); color:var(--ink-3); font:600 .78rem/1.6 var(--f-data); text-transform:uppercase; letter-spacing:.06em}
+footer a{color:inherit} footer a:hover{color:var(--arancio)}
+footer .firma{margin-top:14px}
+.solo-lettori{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+/* FONT MOBILE (telefono, fino a 700px): gerarchia titolo > titoli di sezione > testo > etichette > note */
 @media (max-width:700px){
-  .copertina{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto 34vw auto auto; align-content:start;
-    height:auto; min-height:0; --h-sogg:min(72vw, 420px)}
-  .copertina:has(.soggetto.largo){--h-sogg:min(78vw, 440px)}
-  .copertina > .slide-testa, .copertina > picture{display:contents}
-  .copertina h1, .slide-testa h1{grid-row:1; grid-column:1; position:relative; z-index:2; margin:0; padding:calc(var(--barra) + 22px) var(--margine) 0;
-    font-size:clamp(2rem,9vw,2.5rem); line-height:1; max-width:none; transform:none}
-  .copertina .sottotitolo{grid-row:3; grid-column:1; position:relative; z-index:2; margin:0; padding:0 var(--margine); font-size:1rem; line-height:1.5;
-    text-shadow:0 1px 10px color-mix(in srgb, var(--cover) 70%, transparent)}
-  .copertina .tags{grid-row:4; grid-column:1; position:relative; z-index:2; margin:0; padding:14px var(--margine) 26px}
-  .copertina > .diciture{grid-row:5; grid-column:1}
-  /* senza livelli: cover orizzontale ritagliata 16:7 */
-  .copertina .bauhaus{grid-row:2 / 5; grid-column:1; display:block; inset:0 0 auto; width:100%; height:auto; aspect-ratio:16 / 7; object-fit:cover; object-position:50% 100%}
-  .copertina .bauhaus-v{display:none}
-  .copertina::after{content:""; grid-row:3 / 5; grid-column:1; position:absolute; inset:-48px 0 0; z-index:1; pointer-events:none;
-    background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--cover) 72%, transparent) 48px, color-mix(in srgb, var(--cover) 94%, transparent) calc(48px + 16vw), var(--cover))}
-  /* con i due livelli */
-  .copertina:has(.soggetto){grid-template-rows:auto auto auto auto}
-  .copertina:has(.soggetto) .bauhaus, .copertina:has(.soggetto)::after{display:none}
-  .copertina:has(.soggetto) h1{padding-bottom:18px}
-  .copertina .soggetto{grid-row:2; grid-column:1; display:block; position:relative; z-index:1; width:100%; height:var(--h-sogg); box-sizing:border-box;
-    padding-bottom:24px; object-fit:contain; object-position:50% 0}
-  .copertina .soggetto.largo{object-fit:cover; object-position:50% 100%; padding-bottom:0}
-  .copertina:has(.soggetto) .sottotitolo{margin-top:calc(var(--h-sogg) * -.35); padding-top:52px;
-    background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--cover) 84%, transparent) 52px)}
-  .copertina:has(.soggetto) .tags{background:color-mix(in srgb, var(--cover) 84%, transparent)}
-  /* strisce a tutta larghezza: la grafica passa dietro a testo e tag e arriva al bordo inferiore della cover */
-  .copertina:has(.soggetto.largo){grid-template-rows:auto calc(var(--h-sogg) * .62) auto auto}
-  .copertina .soggetto.largo{grid-row:2 / 5; height:100%; min-height:var(--h-sogg); align-self:stretch}
-  .copertina:has(.soggetto.largo) .sottotitolo{grid-row:3; margin-top:0}
-  .copertina:has(.soggetto.largo) .tags{grid-row:4}
-
-  .logo-cover{display:none}
-  .solo-largo{display:none}
-  .azioni{gap:6px}
-  .bottone-barra{padding:7px 10px; letter-spacing:.05em}
-  footer{overflow-wrap:anywhere}
+  h1, .banner h1{font-size:clamp(1.9rem,8.5vw,2.25rem)}
+  h2, .sezione > legend, .gtitolo, .risultati h2{font-size:1.25rem}
+  h3{font-size:1.05rem}
+  .intro{font-size:1rem}
+  .etichetta, .campo > legend{font-size:.9rem}
 }
-/* /COVER A DUE LIVELLI */
-/* Wally: pezzi di app ricostruiti con dati fittizi (stessi colori dell'app, tema scuro) */
-:root:not([data-theme="dark"]) figure{background:#062a27e0}
-.app{--a-bg:#0b0f19; --a-card:rgba(255,255,255,.045); --a-bordo:rgba(255,255,255,.09); --a-ink:#f1f5f9; --a-ink2:#94a3b8;
-  --a-up:#34d399; --a-down:#fb7185; --a-warn:#fbbf24; --a-accent:#15B4B7;
-  margin:24px 0 10px; border-radius:16px; overflow:hidden; color:var(--a-ink); font:14px/1.45 "Inter",system-ui,sans-serif;
-  background:radial-gradient(700px 380px at 0% 0%, #0e3b3a 0%, transparent 70%), radial-gradient(600px 360px at 100% 100%, #0d2a3a 0%, transparent 70%), var(--a-bg);
-  border:1px solid #ffffff1f; box-shadow:0 24px 50px -28px #000c}
-.app-testa{display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--a-bordo); background:#ffffff08; font:600 .72rem/1 var(--f-data); letter-spacing:.06em; text-transform:uppercase; color:var(--a-ink2)}
-.app-testa i{width:10px; height:10px; border-radius:50%; background:#ffffff26; display:inline-block}
-.app-testa .nome{margin-left:6px; color:var(--a-ink)}
-.app-testa .finto{margin-left:auto; color:var(--a-warn); border:1px solid #fbbf2466; border-radius:999px; padding:4px 8px}
-.app-corpo{padding:16px}
-.app .griglia{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.app .carta{background:var(--a-card); border:1px solid var(--a-bordo); border-radius:14px; padding:14px; min-width:0}
-.app .et{display:flex; align-items:center; gap:6px; font:600 .66rem/1.2 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--a-ink2)}
-.app .et i{width:8px; height:8px; border-radius:50%; display:inline-block}
-.app .val{font:700 1.45rem/1.15 "Inter",system-ui,sans-serif; letter-spacing:-.02em; margin-top:8px; font-variant-numeric:tabular-nums}
-.app .nota{font-size:.75rem; color:var(--a-ink2); margin-top:4px}
-.app .su{color:var(--a-up)} .app .giu{color:var(--a-down)}
-.app .pill{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
-.app .pill button{font:600 .74rem/1 var(--f-data); color:var(--a-ink2); background:#ffffff0a; border:1px solid var(--a-bordo); border-radius:999px; padding:7px 11px; cursor:pointer}
-.app .pill button:hover{color:var(--a-ink)}
-.app .pill button.on{background:var(--a-accent); border-color:var(--a-accent); color:#04201f}
-.app .riga-ctrl{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin-bottom:14px}
-.app .barra-soglia{position:relative; height:8px; border-radius:99px; background:#ffffff14; margin-top:10px; overflow:visible}
-.app .barra-soglia b{position:absolute; inset:0 auto 0 0; border-radius:99px; transition:width .35s}
-.app .barra-soglia s{position:absolute; top:-4px; width:2px; height:16px; background:var(--a-ink); border-radius:2px; transition:left .35s}
-.app .stato{display:inline-block; margin-top:8px; font:600 .66rem/1 var(--f-data); letter-spacing:.06em; text-transform:uppercase; padding:4px 7px; border-radius:999px}
-.app .stato.ok{background:#34d39922; color:var(--a-up)} .app .stato.ko{background:#fb718522; color:var(--a-down)}
-.app .plot{height:330px} @media (max-width:560px){ .app .plot{height:300px} }
-.app .slider{display:grid; grid-template-columns:110px 1fr 46px; gap:10px; align-items:center; font:600 .74rem/1.2 var(--f-data); color:var(--a-ink2); margin:6px 0}
-.app .slider output{color:var(--a-ink); text-align:right}
-.app input[type=range]{width:100%; accent-color:var(--a-accent)}
-.app input[type=search], .app input[type=number], .app select{font:600 .78rem/1 var(--f-data); color:var(--a-ink); background:#ffffff0d; border:1px solid var(--a-bordo); border-radius:8px; padding:8px 10px}
-.app input[type=search]{min-width:0; flex:1 1 180px}
-.app input[type=number]{width:100%}
-.app .tabella{background:transparent; border-color:var(--a-bordo); margin:0; max-height:360px; overflow:auto}
-.app table{font-size:.82rem}
-.app th{background:#0f1622; color:var(--a-ink2); position:sticky; top:0}
-.app td{border-color:var(--a-bordo)} .app th{border-color:var(--a-bordo)}
-.app tbody tr:hover td{background:#ffffff0a}
-.app .tag{font:600 .64rem/1 var(--f-data); padding:3px 6px; border-radius:999px; border:1px solid; white-space:nowrap}
-.app .tag.p{color:var(--a-accent); border-color:#15b4b766} .app .tag.s{color:var(--a-warn); border-color:#fbbf2466}
-.app .due{display:grid; gap:12px; grid-template-columns:minmax(0,1fr)}
-@media (min-width:860px){ .app .due{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)} .app .due.inv{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)} }
-.app .formula{font:600 .78rem/1.6 var(--f-data); color:var(--a-ink2); background:#00000033; border:1px dashed var(--a-bordo); border-radius:10px; padding:10px 12px; margin-top:12px; overflow-wrap:anywhere}
-.app .formula b{color:var(--a-ink)}
-.app .esito{font:700 .8rem/1 var(--f-data); letter-spacing:.06em; text-transform:uppercase}
-.app .lista-kv{display:grid; grid-template-columns:1fr auto; gap:6px 12px; font-size:.84rem; margin-top:10px}
-.app .lista-kv span{color:var(--a-ink2)} .app .lista-kv b{font-variant-numeric:tabular-nums; text-align:right}
-.app .campi{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px}
-.app .campi label{font:600 .64rem/1.2 var(--f-data); letter-spacing:.06em; text-transform:uppercase; color:var(--a-ink2); display:grid; gap:4px}
-.didascalia{font-size:.86rem; color:var(--ink-3); margin:8px 0 0}
-/* schema dei tre livelli */
-.schema svg{display:block; width:100%; height:auto}
-.schema .nodo rect{fill:#ffffff08; stroke:#ffffff33; stroke-width:1.5; transition:fill .3s, stroke .3s}
-.schema .nodo.on rect{fill:#15b4b726; stroke:#3fd17a}
-.schema .nodo text{fill:#efe9dc; font:700 15px "Inter",system-ui,sans-serif}
-.schema .nodo text.sub{fill:#9fb5b0; font:500 11px ui-monospace,Consolas,monospace}
-.schema .fr{stroke:#ffffff40; stroke-width:2; fill:none; transition:stroke .3s}
-.schema .fr.on{stroke:#3fd17a; stroke-width:3}
-.schema text.lab{fill:#9fb5b0; font:600 11px ui-monospace,Consolas,monospace; transition:fill .3s}
-.schema text.lab.on{fill:#3fd17a}
-.passi{display:flex; align-items:flex-start; gap:12px; padding:8px 12px 12px; color:#d9ccaf}
-.passi p{margin:0; flex:1; font-size:.92rem; min-height:3.2em}
-.passi p b{color:#efe9dc}
-.passi button{font:600 .74rem/1 var(--f-data); color:#efe9dc; background:none; border:1px solid #ffffff55; border-radius:999px; padding:7px 11px; cursor:pointer; flex:none}
-.passi button:disabled{opacity:.35; cursor:default}
-.passi .n{font:700 .8rem/1 var(--f-data); color:#3fd17a; flex:none; padding-top:5px}
-@media (max-width:560px){ #usc-tab th:nth-child(3), #usc-tab td:nth-child(3){display:none} .app .tabella{max-height:420px} .passi{flex-wrap:wrap} .passi p{flex:1 0 100%; order:-1} .app .slider{grid-template-columns:92px 1fr 40px} .app-corpo{padding:12px} }
+/* /FONT MOBILE */
+/* BANNER A DUE LIVELLI: img/banner_sfondo.svg è il fondo del banner (continuo, anche dietro alla barra e al titolo);
+   <img class="soggetto" src="img/banner_soggetto.svg"> è il soggetto. Colore di fondo e del testo: --banner-fondo, --banner-testo (nella pagina).
+   Desktop: titolo e sottotitolo a sinistra, soggetto a destra.
+   Telefono (fino a 700px): solo il titolo prima della grafica, poi il soggetto con il sottotitolo sopra la sua parte bassa, su una sfumatura. */
+.banner{position:relative; overflow:hidden; padding:calc(var(--barra) + env(safe-area-inset-top,0px)) 0 0;
+  background:var(--banner-fondo) url("img/banner_sfondo.svg") 50% 50% / cover no-repeat; border-bottom:3px solid var(--ink)}
+.banner .soggetto{position:absolute; z-index:0; top:calc(var(--barra) + 10px); bottom:18px; right:max(16px, calc(50vw - 600px)); left:auto;
+  width:min(46%, 560px); height:calc(100% - var(--barra) - 28px); max-width:none; opacity:1; -webkit-mask-image:none; mask-image:none; object-fit:contain; object-position:100% 0}
+.banner .dentro{position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:28px 16px 30px}
+.banner picture{display:contents}
+/* strisce a tutta larghezza (classe "largo"): su desktop il soggetto è ruotato di 90° (banner_soggetto_ruotato.svg, base a destra)
+   e occupa tutta l'altezza del banner, largo metà schermo (ritagliato sopra e sotto), allineato al bordo destro; su telefono resta orizzontale sotto il titolo */
+@media (min-width:701px){
+  .banner .soggetto.largo{top:0; bottom:0; right:0; width:50vw; height:100%; object-fit:cover; object-position:100% 50%}  /* largo metà schermo, ritagliato sopra e sotto */
+}
+.banner h1{margin:0; padding:0; border:0; color:var(--banner-testo); font-size:clamp(1.9rem,4.6vw,3.2rem); font-weight:800; line-height:1.05; max-width:16ch; text-wrap:balance}
+.banner p{margin:10px 0 0; color:var(--banner-testo); font:600 .8rem/1.3 var(--f-data); letter-spacing:.08em; text-transform:uppercase; max-width:52ch}
+@media (max-width:700px){
+  .banner{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto}
+  .banner .dentro{display:contents}
+  .banner h1{grid-row:1; grid-column:1; position:relative; z-index:2; padding:22px 16px 16px; max-width:none}
+  .banner .soggetto{grid-row:2; grid-column:1; position:relative; inset:auto; width:100%; height:min(44vw, 240px); box-sizing:border-box;
+    padding:0 16px 18px; object-position:50% 0}
+  .banner p{grid-row:3; grid-column:1; position:relative; z-index:2; margin:-48px 0 0; padding:34px 16px 18px; max-width:none;
+    background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--banner-fondo) 86%, transparent) 34px)}
+  .banner .soggetto.largo{object-fit:cover; object-position:50% 100%; padding:0}  /* strisce a tutta larghezza */
+  .banner::after{display:none}
+}
+/* /BANNER A DUE LIVELLI */
+:root{--banner-fondo:#0a6460; --banner-testo:#efe3c8}  /* colore di fondo di banner_sfondo.svg e colore del titolo sopra */
+.banner h1 em{color:#9df0b8}
+/* barra trasparente sopra il banner, piena quando si scorre */
+.barra{transition:background .35s, box-shadow .35s}
+.barra:not(.compatta){background:transparent; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:none}
+.barra:not(.compatta) .bottone-barra{color:var(--banner-testo); border-color:var(--banner-testo)}
+.barra:not(.compatta) .bottone-barra svg path{fill:var(--banner-testo)}
+.pagina{padding-top:24px}
+
+/* Wally: colori dalla cover (teal = principale, "arancio" = verde del logo) */
+:root{--teal:#0a6e68; --teal-ink:#0a6e68; --teal-soft:#d9ece9; --arancio:#169a4f; --arancio-ink:#0f7a3c; --arancio-soft:#dcf1e2}
+:root[data-theme="dark"]{--g1:#0d3a36; --g2:#082b29; --g3:#041513; --bg:#061a18; --surface:#0b2422; --surface-2:#11302d; --line:#1d3c39; --track:#1d3c39;
+  --teal:#7fe0d8; --teal-ink:#7fe0d8; --teal-soft:#0f3431; --arancio:#3fd17a; --arancio-ink:#5fe093; --arancio-soft:#0f3320}
+.scelte{display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin:32px 0 8px}
+@media (min-width:760px){ .scelte{grid-template-columns:1fr 1fr} }
+.scelta{display:flex; flex-direction:column; gap:10px; min-height:44px; padding:24px 24px 22px; border-radius:14px; text-decoration:none; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line); border-top:4px solid var(--teal); box-shadow:var(--ombra); transition:transform .2s, border-color .2s}
+.scelta.doc{border-top-color:var(--arancio)}
+.scelta:hover{transform:translateY(-2px); border-color:var(--teal)}
+.scelta.doc:hover{border-color:var(--arancio)}
+.scelta .etic{font:600 .72rem/1 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.scelta strong{font:800 1.7rem/1.1 var(--f-display); letter-spacing:-.03em}
+.scelta span.testo{color:var(--ink-2)}
+.scelta .vai{margin-top:auto; padding-top:8px; font:600 .85rem/1 var(--f-data); letter-spacing:.06em; text-transform:uppercase; color:var(--teal-ink)}
+.scelta.doc .vai{color:var(--arancio-ink)}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.theme||"dark"}catch{document.documentElement.dataset.theme="dark"}</script>
-
+</head>
+<body>
 <header class="barra" id="barra">
-  <div class="dove">
-    <a class="progetto" href="#copertina">Wally, finanza personale su un Google Sheet</a>
-    <div class="posizione" id="barra-capitolo" aria-live="polite"></div>
-  </div>
-  <nav class="azioni" aria-label="Navigazione">
-    <a class="bottone-barra" href="https://progetti.federicogamberini.it/"><svg viewBox="0 0 341.61 344.35" width="16" height="16" aria-hidden="true"><path fill="var(--c2)" d="M305.77,314.84c-1.08-1.67-1.77-2.62-2.34-3.65c-3.02-5.39-5.94-10.83-9.02-16.18c-17.29-30.05-43.07-48.09-77.1-54.5 c-17.79-3.35-35.74-5.17-53.8-6.14c-21.84-1.18-43.73-1.99-65.32-6c-9.5-1.76-18.94-3.73-27.98-7.29 c-8.04-3.16-15.26-7.61-21.27-13.87c-13.08-13.63-15.82-29.73-10.89-47.44c2.89-10.41,8.84-18.71,17.92-24.85 c10.62-7.18,21.95-12.65,34.39-15.81c2.06-0.52,4.09-1.18,6.13-1.81c0.3-0.09,0.56-0.34,1.29-0.81 c-9.36-6.59-18.86-12.66-27.69-21.06c10.9-3.7,21.14-6.76,31.45-9.97c0.99,1.14,1.81,2.04,2.59,2.97 c13.91,16.46,31.6,23.71,53.08,22.12c16.35-1.21,30.14-7.47,40.84-20.05c6.12-7.19,10.46-15.41,13.36-24.36 c1.45-4.47,2.43-9.1,3.59-13.66c0.36-1.4,0.63-2.83,1-4.55c18.56-6.79,37.16-13.59,56.5-20.67c-0.23,2.67-0.22,4.76-0.61,6.76 c-8.53,44.01-33.56,73.26-77.08,85.81c-16.26,4.69-32.94,6.71-49.81,7.55c-15.23,0.76-30.52,1.1-45.49,4.59 c-7.02,1.64-13.98,3.55-20.22,7.22c-3.33,1.96-6.64,4.34-9.17,7.23c-7.64,8.72-5.53,19.97,4.64,25.58 c6.25,3.45,13.13,5.38,20.15,6.33c10.45,1.41,20.95,2.44,31.45,3.35c14.2,1.23,28.42,2.13,42.62,3.29 c13.31,1.09,26.63,2.08,39.89,3.6c15.86,1.82,31.55,4.74,46.46,10.71c32.06,12.85,49.3,37.31,54.57,70.78 c2.14,13.57,1.06,27.09-2.51,40.38C307.06,311.7,306.51,312.88,305.77,314.84z"/></svg><span>← Progetti</span></a>
-    <button class="bottone-barra" id="apri-indice" type="button" aria-controls="indice" aria-expanded="false">Indice</button>
-    <button class="bottone-barra" id="tema" type="button" aria-label="Cambia tema chiaro/scuro">Tema</button>
-  </nav>
-  <div class="avanzamento" aria-hidden="true"></div>
+  <a class="bottone-barra" href="https://progetti.federicogamberini.it/"><svg viewBox="0 0 341.61 344.35" width="16" height="16" aria-hidden="true"><path fill="var(--arancio)" d="M305.77,314.84c-1.08-1.67-1.77-2.62-2.34-3.65c-3.02-5.39-5.94-10.83-9.02-16.18c-17.29-30.05-43.07-48.09-77.1-54.5 c-17.79-3.35-35.74-5.17-53.8-6.14c-21.84-1.18-43.73-1.99-65.32-6c-9.5-1.76-18.94-3.73-27.98-7.29 c-8.04-3.16-15.26-7.61-21.27-13.87c-13.08-13.63-15.82-29.73-10.89-47.44c2.89-10.41,8.84-18.71,17.92-24.85 c10.62-7.18,21.95-12.65,34.39-15.81c2.06-0.52,4.09-1.18,6.13-1.81c0.3-0.09,0.56-0.34,1.29-0.81 c-9.36-6.59-18.86-12.66-27.69-21.06c10.9-3.7,21.14-6.76,31.45-9.97c0.99,1.14,1.81,2.04,2.59,2.97 c13.91,16.46,31.6,23.71,53.08,22.12c16.35-1.21,30.14-7.47,40.84-20.05c6.12-7.19,10.46-15.41,13.36-24.36 c1.45-4.47,2.43-9.1,3.59-13.66c0.36-1.4,0.63-2.83,1-4.55c18.56-6.79,37.16-13.59,56.5-20.67c-0.23,2.67-0.22,4.76-0.61,6.76 c-8.53,44.01-33.56,73.26-77.08,85.81c-16.26,4.69-32.94,6.71-49.81,7.55c-15.23,0.76-30.52,1.1-45.49,4.59 c-7.02,1.64-13.98,3.55-20.22,7.22c-3.33,1.96-6.64,4.34-9.17,7.23c-7.64,8.72-5.53,19.97,4.64,25.58 c6.25,3.45,13.13,5.38,20.15,6.33c10.45,1.41,20.95,2.44,31.45,3.35c14.2,1.23,28.42,2.13,42.62,3.29 c13.31,1.09,26.63,2.08,39.89,3.6c15.86,1.82,31.55,4.74,46.46,10.71c32.06,12.85,49.3,37.31,54.57,70.78 c2.14,13.57,1.06,27.09-2.51,40.38C307.06,311.7,306.51,312.88,305.77,314.84z"/></svg><span>← Progetti</span></a>
+  <a class="bottone-barra solo-largo" href="documentazione.html">Documentazione</a><!-- 0-2 link: <a class="bottone-barra solo-largo" href="...">Testo</a> -->
+  <button class="bottone-barra" id="tema" type="button" aria-label="Cambia tema chiaro/scuro">Tema</button>
 </header>
-
-<section class="copertina" id="copertina">
-  <div class="slide-testa">
+<section class="banner">  
+  <img class="soggetto" src="img/banner_soggetto.svg" alt="">
+  <div class="dentro">
     <h1>Wally, <em>finanza personale</em> su un Google Sheet</h1>
-    <div class="sottotitolo"><p>Entrate, spese, patrimonio, investimenti e consumi dell'auto in un'unica app web, con i dati su un <strong>foglio Google</strong> dell'utente e nessun backend.</p></div>
-    <div class="tags"><span>Finanza</span><span>React 19</span><span>TypeScript</span><span>Google Sheets</span></div>
+    <p>Entrate, spese, patrimonio, investimenti e consumi dell'auto</p>
   </div>
-  
-  
-  <a class="logo-cover" href="https://progetti.federicogamberini.it/" aria-label="Federico Gamberini, progetti"><svg viewBox="0 0 341.61 344.35" width="44" height="44" aria-hidden="true"><path fill="#fff" d="M305.77,314.84c-1.08-1.67-1.77-2.62-2.34-3.65c-3.02-5.39-5.94-10.83-9.02-16.18c-17.29-30.05-43.07-48.09-77.1-54.5 c-17.79-3.35-35.74-5.17-53.8-6.14c-21.84-1.18-43.73-1.99-65.32-6c-9.5-1.76-18.94-3.73-27.98-7.29 c-8.04-3.16-15.26-7.61-21.27-13.87c-13.08-13.63-15.82-29.73-10.89-47.44c2.89-10.41,8.84-18.71,17.92-24.85 c10.62-7.18,21.95-12.65,34.39-15.81c2.06-0.52,4.09-1.18,6.13-1.81c0.3-0.09,0.56-0.34,1.29-0.81 c-9.36-6.59-18.86-12.66-27.69-21.06c10.9-3.7,21.14-6.76,31.45-9.97c0.99,1.14,1.81,2.04,2.59,2.97 c13.91,16.46,31.6,23.71,53.08,22.12c16.35-1.21,30.14-7.47,40.84-20.05c6.12-7.19,10.46-15.41,13.36-24.36 c1.45-4.47,2.43-9.1,3.59-13.66c0.36-1.4,0.63-2.83,1-4.55c18.56-6.79,37.16-13.59,56.5-20.67c-0.23,2.67-0.22,4.76-0.61,6.76 c-8.53,44.01-33.56,73.26-77.08,85.81c-16.26,4.69-32.94,6.71-49.81,7.55c-15.23,0.76-30.52,1.1-45.49,4.59 c-7.02,1.64-13.98,3.55-20.22,7.22c-3.33,1.96-6.64,4.34-9.17,7.23c-7.64,8.72-5.53,19.97,4.64,25.58 c6.25,3.45,13.13,5.38,20.15,6.33c10.45,1.41,20.95,2.44,31.45,3.35c14.2,1.23,28.42,2.13,42.62,3.29 c13.31,1.09,26.63,2.08,39.89,3.6c15.86,1.82,31.55,4.74,46.46,10.71c32.06,12.85,49.3,37.31,54.57,70.78 c2.14,13.57,1.06,27.09-2.51,40.38C307.06,311.7,306.51,312.88,305.77,314.84z"/></svg></a>
-  <img class="soggetto" src="img/cover_soggetto.svg" alt="">
 </section>
-
-<div class="impianto">
-<nav class="indice" id="indice" aria-label="Indice">
-  <div class="titolo">Indice</div>
-  <ol><li class="gruppo-grigio"><a href="#c0">Sintesi</a></li>
-    <li><a href="#c1">1. Le sezioni dell'app</a></li>
-    <li><a href="#c2">2. Prova la Panoramica</a></li>
-    <li><a href="#c3">3. Prova le Uscite</a></li>
-    <li><a href="#c4">4. Prova i Consumi dell'auto</a></li>
-    <li><a class="link-b" href="#c5">5. Come si muovono i dati</a></li>
-    <li><a class="link-b" href="#c6">6. Avvio e deploy</a></li>
-    <li><a class="link-b" href="#c7">7. Limiti</a></li></ol>
-</nav>
-<main>
-<section class="capitolo" id="c0" data-titolo="Sintesi" data-parte=""><h2 data-n="Sintesi">Wally in breve</h2>
-  <p><strong>Wally</strong> è una dashboard di finanza personale, per un solo utente e tutta in italiano. Mostra entrate, uscite, patrimonio, investimenti e consumi dell'auto in un'unica app web. Non ha un backend né un database suo: legge e scrive i dati direttamente su un <strong>Google Sheet</strong> dell'utente, e tiene una copia locale nel browser.</p>
-  <div class="kpi">
-    <div><b>7</b><span>sezioni dell'app</span></div>
-    <div><b>0</b><span>server o database propri</span></div>
-    <div><b>3</b><span>livelli di dati: foglio, cache, schermo</span></div>
-    <div><b>1</b><span>file di configurazione per le colonne del foglio</span></div>
-  </div>
-  <p>I riquadri scuri con la scritta <em>dati fittizi</em> sono pezzi dell'app ricostruiti in questa pagina: si possono cliccare e filtrare, ma i numeri sono inventati (gli stessi della <strong>modalità incognito</strong> dell'app, <code>src/data/demoData.ts</code>).</p>
-  <div class="conclusione"><p>Il foglio Google resta la fonte dei dati e l'app serve a leggerli: niente account da creare, niente dati su server di terzi oltre a Google, e il foglio si può sempre aprire e correggere a mano.</p></div>
-</section>
-
-<section class="capitolo parte-a" id="c1" data-titolo="1. Le sezioni dell'app" data-parte="a"><h2 data-n="Capitolo 01">Le sezioni dell'app</h2>
-  <p>La barra laterale porta a sette pagine (<code>src/components/Sidebar.tsx</code>). Ognuna è un file in <code>src/pages/</code> che compone dei componenti; i calcoli stanno in un hook dedicato in <code>src/hooks/</code>.</p>
-  <div class="tabella"><table>
-    <thead><tr><th>Sezione</th><th>Cosa mostra</th><th>Hook dei calcoli</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Panoramica</strong></td><td>Patrimonio (disponibile, investito, accantonato), mese corrente confrontato con le soglie, andamento di risparmio e investito, bilancio storico</td><td><code>usePanoramicaData</code></td></tr>
-      <tr><td><strong>Entrate</strong></td><td>Entrate del mese e dell'anno, media mensile, storico, ripartizione per categoria e per conto</td><td><code>useEntrateData</code></td></tr>
-      <tr><td><strong>Uscite</strong></td><td>Spese primarie e secondarie, storico di 12 mesi, torte per macro e micro categoria, archivio con ricerca e filtri</td><td><code>useUsciteData</code></td></tr>
-      <tr><td><strong>Patrimonio</strong></td><td>Conti con soglia di allerta, suddivisione del capitale, andamento finanziario nel tempo</td><td><code>usePatrimonioData</code></td></tr>
-      <tr><td><strong>Investimenti</strong></td><td>Quattro schede: Cruscotto, Rendimenti, Conti dei broker, Fondo pensione</td><td><code>useInvestimentiData</code></td></tr>
-      <tr><td><strong>Analisi consumi</strong></td><td>Rifornimenti dell'auto per settimana: km/litro, costo per 100 km, prezzo, km persi e costo extra</td><td><code>useAnalisiConsumiData</code></td></tr>
-      <tr><td><strong>Impostazioni</strong></td><td>Collegamento al foglio, sincronizzazione, tema, categorie, conti, soglie e spese ricorrenti</td><td>componenti in <code>impostazioni/</code></td></tr>
-    </tbody>
-  </table></div>
-  <p>Mese e anno selezionati vivono in <code>App.tsx</code> e sono condivisi da tutte le pagine; un pulsante fisso in basso a destra apre il modulo per aggiungere un dato (entrata, uscita, consumo).</p>
-</section>
-
-<section class="capitolo parte-a" id="c2" data-titolo="2. Prova la Panoramica" data-parte="a"><h2 data-n="Capitolo 02">Prova la Panoramica</h2>
-  <p>La prima schermata confronta il mese con quattro <strong>soglie</strong>: quanta parte delle entrate va in spese primarie (necessarie), secondarie (discrezionali), investimenti e risparmio. I valori di partenza sono 35%, 15%, 25% e il resto al risparmio (<code>src/config/targets.ts</code>); l'utente li cambia in Impostazioni e prevalgono quelli del tab "Soglie" del foglio. Per le spese stare <em>sotto</em> la soglia è un bene, per investito e risparmio stare <em>sopra</em>.</p>
-  <div class="app" id="app-pan">
-    <div class="app-testa"><i></i><i></i><i></i><span class="nome">Wally · Panoramica</span><span class="finto">Dati fittizi</span></div>
-    <div class="app-corpo">
-      <div class="griglia" id="pan-patrimonio"></div>
-      <div class="riga-ctrl" style="margin-top:18px"><div class="pill" id="pan-mesi"></div></div>
-      <div class="griglia" id="pan-mese"></div>
-      <div class="due" style="margin-top:12px">
-        <div class="carta"><div class="riga-ctrl" style="margin-bottom:4px"><span class="et">Risparmio e investito</span><div class="pill" id="pan-modo" style="margin-left:auto"><button class="on" data-v="mese">Mensile</button><button data-v="cum">Cumulato</button></div></div><div id="g-pan" class="plot"></div></div>
-        <div class="carta"><span class="et">Soglie (Impostazioni)</span>
-          <div class="slider"><span>Primarie</span><input type="range" id="s-prim" min="15" max="50" value="35"><output id="o-prim"></output></div>
-          <div class="slider"><span>Secondarie</span><input type="range" id="s-sec" min="5" max="30" value="15"><output id="o-sec"></output></div>
-          <div class="slider"><span>Investimenti</span><input type="range" id="s-inv" min="5" max="40" value="25"><output id="o-inv"></output></div>
-          <div class="slider"><span>Risparmio</span><span class="nota" style="margin:0">il resto del 100%</span><output id="o-risp"></output></div>
-          <p class="nota" id="pan-avviso" style="margin-top:12px">Sposta le soglie: le carte del mese cambiano colore subito, come nell'app.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <p class="didascalia">Scegli il mese con le pillole o cliccando un punto del grafico; "Cumulato" somma i mesi dall'inizio dell'anno. Le barre sotto ogni carta mostrano la quota sulle entrate, la tacca bianca è la soglia.</p>
-</section>
-
-<section class="capitolo parte-a" id="c3" data-titolo="3. Prova le Uscite" data-parte="a"><h2 data-n="Capitolo 03">Prova le Uscite</h2>
-  <p>Ogni spesa ha una <strong>macro categoria</strong> (Cibo, Automobile, Salute…), una categoria, un conto e il flag <em>primaria</em>. Nell'app la torta della macro categoria filtra quella della micro categoria e l'archivio; qui la torta filtra la tabella.</p>
-  <div class="app" id="app-usc">
-    <div class="app-testa"><i></i><i></i><i></i><span class="nome">Wally · Uscite</span><span class="finto">Dati fittizi</span></div>
-    <div class="app-corpo">
-      <div class="griglia" id="usc-kpi"></div>
-      <div class="riga-ctrl" style="margin-top:16px">
-        <div class="pill" id="usc-tipo"><button class="on" data-v="">Tutte</button><button data-v="p">Primarie</button><button data-v="s">Secondarie</button></div>
-        <select id="usc-mese" aria-label="Mese"></select>
-        <input type="search" id="usc-cerca" placeholder="Cerca descrizione o categoria…" aria-label="Cerca">
-      </div>
-      <div class="due inv">
-        <div class="carta"><div class="riga-ctrl" style="margin-bottom:0"><span class="et">Macro categoria</span><button id="usc-reset" class="et" style="margin-left:auto; background:none; border:0; cursor:pointer; color:var(--a-accent)" hidden>✕ togli filtro</button></div><div id="g-usc" class="plot"></div></div>
-        <div class="carta" style="padding:0"><div class="tabella"><table id="usc-tab">
-          <thead><tr><th data-k="t">Data</th><th data-k="d">Descrizione</th><th data-k="m">Macro</th><th>Tipo</th><th data-k="i" class="num on">Importo</th></tr></thead><tbody></tbody>
-        </table></div></div>
-      </div>
-    </div>
-  </div>
-  <p class="didascalia">Clicca una fetta per vedere solo quella macro categoria; clicca le intestazioni Data, Descrizione, Macro e Importo per ordinare.</p>
-</section>
-
-<section class="capitolo parte-a" id="c4" data-titolo="4. Prova i Consumi dell'auto" data-parte="a"><h2 data-n="Capitolo 04">Prova i consumi dell'auto</h2>
-  <p>Il foglio ha una riga per rifornimento; <code>useAnalisiConsumiData</code> li raggruppa per settimana (da martedì a lunedì) e calcola km/litro e costo per 100 km. Poi confronta ogni settimana con il <strong>record personale</strong> di km/litro: i <strong>km persi</strong> sono i km in più che si sarebbero fatti con gli stessi litri guidando come nella settimana migliore, il <strong>costo extra</strong> è quanto si è speso in più per i km fatti davvero. L'<strong>esito</strong> della settimana mette in classifica tutte le settimane per costo in più rispetto alla mediana: Migliore, Ottima, Buona, Nella media, Non buona, Scarsa, Peggiore.</p>
-  <div class="app" id="app-con">
-    <div class="app-testa"><i></i><i></i><i></i><span class="nome">Wally · Analisi consumi</span><span class="finto">Dati fittizi</span></div>
-    <div class="app-corpo">
-      <div class="riga-ctrl"><div class="pill" id="con-metrica"><button class="on" data-v="kml">Km/litro</button><button data-v="e100">€/100 km</button><button data-v="persi">Km persi</button><button data-v="extra">Costo extra</button><button data-v="prezzo">Prezzo €/l</button></div></div>
-      <div class="due">
-        <div class="carta"><div id="g-con" class="plot"></div></div>
-        <div class="carta" id="con-sett"></div>
-      </div>
-      <div class="carta" style="margin-top:12px"><span class="et">Prova un rifornimento</span>
-        <div class="campi">
-          <label>Km fatti<input type="number" id="r-km" value="320" min="1" step="1"></label>
-          <label>Litri<input type="number" id="r-l" value="18" min="0.1" step="0.1"></label>
-          <label>€ al litro<input type="number" id="r-p" value="1.79" min="0.5" step="0.01"></label>
-        </div>
-        <div class="lista-kv" id="r-out"></div>
-      </div>
-    </div>
-  </div>
-  <p class="didascalia">Clicca una barra per vedere il riepilogo di quella settimana. Il colore dice se la settimana è migliore (verde) o peggiore (rosa) della mediana; la linea tratteggiata è la mediana.</p>
-</section>
-
-<section class="capitolo parte-b" id="c5" data-titolo="5. Come si muovono i dati" data-parte="b"><h2 data-n="Capitolo 05">Come si muovono i dati</h2>
-  <p>I dati vivono in tre livelli (<code>docs/ARCHITETTURA.md</code>). Il <strong>foglio Google</strong> è la fonte definitiva; la <strong>cache locale</strong> in <code>localStorage</code> (chiavi <code>sf_*</code>) permette di lavorare senza rileggere il foglio a ogni apertura; lo <strong>stato React</strong> è ciò che si vede a schermo.</p>
-  <figure class="schema">
-    <svg viewBox="0 0 900 250" role="img" aria-label="Schema: Google Sheet, localStorage e stato React collegati da frecce">
-      <g class="nodo" data-n="0"><rect x="20" y="40" width="230" height="110" rx="12"/><text x="40" y="82">Google Sheet</text><text class="sub" x="40" y="106">sheetsService.tsx</text><text class="sub" x="40" y="124">sheetsConfig.ts</text></g>
-      <g class="nodo" data-n="1"><rect x="335" y="40" width="230" height="110" rx="12"/><text x="355" y="82">localStorage</text><text class="sub" x="355" y="106">mockData.ts · chiavi sf_*</text><text class="sub" x="355" y="124">saveToLocalStorage()</text></g>
-      <g class="nodo" data-n="2"><rect x="650" y="40" width="230" height="110" rx="12"/><text x="670" y="82">Stato React</text><text class="sub" x="670" y="106">FinanceDataContext.tsx</text><text class="sub" x="670" y="124">useFinanceData()</text></g>
-      <path class="fr" data-f="pull" d="M250 78 H335" marker-end="url(#pt)"/><text class="lab" data-f="pull" x="262" y="68">pull</text>
-      <path class="fr" data-f="push" d="M335 118 H250" marker-end="url(#pt)"/><text class="lab" data-f="push" x="262" y="140">push</text>
-      <path class="fr" data-f="leggi" d="M565 78 H650" marker-end="url(#pt)"/><text class="lab" data-f="leggi" x="572" y="68">getExportable</text>
-      <path class="fr" data-f="scrivi" d="M650 118 H565" marker-end="url(#pt)"/><text class="lab" data-f="scrivi" x="590" y="140">salva</text>
-      <path class="fr" data-f="bump" d="M765 150 V200 H450 V150" marker-end="url(#pt)"/><text class="lab" data-f="bump" x="470" y="222">bumpVersion() → ricalcola data</text>
-      <defs><marker id="pt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9fb5b0"/></marker></defs>
-    </svg>
-    <div class="passi"><span class="n" id="passo-n">1/6</span><p id="passo-t"></p><button id="passo-prec" type="button">← Prima</button><button id="passo-succ" type="button">Dopo →</button></div>
-  </figure>
-  <p class="didascalia">Un giro completo, quando si modifica una spesa: usa "Dopo" per seguirlo passo per passo.</p>
-  <ul>
-    <li><strong>Colonne del foglio in un solo posto.</strong> Il legame tra colonne e campi è in <code>SHEETS_CONFIG</code> (<code>src/config/sheetsConfig.ts</code>): per aggiungere una colonna si cambia solo quel file. Le schede dei due broker scoprono le colonne leggendo le prime due righe del foglio, perché cambiano con i titoli in portafoglio.</li>
-    <li><strong>Numeri e date robusti.</strong> <code>parseLocalizedNumber</code> riconosce sia <code>1.234,56</code> sia <code>1,234.56</code>; <code>parseDateString</code> accetta testo, ISO e numeri seriali di Google Sheets.</li>
-    <li><strong>Modalità incognito.</strong> Un interruttore nell'intestazione sostituisce tutti i dati con quelli fittizi di <code>demoData.ts</code>, utile quando si condivide lo schermo. Il push verso Google usa sempre i dati reali, così i dati demo non finiscono mai nel foglio.</li>
-    <li><strong>Accesso.</strong> Firebase Auth (Google Sign-In) dà l'identità e il token per l'API di Sheets. Il token dura circa un'ora: l'app lo rinnova in silenzio al primo clic dopo 40 minuti, quindi mentre la si usa la sessione non scade.</li>
-  </ul>
-</section>
-
-<section class="capitolo parte-b" id="c6" data-titolo="6. Avvio e deploy" data-parte="b"><h2 data-n="Capitolo 06">Avvio e deploy</h2>
-  <p>Stack: <strong>React 19</strong> e <strong>TypeScript</strong> con <strong>Vite 6</strong>, <strong>Tailwind CSS 4</strong>, grafici con <strong>Recharts</strong>, animazioni con <strong>Motion</strong>, icone <strong>lucide-react</strong>, login con <strong>Firebase</strong>.</p>
-  <div class="tabella"><table>
-    <thead><tr><th>Comando</th><th>Cosa fa</th></tr></thead>
-    <tbody>
-      <tr><td><code>npm install</code></td><td>installa le dipendenze</td></tr>
-      <tr><td><code>npm run dev</code></td><td>server di sviluppo su <code>http://localhost:3000</code></td></tr>
-      <tr><td><code>npm run build</code> · <code>npm run preview</code></td><td>build di produzione e anteprima locale</td></tr>
-      <tr><td><code>npm run lint</code></td><td>controllo dei tipi TypeScript (<code>tsc --noEmit</code>)</td></tr>
-      <tr><td><code>npm test</code></td><td>test con Vitest (lettura del foglio, settimane dei consumi, copia delle formule del foglio)</td></tr>
-    </tbody>
-  </table></div>
-  <p>In locale serve un <code>.env.local</code> (non committato, si parte da <code>.env.example</code>) con le variabili <code>VITE_FIREBASE_*</code> della console Firebase e <code>VITE_GOOGLE_OAUTH_CLIENT_ID</code> per il rinnovo silenzioso del token.</p>
-  <p>Il deploy è su <strong>Vercel</strong>, automatico a ogni push su <code>main</code>; le stesse variabili si impostano tra le Environment Variables del progetto. <code>vercel.json</code> inoltra <code>/__/auth</code> e <code>/__/firebase</code> a Firebase, così il login con redirect resta sullo stesso dominio dell'app.</p>
-</section>
-
-<section class="capitolo parte-b" id="c7" data-titolo="7. Limiti" data-parte="b"><h2 data-n="Capitolo 07">Limiti</h2>
-  <ul>
-    <li><strong>Un solo utente.</strong> L'app è pensata per una persona e un foglio; l'ID del foglio si salva nel browser.</li>
-    <li><strong>Il salvataggio su Google è manuale.</strong> Le modifiche vanno subito in <code>localStorage</code>; per scriverle nel foglio serve il pulsante di sincronizzazione, che riscrive ogni scheda per intero.</li>
-    <li><strong>Sessione breve a scheda chiusa.</strong> Senza un backend non c'è refresh token: dopo circa 50 minuti di inattività serve un clic di login (senza password).</li>
-    <li><strong>Pochi test automatici.</strong> I test coprono il parsing del foglio e i calcoli dei consumi; il resto si verifica con il controllo dei tipi e a mano.</li>
-  </ul>
-  <div class="conclusione"><p>Codice su <a href="https://github.com/FedeGambe/Wally">github.com/FedeGambe/Wally</a>. L'app pubblicata richiede l'accesso con l'account Google del proprietario del foglio; per vederla senza dati reali c'è la modalità incognito, la stessa dei riquadri di questa pagina.</p></div>
-</section>
-
-<footer><p>Wally · codice su <a href="https://github.com/FedeGambe/Wally">github.com/FedeGambe/Wally</a> · tutti i numeri di questa pagina sono fittizi</p><p><a class="firma" href="https://progetti.federicogamberini.it/"><svg viewBox="0 0 341.61 344.35" width="28" height="28" aria-hidden="true"><path fill="var(--c2)" d="M305.77,314.84c-1.08-1.67-1.77-2.62-2.34-3.65c-3.02-5.39-5.94-10.83-9.02-16.18c-17.29-30.05-43.07-48.09-77.1-54.5 c-17.79-3.35-35.74-5.17-53.8-6.14c-21.84-1.18-43.73-1.99-65.32-6c-9.5-1.76-18.94-3.73-27.98-7.29 c-8.04-3.16-15.26-7.61-21.27-13.87c-13.08-13.63-15.82-29.73-10.89-47.44c2.89-10.41,8.84-18.71,17.92-24.85 c10.62-7.18,21.95-12.65,34.39-15.81c2.06-0.52,4.09-1.18,6.13-1.81c0.3-0.09,0.56-0.34,1.29-0.81 c-9.36-6.59-18.86-12.66-27.69-21.06c10.9-3.7,21.14-6.76,31.45-9.97c0.99,1.14,1.81,2.04,2.59,2.97 c13.91,16.46,31.6,23.71,53.08,22.12c16.35-1.21,30.14-7.47,40.84-20.05c6.12-7.19,10.46-15.41,13.36-24.36 c1.45-4.47,2.43-9.1,3.59-13.66c0.36-1.4,0.63-2.83,1-4.55c18.56-6.79,37.16-13.59,56.5-20.67c-0.23,2.67-0.22,4.76-0.61,6.76 c-8.53,44.01-33.56,73.26-77.08,85.81c-16.26,4.69-32.94,6.71-49.81,7.55c-15.23,0.76-30.52,1.1-45.49,4.59 c-7.02,1.64-13.98,3.55-20.22,7.22c-3.33,1.96-6.64,4.34-9.17,7.23c-7.64,8.72-5.53,19.97,4.64,25.58 c6.25,3.45,13.13,5.38,20.15,6.33c10.45,1.41,20.95,2.44,31.45,3.35c14.2,1.23,28.42,2.13,42.62,3.29 c13.31,1.09,26.63,2.08,39.89,3.6c15.86,1.82,31.55,4.74,46.46,10.71c32.06,12.85,49.3,37.31,54.57,70.78 c2.14,13.57,1.06,27.09-2.51,40.38C307.06,311.7,306.51,312.88,305.77,314.84z"/></svg><span>Federico Gamberini</span></a></p></footer>
-</main>
+<div class="pagina">
+  <header>
+    <p class="intro">Wally è una dashboard di finanza personale, per un solo utente e tutta in italiano. Non ha un backend: legge e scrive i dati direttamente su un <strong>foglio Google</strong> dell'utente.</p>
+    <ul class="dati-modello"><li>Dati <b>Google Sheet</b></li><li>Stack <b>React 19 · TypeScript</b></li><li>Sezioni <b>7</b></li><li>Deploy <b>Vercel</b></li></ul>
+  </header>
+  <nav class="scelte" aria-label="Dove andare">
+    <a class="scelta" href="https://wally.federicogamberini.it/">
+      <span class="etic">Applicazione</span><strong>Apri l'app</strong>
+      <span class="testo">La dashboard pubblicata. Serve l'accesso con l'account Google collegato al foglio dei dati.</span>
+      <span class="vai">wally.federicogamberini.it →</span>
+    </a>
+    <a class="scelta doc" href="documentazione.html">
+      <span class="etic">Documentazione</span><strong>Come funziona</strong>
+      <span class="testo">Sezioni, flusso dei dati, avvio e limiti, con le pagine vere dell'app da provare su dati fittizi.</span>
+      <span class="vai">Leggi la documentazione →</span>
+    </a>
+  </nav>
+  <footer><span>Codice su <a href="https://github.com/FedeGambe/Wally">github.com/FedeGambe/Wally</a></span><p><a class="firma" href="https://progetti.federicogamberini.it/"><svg viewBox="0 0 341.61 344.35" width="28" height="28" aria-hidden="true"><path fill="var(--arancio)" d="M305.77,314.84c-1.08-1.67-1.77-2.62-2.34-3.65c-3.02-5.39-5.94-10.83-9.02-16.18c-17.29-30.05-43.07-48.09-77.1-54.5 c-17.79-3.35-35.74-5.17-53.8-6.14c-21.84-1.18-43.73-1.99-65.32-6c-9.5-1.76-18.94-3.73-27.98-7.29 c-8.04-3.16-15.26-7.61-21.27-13.87c-13.08-13.63-15.82-29.73-10.89-47.44c2.89-10.41,8.84-18.71,17.92-24.85 c10.62-7.18,21.95-12.65,34.39-15.81c2.06-0.52,4.09-1.18,6.13-1.81c0.3-0.09,0.56-0.34,1.29-0.81 c-9.36-6.59-18.86-12.66-27.69-21.06c10.9-3.7,21.14-6.76,31.45-9.97c0.99,1.14,1.81,2.04,2.59,2.97 c13.91,16.46,31.6,23.71,53.08,22.12c16.35-1.21,30.14-7.47,40.84-20.05c6.12-7.19,10.46-15.41,13.36-24.36 c1.45-4.47,2.43-9.1,3.59-13.66c0.36-1.4,0.63-2.83,1-4.55c18.56-6.79,37.16-13.59,56.5-20.67c-0.23,2.67-0.22,4.76-0.61,6.76 c-8.53,44.01-33.56,73.26-77.08,85.81c-16.26,4.69-32.94,6.71-49.81,7.55c-15.23,0.76-30.52,1.1-45.49,4.59 c-7.02,1.64-13.98,3.55-20.22,7.22c-3.33,1.96-6.64,4.34-9.17,7.23c-7.64,8.72-5.53,19.97,4.64,25.58 c6.25,3.45,13.13,5.38,20.15,6.33c10.45,1.41,20.95,2.44,31.45,3.35c14.2,1.23,28.42,2.13,42.62,3.29 c13.31,1.09,26.63,2.08,39.89,3.6c15.86,1.82,31.55,4.74,46.46,10.71c32.06,12.85,49.3,37.31,54.57,70.78 c2.14,13.57,1.06,27.09-2.51,40.38C307.06,311.7,306.51,312.88,305.77,314.84z"/></svg><span>Federico Gamberini</span></a></p></footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" charset="utf-8"></script>
-<script id="dati" type="application/json">{"mesi":[{"mese":"Gennaio","entrate":2000,"prim":420,"sec":160,"inv":300,"risp":850},{"mese":"Febbraio","entrate":2000,"prim":480,"sec":180,"inv":280,"risp":800},{"mese":"Marzo","entrate":2050,"prim":400,"sec":150,"inv":350,"risp":920},{"mese":"Aprile","entrate":2050,"prim":410,"sec":170,"inv":330,"risp":890},{"mese":"Maggio","entrate":2100,"prim":440,"sec":190,"inv":350,"risp":850},{"mese":"Giugno","entrate":2100,"prim":420,"sec":170,"inv":320,"risp":920}],"conti":[{"n":"Conto corrente","disp":5200,"inv":0,"acc":3000},{"n":"Conto deposito","disp":9000,"inv":0,"acc":0},{"n":"Broker Alpha","disp":2000,"inv":13000,"acc":0},{"n":"Broker Beta","disp":800,"inv":5200,"acc":0},{"n":"Contanti","disp":300,"inv":0,"acc":0}],"uscite":[{"data":"18/06/2026","mese":"giugno","desc":"Spesa supermercato","macro":"Cibo","cat":"Spesa","icon":"🍕","conto":"Conto Corrente","importo":64.3,"prim":true},{"data":"14/06/2026","mese":"giugno","desc":"Rifornimento carburante","macro":"Automobile","cat":"Rifornimento","icon":"🚘","conto":"Conto Corrente","importo":45.0,"prim":true},{"data":"10/06/2026","mese":"giugno","desc":"Cena con amici","macro":"Cibo","cat":"Ristorante","icon":"🍕","conto":"Carta Prepagata","importo":28.5,"prim":false},{"data":"07/06/2026","mese":"giugno","desc":"Abbonamento palestra","macro":"Sport","cat":"Abbonamento","icon":"🚴","conto":"Conto Corrente","importo":39.9,"prim":false},{"data":"03/06/2026","mese":"giugno","desc":"Rata finanziamento auto","macro":"Automobile","cat":"Automobile","icon":"🚘","conto":"Conto Corrente","importo":180.0,"prim":true},{"data":"27/05/2026","mese":"maggio","desc":"Visita medica","macro":"Salute","cat":"Visita Medica","icon":"🩺","conto":"Conto Corrente","importo":45.0,"prim":true},{"data":"20/05/2026","mese":"maggio","desc":"Abbonamento streaming","macro":"Abbonamenti","cat":"Streaming","icon":"🔁","conto":"Carta Prepagata","importo":12.99,"prim":false},{"data":"12/05/2026","mese":"maggio","desc":"Rifornimento carburante","macro":"Automobile","cat":"Rifornimento","icon":"🚘","conto":"Conto Corrente","importo":41.2,"prim":true},{"data":"05/05/2026","mese":"maggio","desc":"Rata finanziamento auto","macro":"Automobile","cat":"Automobile","icon":"🚘","conto":"Conto Corrente","importo":180.0,"prim":true},{"data":"02/05/2026","mese":"maggio","desc":"Scarpe da corsa","macro":"Shopping","cat":"Beni Personali","icon":"🛍️","conto":"Carta Prepagata","importo":59.9,"prim":false},{"data":"28/04/2026","mese":"aprile","desc":"Weekend fuori porta","macro":"Vacanze","cat":"Viaggio","icon":"🏝️","conto":"Conto Corrente","importo":120.0,"prim":false},{"data":"15/04/2026","mese":"aprile","desc":"Tagliando auto","macro":"Automobile","cat":"Manutenzione","icon":"🚘","conto":"Conto Corrente","importo":160.0,"prim":true},{"data":"08/04/2026","mese":"aprile","desc":"Cinema","macro":"Svago","cat":"Cinema","icon":"🕺","conto":"Carta Prepagata","importo":18.0,"prim":false},{"data":"03/04/2026","mese":"aprile","desc":"Rata finanziamento auto","macro":"Automobile","cat":"Automobile","icon":"🚘","conto":"Conto Corrente","importo":180.0,"prim":true},{"data":"22/03/2026","mese":"marzo","desc":"Farmacia","macro":"Salute","cat":"Medicine","icon":"🩺","conto":"Conto Corrente","importo":22.4,"prim":true},{"data":"14/03/2026","mese":"marzo","desc":"Pizza con colleghi","macro":"Cibo","cat":"Ristorante","icon":"🍕","conto":"Carta Prepagata","importo":16.0,"prim":false},{"data":"06/03/2026","mese":"marzo","desc":"Rata finanziamento auto","macro":"Automobile","cat":"Automobile","icon":"🚘","conto":"Conto Corrente","importo":180.0,"prim":true},{"data":"19/02/2026","mese":"febbraio","desc":"Bollo auto","macro":"Tasse","cat":"Bollo","icon":"🏦","conto":"Conto Corrente","importo":78.0,"prim":true},{"data":"11/02/2026","mese":"febbraio","desc":"Regalo compleanno","macro":"Shopping","cat":"Regalo","icon":"🎁","conto":"Carta Prepagata","importo":35.0,"prim":false},{"data":"04/02/2026","mese":"febbraio","desc":"Rata finanziamento auto","macro":"Automobile","cat":"Automobile","icon":"🚘","conto":"Conto Corrente","importo":180.0,"prim":true},{"data":"24/01/2026","mese":"gennaio","desc":"Abbonamento palestra annuale","macro":"Sport","cat":"Abbonamento","icon":"🚴","conto":"Conto Corrente","importo":250.0,"prim":false},{"data":"16/01/2026","mese":"gennaio","desc":"Cena di compleanno","macro":"Cibo","cat":"Ristorante","icon":"🍕","conto":"Carta Prepagata","importo":42.0,"prim":false},{"data":"05/01/2026","mese":"gennaio","desc":"Rata finanziamento auto","macro":"Automobile","cat":"Automobile","icon":"🚘","conto":"Conto Corrente","importo":180.0,"prim":true}],"consumi":[{"s":"03/06","km":310,"l":15.6,"p":1.789},{"s":"10/06","km":295,"l":16.4,"p":1.795},{"s":"17/06","km":340,"l":16.1,"p":1.802},{"s":"24/06","km":280,"l":15.9,"p":1.811},{"s":"01/07","km":410,"l":19.2,"p":1.824},{"s":"08/07","km":265,"l":15.8,"p":1.832},{"s":"15/07","km":330,"l":15.4,"p":1.829},{"s":"22/07","km":520,"l":25.1,"p":1.841},{"s":"29/07","km":300,"l":14.2,"p":1.838},{"s":"05/08","km":180,"l":11.6,"p":1.846},{"s":"19/08","km":350,"l":16.0,"p":1.829},{"s":"26/08","km":320,"l":15.7,"p":1.815},{"s":"02/09","km":305,"l":15.9,"p":1.807},{"s":"09/09","km":290,"l":13.6,"p":1.796},{"s":"16/09","km":335,"l":16.9,"p":1.788},{"s":"23/09","km":315,"l":15.2,"p":1.781}]}</script>
 <script>
-const $ = id => document.getElementById(id);
-const barra = $("barra"), copertina = $("copertina");
-const riduciMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const capitoli = [...document.querySelectorAll(".capitolo")], voci = [...document.querySelectorAll(".indice a")];
-let inCoda = false;
-function aggiornaBarra() {
-  inCoda = false;
-  const y = scrollY, hc = copertina.offsetHeight, hb = barra.offsetHeight, soglia = hb + 40;
-  if (!riduciMovimento) copertina.style.setProperty("--p", Math.min(1, y / hc).toFixed(3));
-  barra.classList.toggle("compatta", y > hc - hb * 2);
-  const max = document.documentElement.scrollHeight - innerHeight;
-  let cap = null;
-  for (const c of capitoli) if (c.getBoundingClientRect().top <= soglia) cap = c;
-  if (y >= max - 2) cap = capitoli.at(-1);  // in fondo l'ultimo capitolo non arriva in cima
-  voci.forEach(a => a.classList.toggle("attivo", !!cap && a.getAttribute("href") === "#" + cap.id));
-  $("barra-capitolo").textContent = cap ? cap.dataset.titolo : "";
-  barra.dataset.parte = cap ? cap.dataset.parte : "";
-  barra.style.setProperty("--avanzamento", max > 0 ? Math.min(1, y / max).toFixed(4) : 0);
-}
-addEventListener("scroll", () => { if (!inCoda) { inCoda = true; requestAnimationFrame(aggiornaBarra); } }, {passive: true});
-addEventListener("resize", aggiornaBarra);
-aggiornaBarra();
-
-const indice = $("indice"), apriIndice = $("apri-indice");
-const mostraIndice = aperto => { indice.classList.toggle("aperto", aperto); apriIndice.setAttribute("aria-expanded", aperto); };
-apriIndice.addEventListener("click", () => mostraIndice(!indice.classList.contains("aperto")));
-indice.addEventListener("click", e => { if (e.target.closest("a")) mostraIndice(false); });
-addEventListener("keydown", e => { if (e.key === "Escape") mostraIndice(false); });
-
-$("tema").addEventListener("click", () => {
-  const r = document.documentElement, scuro = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-  r.dataset.theme = scuro ? "light" : "dark";
+document.getElementById("tema").addEventListener("click", () => {
+  const r = document.documentElement;
+  r.dataset.theme = r.dataset.theme === "dark" ? "light" : "dark";
   try { localStorage.theme = r.dataset.theme } catch {}
 });
-
-const D = JSON.parse($("dati").textContent);
-const num = (x, d = 1) => { const [i, f] = Math.abs(x).toFixed(d).split("."); return (x < 0 ? "−" : "") + i.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (f ? "," + f : ""); };
-const eur = (x, d = 0) => num(x, d) + " €";
-const pct = x => num(x, 1) + "%";
-const C = {up: "#34d399", down: "#fb7185", warn: "#fbbf24", acc: "#15B4B7", verde: "#3fd17a", menta: "#7fe0d8", sky: "#38bdf8"};
-const PAL = ["#3fd17a", "#7fe0d8", "#9db4f0", "#c9a8e8", "#a6d96a", "#f4a6c0", "#fbbf24", "#d9d9d9", "#38bdf8", "#f08a6e"];
-const GR = "rgba(255,255,255,.1)", base = {paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: {color: "#d9ccaf", family: "ui-monospace,Consolas,monospace", size: 11},
-  margin: {l: 52, r: 14, t: 30, b: 56}, legend: {orientation: "h", y: -.18}, modebar: {orientation: "h", bgcolor: "rgba(0,0,0,0)", color: "#9a9486", activecolor: "#efe9dc"},
-  hovermode: "x unified", hoverlabel: {bgcolor: "#0a1018", bordercolor: "#efe9dc", namelength: -1, align: "left", font: {size: 13, color: "#efe9dc", family: "ui-monospace,Consolas,monospace"}}, separators: ",."};
-const cfg = {responsive: true, displaylogo: false, displayModeBar: true, scrollZoom: false, modeBarButtonsToRemove: ["select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "zoom2d", "pan2d"]};
-function plot(id, tr, o = {}) {
-  const L = {...base, ...o, xaxis: {gridcolor: GR, fixedrange: true, ...(o.xaxis || {})}, yaxis: {gridcolor: GR, zeroline: false, fixedrange: true, ...(o.yaxis || {})}};
-  if (!tr.length) L.annotations = [{text: "Nessun dato con questi filtri", showarrow: false, x: .5, y: .5, xref: "paper", yref: "paper"}];
-  if (window.Plotly) Plotly.react(id, tr, L, cfg);
-}
-const carta = (et, colore, val, nota, extra = "") => `<div class="carta"><span class="et"><i style="background:${colore}"></i>${et}</span><div class="val">${val}</div>${nota ? `<div class="nota">${nota}</div>` : ""}${extra}</div>`;
-function scegli(gruppo, v) { gruppo.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === v)); }
-
-/* ---------- Panoramica ---------- */
-const P = {m: D.mesi.length - 1, modo: "mese"};
-const conti = D.conti, tot = k => conti.reduce((s, c) => s + c[k], 0);
-$("pan-patrimonio").innerHTML =
-  carta("Disponibile", C.up, eur(tot("disp")), "liquidità sui conti") +
-  carta("Investito", C.sky, eur(tot("inv")), "nei due broker") +
-  carta("Accantonato", C.warn, eur(tot("acc")), "impegnato per spese future") +
-  carta("Patrimonio totale", "#94a3b8", eur(tot("disp") + tot("inv") + tot("acc")), conti.length + " conti");
-$("pan-mesi").innerHTML = D.mesi.map((m, i) => `<button data-v="${i}">${m.mese.slice(0, 3)}</button>`).join("");
-$("pan-mesi").onclick = e => { const b = e.target.closest("button"); if (b) { P.m = +b.dataset.v; panoramica(); } };
-$("pan-modo").onclick = e => { const b = e.target.closest("button"); if (b) { P.modo = b.dataset.v; scegli($("pan-modo"), P.modo); grafPan(); } };
-["prim", "sec", "inv"].forEach(k => $("s-" + k).oninput = panoramica);
-function soglie() {
-  const s = {prim: +$("s-prim").value, sec: +$("s-sec").value, inv: +$("s-inv").value};
-  s.risp = 100 - s.prim - s.sec - s.inv;
-  ["prim", "sec", "inv", "risp"].forEach(k => $("o-" + k).textContent = s[k] + "%");
-  $("pan-avviso").innerHTML = s.risp < 0 ? '<span class="giu">Le soglie superano il 100%: il risparmio andrebbe in negativo.</span>' : "Sposta le soglie: le carte del mese cambiano colore subito, come nell'app.";
-  return s;
-}
-function panoramica() {
-  const s = soglie(), m = D.mesi[P.m], pr = D.mesi[P.m - 1];
-  scegli($("pan-mesi"), String(P.m));
-  const delta = (a, b, inverso) => { if (!b) return "primo mese dell'anno"; const d = (a - b) / b * 100, buono = inverso ? d <= 0 : d >= 0;
-    return `<span class="${buono ? "su" : "giu"}">${d >= 0 ? "▲" : "▼"} ${pct(Math.abs(d))}</span> vs ${pr.mese.toLowerCase()}`; };
-  const voce = (et, col, v, soglia, sotto) => {
-    const q = v / m.entrate * 100, ok = sotto ? q <= soglia : q >= soglia, w = Math.min(100, q / 60 * 100), sx = Math.min(100, Math.max(0, soglia) / 60 * 100);
-    return carta(et, col, eur(v), `${pct(q)} delle entrate · soglia ${sotto ? "max" : "min"} ${soglia}%`,
-      `<div class="barra-soglia"><b style="width:${w}%;background:${ok ? C.up : C.down}"></b><s style="left:${sx}%"></s></div><span class="stato ${ok ? "ok" : "ko"}">${ok ? "Rispettata" : sotto ? "Sopra soglia" : "Sotto soglia"}</span>`);
-  };
-  $("pan-mese").innerHTML =
-    carta(`Entrate · ${m.mese}`, C.up, eur(m.entrate), delta(m.entrate, pr && pr.entrate)) +
-    voce("Spese primarie", C.acc, m.prim, s.prim, true) +
-    voce("Spese secondarie", C.warn, m.sec, s.sec, true) +
-    voce("Investito", C.sky, m.inv, s.inv, false) +
-    voce("Risparmio", C.verde, m.risp, s.risp, false);
-  grafPan();
-}
-function grafPan() {
-  const x = D.mesi.map(m => m.mese.slice(0, 3)), cum = a => a.map((v, i) => a.slice(0, i + 1).reduce((s, y) => s + y, 0));
-  let r = D.mesi.map(m => m.risp), v = D.mesi.map(m => m.inv);
-  if (P.modo === "cum") { r = cum(r); v = cum(v); }
-  const sel = x.map((_, i) => i === P.m ? 11 : 6);
-  plot("g-pan", [
-    {x, y: r, name: "Risparmio", type: "scatter", mode: "lines+markers", fill: "tozeroy", fillcolor: "rgba(63,209,122,.16)", line: {color: C.verde, width: 2.4, shape: "spline"}, marker: {size: sel}, hovertemplate: "%{y:,.0f} €"},
-    {x, y: v, name: "Investito", type: "scatter", mode: "lines+markers", fill: "tozeroy", fillcolor: "rgba(56,189,248,.14)", line: {color: C.sky, width: 2.4, shape: "spline"}, marker: {size: sel}, hovertemplate: "%{y:,.0f} €"}
-  ], {yaxis: {ticksuffix: " €", tickformat: ",.0f"}, shapes: [{type: "line", xref: "x", yref: "paper", x0: x[P.m], x1: x[P.m], y0: 0, y1: 1, line: {color: "#efe9dc55", width: 1, dash: "dot"}}]});
-}
-panoramica();
-if (window.Plotly) $("g-pan").on("plotly_click", e => { P.m = e.points[0].pointIndex; panoramica(); });
-
-/* ---------- Uscite ---------- */
-const U = {tipo: "", mese: "", q: "", macro: "", k: "i", asc: false};
-const T = D.uscite.map(t => { const [g, mm, a] = t.data.split("/"); return {...t, t: +(a + mm + g)}; });
-$("usc-mese").innerHTML = '<option value="">Tutti i mesi</option>' + [...new Set(T.map(t => t.mese))].map(m => `<option value="${m}">${m[0].toUpperCase() + m.slice(1)} 2026</option>`).join("");
-$("usc-tipo").onclick = e => { const b = e.target.closest("button"); if (b) { U.tipo = b.dataset.v; scegli($("usc-tipo"), U.tipo); uscite(); } };
-$("usc-mese").onchange = e => { U.mese = e.target.value; uscite(); };
-$("usc-cerca").oninput = e => { U.q = e.target.value.toLowerCase(); uscite(); };
-$("usc-reset").onclick = () => { U.macro = ""; uscite(); };
-document.querySelectorAll("#usc-tab th[data-k]").forEach(th => th.onclick = () => {
-  const k = th.dataset.k; U.asc = U.k === k ? !U.asc : (k === "d" || k === "m"); U.k = k;
-  document.querySelectorAll("#usc-tab th[data-k]").forEach(x => { x.classList.toggle("on", x === th); x.classList.toggle("asc", x === th && U.asc); }); uscite(); });
-const MACRO = [...new Set(T.map(t => t.macro))], colMacro = m => PAL[MACRO.indexOf(m) % PAL.length];
-function uscite() {
-  const base = T.filter(t => (!U.tipo || (U.tipo === "p") === t.prim) && (!U.mese || t.mese === U.mese) &&
-    (!U.q || (t.desc + " " + t.cat + " " + t.macro).toLowerCase().includes(U.q)));
-  const L = base.filter(t => !U.macro || t.macro === U.macro);
-  const somma = a => a.reduce((s, t) => s + t.importo, 0);
-  $("usc-kpi").innerHTML =
-    carta(U.macro ? "Spese · " + U.macro : "Spese totali", C.down, eur(somma(L), 2), L.length + " movimenti") +
-    carta("Primarie", C.acc, eur(somma(L.filter(t => t.prim)), 2), "necessarie") +
-    carta("Secondarie", C.warn, eur(somma(L.filter(t => !t.prim)), 2), "discrezionali");
-  $("usc-reset").hidden = !U.macro;
-  const k = {t: "t", d: "desc", m: "macro", i: "importo"}[U.k];
-  L.sort((a, b) => { const x = a[k], y = b[k], r = typeof x === "string" ? x.localeCompare(y) : x - y; return U.asc ? r : -r; });
-  $("usc-tab").tBodies[0].innerHTML = L.map(t => `<tr><td>${t.data.slice(0, 5)}</td><td>${t.icon} ${t.desc}<div class="nota" style="margin:0">${t.cat} · ${t.conto}</div></td><td>${t.macro}</td><td><span class="tag ${t.prim ? "p" : "s"}">${t.prim ? "Primaria" : "Secondaria"}</span></td><td class="num">${eur(t.importo, 2)}</td></tr>`).join("")
-    || '<tr><td colspan="5">Nessuna spesa con questi filtri.</td></tr>';
-  const g = {}; base.forEach(t => g[t.macro] = (g[t.macro] || 0) + t.importo);
-  const lab = Object.keys(g).sort((a, b) => g[b] - g[a]);
-  plot("g-usc", lab.length ? [{type: "pie", hole: .58, labels: lab, values: lab.map(l => g[l]), sort: false,
-    marker: {colors: lab.map(colMacro), line: {color: "#0b0f19", width: 2}}, pull: lab.map(l => l === U.macro ? .08 : 0),
-    opacity: 1, textinfo: "percent", textposition: "inside", insidetextorientation: "horizontal", textfont: {color: "#0b0f19", size: 11}, hovertemplate: "<b>%{label}</b><br>%{value:,.2f} €<br>%{percent}<extra></extra>"}] : [],
-    {hovermode: "closest", uniformtext: {minsize: 10, mode: "hide"}, margin: {l: 10, r: 10, t: 10, b: 10}, legend: {orientation: "h", y: -.05, font: {size: 10}}});
-}
-uscite();
-if (window.Plotly) $("g-usc").on("plotly_click", e => { const l = e.points[0].label; U.macro = U.macro === l ? "" : l; uscite(); });
-
-/* ---------- Consumi ---------- */
-const W = D.consumi.map(w => ({...w, kml: w.km / w.l, e100: w.l * w.p / w.km * 100, prezzo: w.p}));
-const MAX = Math.max(...W.map(w => w.kml));
-W.forEach(w => { w.persi = Math.max(0, w.l * MAX - w.km); w.extra = Math.max(0, w.km * w.p * (1 / w.kml - 1 / MAX)); });
-const mediana = a => { const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
-const MET = {kml: {t: "Km/litro", suf: " km/l", d: 1, alto: true}, e100: {t: "€/100 km", suf: " €", d: 2, alto: false}, persi: {t: "Km persi", suf: " km", d: 1, alto: false},
-  extra: {t: "Costo extra", suf: " €", d: 2, alto: false}, prezzo: {t: "Prezzo carburante", suf: " €/l", d: 3, alto: false}};
-const K = {met: "kml", sel: W.length - 1};
-$("con-metrica").onclick = e => { const b = e.target.closest("button"); if (b) { K.met = b.dataset.v; scegli($("con-metrica"), K.met); consumi(); } };
-// esito come in src/utils/esitoSettimanale.ts: punteggio = costo in più rispetto alla mediana di km/l, poi classifica
-const MED_KML = mediana(W.map(w => w.kml)), score = w => w.km * w.p * (1 / w.kml - 1 / MED_KML);
-const FASCE = ["Ottima", "Buona", "Nella media", "Non buona", "Scarsa"], COL_ES = {Migliore: C.up, Ottima: C.up, Buona: C.verde, "Nella media": C.warn, "Non buona": "#f4a6c0", Scarsa: C.down, Peggiore: C.down};
-function esiti(righe) { const n = righe.length, o = righe.map((w, i) => ({s: score(w), i})).sort((a, b) => a.s - b.s), e = [];
-  o.forEach(({i}, r) => e[i] = r === 0 ? "Migliore" : r === n - 1 ? "Peggiore" : FASCE[Math.min(4, Math.floor((r - 1) / (n - 2) * 5))]); return e; }
-const ES = esiti(W);
-function esito(w) { const e = w === undefined ? null : ES[W.indexOf(w)]; return [e, COL_ES[e]]; }
-function consumi() {
-  const m = MET[K.met], y = W.map(w => w[K.met]), med = mediana(y);
-  const col = W.map((w, i) => { const meglio = m.alto ? w[K.met] >= med : w[K.met] <= med; return meglio ? C.up : C.down; });
-  plot("g-con", [{x: W.map(w => w.s), y, type: "bar", name: m.t, marker: {color: col, opacity: W.map((_, i) => i === K.sel ? 1 : .55), line: {color: W.map((_, i) => i === K.sel ? "#efe9dc" : "rgba(0,0,0,0)"), width: 2}},
-    hovertemplate: `%{y:,.${m.d}f}${m.suf}<extra>${m.t}</extra>`}],
-    {hovermode: "closest", showlegend: false, margin: {l: 52, r: 14, t: 30, b: 50}, yaxis: {ticksuffix: m.suf, rangemode: "tozero"}, xaxis: {tickangle: -45, nticks: 9},
-     shapes: [{type: "line", xref: "paper", x0: 0, x1: 1, y0: med, y1: med, line: {color: "#efe9dcaa", width: 1.5, dash: "dash"}}],
-     annotations: [{xref: "paper", x: 0, y: med, yanchor: "bottom", xanchor: "left", text: "mediana " + num(med, m.d), showarrow: false, font: {size: 10, color: "#efe9dc"}}]});
-  const w = W[K.sel], [es, ec] = esito(w);
-  $("con-sett").innerHTML = `<span class="et">Settimana del ${w.s}</span>
-    <div class="val esito" style="color:${ec}">${es}</div><div class="nota">esito in classifica · ${pct(w.kml / MAX * 100)} del record di ${num(MAX, 1)} km/l</div>
-    <div class="lista-kv"><span>Km fatti</span><b>${num(w.km, 0)} km</b><span>Litri</span><b>${num(w.l, 1)} l</b><span>Spesa</span><b>${eur(w.l * w.p, 2)}</b>
-    <span>Km/litro</span><b>${num(w.kml, 1)}</b><span>€/100 km</span><b>${eur(w.e100, 2)}</b><span>Km persi</span><b>${num(w.persi, 1)} km</b><span>Costo extra</span><b>${eur(w.extra, 2)}</b></div>
-    <div class="formula">costo extra = <b>${num(w.km, 0)}</b> km × <b>${num(w.p, 3)}</b> €/l × (1/<b>${num(w.kml, 2)}</b> − 1/<b>${num(MAX, 2)}</b>) = <b>${eur(w.extra, 2)}</b></div>`;
-}
-consumi();
-if (window.Plotly) $("g-con").on("plotly_click", e => { K.sel = e.points[0].pointIndex; consumi(); });
-function prova() {
-  const km = +$("r-km").value, l = +$("r-l").value, p = +$("r-p").value;
-  if (!(km > 0 && l > 0 && p > 0)) { $("r-out").innerHTML = '<span>Inserisci valori maggiori di zero</span><b></b>'; return; }
-  const e = esiti([...W, {km, l, p, kml: km / l}]).at(-1);
-  const kml = km / l, persi = Math.max(0, l * MAX - km), extra = kml < MAX ? km * p * (1 / kml - 1 / MAX) : 0;
-  $("r-out").innerHTML = `<span>Km/litro</span><b>${num(kml, 1)}</b><span>€/100 km</span><b>${eur(l * p / km * 100, 2)}</b>
-    <span>Km persi rispetto al record (${num(MAX, 1)} km/l)</span><b>${num(persi, 1)} km</b><span>Costo extra</span><b>${eur(extra, 2)}</b>
-    <span>Esito tra le ${W.length + 1} settimane</span><b style="color:${COL_ES[e]}">${e}${kml > MAX ? " · nuovo record" : ""}</b>`;
-}
-["r-km", "r-l", "r-p"].forEach(id => $(id).oninput = prova); prova();
-
-/* ---------- Giro dei dati ---------- */
-const PASSI = [
-  {n: [2], f: [], t: "<b>Pagina Uscite.</b> L'utente aggiunge o modifica una spesa: il componente prepara il nuovo elenco di transazioni."},
-  {n: [1], f: ["scrivi"], t: "<b>saveToLocalStorage({ uscite })</b> è l'unico punto di scrittura: salva in <code>sf_transactions</code> e aggiorna sul posto l'array in memoria."},
-  {n: [2], f: ["bump"], t: "<b>bumpVersion()</b> cambia <code>refreshVersion</code>: senza questo segnale React non vedrebbe l'array cambiato e lo schermo resterebbe vecchio."},
-  {n: [1, 2], f: ["leggi"], t: "<b>getExportableData()</b> ricostruisce l'unico oggetto <code>data</code> e tutte le pagine che usano <code>useFinanceData()</code> si ridisegnano."},
-  {n: [0, 1], f: ["push"], t: "<b>Sincronizza.</b> Solo premendo il pulsante i dati vanno sul foglio con <code>pushSpreadsheetData</code>, che riscrive ogni scheda per intero."},
-  {n: [0, 1], f: ["pull"], t: "<b>Aggiorna.</b> All'apertura o con il pulsante di refresh, <code>fetchSpreadsheetData</code> rilegge tutte le schede in una chiamata e riempie la cache."}
-];
-let passo = 0;
-function mostraPasso() {
-  const p = PASSI[passo];
-  document.querySelectorAll(".schema .nodo").forEach(g => g.classList.toggle("on", p.n.includes(+g.dataset.n)));
-  document.querySelectorAll(".schema [data-f]").forEach(g => g.classList.toggle("on", p.f.includes(g.dataset.f)));
-  $("passo-t").innerHTML = p.t; $("passo-n").textContent = (passo + 1) + "/" + PASSI.length;
-  $("passo-prec").disabled = passo === 0; $("passo-succ").disabled = passo === PASSI.length - 1;
-}
-$("passo-prec").onclick = () => { passo--; mostraPasso(); }; $("passo-succ").onclick = () => { passo++; mostraPasso(); };
-mostraPasso();
 </script>
+<script>(function(){var b=document.querySelector(".barra"),n=document.querySelector(".banner");function a(){b.classList.toggle("compatta",scrollY>n.offsetHeight-b.offsetHeight*2)}addEventListener("scroll",a,{passive:true});addEventListener("resize",a);a()})();</script>
+</body>
 </html>
