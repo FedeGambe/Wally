@@ -10,6 +10,7 @@ import {
   YAxis
 } from 'recharts';
 import { formatEuro, formatAxisCompact } from '../../utils/format';
+import { minimoAsseConScarto } from '../../utils/chartScale';
 
 interface EntrateTrendChartProps {
   chartData: any[];
@@ -28,6 +29,8 @@ export default function EntrateTrendChart({ chartData, isMobile, localSelectedMo
   // Massimo assoluto della serie disegnata: decide se l'asse Y può usare la
   // notazione compatta "k" su mobile (vedi formatAxisCompact in utils/format.ts).
   const yAxisMaxAbs = chartData.reduce((m: number, r: any) => Math.max(m, Math.abs(Number(r.entrate) || 0)), 0);
+  // L'asse Y non parte da 0 ma poco sotto il mese con meno entrate (vedi utils/chartScale.ts).
+  const yMin = minimoAsseConScarto(chartData.map((r: any) => Number(r.entrate) || 0));
 
   return (
     <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
@@ -98,6 +101,7 @@ export default function EntrateTrendChart({ chartData, isMobile, localSelectedMo
                 tickLine={false}
                 axisLine={false}
                 width={isMobile ? 44 : 60}
+                domain={[yMin, 'auto']}
                 tickFormatter={(val) => isMobile
                   ? formatAxisCompact(val, yAxisMaxAbs)
                   : `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
