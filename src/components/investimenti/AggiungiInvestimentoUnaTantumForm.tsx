@@ -122,7 +122,7 @@ export default function AggiungiInvestimentoUnaTantumForm({ onSaved }: AggiungiI
             onSelect={setAssetClass}
           />
         </>
-      ) : broker && strumentiDisponibili.length === 0 ? (
+      ) : !broker ? null : strumentiDisponibili.length === 0 ? (
         <input
           value={strumento}
           onChange={e => setStrumento(e.target.value)}

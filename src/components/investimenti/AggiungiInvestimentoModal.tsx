@@ -1,0 +1,86 @@
+import React, { useState } from 'react';
+import { TrendingUp, Sparkles, ClipboardCheck } from 'lucide-react';
+import Modal from '../Modal';
+import AggiungiInvestimentiRicorrentiForm from './AggiungiInvestimentiRicorrentiForm';
+import AggiungiInvestimentoUnaTantumForm from './AggiungiInvestimentoUnaTantumForm';
+
+type TipoInvestimento = 'ricorrenti' | 'unaTantum' | null;
+
+interface AggiungiInvestimentoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const TITOLI: Record<Exclude<TipoInvestimento, null>, string> = {
+  ricorrenti: 'Investimenti Ricorrenti',
+  unaTantum: 'Investimento Una Tantum'
+};
+
+/**
+ * Bottone "+" della pagina Investimenti: come AggiungiDatoModal, prima si
+ * sceglie cosa inserire, poi si apre lo STESSO form usato da Aggiungi Dato.
+ * "Verifica mensile" è prevista ma non ancora costruita (bottone disattivato).
+ */
+export default function AggiungiInvestimentoModal({ isOpen, onClose }: AggiungiInvestimentoModalProps) {
+  const [tipo, setTipo] = useState<TipoInvestimento>(null);
+
+  // Come in AggiungiDatoModal: reset ritardato per non smontare il form
+  // mentre il popup anima la chiusura.
+  const handleClose = () => {
+    onClose();
+    setTimeout(() => setTipo(null), 300);
+  };
+
+  const bottoneClass = "w-full flex items-center gap-3 p-4 rounded-2xl bg-canvas dark:bg-white/10 transition-all text-left";
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      onBack={tipo ? () => setTipo(null) : undefined}
+      title={tipo ? TITOLI[tipo] : 'Aggiungi Investimento'}
+      maxWidthClass={tipo ? 'max-w-lg' : 'max-w-md'}
+      borderless
+    >
+      {!tipo && (
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={() => setTipo('ricorrenti')}
+            className={`${bottoneClass} hover:bg-sky-50 dark:hover:bg-sky-500/10 cursor-pointer`}
+          >
+            <TrendingUp className="w-5 h-5 text-sky-600 shrink-0" />
+            <span>
+              <span className="block text-sm font-bold text-ink dark:text-slate-200">Investimenti Ricorrenti</span>
+              <span className="block text-xs text-ink-soft">I preset mensili ancora mancanti questo mese</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipo('unaTantum')}
+            className={`${bottoneClass} hover:bg-sky-50 dark:hover:bg-sky-500/10 cursor-pointer`}
+          >
+            <Sparkles className="w-5 h-5 text-sky-600 shrink-0" />
+            <span>
+              <span className="block text-sm font-bold text-ink dark:text-slate-200">Investimento Una Tantum</span>
+              <span className="block text-xs text-ink-soft">Su uno strumento esistente o nuovo</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled
+            className={`${bottoneClass} opacity-50 cursor-not-allowed`}
+          >
+            <ClipboardCheck className="w-5 h-5 text-ink-soft shrink-0" />
+            <span>
+              <span className="block text-sm font-bold text-ink dark:text-slate-200">Verifica mensile</span>
+              <span className="block text-xs text-ink-soft">In arrivo</span>
+            </span>
+          </button>
+        </div>
+      )}
+      {tipo === 'ricorrenti' && <AggiungiInvestimentiRicorrentiForm onSaved={handleClose} />}
+      {tipo === 'unaTantum' && <AggiungiInvestimentoUnaTantumForm onSaved={handleClose} />}
+    </Modal>
+  );
+}

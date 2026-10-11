@@ -7,13 +7,15 @@
  * a useFinanceData() e a src/utils/cruscottoInvestimenti.ts. Qui vengono solo destrutturati i
  * risultati dell'hook e smistati alla scheda attiva.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import CruscottoGenerale from '../subviews/CruscottoGenerale';
 import Rendimenti from '../subviews/Rendimenti';
 import Conti from '../subviews/Conti';
 import FondoPensione from '../subviews/FondoPensione';
 import { formatEuro } from '../utils/format';
 import { useInvestimentiData } from '../hooks/useInvestimentiData';
+import FloatingAddButton from '../components/FloatingAddButton';
+import AggiungiInvestimentoModal from '../components/investimenti/AggiungiInvestimentoModal';
 
 interface InvestimentiProps {
   selectedMonth?: string;
@@ -49,10 +51,13 @@ export default function Investimenti({
     localFondoPensione,
     localRendimenti, activeRendimenti
   } = useInvestimentiData(globalSelectedMonth, globalSelectedYear);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Investimenti</h1>
+      <FloatingAddButton label="Aggiungi Investimento" colorClass="bg-sky-600 hover:bg-sky-700" onClick={() => setShowAddModal(true)} />
+      <AggiungiInvestimentoModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
       {/* 3 Inner Tabs buttons (Sticky & Glassmorphic) */}
       <div
         className={`sticky transition-all duration-300 z-30 ${

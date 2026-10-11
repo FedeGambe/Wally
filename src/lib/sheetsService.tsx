@@ -639,6 +639,33 @@ const columnLetterForIndexWide = (index: number): string => {
   return out;
 };
 
+const columnIndexForLetter = (letters: string): number =>
+  letters.toUpperCase().split('').reduce((acc, ch) => acc * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
+
+/**
+ * Nuovo contenuto di una cella strumento a cui si accoda un investimento, nello
+ * stesso stile usato a mano sul foglio: formula "=40*2" -> "=40*2+50", numero
+ * 40 -> "=40+50", cella vuota o a zero -> 50. `attuale` è il valore letto con
+ * valueRenderOption=FORMULA; le formule via API sono in sintassi en_US (punto
+ * decimale), qualunque sia il locale del foglio.
+ */
+export const valoreAccodato = (attuale: any, importo: number): number | string => {
+  if (typeof attuale === 'string' && attuale.startsWith('=')) return `${attuale}+${importo}`;
+  const numero = attuale === undefined || attuale === null || attuale === '' ? 0 : parseLocalizedNumber(attuale);
+  return numero !== 0 ? `=${numero}+${importo}` : importo;
+};
+
+/**
+ * Intervallo di colonne sommato nella formula di "Importo investito Mensile"
+ * (es. "=IF(COUNTA(B23:I23)>0,SUM(B23:I23)+S23,\"\")" -> B..I come indici 1..8).
+ * null se la formula non contiene un SUM/SOMMA su un intervallo.
+ */
+export const intervalloSomma = (formula: string): { inizio: number; fine: number } | null => {
+  const match = formula.match(/(?:SUM|SOMMA)\(\s*\$?([A-Z]+)\$?\d+\s*:\s*\$?([A-Z]+)\$?\d+\s*\)/i);
+  if (!match) return null;
+  return { inizio: columnIndexForLetter(match[1]), fine: columnIndexForLetter(match[2]) };
+};
+
 /**
  * Scrive i contributi mensili ricorrenti su un tab broker ("Scalable" /
  * "Trade Republic"). Sul foglio reale ogni mese ha già la sua riga (colonna A
@@ -699,17 +726,12 @@ export const writeInvestimentiRicorrentiToSheet = async (
   const lastCol = columnLetterForIndexWide(Math.max(...colonne));
   const formuleRiga = (await getValues(`${tabTitle}!A${rowNumber}:${lastCol}${rowNumber}`, 'FORMULA'))[0] || [];
   const conflitti: string[] = [];
-  const attuali: number[] = [];
   voci.forEach((v, i) => {
-    const attuale = formuleRiga[colonne[i]];
-    const numero = attuale === undefined || attuale === null || attuale === '' || (typeof attuale === 'string' && attuale.startsWith('='))
-      ? 0
-      : parseLocalizedNumber(attuale);
-    attuali.push(numero);
     if (somma) return;
+    const attuale = formuleRiga[colonne[i]];
     if (typeof attuale === 'string' && attuale.startsWith('=')) {
       conflitti.push(`${v.strumento} (contiene una formula)`);
-    } else if (numero !== 0) {
+    } else if (attuale !== undefined && attuale !== null && attuale !== '' && parseLocalizedNumber(attuale) !== 0) {
       conflitti.push(`${v.strumento} (già ${attuale})`);
     }
   });
@@ -717,18 +739,9 @@ export const writeInvestimentiRicorrentiToSheet = async (
     throw new Error(`Nessun dato scritto su "${tabTitle}": celle di ${meseLabel} già valorizzate — ${conflitti.join(', ')}.`);
   }
 
-  // Le formule lette/scritte via API sono in sintassi en_US (punto decimale),
-  // qualunque sia il locale del foglio.
-  const nuovoValore = (i: number, importo: number): any => {
-    if (!somma) return importo;
-    const attuale = formuleRiga[colonne[i]];
-    if (typeof attuale === 'string' && attuale.startsWith('=')) return `${attuale}+${importo}`;
-    if (attuali[i] !== 0) return `=${attuali[i]}+${importo}`;
-    return importo;
-  };
   const data = voci.map((v, i) => ({
     range: `${tabTitle}!${columnLetterForIndexWide(colonne[i])}${rowNumber}`,
-    values: [[nuovoValore(i, v.importo)]]
+    values: [[somma ? valoreAccodato(formuleRiga[colonne[i]], v.importo) : v.importo]]
   }));
   const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
     method: 'POST',
@@ -747,9 +760,6 @@ export const writeInvestimentiRicorrentiToSheet = async (
     throw new Error(`Impossibile scrivere su "${tabTitle}": ${errorMsg || response.statusText || `Codice ${response.status}`}`);
   }
 };
-
-const columnIndexForLetter = (letters: string): number =>
-  letters.toUpperCase().split('').reduce((acc, ch) => acc * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
 
 /**
  * Aggiunge uno strumento NUOVO a un tab broker (acquisto una tantum di un ETF/
@@ -808,14 +818,13 @@ export const addStrumentoBrokerColumn = async (
 
   const letteraImporto = columnLetterForIndexWide(colImporto);
   const formula = String((await getValues(`${tabTitle}!${letteraImporto}${rowNumber}`, 'FORMULA'))[0]?.[0] || '');
-  const match = formula.match(/(?:SUM|SOMMA)\(\s*\$?([A-Z]+)\$?\d+\s*:\s*\$?([A-Z]+)\$?\d+\s*\)/i);
-  if (!match) {
+  const intervallo = intervalloSomma(formula);
+  if (!intervallo) {
     throw new Error(`La formula di "Importo investito Mensile" di ${meseLabel} non contiene un intervallo da sommare: nessuna colonna aggiunta.`);
   }
-  const inizio = columnIndexForLetter(match[1]);
-  const fine = columnIndexForLetter(match[2]);
+  const { inizio, fine } = intervallo;
   if (fine <= inizio || fine >= colImporto) {
-    throw new Error(`Intervallo ${match[1]}:${match[2]} di "Importo investito Mensile" inatteso: nessuna colonna aggiunta.`);
+    throw new Error(`Intervallo ${columnLetterForIndexWide(inizio)}:${columnLetterForIndexWide(fine)} di "Importo investito Mensile" inatteso: nessuna colonna aggiunta.`);
   }
 
   const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title)`;
@@ -1332,7 +1341,7 @@ export const pushSpreadsheetData = async (
 // Tab "Preset Investimenti Ricorrenti" del foglio di configurazione, a matrice:
 // riga 1 = "Conto" + nomi degli strumenti, una riga per broker, importo nella
 // cella broker×strumento (vuota = nessun contributo per quello strumento).
-const parsePresetInvestimentiMatrix = (rows: any[][]): any[] => {
+export const parsePresetInvestimentiMatrix = (rows: any[][]): any[] => {
   if (!rows || rows.length < 2) return [];
   const strumenti = (rows[0] || []).map((h: any) => String(h || '').trim());
   const out: any[] = [];
@@ -1351,7 +1360,7 @@ const parsePresetInvestimentiMatrix = (rows: any[][]): any[] => {
 
 // Inverso di parsePresetInvestimentiMatrix: colonne nell'ordine in cui gli
 // strumenti compaiono nei preset, una riga per broker.
-const buildPresetInvestimentiMatrix = (preset: any[]): any[][] => {
+export const buildPresetInvestimentiMatrix = (preset: any[]): any[][] => {
   const strumenti: string[] = [];
   const broker: string[] = [];
   preset.forEach(p => {
