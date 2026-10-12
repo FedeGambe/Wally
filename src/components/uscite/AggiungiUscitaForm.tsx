@@ -20,6 +20,8 @@ const toInputDate = (d: Date) => {
 
 interface AggiungiUscitaFormProps {
   onSaved: () => void;
+  /** Valori di partenza (es. da un movimento bancario da confermare). */
+  iniziale?: { data?: string; conto?: string; importo?: number; descrizione?: string };
 }
 
 /**
@@ -31,7 +33,7 @@ interface AggiungiUscitaFormProps {
  * il cui popup non è stilizzabile e in tema scuro risultava testo bianco su
  * sfondo bianco.
  */
-export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps) {
+export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscitaFormProps) {
   const dataId = useId();
   const descrizioneId = useId();
   const categoriaLiberaId = useId();
@@ -40,12 +42,12 @@ export default function AggiungiUscitaForm({ onSaved }: AggiungiUscitaFormProps)
   const { macroCategorieUscite, conti, presetUscite, presetTrasferimenti } = useDatiBase();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
 
-  const [dataStr, setDataStr] = useState(() => toInputDate(new Date()));
-  const [descrizione, setDescrizione] = useState('');
+  const [dataStr, setDataStr] = useState(() => iniziale?.data || toInputDate(new Date()));
+  const [descrizione, setDescrizione] = useState(iniziale?.descrizione || '');
   const [macroCategoria, setMacroCategoria] = useState(macroCategorieUscite[0]?.nome || '');
   const [categoria, setCategoria] = useState('');
-  const [conto, setConto] = useState(conti.includes('Trade Republic') ? 'Trade Republic' : conti[0] || '');
-  const [importo, setImporto] = useState('');
+  const [conto, setConto] = useState(iniziale?.conto || (conti.includes('Trade Republic') ? 'Trade Republic' : conti[0] || ''));
+  const [importo, setImporto] = useState(iniziale?.importo ? String(iniziale.importo) : '');
   const [primaria, setPrimaria] = useState(true);
   const [presetSelezionatoId, setPresetSelezionatoId] = useState<string | null>(null);
   const [ancheTrasferimento, setAncheTrasferimento] = useState(false);

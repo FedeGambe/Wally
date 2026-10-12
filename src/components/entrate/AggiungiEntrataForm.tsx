@@ -11,6 +11,8 @@ import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiC
 
 interface AggiungiEntrataFormProps {
   onSaved: () => void;
+  /** Valori di partenza (es. da un movimento bancario da confermare). */
+  iniziale?: { meseIdx?: number; anno?: number; categoria?: string; conto?: string; importo?: number };
 }
 
 /**
@@ -22,19 +24,21 @@ interface AggiungiEntrataFormProps {
  * Preset Ricorrenti → Quota Fondo Pensione) propone anche la riga del mese
  * nel tab "Fondo Pensione": si scrive solo il TFR, il resto sono formule.
  */
-export default function AggiungiEntrataForm({ onSaved }: AggiungiEntrataFormProps) {
+export default function AggiungiEntrataForm({ onSaved, iniziale }: AggiungiEntrataFormProps) {
   const importoId = useId();
   const { data, refreshData } = useFinanceData();
   const { categorieEntrate, conti, quotaFondoPensione } = useDatiBase();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
 
   const oggi = new Date();
-  const [useMeseDiverso, setUseMeseDiverso] = useState(false);
-  const [meseIdx, setMeseIdx] = useState(oggi.getMonth());
-  const [anno, setAnno] = useState(oggi.getFullYear());
-  const [categoria, setCategoria] = useState(categorieEntrate[0] || '');
-  const [conto, setConto] = useState(conti.includes('Unicredit') ? 'Unicredit' : conti[0] || '');
-  const [importo, setImporto] = useState('');
+  const meseDiversoIniziale = iniziale?.meseIdx !== undefined
+    && (iniziale.meseIdx !== oggi.getMonth() || (iniziale.anno ?? oggi.getFullYear()) !== oggi.getFullYear());
+  const [useMeseDiverso, setUseMeseDiverso] = useState(meseDiversoIniziale);
+  const [meseIdx, setMeseIdx] = useState(iniziale?.meseIdx ?? oggi.getMonth());
+  const [anno, setAnno] = useState(iniziale?.anno ?? oggi.getFullYear());
+  const [categoria, setCategoria] = useState(iniziale?.categoria || categorieEntrate[0] || '');
+  const [conto, setConto] = useState(iniziale?.conto || (conti.includes('Unicredit') ? 'Unicredit' : conti[0] || ''));
+  const [importo, setImporto] = useState(iniziale?.importo ? String(iniziale.importo) : '');
   const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
   const [tfr, setTfr] = useState(quotaFondoPensione > 0 ? String(quotaFondoPensione) : '');
 

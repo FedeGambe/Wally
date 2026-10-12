@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import DatiBaseSettings from '../components/impostazioni/DatiBaseSettings';
 import PresetRicorrentiSettings from '../components/impostazioni/PresetRicorrentiSettings';
+import BancheCollegateSettings from '../components/impostazioni/BancheCollegateSettings';
 
 interface ImpostazioniProps {
   theme: 'dark' | 'light';
@@ -329,6 +330,7 @@ export default function Impostazioni({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DatiBaseSettings />
         <PresetRicorrentiSettings />
+        <BancheCollegateSettings />
       </div>
     </div>
   );

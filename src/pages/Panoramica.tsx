@@ -29,6 +29,7 @@ import PanoramicaFunnelChart from '../components/panoramica/PanoramicaFunnelChar
 import PanoramicaBilancioStorico from '../components/panoramica/PanoramicaBilancioStorico';
 import { usePanoramicaData } from '../hooks/usePanoramicaData';
 import { useFinanceData } from '../context/FinanceDataContext';
+import MovimentiBancaCard from '../components/banca/MovimentiBancaCard';
 
 interface PanoramicaProps {
   selectedYear: string;
@@ -86,6 +87,9 @@ export default function Panoramica({
         capitaleImpegnato={capitaleImpegnato}
         patrimonioTotale={patrimonioTotale}
       />
+
+      {/* Movimenti scaricati dalle banche: compare solo con una banca collegata */}
+      <MovimentiBancaCard />
 
       {/* Rendiconto Mese Corrente: solo mobile, subito dopo i 4 widget patrimonio
           (su desktop resta nella sua posizione originale, vedi sotto) */}

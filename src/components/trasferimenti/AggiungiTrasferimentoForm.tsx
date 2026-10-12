@@ -11,6 +11,8 @@ import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiC
 
 interface AggiungiTrasferimentoFormProps {
   onSaved: () => void;
+  /** Valori di partenza (es. da un movimento bancario da confermare). */
+  iniziale?: { meseIdx?: number; anno?: number; contoOrdinante?: string; contoBeneficiario?: string; importo?: number };
 }
 
 /**
@@ -20,7 +22,7 @@ interface AggiungiTrasferimentoFormProps {
  * presa per evitare doppio conteggio finché non si definisce una logica di
  * sincronizzazione tra le due cose.
  */
-export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferimentoFormProps) {
+export default function AggiungiTrasferimentoForm({ onSaved, iniziale }: AggiungiTrasferimentoFormProps) {
   const categoriaId = useId();
   const importoId = useId();
   const { data } = useFinanceData();
@@ -28,13 +30,15 @@ export default function AggiungiTrasferimentoForm({ onSaved }: AggiungiTrasferim
   const { appendAndPush, isSaving, error } = useSaveAndPush();
 
   const oggi = new Date();
-  const [useMeseDiverso, setUseMeseDiverso] = useState(false);
-  const [meseIdx, setMeseIdx] = useState(oggi.getMonth());
-  const [anno, setAnno] = useState(oggi.getFullYear());
+  const meseDiversoIniziale = iniziale?.meseIdx !== undefined
+    && (iniziale.meseIdx !== oggi.getMonth() || (iniziale.anno ?? oggi.getFullYear()) !== oggi.getFullYear());
+  const [useMeseDiverso, setUseMeseDiverso] = useState(meseDiversoIniziale);
+  const [meseIdx, setMeseIdx] = useState(iniziale?.meseIdx ?? oggi.getMonth());
+  const [anno, setAnno] = useState(iniziale?.anno ?? oggi.getFullYear());
   const [categoria, setCategoria] = useState('Trasferimento');
-  const [contoOrdinante, setContoOrdinante] = useState(conti[0] || '');
-  const [contoBeneficiario, setContoBeneficiario] = useState(conti[1] || conti[0] || '');
-  const [importo, setImporto] = useState('');
+  const [contoOrdinante, setContoOrdinante] = useState(iniziale?.contoOrdinante || conti[0] || '');
+  const [contoBeneficiario, setContoBeneficiario] = useState(iniziale?.contoBeneficiario || conti[1] || conti[0] || '');
+  const [importo, setImporto] = useState(iniziale?.importo ? String(iniziale.importo) : '');
   const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
 
   const coinvolgeContanti = (contoBeneficiario === 'Contanti' || contoOrdinante === 'Contanti') && contoOrdinante !== contoBeneficiario;

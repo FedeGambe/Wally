@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { normalizzaMovimenti, classificaMovimenti, type MovimentoBanca } from './movimentiBanca';
+import { normalizzaMovimenti, classificaMovimenti, regoleDaPresetUscite, regoleDaPresetInvestimenti, regoleTrasferimentiTraConti, contoNellaCausale, type MovimentoBanca } from './movimentiBanca';
+import type { PresetUscita, PresetInvestimento } from '../config/datiBaseSeed';
 import { REGOLE_BANCA } from '../config/regoleBanca';
 
 // Forme dei movimenti come le restituisce Enable Banking (dati reali anonimizzati).
@@ -54,27 +55,101 @@ describe('normalizzaMovimenti', () => {
 const mov = (id: string, conto: string, data: string, importo: number, descrizione = ''): MovimentoBanca =>
   ({ id, conto, data, importo, descrizione });
 
-describe('classificaMovimenti con le regole reali', () => {
-  const classifica = (movimenti: MovimentoBanca[]) =>
-    Object.fromEntries(classificaMovimenti(movimenti, REGOLE_BANCA).map(c => [c.movimento.id, c]));
+// Come nel tab "Preset Uscite Ricorrenti" del foglio di configurazione.
+const preset = (nome: string, macroCategoria: string, categoria: string, importo: number): PresetUscita =>
+  ({ id: nome, nome, macroCategoria, categoria, conto: 'Unicredit', importo, giornoDelMese: 1, primaria: true });
+const PRESET: PresetUscita[] = [
+  preset('Rata Assicurazione', 'Automobile', 'Assicurazione', 80),
+  preset('Rata Bollo', 'Tasse', 'Bollo', 23),
+  preset('Contributo Manutenzione', 'Automobile', 'Automobile', 50)
+];
 
-  it('accantonamenti verso Santander Vincolato, stipendio e PAC', () => {
+// Come nel tab "Preset Investimenti Ricorrenti".
+// Importi MENSILI, eseguiti da Trade Republic anche in due metà (il 2 e il 16).
+const PRESET_INVESTIMENTI: PresetInvestimento[] = [
+  { id: 'a', broker: 'Trade Republic', strumento: 'MSCI World Small Cap', importo: 80 },
+  { id: 'b', broker: 'Trade Republic', strumento: '2036 Corp Bonds', importo: 50 },
+  { id: 'c', broker: 'Trade Republic', strumento: '2028 Euro Gov Bonds', importo: 52 },
+  { id: 'd', broker: 'Trade Republic', strumento: 'FTSE Dev Asia', importo: 50 },
+  { id: 'e', broker: 'Scalable', strumento: 'FTSE All-World', importo: 135 }
+];
+
+describe('classificaMovimenti con le regole reali', () => {
+  const regole = [
+    ...regoleDaPresetUscite(PRESET),
+    ...regoleDaPresetInvestimenti(PRESET_INVESTIMENTI, ['Trade Republic']),
+    ...REGOLE_BANCA,
+    ...regoleTrasferimentiTraConti(['Unicredit', 'Trade Republic'], ['Unicredit', 'Trade Republic', 'Scalable', 'Santander', 'Santander Vincolato'])
+  ];
+  const classifica = (movimenti: MovimentoBanca[]) =>
+    Object.fromEntries(classificaMovimenti(movimenti, regole).map(c => [c.movimento.id, c]));
+
+  it('rate dai Preset Uscite Ricorrenti, stipendio e PAC', () => {
     const r = classifica([
       mov('bollo', 'Unicredit', '2026-10-01', -23, 'DISPOSIZIONE DI BONIFICO BONIFICO SEPA A MARIO ROSSI PER RATA BOLLO'),
+      mov('manut', 'Unicredit', '2026-10-01', -55, 'DISPOSIZIONE DI BONIFICO BONIFICO SEPA A MARIO ROSSI PER CONTRIBUTO MANUTENZIONE'),
       mov('stip', 'Unicredit', '2026-09-11', 1627.97, 'BONIFICO A VOSTRO FAVORE BONIFICO SEPA DA ACME SRL PER STIPENDIO 08/2026'),
       mov('pac', 'Unicredit', '2026-10-01', -245, 'ADDEBITO SEPA DD PER FATTURA A VOSTRO CARICO Incasso SDD da DE00 Scalable Capital GmbH'),
       mov('comm', 'Unicredit', '2026-09-30', -0.5, 'COMMISSIONI - PROVVIGIONI - SPESE Incasso SDD da DE00 Scalable Capital GmbH'),
       mov('tr40', 'Trade Republic', '2026-10-02', -40)
     ]);
-    expect(r.bollo.proposta).toEqual({ tipo: 'trasferimento', contoOrdinante: 'Unicredit', contoBeneficiario: 'Santander Vincolato', categoria: 'Bollo Auto' });
-    expect(r.stip.proposta).toEqual({ tipo: 'entrata', categoria: 'Stipendio' });
-    expect(r.pac.proposta).toMatchObject({ tipo: 'trasferimento', contoBeneficiario: 'Scalable' });
+    expect(r.bollo.proposta).toEqual({ tipo: 'preset', nome: 'Rata Bollo' });
+    // L'importo non vincola: se la rata cambia vale quello della banca.
+    expect(r.manut.proposta).toEqual({ tipo: 'preset', nome: 'Contributo Manutenzione' });
+    // Riconosciuto ma da confermare: il modulo Entrata aggiunge il fondo pensione.
+    expect(r.stip).toMatchObject({ esito: 'da-confermare', proposta: { tipo: 'entrata', categoria: 'Stipendio' } });
+    expect(r.pac.proposta).toEqual({ tipo: 'investimento', broker: 'Scalable' });
     expect(r.comm.esito).toBe('da-confermare');
     expect(r.tr40).toMatchObject({ esito: 'automatico', proposta: { tipo: 'investimento', broker: 'Trade Republic' } });
   });
 
-  it('i piani Trade Republic valgono solo a inizio mese', () => {
-    expect(classifica([mov('tr40', 'Trade Republic', '2026-09-16', -40)]).tr40.esito).toBe('da-confermare');
+  it('piani Trade Republic: importo mensile o metà, il 2 e il 16 (o pochi giorni dopo)', () => {
+    const r = classifica([
+      mov('d2-40', 'Trade Republic', '2026-09-02', -40),
+      mov('d2-25', 'Trade Republic', '2026-09-02', -25),
+      mov('d16-52', 'Trade Republic', '2026-09-16', -52),
+      mov('d18-40', 'Trade Republic', '2026-08-18', -40),
+      mov('d10-40', 'Trade Republic', '2026-09-10', -40),
+      mov('d2-30', 'Trade Republic', '2026-09-02', -30)
+    ]);
+    expect([r['d2-40'].esito, r['d2-25'].esito, r['d16-52'].esito, r['d18-40'].esito]).toEqual(['automatico', 'automatico', 'automatico', 'automatico']);
+    expect(r['d10-40'].esito).toBe('da-confermare');
+    expect(r['d2-30'].esito).toBe('da-confermare');
+  });
+
+  it('bonifico a te stesso verso un conto non collegato: trasferimento da confermare', () => {
+    const r = classifica([
+      mov('self', 'Unicredit', '2026-08-13', -140, 'DISPOSIZIONE DI BONIFICO BONIFICO ISTANTANEO A Federico Gamberini'),
+      mov('selfin', 'Unicredit', '2026-09-30', 500, 'BONIFICO A VOSTRO FAVORE BONIFICO ISTANTANEO DA Federico Gamberini')
+    ]);
+    expect(r.self).toMatchObject({ esito: 'da-confermare', proposta: { tipo: 'trasferimento' } });
+    expect(r.selfin).toMatchObject({ esito: 'da-confermare', proposta: { tipo: 'trasferimento' } });
+  });
+
+  it('bonifico che nomina un altro conto: trasferimento da confermare verso quel conto', () => {
+    const r = classifica([
+      mov('sc', 'Unicredit', '2026-10-05', -300, 'DISPOSIZIONE DI BONIFICO BONIFICO SEPA A MARIO ROSSI PER Giroconto Santander Vincolato'),
+      mov('comm', 'Unicredit', '2026-09-30', -0.5, 'COMMISSIONI - PROVVIGIONI - SPESE Incasso SDD da DE00 Scalable Capital GmbH')
+    ]);
+    expect(r.sc).toMatchObject({ esito: 'da-confermare', proposta: { contoOrdinante: 'Unicredit', contoBeneficiario: 'Santander Vincolato' } });
+    // Non è un bonifico: resta senza proposta.
+    expect(r.comm.proposta).toBeUndefined();
+  });
+
+  it('il conto nominato nella causale: il nome più lungo vince, mai il conto stesso', () => {
+    const conti = ['Unicredit', 'Santander', 'Santander Vincolato', 'Scalable'];
+    expect(contoNellaCausale('BONIFICO PER giroconto santander vincolato', conti, 'Unicredit')).toBe('Santander Vincolato');
+    expect(contoNellaCausale('BONIFICO PER Accredito Scalable - PAC', conti, 'Unicredit')).toBe('Scalable');
+    expect(contoNellaCausale('BONIFICO DA UNICREDIT', conti, 'Unicredit')).toBeUndefined();
+  });
+
+  it('bonifico a te stesso verso Trade Republic: se arriva l\'altro lato è un giro automatico', () => {
+    const r = classifica([
+      mov('self', 'Unicredit', '2026-09-11', -1600, 'DISPOSIZIONE DI BONIFICO BONIFICO ISTANTANEO A Federico Gamberini'),
+      mov('tr', 'Trade Republic', '2026-09-11', 1600)
+    ]);
+    expect(r.self).toMatchObject({ esito: 'automatico', regola: 'giro tra conti', proposta: { contoBeneficiario: 'Trade Republic' } });
+    expect(r.tr.esito).toBe('lato-trasferimento');
   });
 
   it('giri tra conti collegati: trasferimento automatico, l\'entrata non genera un secondo record', () => {

@@ -30,6 +30,11 @@ interface FinanceDataContextValue {
   toggleIncognito: (enabled: boolean) => void;
   refreshData: () => Promise<void>;
   isRefreshing: boolean;
+  /** Momento (Date.now()) dell'ultimo pull riuscito da Google Sheets in questa
+   * sessione, null finché non ce n'è stato uno: chi deve confrontare con i
+   * dati del foglio (es. la registrazione automatica dei movimenti bancari,
+   * per non duplicare record già inseriti) aspetta che non sia null. */
+  ultimoPullRiuscito: number | null;
   syncError: string | null;
   /** Espone il setter oltre al valore: usato da useSaveAndPush per far comparire nel
    * toast persistente (in basso a destra) anche gli errori dei form "Aggiungi ..."
@@ -69,6 +74,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, forceIncognito =
   const [isIncognito, setIsIncognito] = useState<boolean>(() => forceIncognito || isIncognitoModeEnabled());
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [ultimoPullRiuscito, setUltimoPullRiuscito] = useState<number | null>(null);
   const [isPushing, setIsPushing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
@@ -120,6 +126,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, forceIncognito =
       }
 
       setIsRefreshing(false);
+      setUltimoPullRiuscito(Date.now());
       bumpVersion();
     } catch (err: any) {
       console.error(err);
@@ -195,6 +202,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, forceIncognito =
     toggleIncognito,
     refreshData,
     isRefreshing,
+    ultimoPullRiuscito,
     syncError,
     setSyncError,
     bumpVersion,
@@ -202,7 +210,7 @@ export function FinanceDataProvider({ accessToken, onAuthError, forceIncognito =
     isPushing,
     accessToken,
     spreadsheetId: localStorage.getItem('sf_spreadsheet_id')
-  }), [data, isIncognito, toggleIncognito, refreshData, isRefreshing, syncError, bumpVersion, pushToSheet, isPushing, accessToken]);
+  }), [data, isIncognito, toggleIncognito, refreshData, isRefreshing, ultimoPullRiuscito, syncError, bumpVersion, pushToSheet, isPushing, accessToken]);
 
   return (
     <FinanceDataContext.Provider value={value}>

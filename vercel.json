@@ -2,5 +2,8 @@
   "rewrites": [
     { "source": "/__/auth/:path*", "destination": "https://gemini-python-485506.firebaseapp.com/__/auth/:path*" },
     { "source": "/__/firebase/:path*", "destination": "https://gemini-python-485506.firebaseapp.com/__/firebase/:path*" }
+  ],
+  "crons": [
+    { "path": "/api/banca/sincronizza", "schedule": "0 4 * * *" }
   ]
 }

@@ -24,7 +24,15 @@ export interface MovimentoBanca {
   descrizione: string;  // causale ripulita, '' se la banca non la fornisce
 }
 
+import type { PresetUscita, PresetInvestimento } from '../config/datiBaseSeed';
+
 export type PropostaBanca =
+  // Applica il Preset Uscite Ricorrenti con questo nome (macro, categoria,
+  // conto, primaria dal preset; importo e data dal movimento), con il suo
+  // Preset Trasferimento collegato se c'è — come "Aggiungi Uscita" da preset.
+  | { tipo: 'preset'; nome: string }
+  // Un lato può restare '' quando la banca non dice dove sono andati i soldi
+  // (bonifico a sé stessi verso un conto non collegato): lo sceglie l'utente.
   | { tipo: 'trasferimento'; contoOrdinante: string; contoBeneficiario: string; categoria?: string }
   | { tipo: 'entrata'; categoria: string }
   | { tipo: 'uscita'; macroCategoria: string; categoria: string }
@@ -36,8 +44,11 @@ export interface RegolaBanca {
   verso: 'uscita' | 'entrata';
   descrizioneContiene?: string[];  // tutte presenti, maiuscole/minuscole indifferenti
   importi?: number[];              // uno di questi (in valore assoluto)
-  giorni?: [number, number];       // giorno del mese compreso, es. [1, 3]
+  giorni?: [number, number][];     // finestre di giorni del mese (estremi compresi), es. [[2, 4], [16, 18]]
   proposta: PropostaBanca;
+  // Riconosciuto ma non registrato da solo: finisce in "Da confermare" con il
+  // modulo già precompilato (es. lo stipendio, che porta con sé il fondo pensione).
+  conferma?: boolean;
 }
 
 export type EsitoBanca =
@@ -93,6 +104,16 @@ export function normalizzaMovimenti(grezzi: any[], conto: string): MovimentoBanc
     });
 }
 
+/**
+ * Descrizione breve di un movimento: dalla causale UniCredit ("... A MARIO
+ * ROSSI PER Cena da Gino") la parte dopo "PER", cioè quella scritta da chi ha
+ * fatto il bonifico. '' se non c'è (es. Trade Republic, che non manda causale).
+ */
+export const descrizioneBreve = (causale: string): string => {
+  const i = causale.lastIndexOf(' PER ');
+  return i >= 0 ? causale.slice(i + 5).trim() : '';
+};
+
 const regolaVale = (r: RegolaBanca, m: MovimentoBanca): boolean => {
   if (r.conto && r.conto !== m.conto) return false;
   if ((r.verso === 'uscita') !== (m.importo < 0)) return false;
@@ -101,22 +122,108 @@ const regolaVale = (r: RegolaBanca, m: MovimentoBanca): boolean => {
   if (r.importi && !r.importi.some(i => Math.abs(Math.abs(m.importo) - i) < 0.005)) return false;
   if (r.giorni) {
     const giorno = Number(m.data.slice(8, 10));
-    if (giorno < r.giorni[0] || giorno > r.giorni[1]) return false;
+    if (!r.giorni.some(([da, a]) => giorno >= da && giorno <= a)) return false;
   }
   return true;
 };
+
+/**
+ * Una regola per ogni Preset Uscite Ricorrenti: un bonifico in uscita dal
+ * conto del preset la cui causale contiene il nome del preset (es. preset
+ * "Rata Bollo" ↔ causale "... PER RATA BOLLO") applica quel preset. Così i
+ * nomi di categorie e conti restano quelli del foglio, e un preset nuovo
+ * viene riconosciuto senza toccare il codice, purché il nome sia nella causale.
+ * L'importo non è vincolato: se la rata cambia, vale quello della banca.
+ */
+export function regoleDaPresetUscite(preset: PresetUscita[]): RegolaBanca[] {
+  return preset
+    .filter(p => p.nome.trim())
+    .map(p => ({
+      nome: `Preset ${p.nome}`,
+      conto: p.conto || undefined,
+      verso: 'uscita',
+      descrizioneContiene: ['BONIFICO', p.nome.trim()],
+      proposta: { tipo: 'preset', nome: p.nome }
+    }));
+}
+
+// Trade Republic esegue i piani di accumulo il 2 e il 16 del mese (o il
+// primo giorno lavorativo dopo, se cadono nel weekend).
+const FINESTRE_PAC: [number, number][] = [[2, 4], [16, 18]];
+
+/**
+ * Piani di accumulo dei Preset Investimenti Ricorrenti sui broker collegati
+ * come conto (Trade Republic): il broker non manda la causale, quindi si
+ * riconoscono da importo e giorno. I preset hanno l'importo MENSILE, che il
+ * broker può eseguire in due metà (es. Small Cap 80 = 40 il 2 + 40 il 16):
+ * valgono sia l'importo pieno sia la metà. Se cambi un piano nel foglio, la
+ * regola si aggiorna da sola.
+ */
+export function regoleDaPresetInvestimenti(preset: PresetInvestimento[], brokerCollegati: string[]): RegolaBanca[] {
+  return brokerCollegati.flatMap(broker => {
+    const mensili = preset.filter(p => p.broker === broker && p.importo > 0).map(p => p.importo);
+    const importi = [...new Set(mensili.flatMap(i => [i, Math.round(i * 50) / 100]))];
+    return importi.length === 0 ? [] : [{
+      nome: `Piani di accumulo ${broker}`,
+      conto: broker,
+      verso: 'uscita' as const,
+      importi,
+      giorni: FINESTRE_PAC,
+      proposta: { tipo: 'investimento' as const, broker }
+    }];
+  });
+}
+
+/**
+ * Bonifici la cui causale nomina un altro dei tuoi conti (es. "Accredito
+ * Scalable - PAC", "Giroconto Santander"): sono trasferimenti tra conti tuoi.
+ * Da confermare, con il conto nominato già proposto come l'altro lato. Una
+ * regola per ogni conto collegato e ogni altro conto di Wally.
+ */
+export function regoleTrasferimentiTraConti(contiCollegati: string[], conti: string[]): RegolaBanca[] {
+  // Nomi più lunghi prima: "Santander Vincolato" deve vincere su "Santander".
+  const perLunghezza = [...conti].sort((a, b) => b.length - a.length);
+  return [...new Set(contiCollegati)].flatMap(collegato => perLunghezza
+    .filter(altro => altro !== collegato && altro.trim())
+    .flatMap(altro => (['uscita', 'entrata'] as const).map(verso => ({
+      nome: `Trasferimento ${verso === 'uscita' ? 'verso' : 'da'} ${altro}`,
+      conto: collegato,
+      verso,
+      descrizioneContiene: ['BONIFICO', altro],
+      proposta: verso === 'uscita'
+        ? { tipo: 'trasferimento' as const, contoOrdinante: collegato, contoBeneficiario: altro }
+        : { tipo: 'trasferimento' as const, contoOrdinante: altro, contoBeneficiario: collegato },
+      conferma: true
+    }))));
+}
+
+/**
+ * Il conto di Wally nominato nella causale, se c'è (il più lungo vince:
+ * "Santander Vincolato" prima di "Santander"). Serve a proporre l'altro lato
+ * di un bonifico a sé stessi, che la banca non indica.
+ */
+export function contoNellaCausale(causale: string, conti: string[], escludi: string): string | undefined {
+  const testo = causale.toUpperCase();
+  return [...conti]
+    .filter(c => c.trim() && c !== escludi)
+    .sort((a, b) => b.length - a.length)
+    .find(c => testo.includes(c.toUpperCase()));
+}
 
 const giorniTra = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / 86400_000;
 
 /**
  * Classifica i movimenti di tutti i conti collegati:
- *  1. regole, nell'ordine dato: la prima che vale decide (automatico);
+ *  1. regole, nell'ordine dato: la prima che vale decide (automatico, o da
+ *     confermare con una proposta se la regola ha `conferma`);
  *  2. giri tra conti: un'uscita e un'entrata dello stesso importo su due conti
  *     diversi entro `finestraGiorni` (un bonifico istantaneo il venerdì sera
  *     può arrivare il lunedì) diventano un trasferimento automatico;
  *  3. tutto il resto è da confermare.
- * Le regole vengono prima dei giri perché sono più precise: il PAC da 50 € su
- * Trade Republic non deve essere abbinato a un rimborso da 50 € su UniCredit.
+ * Le regole automatiche vengono prima dei giri perché sono più precise: il PAC
+ * da 50 € su Trade Republic non deve essere abbinato a un rimborso da 50 € su
+ * UniCredit. Quelle da confermare no: un "bonifico a te stesso" verso Trade
+ * Republic, se l'altro lato arriva, è un giro e si registra da solo.
  */
 export function classificaMovimenti(
   movimenti: MovimentoBanca[],
@@ -127,14 +234,15 @@ export function classificaMovimenti(
 
   for (const m of movimenti) {
     const regola = regole.find(r => regolaVale(r, m));
-    if (regola) esiti.set(m.id, { movimento: m, esito: 'automatico', proposta: regola.proposta, regola: regola.nome });
+    if (regola) esiti.set(m.id, { movimento: m, esito: regola.conferma ? 'da-confermare' : 'automatico', proposta: regola.proposta, regola: regola.nome });
   }
 
-  const liberi = movimenti.filter(m => !esiti.has(m.id));
+  const abbinabile = (m: MovimentoBanca) => esiti.get(m.id)?.esito !== 'automatico' && !esiti.get(m.id)?.abbinatoA;
+  const liberi = movimenti.filter(abbinabile);
   const entrateLibere = liberi.filter(m => m.importo > 0);
   for (const uscita of liberi.filter(m => m.importo < 0)) {
     const candidate = entrateLibere
-      .filter(e => !esiti.has(e.id) && e.conto !== uscita.conto
+      .filter(e => abbinabile(e) && e.conto !== uscita.conto
         && Math.abs(e.importo + uscita.importo) < 0.005
         && giorniTra(e.data, uscita.data) <= finestraGiorni)
       .sort((a, b) => giorniTra(a.data, uscita.data) - giorniTra(b.data, uscita.data));
