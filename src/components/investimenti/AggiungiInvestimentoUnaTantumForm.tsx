@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Landmark, LineChart, Layers } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
-import { BROKER_INVESTIMENTI, importoGiaInserito, meseLabelBroker, strumentiBroker } from '../../utils/investimentiRicorrenti';
+import { ASSET_CLASS, BROKER_INVESTIMENTI, importoGiaInserito, meseLabelBroker, strumentiBroker } from '../../utils/investimentiRicorrenti';
 import { formatEuro } from '../../utils/format';
 import { MESI_ITALIANI } from '../../utils/date';
 import DropdownMenu from '../DropdownMenu';
@@ -10,7 +10,6 @@ interface AggiungiInvestimentoUnaTantumFormProps {
   onSaved: () => void;
 }
 
-const ASSET_CLASS = ['Azioni', 'Obbligazioni', 'Monetario'];
 
 /**
  * Investimento una tantum fuori dai preset (Aggiungi Dato → Investimento Una

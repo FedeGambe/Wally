@@ -9,6 +9,9 @@ import { MESI_ITALIANI } from './date';
  */
 export const BROKER_INVESTIMENTI = ['Scalable', 'Trade Republic'] as const;
 
+// Asset class di uno strumento (riga 2 del tab broker), scelta quando se ne crea uno nuovo.
+export const ASSET_CLASS = ['Azioni', 'Obbligazioni', 'Monetario'];
+
 interface DatiBroker {
   scalable?: any[];
   tradeRepublic?: any[];

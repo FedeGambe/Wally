@@ -48,7 +48,7 @@ export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscita
   const [categoria, setCategoria] = useState('');
   const [conto, setConto] = useState(iniziale?.conto || (conti.includes('Trade Republic') ? 'Trade Republic' : conti[0] || ''));
   const [importo, setImporto] = useState(iniziale?.importo ? String(iniziale.importo) : '');
-  const [primaria, setPrimaria] = useState(true);
+  const [primaria, setPrimaria] = useState(false);
   const [presetSelezionatoId, setPresetSelezionatoId] = useState<string | null>(null);
   const [ancheTrasferimento, setAncheTrasferimento] = useState(false);
   const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);

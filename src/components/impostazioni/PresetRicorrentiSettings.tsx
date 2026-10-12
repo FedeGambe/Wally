@@ -5,6 +5,7 @@ import UsciteRicorrentiEditor from './UsciteRicorrentiEditor';
 import TrasferimentiRicorrentiEditor from './TrasferimentiRicorrentiEditor';
 import InvestimentiRicorrentiEditor from './InvestimentiRicorrentiEditor';
 import FondoPensioneQuotaEditor from './FondoPensioneQuotaEditor';
+import { SchedaProvider, type SchedaAperta } from './editorUI';
 
 type Voce = 'usciteRicorrenti' | 'trasferimentiRicorrenti' | 'investimentiRicorrenti' | 'fondoPensione' | null;
 
@@ -33,6 +34,7 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
  */
 export default function PresetRicorrentiSettings() {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
+  const [scheda, setScheda] = useState<SchedaAperta | null>(null);
 
   return (
     <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm">
@@ -41,8 +43,8 @@ export default function PresetRicorrentiSettings() {
         <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Preset Uscite Ricorrenti</h3>
       </div>
       <p className="text-xs text-ink-soft mb-5 leading-relaxed">
-        Valori quasi identici ogni mese: precompilano il form al momento dell'inserimento, non
-        salvano nulla da soli.
+        Valori quasi identici ogni mese: precompilano i moduli "Aggiungi" e servono a riconoscere
+        i movimenti scaricati dalla banca.
       </p>
 
       <div className="space-y-2">
@@ -67,11 +69,20 @@ export default function PresetRicorrentiSettings() {
         })}
       </div>
 
-      <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>
-        {voceAperta === 'usciteRicorrenti' && <UsciteRicorrentiEditor />}
-        {voceAperta === 'trasferimentiRicorrenti' && <TrasferimentiRicorrentiEditor />}
-        {voceAperta === 'investimentiRicorrenti' && <InvestimentiRicorrentiEditor />}
-        {voceAperta === 'fondoPensione' && <FondoPensioneQuotaEditor />}
+      <Modal
+        isOpen={voceAperta !== null}
+        onClose={() => setVoceAperta(null)}
+        title={scheda?.titolo ?? (voceAperta ? TITOLI[voceAperta] : '')}
+        onBack={scheda?.indietro}
+        maxWidthClass="max-w-lg"
+        borderless
+      >
+        <SchedaProvider value={setScheda}>
+          {voceAperta === 'usciteRicorrenti' && <UsciteRicorrentiEditor />}
+          {voceAperta === 'trasferimentiRicorrenti' && <TrasferimentiRicorrentiEditor />}
+          {voceAperta === 'investimentiRicorrenti' && <InvestimentiRicorrentiEditor />}
+          {voceAperta === 'fondoPensione' && <FondoPensioneQuotaEditor />}
+        </SchedaProvider>
       </Modal>
     </div>
   );

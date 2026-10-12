@@ -1,112 +1,138 @@
 import React, { useState } from 'react';
-import { Trash2, Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useDatiBase } from '../../hooks/useDatiBase';
+import { IntroEditor, ListaVoci, VoceRiga, AggiungiVoce, Campo, AzioniScheda, ErroreEditor, inputEditorClass, useScheda, useVoceAperta } from './editorUI';
 
-/** Editor "Categorie Uscite" (macro + sotto-categorie), dentro il popup
- * fullscreen di Impostazioni → Dati Base. */
+/**
+ * Editor "Categorie Uscite" (popup di Impostazioni → Dati Base): lista delle
+ * macro categorie → scheda con icona, nome e sotto-categorie. Una macro senza
+ * sotto-categorie (es. Istruzione, Regalo) diventa "inserimento libero" nel
+ * modulo Aggiungi Uscita. Le modifiche si applicano con "Salva".
+ */
 export default function CategorieUsciteEditor() {
-  const { macroCategorieUscite, updateDatiBase, error } = useDatiBase();
+  const { macroCategorieUscite, error } = useDatiBase();
+  const [aperta, setAperta] = useVoceAperta<string>();
+  const macro = macroCategorieUscite.find(m => m.nome === aperta);
+  useScheda(aperta === null ? null : aperta === 'nuova' ? 'Nuova macro categoria' : `${macro?.icon ?? ''} ${aperta}`.trim(), () => setAperta(null));
 
-  const [newMacroNome, setNewMacroNome] = useState('');
-  const [newMacroIcon, setNewMacroIcon] = useState('💸');
-  const addMacro = () => {
-    const nome = newMacroNome.trim();
-    if (!nome || macroCategorieUscite.some(m => m.nome === nome)) return;
-    updateDatiBase({
-      macroCategorieUscite: [...macroCategorieUscite, { nome, icon: newMacroIcon.trim() || '💸', categorie: [] }]
-    });
-    setNewMacroNome('');
-    setNewMacroIcon('💸');
-  };
-  const removeMacro = (nome: string) =>
-    updateDatiBase({ macroCategorieUscite: macroCategorieUscite.filter(m => m.nome !== nome) });
-
-  const [newSottoCategoria, setNewSottoCategoria] = useState<Record<string, string>>({});
-  const addSottoCategoria = (macroNome: string) => {
-    const nome = (newSottoCategoria[macroNome] || '').trim();
-    if (!nome) return;
-    updateDatiBase({
-      macroCategorieUscite: macroCategorieUscite.map(m =>
-        m.nome === macroNome && !m.categorie.includes(nome)
-          ? { ...m, categorie: [...m.categorie, nome] }
-          : m
-      )
-    });
-    setNewSottoCategoria(prev => ({ ...prev, [macroNome]: '' }));
-  };
-  const removeSottoCategoria = (macroNome: string, categoria: string) =>
-    updateDatiBase({
-      macroCategorieUscite: macroCategorieUscite.map(m =>
-        m.nome === macroNome ? { ...m, categorie: m.categorie.filter(c => c !== categoria) } : m
-      )
-    });
+  if (aperta !== null) {
+    return <SchedaMacro key={aperta} originale={aperta === 'nuova' ? null : aperta} chiudi={() => setAperta(null)} />;
+  }
 
   return (
     <div>
-      <p className="text-xs text-ink-soft dark:text-slate-400 mb-5 leading-relaxed">
-        Macro categorie e relative sotto-categorie usate nel form "Aggiungi Uscita". Una macro
-        senza sotto-categorie (es. Istruzione, Regalo) diventa "inserimento libero" nel form.
-      </p>
-
-      <div className="space-y-3 mb-5">
-        {macroCategorieUscite.map(macro => (
-          <div key={macro.nome} className="p-4 rounded-2xl border border-hairline dark:border-white/10 bg-canvas/60 dark:bg-white/5">
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-sm font-bold text-ink dark:text-slate-200 flex items-center gap-1.5">
-                <span>{macro.icon}</span> {macro.nome}
-              </span>
-              <button onClick={() => removeMacro(macro.nome)} className="text-ink-soft hover:text-down cursor-pointer" aria-label={`Rimuovi macro categoria ${macro.nome}`}>
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1.5 mb-2.5">
-              {macro.categorie.map(cat => (
-                <span key={cat} className="inline-flex items-center gap-1 bg-white dark:bg-white/10 border border-hairline dark:border-white/10 rounded-md px-2 py-0.5 text-2xs font-medium text-ink-soft dark:text-slate-300">
-                  {cat}
-                  <button onClick={() => removeSottoCategoria(macro.nome, cat)} className="text-ink-soft hover:text-down cursor-pointer" aria-label={`Rimuovi categoria ${cat}`}>
-                    <Trash2 className="w-2.5 h-2.5" />
-                  </button>
-                </span>
-              ))}
-              {macro.categorie.length === 0 && <span className="text-2xs text-ink-soft italic">Inserimento libero (nessuna sotto-categoria)</span>}
-            </div>
-            <div className="flex gap-1.5">
-              <input
-                value={newSottoCategoria[macro.nome] || ''}
-                onChange={e => setNewSottoCategoria(prev => ({ ...prev, [macro.nome]: e.target.value }))}
-                onKeyDown={e => e.key === 'Enter' && addSottoCategoria(macro.nome)}
-                placeholder="Nuova sotto-categoria..."
-                className="flex-1 px-2.5 py-1.5 rounded-lg text-2xs border border-hairline dark:border-white/10 bg-white dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
-              />
-              <button onClick={() => addSottoCategoria(macro.nome)} className="px-2.5 py-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-ink-soft dark:text-slate-300 rounded-lg cursor-pointer">
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
+      <IntroEditor>Macro categorie e sotto-categorie del modulo "Aggiungi Uscita".</IntroEditor>
+      <ListaVoci vuota="Nessuna macro categoria ancora.">
+        {macroCategorieUscite.map(m => (
+          <VoceRiga
+            key={m.nome}
+            icona={m.icon}
+            titolo={m.nome}
+            sottotitolo={m.categorie.length > 0 ? m.categorie.join(' · ') : 'Inserimento libero'}
+            onClick={() => setAperta(m.nome)}
+          />
         ))}
-        {macroCategorieUscite.length === 0 && <p className="text-xs text-ink-soft">Nessuna macro categoria ancora.</p>}
-      </div>
+      </ListaVoci>
+      <AggiungiVoce label="Aggiungi macro categoria" onClick={() => setAperta('nuova')} />
+      <ErroreEditor errore={error} />
+    </div>
+  );
+}
 
-      <div className="flex gap-2 pt-4 border-t border-hairline dark:border-white/10">
-        <input
-          value={newMacroIcon}
-          onChange={e => setNewMacroIcon(e.target.value)}
-          placeholder="Icona"
-          className="w-16 px-2 py-2.5 rounded-xl text-center text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-          maxLength={4}
-        />
-        <input
-          value={newMacroNome}
-          onChange={e => setNewMacroNome(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addMacro()}
-          placeholder="Nuova macro categoria..."
-          className="flex-1 px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-        />
-        <button onClick={addMacro} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl cursor-pointer font-bold text-sm flex items-center gap-1.5">
-          <Plus className="w-4 h-4" /> Aggiungi
-        </button>
+function SchedaMacro({ originale, chiudi }: { originale: string | null; chiudi: () => void }) {
+  const { macroCategorieUscite, presetUscite, updateDatiBase } = useDatiBase();
+  const esistente = macroCategorieUscite.find(m => m.nome === originale);
+  const [icona, setIcona] = useState(esistente?.icon ?? '💸');
+  const [nome, setNome] = useState(esistente?.nome ?? '');
+  const [categorie, setCategorie] = useState<string[]>(esistente?.categorie ?? []);
+  const [nuova, setNuova] = useState('');
+
+  const pulito = nome.trim();
+  const duplicato = pulito !== originale && macroCategorieUscite.some(m => m.nome === pulito);
+  const modificata = !esistente || pulito !== esistente.nome || icona !== esistente.icon || categorie.join('|') !== esistente.categorie.join('|');
+  const valido = Boolean(pulito) && !duplicato && modificata;
+
+  const aggiungiCategoria = () => {
+    const c = nuova.trim();
+    if (c && !categorie.includes(c)) setCategorie([...categorie, c]);
+    setNuova('');
+  };
+
+  const salva = () => {
+    if (!valido) return;
+    const aggiornata = { nome: pulito, icon: icona.trim() || '💸', categorie };
+    updateDatiBase({
+      macroCategorieUscite: originale === null
+        ? [...macroCategorieUscite, aggiornata]
+        : macroCategorieUscite.map(m => (m.nome === originale ? aggiornata : m)),
+      // Il nuovo nome della macro vale anche nei Preset Uscite Ricorrenti.
+      ...(originale && pulito !== originale
+        ? { presetUscite: presetUscite.map(p => (p.macroCategoria === originale ? { ...p, macroCategoria: pulito } : p)) }
+        : {})
+    });
+    chiudi();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-3">
+        <div className="w-20 shrink-0">
+          <Campo label="Icona">
+            <input value={icona} onChange={e => setIcona(e.target.value)} maxLength={4} className={`${inputEditorClass} text-center text-lg`} />
+          </Campo>
+        </div>
+        <div className="flex-1">
+          <Campo label="Nome">
+            <input autoFocus={!originale} value={nome} onChange={e => setNome(e.target.value)} placeholder="Es. Casa" className={inputEditorClass} />
+          </Campo>
+        </div>
       </div>
-      {error && <p className="text-xs text-down font-semibold mt-3">{error}</p>}
+      {duplicato && <p className="text-xs text-down font-semibold">Esiste già una macro categoria con questo nome.</p>}
+
+      <Campo label="Sotto-categorie" nota={categorie.length === 0 ? 'Senza sotto-categorie, nel modulo Aggiungi Uscita la categoria si scrive a mano.' : undefined}>
+        {categorie.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {categorie.map(c => (
+              <span key={c} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-lg bg-accent/10 text-accent text-xs font-semibold">
+                {c}
+                <button
+                  type="button"
+                  onClick={() => setCategorie(categorie.filter(x => x !== c))}
+                  aria-label={`Togli ${c}`}
+                  className="w-5 h-5 rounded-md flex items-center justify-center hover:bg-accent/20 cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            value={nuova}
+            onChange={e => setNuova(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && aggiungiCategoria()}
+            placeholder="Nuova sotto-categoria..."
+            className={inputEditorClass}
+          />
+          <button
+            type="button"
+            onClick={aggiungiCategoria}
+            disabled={!nuova.trim()}
+            aria-label="Aggiungi sotto-categoria"
+            className="px-3 rounded-xl bg-canvas dark:bg-white/10 text-accent hover:bg-accent/10 disabled:opacity-40 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </Campo>
+
+      <AzioniScheda
+        onSalva={salva}
+        salvaAbilitato={valido}
+        etichettaSalva={originale ? 'Salva' : 'Aggiungi macro categoria'}
+        onElimina={originale ? () => { updateDatiBase({ macroCategorieUscite: macroCategorieUscite.filter(m => m.nome !== originale) }); chiudi(); } : undefined}
+      />
     </div>
   );
 }

@@ -34,7 +34,7 @@ export default function BancheCollegateSettings() {
     <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-1">
         <div className="flex items-center gap-2">
-          <Landmark className="w-5 h-5 text-accent" />
+          <Landmark className="w-5 h-5 text-blue-600" />
           <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Banche collegate</h3>
         </div>
         <button

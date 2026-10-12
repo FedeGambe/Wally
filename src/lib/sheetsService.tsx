@@ -781,7 +781,9 @@ export const addStrumentoBrokerColumn = async (
   nome: string,
   assetClass: string, // 'Azioni' | 'Obbligazioni' | 'Monetario' (riga 2)
   meseLabel: string,
-  importo: number
+  // null = crea solo la colonna, senza investimento nel mese (es. un preset
+  // nuovo da Impostazioni → Investimenti Ricorrenti): la cella resta vuota.
+  importo: number | null
 ): Promise<void> => {
   if (APPEND_TO_SHEETS_DISABLED) {
     throw new Error('Scrittura su Google Sheets temporaneamente disattivata (debug in corso). Nessun dato è stato inviato al foglio.');
@@ -865,7 +867,7 @@ export const addStrumentoBrokerColumn = async (
       data: [
         { range: `${tabTitle}!${lettera}1`, values: [[nome.trim()]] },
         { range: `${tabTitle}!${lettera}2`, values: [[assetClass]] },
-        { range: `${tabTitle}!${lettera}${rowNumber}`, values: [[importo]] }
+        { range: `${tabTitle}!${lettera}${rowNumber}`, values: [[importo ?? '']] }
       ]
     })
   });

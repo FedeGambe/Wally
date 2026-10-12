@@ -5,6 +5,7 @@ import ContiEditor from './ContiEditor';
 import CategorieEntrateEditor from './CategorieEntrateEditor';
 import CategorieUsciteEditor from './CategorieUsciteEditor';
 import SoglieEditor from './SoglieEditor';
+import { SchedaProvider, type SchedaAperta } from './editorUI';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { CONTI_SEED, CATEGORIE_ENTRATE_SEED, MACRO_CATEGORIE_USCITE_SEED, SOGLIE_SEED } from '../../data/datiBase';
@@ -27,13 +28,14 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
 
 /**
  * Card "Dati Base" di Impostazioni: un menu con 4 voci (Conti, Categorie
- * Entrate, Categorie Uscite, Soglie). Ogni voce apre un popup a tutto schermo
- * con l'editor corrispondente — vedi src/data/datiBase.ts per il layer di
- * persistenza, ContiEditor/CategorieEntrateEditor/CategorieUsciteEditor per
- * il contenuto di ciascun popup (Soglie ancora da costruire).
+ * Entrate, Categorie Uscite, Soglie). Ogni voce apre un popup centrato con
+ * l'editor corrispondente (lista → scheda di modifica, vedi editorUI.tsx);
+ * quando l'editor apre una scheda, titolo e freccia "indietro" del popup
+ * seguono la scheda. Persistenza in src/data/datiBase.ts.
  */
 export default function DatiBaseSettings() {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
+  const [scheda, setScheda] = useState<SchedaAperta | null>(null);
   const { updateDatiBase } = useDatiBase();
   const { accessToken } = useFinanceData();
   const [isImporting, setIsImporting] = useState(false);
@@ -129,11 +131,20 @@ export default function DatiBaseSettings() {
         <p className="text-2xs text-center text-ink-soft dark:text-slate-400 font-semibold mt-2">{importMsg}</p>
       )}
 
-      <Modal isOpen={voceAperta !== null} onClose={() => setVoceAperta(null)} title={voceAperta ? TITOLI[voceAperta] : ''} fullScreen>
-        {voceAperta === 'conti' && <ContiEditor />}
-        {voceAperta === 'categorieEntrate' && <CategorieEntrateEditor />}
-        {voceAperta === 'categorieUscite' && <CategorieUsciteEditor />}
-        {voceAperta === 'soglie' && <SoglieEditor />}
+      <Modal
+        isOpen={voceAperta !== null}
+        onClose={() => setVoceAperta(null)}
+        title={scheda?.titolo ?? (voceAperta ? TITOLI[voceAperta] : '')}
+        onBack={scheda?.indietro}
+        maxWidthClass="max-w-lg"
+        borderless
+      >
+        <SchedaProvider value={setScheda}>
+          {voceAperta === 'conti' && <ContiEditor />}
+          {voceAperta === 'categorieEntrate' && <CategorieEntrateEditor />}
+          {voceAperta === 'categorieUscite' && <CategorieUsciteEditor />}
+          {voceAperta === 'soglie' && <SoglieEditor />}
+        </SchedaProvider>
       </Modal>
     </div>
   );

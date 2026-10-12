@@ -1,49 +1,51 @@
 import React, { useState } from 'react';
-import { Save } from 'lucide-react';
 import { useDatiBase } from '../../hooks/useDatiBase';
+import { IntroEditor, Campo, AzioniScheda, ErroreEditor, inputEditorClass } from './editorUI';
 
 /**
- * Editor "Quota Fondo Pensione" (dentro il popup fullscreen di Impostazioni →
- * Preset Ricorrenti): la quota TFR mensile, salvata nel tab "Preset Fondo
- * Pensione" del foglio di configurazione. Usata da AggiungiEntrataForm per
- * proporre la riga del fondo pensione quando si inserisce lo stipendio.
+ * Editor "Quota Fondo Pensione" (popup di Impostazioni → Preset Ricorrenti):
+ * la quota TFR mensile, salvata nel tab "Preset Fondo Pensione" del foglio di
+ * configurazione. Usata da AggiungiEntrataForm per proporre la riga del fondo
+ * pensione quando si inserisce lo stipendio. Un solo valore: niente lista.
  */
 export default function FondoPensioneQuotaEditor() {
   const { quotaFondoPensione, updateDatiBase, isSaving, error } = useDatiBase();
   const [quota, setQuota] = useState(quotaFondoPensione > 0 ? String(quotaFondoPensione) : '');
+  const [salvata, setSalvata] = useState(false);
 
-  const isValid = Number(quota) > 0 && Number(quota) !== quotaFondoPensione;
+  const valido = Number(quota) > 0 && Number(quota) !== quotaFondoPensione && !isSaving;
 
-  const inputClass = "px-3 py-2 rounded-xl text-xs border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500";
+  const salva = async () => {
+    if (!valido) return;
+    await updateDatiBase({ quotaFondoPensione: Number(quota) });
+    setSalvata(true);
+  };
 
   return (
-    <div>
-      <p className="text-xs text-ink-soft dark:text-slate-400 mb-6 leading-relaxed">
-        Quota TFR versata ogni mese nel fondo pensione. Quando aggiungi un'entrata "Stipendio",
-        il form propone di scrivere anche la riga del mese nel tab "Fondo Pensione": le
-        contribuzioni (base, volontaria, azienda) e i totali li calcola il foglio.
-      </p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl border border-dashed border-hairline dark:border-white/15">
-        <input
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={quota}
-          onChange={e => setQuota(e.target.value)}
-          placeholder="Quota TFR mensile (€)"
-          aria-label="Quota TFR mensile"
-          className={inputClass}
-        />
-        <button
-          onClick={() => updateDatiBase({ quotaFondoPensione: Number(quota) })}
-          disabled={!isValid || isSaving}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
-        >
-          <Save className="w-4 h-4" /> {isSaving ? 'Salvataggio...' : 'Salva quota'}
-        </button>
-      </div>
-      {error && <p className="text-xs text-down font-semibold mt-3">{error}</p>}
+    <div className="space-y-4">
+      <IntroEditor>
+        Quota TFR versata ogni mese nel fondo pensione. Quando aggiungi l'entrata "Stipendio", il
+        modulo propone anche la riga del mese nel tab "Fondo Pensione": contribuzioni e totali li
+        calcola il foglio.
+      </IntroEditor>
+      <Campo label="Quota TFR mensile">
+        <div className="relative">
+          <input
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            min="0.01"
+            value={quota}
+            onChange={e => { setQuota(e.target.value); setSalvata(false); }}
+            onKeyDown={e => e.key === 'Enter' && salva()}
+            className={`${inputEditorClass} pr-8`}
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-soft">€</span>
+        </div>
+      </Campo>
+      {salvata && !error && <p className="text-xs text-up font-semibold">Quota salvata.</p>}
+      <AzioniScheda onSalva={salva} salvaAbilitato={valido} etichettaSalva={isSaving ? 'Salvataggio...' : 'Salva quota'} />
+      <ErroreEditor errore={error} />
     </div>
   );
 }

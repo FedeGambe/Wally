@@ -1,126 +1,145 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Repeat, CreditCard, ArrowRight } from 'lucide-react';
+import { ArrowLeftRight, Repeat, CreditCard, ArrowRight } from 'lucide-react';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { formatEuro } from '../../utils/format';
 import type { PresetTrasferimento } from '../../data/datiBase';
 import DropdownMenu from '../DropdownMenu';
+import { IntroEditor, ListaVoci, VoceRiga, AggiungiVoce, Campo, AzioniScheda, ErroreEditor, inputEditorClass, useScheda, useVoceAperta } from './editorUI';
 
-const emptyForm = { categoria: '', contoOrdinante: '', contoBeneficiario: '', importo: '' };
+const QUALSIASI = 'Qualsiasi';
 
 /**
- * Editor "Trasferimenti Ricorrenti" (dentro il popup fullscreen di
- * Impostazioni → Preset Ricorrenti). `categoria` va scelta tra i nomi dei
- * Preset Uscite Ricorrenti esistenti: è il match esatto su questo nome che fa
- * scattare, nel form Aggiungi Uscita, il flag "aggiungi anche il
- * trasferimento" e il pallino lampeggiante sulla voce corrispondente.
+ * Editor "Trasferimenti Ricorrenti" (popup di Impostazioni → Preset
+ * Ricorrenti). Ogni trasferimento è collegato per nome a un Preset Uscite
+ * Ricorrenti: quando si registra quell'uscita (a mano o dalla banca) si
+ * registra anche il trasferimento.
  */
 export default function TrasferimentiRicorrentiEditor() {
-  const { presetTrasferimenti, presetUscite, conti, updateDatiBase, error } = useDatiBase();
-  const [form, setForm] = useState(emptyForm);
+  const { presetTrasferimenti, error } = useDatiBase();
+  const [aperto, setAperto] = useVoceAperta<string>();
+  const preset = presetTrasferimenti.find(p => p.id === aperto);
+  useScheda(aperto === null ? null : aperto === 'nuova' ? 'Nuovo trasferimento ricorrente' : preset?.categoria ?? '', () => setAperto(null));
 
-  const isValid = form.categoria && form.contoBeneficiario && Number(form.importo) > 0;
+  if (aperto !== null) {
+    return <SchedaPresetTrasferimento key={aperto} originale={preset ?? null} chiudi={() => setAperto(null)} />;
+  }
 
-  const addPreset = () => {
-    if (!isValid) return;
-    const nuovo: PresetTrasferimento = {
-      id: `preset-trasf-${Date.now()}`,
+  return (
+    <div>
+      <IntroEditor>
+        Trasferimenti legati a un'uscita ricorrente (es. il bonifico verso il conto di
+        accantonamento quando paghi una rata): registrando l'uscita si registra anche il
+        trasferimento.
+      </IntroEditor>
+      <ListaVoci vuota="Nessun trasferimento ricorrente ancora.">
+        {presetTrasferimenti.map(p => (
+          <VoceRiga
+            key={p.id}
+            icona={<ArrowLeftRight className="w-4 h-4 text-blue-600" />}
+            titolo={p.categoria}
+            sottotitolo={`${p.contoOrdinante || QUALSIASI} → ${p.contoBeneficiario}`}
+            valore={formatEuro(p.importo)}
+            onClick={() => setAperto(p.id)}
+          />
+        ))}
+      </ListaVoci>
+      <AggiungiVoce label="Aggiungi trasferimento ricorrente" onClick={() => setAperto('nuova')} />
+      <ErroreEditor errore={error} />
+    </div>
+  );
+}
+
+function SchedaPresetTrasferimento({ originale, chiudi }: { originale: PresetTrasferimento | null; chiudi: () => void }) {
+  const { presetTrasferimenti, presetUscite, conti, updateDatiBase } = useDatiBase();
+  const [form, setForm] = useState({
+    categoria: originale?.categoria ?? '',
+    contoOrdinante: originale?.contoOrdinante ?? '',
+    contoBeneficiario: originale?.contoBeneficiario ?? '',
+    importo: originale ? String(originale.importo) : ''
+  });
+  const aggiorna = (campi: Partial<typeof form>) => setForm(f => ({ ...f, ...campi }));
+
+  // Ogni preset uscita ha al massimo un trasferimento collegato.
+  const giaCollegati = presetTrasferimenti.filter(t => t.id !== originale?.id).map(t => t.categoria);
+  const valido = Boolean(form.categoria && form.contoBeneficiario && Number(form.importo) > 0 && form.contoOrdinante !== form.contoBeneficiario);
+
+  const salva = () => {
+    if (!valido) return;
+    const aggiornato: PresetTrasferimento = {
+      id: originale?.id ?? `preset-trasf-${Date.now()}`,
       categoria: form.categoria,
       contoOrdinante: form.contoOrdinante,
       contoBeneficiario: form.contoBeneficiario,
       importo: Number(form.importo)
     };
-    updateDatiBase({ presetTrasferimenti: [...presetTrasferimenti, nuovo] });
-    setForm(emptyForm);
+    updateDatiBase({
+      presetTrasferimenti: originale ? presetTrasferimenti.map(t => (t.id === originale.id ? aggiornato : t)) : [...presetTrasferimenti, aggiornato]
+    });
+    chiudi();
   };
 
-  const removePreset = (id: string) =>
-    updateDatiBase({ presetTrasferimenti: presetTrasferimenti.filter(p => p.id !== id) });
-
-  const inputClass = "px-3 py-2 rounded-xl text-xs border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
-
   return (
-    <div>
-      <p className="text-xs text-ink-soft dark:text-slate-400 mb-6 leading-relaxed">
-        Trasferimenti legati a un'uscita ricorrente (es. bonifico verso il conto di accantonamento
-        quando paghi una rata). La categoria deve corrispondere al nome di un preset in "Uscite
-        Ricorrenti": quando coincide, il form "Aggiungi Uscita" mostra un flag per aggiungere anche
-        questo trasferimento in automatico.
-      </p>
-
-      {presetTrasferimenti.length > 0 && (
-        <div className="space-y-2 mb-5">
-          {presetTrasferimenti.map(p => (
-            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-hairline dark:border-white/10 bg-canvas/60 dark:bg-white/5">
-              <div className="min-w-0">
-                <span className="text-sm font-bold text-ink dark:text-slate-200 block truncate">{p.categoria}</span>
-                <span className="text-2xs text-ink-soft">
-                  {p.contoOrdinante || 'Qualsiasi'} → {p.contoBeneficiario} · {formatEuro(p.importo)}
-                </span>
-              </div>
-              <button onClick={() => removePreset(p.id)} className="text-ink-soft hover:text-down cursor-pointer shrink-0 ml-3" aria-label={`Rimuovi preset ${p.categoria}`}>
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl border border-dashed border-hairline dark:border-white/15">
+    <div className="space-y-4">
+      <Campo label="Collegato all'uscita ricorrente">
         <DropdownMenu
           icon={Repeat}
-          label="Categoria (preset uscita)"
-          accent="orange"
+          label="Uscita ricorrente"
+          accent="indigo"
           fullWidth
           hideLabel
-          placeholder="Collega a un preset uscita..."
+          placeholder="Scegli un preset..."
           value={form.categoria}
           displayValue={form.categoria}
           options={presetUscite.map(p => p.nome)}
-          onSelect={categoria => setForm(f => ({ ...f, categoria }))}
+          disabledOptions={giaCollegati}
+          onSelect={categoria => aggiorna({ categoria })}
         />
-        <div />
-        <DropdownMenu
-          icon={CreditCard}
-          label="Conto ordinante (opzionale)"
-          accent="orange"
-          fullWidth
-          hideLabel
-          placeholder="Conto ordinante..."
-          value={form.contoOrdinante}
-          displayValue={form.contoOrdinante}
-          options={conti}
-          onSelect={c => setForm(f => ({ ...f, contoOrdinante: c }))}
-        />
-        <DropdownMenu
-          icon={ArrowRight}
-          label="Conto beneficiario"
-          accent="orange"
-          fullWidth
-          hideLabel
-          placeholder="Conto beneficiario..."
-          value={form.contoBeneficiario}
-          displayValue={form.contoBeneficiario}
-          options={conti}
-          onSelect={c => setForm(f => ({ ...f, contoBeneficiario: c }))}
-        />
-        <input
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={form.importo}
-          onChange={e => setForm(f => ({ ...f, importo: e.target.value }))}
-          placeholder="Importo (€)"
-          className={`${inputClass} sm:col-span-2`}
-        />
-        <button
-          onClick={addPreset}
-          disabled={!isValid}
-          className="sm:col-span-2 flex items-center justify-center gap-1.5 px-3 py-2 bg-orange-700 hover:bg-orange-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" /> Aggiungi Preset
-        </button>
+      </Campo>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Campo label="Da">
+          <DropdownMenu
+            icon={CreditCard}
+            label="Conto ordinante"
+            accent="indigo"
+            fullWidth
+            hideLabel
+            placeholder={QUALSIASI}
+            value={form.contoOrdinante || QUALSIASI}
+            displayValue={form.contoOrdinante || QUALSIASI}
+            options={[QUALSIASI, ...conti]}
+            onSelect={c => aggiorna({ contoOrdinante: c === QUALSIASI ? '' : c })}
+          />
+        </Campo>
+        <Campo label="A">
+          <DropdownMenu
+            icon={ArrowRight}
+            label="Conto beneficiario"
+            accent="indigo"
+            fullWidth
+            hideLabel
+            placeholder="Scegli..."
+            value={form.contoBeneficiario}
+            displayValue={form.contoBeneficiario}
+            options={conti}
+            onSelect={c => aggiorna({ contoBeneficiario: c })}
+          />
+        </Campo>
       </div>
-      {error && <p className="text-xs text-down font-semibold mt-3">{error}</p>}
+
+      <Campo label="Importo">
+        <div className="relative">
+          <input type="number" inputMode="decimal" step="0.01" min="0.01" value={form.importo} onChange={e => aggiorna({ importo: e.target.value })} className={`${inputEditorClass} pr-8`} />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-soft">€</span>
+        </div>
+      </Campo>
+
+      <AzioniScheda
+        onSalva={salva}
+        salvaAbilitato={valido}
+        etichettaSalva={originale ? 'Salva' : 'Aggiungi preset'}
+        onElimina={originale ? () => { updateDatiBase({ presetTrasferimenti: presetTrasferimenti.filter(t => t.id !== originale.id) }); chiudi(); } : undefined}
+      />
     </div>
   );
 }

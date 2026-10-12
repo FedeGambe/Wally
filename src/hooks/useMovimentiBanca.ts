@@ -19,6 +19,27 @@ export type MovimentoDaConfermare = MovimentoClassificato & { riga: number };
 // scrivere due volte gli stessi record.
 let registrazioneInCorso: Promise<unknown> | null = null;
 
+// Ultimo stato letto, salvato sul dispositivo: la card compare subito
+// all'apertura invece di aspettare la lettura dal foglio (che poi lo aggiorna).
+const CHIAVE_CACHE = 'sf_banca_cache';
+
+const leggiCache = (): { movimenti: RigaMovimentoBanca[]; collegamenti: CollegamentoBanca[] } => {
+  try {
+    const cache = JSON.parse(localStorage.getItem(CHIAVE_CACHE) || '{}');
+    return { movimenti: cache.movimenti ?? [], collegamenti: cache.collegamenti ?? [] };
+  } catch {
+    return { movimenti: [], collegamenti: [] };
+  }
+};
+
+const scriviCache = (movimenti: RigaMovimentoBanca[], collegamenti: CollegamentoBanca[]) => {
+  try {
+    localStorage.setItem(CHIAVE_CACHE, JSON.stringify({ movimenti: movimenti.filter(m => !m.stato), collegamenti }));
+  } catch {
+    // Spazio pieno o storage bloccato: senza cache la card arriva solo un po' dopo.
+  }
+};
+
 /**
  * Movimenti scaricati dalle banche (scheda "Movimenti Banca"): registra da
  * solo quelli riconosciuti con certezza (preset, giri tra conti, PAC) e
@@ -28,8 +49,8 @@ let registrazioneInCorso: Promise<unknown> | null = null;
 export function useMovimentiBanca() {
   const { data, accessToken, spreadsheetId, isIncognito, ultimoPullRiuscito, bumpVersion, refreshData } = useFinanceData();
   const { conti, presetUscite, presetTrasferimenti, presetInvestimenti } = useDatiBase();
-  const [movimenti, setMovimenti] = useState<RigaMovimentoBanca[]>([]);
-  const [collegamenti, setCollegamenti] = useState<CollegamentoBanca[]>([]);
+  const [movimenti, setMovimenti] = useState<RigaMovimentoBanca[]>(() => leggiCache().movimenti);
+  const [collegamenti, setCollegamenti] = useState<CollegamentoBanca[]>(() => leggiCache().collegamenti);
   const [registratiOra, setRegistratiOra] = useState<string[]>([]);
   const [errore, setErrore] = useState<string | null>(null);
   const [inCaricamento, setInCaricamento] = useState(false);
@@ -109,7 +130,8 @@ export function useMovimentiBanca() {
     setErrore(null);
     try {
       const configId = localStorage.getItem('sf_config_spreadsheet_id');
-      if (configId) setCollegamenti(await leggiCollegamentiBanca(accessToken, configId));
+      const nuoviCollegamenti = configId ? await leggiCollegamentiBanca(accessToken, configId) : [];
+      setCollegamenti(nuoviCollegamenti);
       let righe = await leggiMovimentiBanca(accessToken, spreadsheetId);
       if (conRegistrazione && righe.some(r => !r.stato)) {
         if (!registrazioneInCorso) {
@@ -119,12 +141,20 @@ export function useMovimentiBanca() {
         righe = await leggiMovimentiBanca(accessToken, spreadsheetId);
       }
       setMovimenti(righe);
+      scriviCache(righe, nuoviCollegamenti);
     } catch (e: any) {
       setErrore(e?.message || 'Lettura dei movimenti bancari non riuscita');
     } finally {
       setInCaricamento(false);
     }
   }, [attivo, accessToken, spreadsheetId, registraAutomatici]);
+
+  // Appena aperta, se il pull non è ancora finito: legge subito i movimenti,
+  // senza registrare niente (il controllo "c'è già?" vuole i dati aggiornati).
+  useEffect(() => {
+    if (!ultimoPullRiuscito) carica(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attivo]);
 
   // Dopo ogni pull riuscito (al login, o dopo "Aggiorna"): rilegge e registra.
   useEffect(() => {
@@ -140,8 +170,10 @@ export function useMovimentiBanca() {
   const segna = useCallback(async (righe: number[], stato: typeof STATO_REGISTRATO | typeof STATO_IGNORATO) => {
     if (!accessToken || !spreadsheetId) return;
     await segnaMovimentiBanca(accessToken, spreadsheetId, righe.map(riga => ({ riga, stato })));
-    setMovimenti(prev => prev.map(m => righe.includes(m.riga) ? { ...m, stato } : m));
-  }, [accessToken, spreadsheetId]);
+    const aggiornati = movimenti.map(m => righe.includes(m.riga) ? { ...m, stato } : m);
+    setMovimenti(aggiornati);
+    scriviCache(aggiornati, collegamenti);
+  }, [accessToken, spreadsheetId, movimenti, collegamenti]);
 
   const sincronizzaOra = useCallback(async () => {
     if (!accessToken) return null;

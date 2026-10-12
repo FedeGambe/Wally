@@ -104,6 +104,25 @@ export function normalizzaMovimenti(grezzi: any[], conto: string): MovimentoBanc
     });
 }
 
+// Giorni tra il pagamento e la data che la banca manda (booking_date, l'unica
+// che Trade Republic fornisce). Misurato sulle uscite Trade Republic inserite a
+// mano lug–ott 2026: +1 giorno in 44 casi su 49, mai lo stesso giorno.
+const RITARDO_CONTABILIZZAZIONE: Record<string, number> = { 'Trade Republic': 1 };
+
+/**
+ * Data probabile del pagamento (YYYY-MM-DD) di una spesa: quella della banca
+ * meno il ritardo di contabilizzazione del conto. Solo per le uscite: le
+ * entrate e i giri tra conti hanno già la data giusta. È una proposta, il
+ * modulo la lascia modificare.
+ */
+export function dataProbabile(m: MovimentoBanca): string {
+  const ritardo = m.importo < 0 ? RITARDO_CONTABILIZZAZIONE[m.conto] ?? 0 : 0;
+  if (!ritardo) return m.data;
+  const d = new Date(`${m.data}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ritardo);
+  return d.toISOString().slice(0, 10);
+}
+
 /**
  * Descrizione breve di un movimento: dalla causale UniCredit ("... A MARIO
  * ROSSI PER Cena da Gino") la parte dopo "PER", cioè quella scritta da chi ha

@@ -1,66 +1,97 @@
 import React, { useState } from 'react';
-import { Trash2, Plus } from 'lucide-react';
+import { Percent } from 'lucide-react';
 import { useDatiBase } from '../../hooks/useDatiBase';
+import { IntroEditor, ListaVoci, VoceRiga, AggiungiVoce, Campo, AzioniScheda, ErroreEditor, inputEditorClass, useScheda, useVoceAperta } from './editorUI';
 
-/** Editor "Soglie" (dentro il popup fullscreen di Impostazioni → Dati Base). */
+/**
+ * Editor "Soglie" (popup di Impostazioni → Dati Base): target % di
+ * allocazione del reddito. Lista con la percentuale e il totale (dovrebbe
+ * fare 100%) → scheda per cambiare nome e percentuale.
+ */
 export default function SoglieEditor() {
-  const { soglie = [], updateDatiBase, error } = useDatiBase();
-  const [nuovaCategoria, setNuovaCategoria] = useState('');
+  const { soglie = [], error } = useDatiBase();
+  const [aperta, setAperta] = useVoceAperta<string>();
+  useScheda(aperta === null ? null : aperta === 'nuova' ? 'Nuova soglia' : aperta, () => setAperta(null));
 
-  const setPercentuale = (categoria: string, percentuale: number) => {
-    updateDatiBase({ soglie: soglie.map(s => s.categoria === categoria ? { ...s, percentuale } : s) });
-  };
-  const removeSoglia = (categoria: string) => updateDatiBase({ soglie: soglie.filter(s => s.categoria !== categoria) });
-  const addSoglia = () => {
-    const categoria = nuovaCategoria.trim();
-    if (!categoria || soglie.some(s => s.categoria === categoria)) return;
-    updateDatiBase({ soglie: [...soglie, { categoria, percentuale: 0 }] });
-    setNuovaCategoria('');
-  };
+  if (aperta !== null) {
+    return <SchedaSoglia key={aperta} originale={aperta === 'nuova' ? null : aperta} chiudi={() => setAperta(null)} />;
+  }
 
   const totale = soglie.reduce((sum, s) => sum + (s.percentuale || 0), 0);
 
   return (
     <div>
-      <p className="text-xs text-ink-soft dark:text-slate-400 mb-5 leading-relaxed">
-        Target % di allocazione del reddito (Spese Primarie, Spese Secondarie, Risparmio, Investimenti...). Dovrebbero sommare a 100%.
-      </p>
-      <div className="space-y-2 mb-4">
+      <IntroEditor>
+        Quanto del reddito va a Spese Primarie, Spese Secondarie, Risparmio, Investimenti... Le
+        percentuali dovrebbero sommare a 100%.
+      </IntroEditor>
+      <ListaVoci vuota="Nessuna soglia ancora.">
         {soglie.map(s => (
-          <div key={s.categoria} className="flex items-center gap-2">
-            <span className="flex-1 text-sm font-semibold text-ink-soft dark:text-slate-300">{s.categoria}</span>
-            <input
-              type="number"
-              value={s.percentuale}
-              onChange={e => setPercentuale(s.categoria, parseFloat(e.target.value) || 0)}
-              className="w-20 px-3 py-1.5 rounded-lg text-sm text-right border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
-            />
-            <span className="text-xs text-ink-soft w-4">%</span>
-            <button onClick={() => removeSoglia(s.categoria)} className="text-ink-soft hover:text-down cursor-pointer" aria-label={`Rimuovi soglia ${s.categoria}`}>
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <VoceRiga key={s.categoria} icona={<Percent className="w-4 h-4 text-down" />} titolo={s.categoria} valore={`${s.percentuale}%`} onClick={() => setAperta(s.categoria)} />
         ))}
-        {soglie.length === 0 && <p className="text-xs text-ink-soft">Nessuna soglia ancora.</p>}
-      </div>
+      </ListaVoci>
+      {soglie.length > 0 && (
+        <div className={`mt-3 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold ${totale === 100 ? 'bg-up/10 text-up' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+          <span>Totale</span>
+          <span className="tabular-nums">{totale}%{totale !== 100 && ' · dovrebbe essere 100%'}</span>
+        </div>
+      )}
+      <AggiungiVoce label="Aggiungi soglia" onClick={() => setAperta('nuova')} />
+      <ErroreEditor errore={error} />
+    </div>
+  );
+}
 
-      <p className={`text-xs font-semibold mb-4 ${totale === 100 ? 'text-emerald-500' : 'text-amber-500'}`}>
-        Totale: {totale}% {totale !== 100 && '(dovrebbe essere 100%)'}
-      </p>
+function SchedaSoglia({ originale, chiudi }: { originale: string | null; chiudi: () => void }) {
+  const { soglie = [], updateDatiBase } = useDatiBase();
+  const esistente = soglie.find(s => s.categoria === originale);
+  const [nome, setNome] = useState(esistente?.categoria ?? '');
+  const [percentuale, setPercentuale] = useState(esistente ? String(esistente.percentuale) : '');
 
-      <div className="flex gap-2">
-        <input
-          value={nuovaCategoria}
-          onChange={e => setNuovaCategoria(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addSoglia()}
-          placeholder="Nuova categoria..."
-          className="flex-1 px-3 py-2.5 rounded-xl text-sm border border-hairline dark:border-white/10 bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
-        />
-        <button onClick={addSoglia} className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl cursor-pointer font-bold text-sm flex items-center gap-1.5">
-          <Plus className="w-4 h-4" /> Aggiungi
-        </button>
-      </div>
-      {error && <p className="text-xs text-down font-semibold mt-3">{error}</p>}
+  const pulito = nome.trim();
+  const valore = Number(percentuale);
+  const duplicato = pulito !== originale && soglie.some(s => s.categoria === pulito);
+  const altre = soglie.filter(s => s.categoria !== originale).reduce((sum, s) => sum + (s.percentuale || 0), 0);
+  const modificata = !esistente || pulito !== esistente.categoria || valore !== esistente.percentuale;
+  const valido = Boolean(pulito) && !duplicato && percentuale !== '' && valore >= 0 && valore <= 100 && modificata;
+
+  const salva = () => {
+    if (!valido) return;
+    const aggiornata = { categoria: pulito, percentuale: valore };
+    updateDatiBase({
+      soglie: originale === null ? [...soglie, aggiornata] : soglie.map(s => (s.categoria === originale ? aggiornata : s))
+    });
+    chiudi();
+  };
+
+  return (
+    <div className="space-y-4">
+      <Campo label="Nome">
+        <input autoFocus={!originale} value={nome} onChange={e => setNome(e.target.value)} placeholder="Es. Risparmio" className={inputEditorClass} />
+      </Campo>
+      {duplicato && <p className="text-xs text-down font-semibold">Esiste già una soglia con questo nome.</p>}
+      <Campo label="Percentuale del reddito" nota={`Con questo valore il totale diventa ${altre + (valore || 0)}%.`}>
+        <div className="relative">
+          <input
+            autoFocus={Boolean(originale)}
+            type="number"
+            inputMode="decimal"
+            min="0"
+            max="100"
+            value={percentuale}
+            onChange={e => setPercentuale(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && salva()}
+            className={`${inputEditorClass} pr-8`}
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-soft">%</span>
+        </div>
+      </Campo>
+      <AzioniScheda
+        onSalva={salva}
+        salvaAbilitato={valido}
+        etichettaSalva={originale ? 'Salva' : 'Aggiungi soglia'}
+        onElimina={originale ? () => { updateDatiBase({ soglie: soglie.filter(s => s.categoria !== originale) }); chiudi(); } : undefined}
+      />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import AggiungiEntrataForm from '../entrate/AggiungiEntrataForm';
 import AggiungiTrasferimentoForm from '../trasferimenti/AggiungiTrasferimentoForm';
 import { formatEuro } from '../../utils/format';
 import type { MovimentoDaConfermare } from '../../hooks/useMovimentiBanca';
-import { descrizioneBreve, contoNellaCausale } from '../../utils/movimentiBanca';
+import { descrizioneBreve, contoNellaCausale, dataProbabile } from '../../utils/movimentiBanca';
 import { useDatiBase } from '../../hooks/useDatiBase';
 
 type Tipo = 'uscita' | 'entrata' | 'trasferimento';
@@ -57,7 +57,12 @@ function Contenuto({ m, onRegistrato }: { m: MovimentoDaConfermare; onRegistrato
     <div className="space-y-4">
       <div className="p-3 rounded-2xl bg-canvas dark:bg-white/5 text-xs text-ink-soft leading-relaxed">
         <div className="flex items-center justify-between gap-3 mb-1">
-          <span className="font-bold text-ink dark:text-slate-200">{movimento.conto} · {movimento.data.split('-').reverse().join('/')}</span>
+          <span className="font-bold text-ink dark:text-slate-200">
+            {movimento.conto} · {dataProbabile(movimento).split('-').reverse().join('/')}
+            {dataProbabile(movimento) !== movimento.data && (
+              <span className="font-normal"> (in banca il {movimento.data.split('-').reverse().join('/')})</span>
+            )}
+          </span>
           <span className={`font-bold ${movimento.importo < 0 ? 'text-down' : 'text-up'}`}>{formatEuro(movimento.importo)}</span>
         </div>
         {movimento.descrizione || 'La banca non indica la causale (pagamento con carta).'}
@@ -87,7 +92,7 @@ function Contenuto({ m, onRegistrato }: { m: MovimentoDaConfermare; onRegistrato
       {tipo === 'uscita' && (
         <AggiungiUscitaForm
           onSaved={onRegistrato}
-          iniziale={{ data: movimento.data, conto: movimento.conto, importo, descrizione: descrizioneBreve(movimento.descrizione) }}
+          iniziale={{ data: dataProbabile(movimento), conto: movimento.conto, importo, descrizione: descrizioneBreve(movimento.descrizione) }}
         />
       )}
       {tipo === 'entrata' && (

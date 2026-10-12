@@ -5,7 +5,7 @@ import { useFinanceData } from '../../context/FinanceDataContext';
 import { avviaCollegamentoBanca, giorniAllaScadenza, BANCHE_COLLEGABILI, STATO_REGISTRATO, STATO_IGNORATO } from '../../lib/bancaService';
 import { formatEuro } from '../../utils/format';
 import RegistraMovimentoModal from './RegistraMovimentoModal';
-import { descrizioneBreve } from '../../utils/movimentiBanca';
+import { descrizioneBreve, dataProbabile } from '../../utils/movimentiBanca';
 
 const MOSTRATI_DI_BASE = 5;
 const AVVISO_SCADENZA_GIORNI = 14;
@@ -81,7 +81,7 @@ export default function MovimentiBancaCard() {
     <div className="bg-white dark:bg-white/5 p-5 md:p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <Landmark className="w-5 h-5 text-accent shrink-0" />
+          <Landmark className="w-5 h-5 text-blue-600 shrink-0" />
           <h2 className="font-bold text-lg font-display text-ink dark:text-slate-100">Dalla banca</h2>
           {daConfermare.length > 0 && (
             <span className="px-2 py-0.5 rounded-full bg-accent text-white text-2xs font-bold">{daConfermare.length} da confermare</span>
@@ -128,6 +128,7 @@ export default function MovimentiBancaCard() {
         <ul className="divide-y divide-hairline dark:divide-white/10">
           {mostrati.map(m => {
             const proposta = etichettaProposta(m);
+            const data = dataProbabile(m.movimento);
             return (
               <li key={m.movimento.id} className="flex items-center gap-3 py-2.5">
                 <button
@@ -135,7 +136,7 @@ export default function MovimentiBancaCard() {
                   onClick={() => setAperto(m)}
                   className="flex-1 min-w-0 flex items-center gap-3 text-left cursor-pointer group"
                 >
-                  <span className="text-2xs font-bold text-ink-soft w-10 shrink-0">{m.movimento.data.slice(8, 10)}/{m.movimento.data.slice(5, 7)}</span>
+                  <span className="text-2xs font-bold text-ink-soft w-10 shrink-0">{data.slice(8, 10)}/{data.slice(5, 7)}</span>
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-ink dark:text-slate-200 truncate group-hover:text-accent">
                       {descrizioneBreve(m.movimento.descrizione) || m.movimento.descrizione || 'Pagamento con carta'}

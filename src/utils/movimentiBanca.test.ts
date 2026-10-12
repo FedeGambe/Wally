@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizzaMovimenti, classificaMovimenti, regoleDaPresetUscite, regoleDaPresetInvestimenti, regoleTrasferimentiTraConti, contoNellaCausale, type MovimentoBanca } from './movimentiBanca';
+import { normalizzaMovimenti, classificaMovimenti, regoleDaPresetUscite, regoleDaPresetInvestimenti, regoleTrasferimentiTraConti, contoNellaCausale, dataProbabile, type MovimentoBanca } from './movimentiBanca';
 import type { PresetUscita, PresetInvestimento } from '../config/datiBaseSeed';
 import { REGOLE_BANCA } from '../config/regoleBanca';
 
@@ -177,5 +177,17 @@ describe('classificaMovimenti con le regole reali', () => {
 
   it('una spesa con carta Trade Republic resta da confermare', () => {
     expect(classifica([mov('x', 'Trade Republic', '2026-10-06', -97.47)]).x.esito).toBe('da-confermare');
+  });
+});
+
+describe('dataProbabile', () => {
+  it('spese Trade Republic: il giorno prima della contabilizzazione, anche a cavallo del mese', () => {
+    expect(dataProbabile(mov('a', 'Trade Republic', '2026-10-11', -16.9))).toBe('2026-10-10');
+    expect(dataProbabile(mov('b', 'Trade Republic', '2026-11-01', -5))).toBe('2026-10-31');
+  });
+
+  it('entrate Trade Republic e movimenti UniCredit: la data della banca', () => {
+    expect(dataProbabile(mov('c', 'Trade Republic', '2026-10-11', 1600))).toBe('2026-10-11');
+    expect(dataProbabile(mov('d', 'Unicredit', '2026-10-11', -43.5))).toBe('2026-10-11');
   });
 });
