@@ -245,11 +245,13 @@ figure text{fill:#b9ae95; font:11px ui-monospace,Consolas,monospace}
 .app-testa .finto{margin-left:auto; color:#fbbf24; border:1px solid #fbbf2466; border-radius:999px; padding:4px 8px}
 .app-testa a{color:#f1f5f9; text-decoration:none; border:1px solid #ffffff40; border-radius:999px; padding:4px 8px}
 .app-testa a:hover{background:#ffffff1a}
-.finestra iframe{display:block; width:100%; height:min(820px, 82vh); border:0; background:#060a13; transition:height .3s}
+.finestra .schermo{position:relative; overflow:hidden; background:#060a13}
+.finestra iframe{display:block; width:100%; height:72vh; border:0; background:#060a13}
+.finestra.desktop iframe{position:absolute; top:0; left:0; width:1440px; transform-origin:0 0}  /* schermo desktop 1440 px, rimpicciolito (JS) */
 .finestra .espandi{display:block; width:100%; min-height:44px; font:600 .74rem/1 var(--f-data); letter-spacing:.08em; text-transform:uppercase; color:#d9ccaf;
   background:#ffffff08; border:0; border-top:1px solid #ffffff17; cursor:pointer}
 .finestra .espandi:hover{color:#f1f5f9; background:#ffffff12}
-@media (max-width:560px){ .app-testa > i{display:none} .app-testa .nome{margin-left:0} .finestra iframe{height:78vh} }
+@media (max-width:560px){ .app-testa > i{display:none} .app-testa .nome{margin-left:0}  }
 .didascalia{font-size:.86rem; color:var(--ink-3); margin:8px 0 0}
 /* schema dei tre livelli */
 .schema svg{display:block; width:100%; height:auto}
@@ -343,7 +345,7 @@ figure text{fill:#b9ae95; font:11px ui-monospace,Consolas,monospace}
   <p>La prima schermata. In alto il capitale <strong>disponibile</strong>, <strong>investito</strong>, <strong>accantonato</strong> e il totale; sotto, il mese scelto nell'intestazione: quanto resta da spendere, e il confronto con le <strong>soglie</strong>, cioè quanta parte delle entrate va in spese primarie (necessarie), secondarie (discrezionali), investimenti e risparmio. Per le spese stare <em>sotto</em> la soglia è un bene, per investito e risparmio stare <em>sopra</em>. I valori di partenza sono in <code>src/config/targets.ts</code>; l'utente li cambia in Impostazioni e prevalgono quelli del tab "Soglie" del foglio.</p>
   <div class="finestra">
     <div class="app-testa"><i></i><i></i><i></i><span class="nome">Wally · Panoramica</span><span class="finto">Dati fittizi</span><a class="apri" href="demo/demo.html?vista=panoramica" target="_blank" rel="noopener">Schermo intero ↗</a></div>
-    <iframe src="demo/demo.html?vista=panoramica" loading="lazy" title="Wally, Panoramica con dati fittizi"></iframe>
+    <div class="schermo"><iframe src="demo/demo.html?vista=panoramica" loading="lazy" title="Wally, Panoramica con dati fittizi"></iframe></div>
     <button type="button" class="espandi">Mostra tutta la pagina</button>
   </div>
   <p class="didascalia">Questa è l'app vera, con i dati fittizi della modalità incognito: cambia il mese dal menu in alto, clicca i grafici e i mesi del bilancio per aprire il dettaglio. "Mostra tutta la pagina" allunga la finestra fino in fondo.</p>
@@ -353,7 +355,7 @@ figure text{fill:#b9ae95; font:11px ui-monospace,Consolas,monospace}
   <p><strong>Entrate</strong>: il totale del mese e dell'anno con la media mensile, lo storico mensile e la ripartizione per categoria e per conto di accredito. <strong>Uscite</strong>: spese totali, primarie e secondarie rispetto alle entrate e alle soglie, l'andamento degli ultimi 12 mesi, le torte per macro e micro categoria (la macro filtra la micro) e l'archivio dei movimenti con ricerca e filtri per macro categoria, conto e tipo.</p>
   <div class="finestra">
     <div class="app-testa"><i></i><i></i><i></i><div class="schede"><button type="button" data-vista="uscite" class="on">Uscite</button><button type="button" data-vista="entrate">Entrate</button></div><span class="finto">Dati fittizi</span><a class="apri" href="demo/demo.html?vista=uscite" target="_blank" rel="noopener">Schermo intero ↗</a></div>
-    <iframe src="demo/demo.html?vista=uscite" loading="lazy" title="Wally, Uscite con dati fittizi"></iframe>
+    <div class="schermo"><iframe src="demo/demo.html?vista=uscite" loading="lazy" title="Wally, Uscite con dati fittizi"></iframe></div>
     <button type="button" class="espandi">Mostra tutta la pagina</button>
   </div>
   <p class="didascalia">Passa da Uscite a Entrate con le schede in alto a sinistra; nell'archivio prova la ricerca e i filtri.</p>
@@ -363,7 +365,7 @@ figure text{fill:#b9ae95; font:11px ui-monospace,Consolas,monospace}
   <p><strong>Patrimonio</strong> mostra sempre tutto lo storico: i conti con la loro soglia di allerta (ognuno si apre per il dettaglio), come si divide il capitale e l'andamento finanziario nel tempo, con tre linee da accendere e spegnere. <strong>Investimenti</strong> ha quattro schede: Cruscotto, Rendimenti (in euro o in percentuale, con il registro colorato rispetto alla mediana), Conti dei broker e Fondo pensione.</p>
   <div class="finestra">
     <div class="app-testa"><i></i><i></i><i></i><div class="schede"><button type="button" data-vista="patrimonio" class="on">Patrimonio</button><button type="button" data-vista="investimenti">Investimenti</button></div><span class="finto">Dati fittizi</span><a class="apri" href="demo/demo.html?vista=patrimonio" target="_blank" rel="noopener">Schermo intero ↗</a></div>
-    <iframe src="demo/demo.html?vista=patrimonio" loading="lazy" title="Wally, Patrimonio con dati fittizi"></iframe>
+    <div class="schermo"><iframe src="demo/demo.html?vista=patrimonio" loading="lazy" title="Wally, Patrimonio con dati fittizi"></iframe></div>
     <button type="button" class="espandi">Mostra tutta la pagina</button>
   </div>
 </section>
@@ -372,7 +374,7 @@ figure text{fill:#b9ae95; font:11px ui-monospace,Consolas,monospace}
   <p>Il foglio ha una riga per rifornimento; <code>useAnalisiConsumiData</code> li raggruppa per settimana (da martedì a lunedì) e calcola km/litro e costo per 100 km. Poi confronta ogni settimana con il <strong>record personale</strong> di km/litro: i <strong>km persi</strong> sono i km in più che si sarebbero fatti con gli stessi litri guidando come nella settimana migliore, il <strong>costo extra</strong> è quanto si è speso in più per i km fatti davvero. L'<strong>esito</strong> mette in classifica le settimane per costo in più rispetto alla mediana: Migliore, Ottima, Buona, Nella media, Non buona, Scarsa, Peggiore.</p>
   <div class="finestra">
     <div class="app-testa"><i></i><i></i><i></i><span class="nome">Wally · Analisi consumi</span><span class="finto">Dati fittizi</span><a class="apri" href="demo/demo.html?vista=consumi" target="_blank" rel="noopener">Schermo intero ↗</a></div>
-    <iframe src="demo/demo.html?vista=consumi" loading="lazy" title="Wally, Analisi consumi con dati fittizi"></iframe>
+    <div class="schermo"><iframe src="demo/demo.html?vista=consumi" loading="lazy" title="Wally, Analisi consumi con dati fittizi"></iframe></div>
     <button type="button" class="espandi">Mostra tutta la pagina</button>
   </div>
   <p class="didascalia">Clicca un punto dei grafici per vedere il riepilogo di quella settimana; ogni grafico ha il suo intervallo di tempo.</p>
@@ -469,16 +471,25 @@ $("tema").addEventListener("click", () => {
   try { localStorage.theme = r.dataset.theme } catch {}
 });
 
-/* Finestre con le pagine vere dell'app (demo/demo.html, build: npm run build:demo) */
+/* Finestre con le pagine vere dell'app (demo/demo.html, build: npm run build:demo).
+   Da 700 px in su simulano uno schermo desktop 1440x900 rimpicciolito; su telefono l'app è a misura. */
+const LARGO = 1440, ALTO = 900;
 document.querySelectorAll(".finestra").forEach(f => {
-  const fr = f.querySelector("iframe"), apri = f.querySelector(".apri"), esp = f.querySelector(".espandi");
+  const sc = f.querySelector(".schermo"), fr = f.querySelector("iframe"), apri = f.querySelector(".apri"), esp = f.querySelector(".espandi");
   let intera = false;
-  const misura = () => { fr.style.height = intera && fr.dataset.altezza ? fr.dataset.altezza + "px" : ""; esp.textContent = intera ? "Riduci la finestra" : "Mostra tutta la pagina"; };
+  const misura = () => {
+    const w = sc.clientWidth, desk = w >= 700, h = intera && fr.dataset.altezza ? +fr.dataset.altezza : null;
+    f.classList.toggle("desktop", desk);
+    if (desk) { const k = w / LARGO, hh = h || ALTO; fr.style.height = hh + "px"; fr.style.transform = `scale(${k})`; sc.style.height = hh * k + "px"; }
+    else { fr.style.transform = ""; sc.style.height = ""; fr.style.height = h ? h + "px" : ""; }
+    esp.textContent = intera ? "Riduci la finestra" : "Mostra tutta la pagina";
+  };
   f.querySelectorAll(".schede button").forEach(b => b.onclick = () => {
     f.querySelectorAll(".schede button").forEach(x => x.classList.toggle("on", x === b));
     fr.src = apri.href = "demo/demo.html?vista=" + b.dataset.vista; fr.title = "Wally, " + b.textContent + " con dati fittizi"; delete fr.dataset.altezza; misura(); });
   esp.onclick = () => { intera = !intera; misura(); if (!intera) f.scrollIntoView({block: "start"}); };
   fr._misura = misura;
+  new ResizeObserver(misura).observe(sc);
 });
 addEventListener("message", e => {
   if (!e.data || !e.data.wallyDemo) return;
