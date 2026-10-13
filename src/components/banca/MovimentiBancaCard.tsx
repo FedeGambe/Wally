@@ -130,7 +130,11 @@ export default function MovimentiBancaCard() {
             const proposta = etichettaProposta(m);
             const data = dataProbabile(m.movimento);
             return (
-              <li key={m.movimento.id} className="flex items-center gap-3 py-2.5">
+              <li
+                key={m.movimento.id}
+                // Arancio: probabile doppione di una spesa già inserita a mano.
+                className={`flex items-center gap-3 py-2.5 ${m.giaInserito ? '-mx-2 px-2 my-1.5 rounded-xl border-transparent bg-orange-50 dark:bg-orange-500/10' : ''}`}
+              >
                 <button
                   type="button"
                   onClick={() => setAperto(m)}
@@ -141,7 +145,7 @@ export default function MovimentiBancaCard() {
                     <span className="block text-sm font-semibold text-ink dark:text-slate-200 truncate group-hover:text-accent">
                       {descrizioneBreve(m.movimento.descrizione) || m.movimento.descrizione || 'Pagamento con carta'}
                     </span>
-                    <span className="block text-2xs text-ink-soft truncate">
+                    <span className={`block text-2xs truncate ${m.giaInserito ? 'text-orange-700 dark:text-orange-400 font-semibold' : 'text-ink-soft'}`}>
                       {m.movimento.conto}{m.giaInserito ? ` · Già inserita: ${m.giaInserito}?` : proposta ? ` · ${proposta}?` : ''}
                     </span>
                   </span>
@@ -153,9 +157,9 @@ export default function MovimentiBancaCard() {
                     onClick={() => segna([m.riga], STATO_REGISTRATO)}
                     aria-label="Già inserito"
                     title={`Già inserito (${m.giaInserito}): non aggiungere niente`}
-                    className="p-1.5 rounded-lg text-up hover:bg-canvas dark:hover:bg-white/10 cursor-pointer shrink-0"
+                    className="p-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white cursor-pointer shrink-0"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4" strokeWidth={3} />
                   </button>
                 )}
                 <button
@@ -163,7 +167,7 @@ export default function MovimentiBancaCard() {
                   onClick={() => segna([m.riga], STATO_IGNORATO)}
                   aria-label="Ignora movimento"
                   title="Ignora (non registrarlo)"
-                  className="p-1.5 rounded-lg text-ink-soft hover:text-down hover:bg-canvas dark:hover:bg-white/10 cursor-pointer shrink-0"
+                  className="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-down dark:hover:text-down hover:bg-canvas dark:hover:bg-white/10 cursor-pointer shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
