@@ -21,8 +21,10 @@ interface AggiungiEntrataFormProps {
  * un flag per sceglierne uno diverso), anno derivato dal mese, categoria,
  * conto, importo. Stipendio e voci variabili restano inserimento manuale.
  * Con categoria "Stipendio" e una quota TFR configurata (Impostazioni →
- * Preset Ricorrenti → Quota Fondo Pensione) propone anche la riga del mese
- * nel tab "Fondo Pensione": si scrive solo il TFR, il resto sono formule.
+ * Preset Ricorrenti → Quota Fondo Pensione) propone anche la riga nel tab
+ * "Fondo Pensione": si scrive solo il TFR, il resto sono formule. Il TFR
+ * versato con lo stipendio si riferisce al mese precedente (stipendio di
+ * ottobre → riga di settembre).
  */
 export default function AggiungiEntrataForm({ onSaved, iniziale }: AggiungiEntrataFormProps) {
   const importoId = useId();
@@ -42,13 +44,17 @@ export default function AggiungiEntrataForm({ onSaved, iniziale }: AggiungiEntra
   const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
   const [tfr, setTfr] = useState(quotaFondoPensione > 0 ? String(quotaFondoPensione) : '');
 
-  const meseScelto = MESI_ITALIANI[useMeseDiverso ? meseIdx : oggi.getMonth()];
+  const meseSceltoIdx = useMeseDiverso ? meseIdx : oggi.getMonth();
+  const meseScelto = MESI_ITALIANI[meseSceltoIdx];
   const annoScelto = useMeseDiverso ? anno : oggi.getFullYear();
+  // Il TFR arriva con lo stipendio ma è maturato nel mese prima.
+  const meseFondo = MESI_ITALIANI[(meseSceltoIdx + 11) % 12].toLowerCase();
+  const annoFondo = meseSceltoIdx === 0 ? annoScelto - 1 : annoScelto;
   const isStipendio = categoria.trim().toLowerCase() === 'stipendio';
   // Le righe del tab hanno solo il nome del mese (senza anno): se l'ultima è
-  // già il mese scelto, il fondo pensione di quel mese è già stato inserito.
+  // già il mese del TFR, il fondo pensione di quel mese è già stato inserito.
   const ultimaRigaFondo = (data.fondoPensione || [])[(data.fondoPensione || []).length - 1];
-  const fondoGiaInserito = String(ultimaRigaFondo?.mese || '').trim().toLowerCase() === meseScelto.toLowerCase();
+  const fondoGiaInserito = String(ultimaRigaFondo?.mese || '').trim().toLowerCase() === meseFondo;
   const mostraFondo = isStipendio && quotaFondoPensione > 0;
   const [aggiungiFondo, setAggiungiFondo] = useState(true);
   const includiFondo = mostraFondo && !fondoGiaInserito && aggiungiFondo && Number(tfr) > 0;
@@ -88,7 +94,7 @@ export default function AggiungiEntrataForm({ onSaved, iniziale }: AggiungiEntra
 
     // Riga Fondo Pensione: `anno` non è una colonna del tab ma serve ad
     // appendRowToSheet per costruire la data del mese (monthDateFields).
-    const rigaFondo = { mese: meseScelto.toLowerCase(), anno: annoScelto, tfr: Number(tfr) };
+    const rigaFondo = { mese: meseFondo, anno: annoFondo, tfr: Number(tfr) };
     const appends = [{ tabTitle: 'Entrate', record: nuovaEntrata }];
     if (includiFondo) appends.push({ tabTitle: 'Fondo Pensione', record: rigaFondo as any });
 
@@ -195,18 +201,18 @@ export default function AggiungiEntrataForm({ onSaved, iniziale }: AggiungiEntra
         fondoGiaInserito ? (
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-canvas dark:bg-white/5 text-xs text-ink-soft">
             <PiggyBank className="w-5 h-5 text-up shrink-0" />
-            Fondo pensione di {meseScelto.toLowerCase()} già inserito.
+            Fondo pensione di {meseFondo} già inserito.
           </div>
         ) : (
           <div className={`p-3 rounded-2xl space-y-2.5 transition-all ${aggiungiFondo ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-canvas dark:bg-white/5'}`}>
             <label className="flex items-center gap-2 text-sm font-bold text-ink dark:text-slate-200 cursor-pointer select-none">
               <input type="checkbox" checked={aggiungiFondo} onChange={e => setAggiungiFondo(e.target.checked)} className="cursor-pointer" />
               <PiggyBank className="w-4 h-4 text-up" />
-              Aggiungi anche il fondo pensione
+              Aggiungi anche il fondo pensione di {meseFondo}
             </label>
             {aggiungiFondo && (
               <div className="flex items-center gap-3">
-                <label htmlFor={`${importoId}-tfr`} className="text-2xs font-bold text-ink-soft uppercase tracking-wider shrink-0">TFR del mese</label>
+                <label htmlFor={`${importoId}-tfr`} className="text-2xs font-bold text-ink-soft uppercase tracking-wider shrink-0">TFR di {meseFondo}</label>
                 <input
                   id={`${importoId}-tfr`}
                   type="number"

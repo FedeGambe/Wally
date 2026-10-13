@@ -8,11 +8,15 @@ import {
   STATO_REGISTRATO, STATO_IGNORATO, type RigaMovimentoBanca, type CollegamentoBanca
 } from '../lib/bancaService';
 import { classificaMovimenti, regoleDaPresetUscite, regoleDaPresetInvestimenti, regoleTrasferimentiTraConti, type MovimentoClassificato } from '../utils/movimentiBanca';
-import { pianificaRegistrazioni } from '../utils/registraBanca';
+import { pianificaRegistrazioni, trovaGiaInseriti } from '../utils/registraBanca';
 import { importoGiaInserito } from '../utils/investimentiRicorrenti';
 import { REGOLE_BANCA } from '../config/regoleBanca';
 
-export type MovimentoDaConfermare = MovimentoClassificato & { riga: number };
+export type MovimentoDaConfermare = MovimentoClassificato & {
+  riga: number;
+  /** Record inserito a mano che sembra già questo movimento (es. "Spesa del 10/10"). */
+  giaInserito?: string;
+};
 
 // Una registrazione automatica alla volta in tutta l'app: due componenti
 // montati insieme (o il doppio effetto di React in sviluppo) non devono
@@ -162,10 +166,18 @@ export function useMovimentiBanca() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ultimoPullRiuscito, attivo]);
 
-  const daConfermare = useMemo(
-    () => classifica(movimenti).filter(c => c.esito === 'da-confermare').sort((a, b) => b.movimento.data.localeCompare(a.movimento.data)),
-    [movimenti, classifica]
-  );
+  const daConfermare = useMemo(() => {
+    const lista = classifica(movimenti).filter(c => c.esito === 'da-confermare');
+    // I movimenti già registrati passano per primi: i loro record non vanno
+    // proposti come "già inserito" per un altro movimento uguale.
+    const registrati = movimenti
+      .filter(r => r.stato === STATO_REGISTRATO)
+      .map(r => ({ movimento: r, esito: 'da-confermare' as const }));
+    const giaInseriti = trovaGiaInseriti([...registrati, ...lista], data.uscite);
+    return lista
+      .map(c => ({ ...c, giaInserito: giaInseriti.get(c.movimento.id) }))
+      .sort((a, b) => b.movimento.data.localeCompare(a.movimento.data));
+  }, [movimenti, classifica, data.uscite]);
 
   const segna = useCallback(async (righe: number[], stato: typeof STATO_REGISTRATO | typeof STATO_IGNORATO) => {
     if (!accessToken || !spreadsheetId) return;

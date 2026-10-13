@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Landmark, RefreshCw, X, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Landmark, RefreshCw, X, Check, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useMovimentiBanca, type MovimentoDaConfermare } from '../../hooks/useMovimentiBanca';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { avviaCollegamentoBanca, giorniAllaScadenza, BANCHE_COLLEGABILI, STATO_REGISTRATO, STATO_IGNORATO } from '../../lib/bancaService';
@@ -142,11 +142,22 @@ export default function MovimentiBancaCard() {
                       {descrizioneBreve(m.movimento.descrizione) || m.movimento.descrizione || 'Pagamento con carta'}
                     </span>
                     <span className="block text-2xs text-ink-soft truncate">
-                      {m.movimento.conto}{proposta ? ` · ${proposta}?` : ''}
+                      {m.movimento.conto}{m.giaInserito ? ` · Già inserita: ${m.giaInserito}?` : proposta ? ` · ${proposta}?` : ''}
                     </span>
                   </span>
                   <span className={`text-sm font-bold shrink-0 ${m.movimento.importo < 0 ? 'text-down' : 'text-up'}`}>{formatEuro(m.movimento.importo)}</span>
                 </button>
+                {m.giaInserito && (
+                  <button
+                    type="button"
+                    onClick={() => segna([m.riga], STATO_REGISTRATO)}
+                    aria-label="Già inserito"
+                    title={`Già inserito (${m.giaInserito}): non aggiungere niente`}
+                    className="p-1.5 rounded-lg text-up hover:bg-canvas dark:hover:bg-white/10 cursor-pointer shrink-0"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => segna([m.riga], STATO_IGNORATO)}

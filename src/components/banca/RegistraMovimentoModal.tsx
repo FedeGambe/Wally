@@ -17,10 +17,11 @@ interface RegistraMovimentoModalProps {
   onRegistrato: (m: MovimentoDaConfermare) => void;
 }
 
-const TIPI: { id: Tipo; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'uscita', label: 'Uscita', icon: ArrowDownRight },
-  { id: 'entrata', label: 'Entrata', icon: ArrowUpRight },
-  { id: 'trasferimento', label: 'Trasferimento', icon: ArrowLeftRight }
+// Colori del tipo selezionato: gli stessi del pulsante "Aggiungi" di ogni modulo.
+const TIPI: { id: Tipo; label: string; icon: React.ComponentType<{ className?: string }>; attivo: string }[] = [
+  { id: 'uscita', label: 'Uscita', icon: ArrowDownRight, attivo: 'bg-orange-700 text-white' },
+  { id: 'entrata', label: 'Entrata', icon: ArrowUpRight, attivo: 'bg-emerald-600 text-white' },
+  { id: 'trasferimento', label: 'Trasferimento', icon: ArrowLeftRight, attivo: 'bg-blue-600 text-white' }
 ];
 
 /**
@@ -79,7 +80,7 @@ function Contenuto({ m, onRegistrato }: { m: MovimentoDaConfermare; onRegistrato
               aria-selected={tipo === t.id}
               onClick={() => setTipo(t.id)}
               className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tipo === t.id ? 'bg-accent text-white' : 'bg-canvas dark:bg-white/10 text-ink-soft hover:text-ink dark:hover:text-slate-200'
+                tipo === t.id ? t.attivo : 'bg-canvas dark:bg-white/10 text-ink-soft hover:text-ink dark:hover:text-slate-200'
               }`}
             >
               <Icon className="w-4 h-4" />

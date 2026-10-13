@@ -117,3 +117,44 @@ export function pianificaRegistrazioni(classificati: Classificato[], ctx: Contes
   }
   return operazioni;
 }
+
+// Giorni di scarto tra la data della banca e quella scritta a mano: le spese
+// con carta arrivano contabilizzate qualche giorno dopo il pagamento.
+const SCARTO_GIORNI = 4;
+
+const giornoDaIt = (dataIt: string) => {
+  const [g, m, a] = dataIt.split('/').map(Number);
+  return g && m && a ? Date.UTC(a, m - 1, g) / 86_400_000 : NaN;
+};
+const giornoDaIso = (dataIso: string) => Date.parse(`${dataIso}T00:00:00Z`) / 86_400_000;
+
+/**
+ * Per le uscite da confermare, la spesa inserita a mano che sembra già
+ * corrispondere: stesso conto, stesso importo e data entro SCARTO_GIORNI. Ogni
+ * spesa vale per un solo movimento, così due spese uguali con un solo record
+ * lasciano l'altra da confermare. È solo un suggerimento: lo conferma l'utente.
+ * Le entrate restano fuori.
+ */
+export function trovaGiaInseriti(
+  classificati: MovimentoClassificato[],
+  uscite: Transaction[]
+): Map<string, string> {
+  const trovati = new Map<string, string>();
+  const usati = new Set<string>();
+  for (const c of classificati) {
+    if (c.esito !== 'da-confermare') continue;
+    const m = c.movimento;
+    const importo = Math.abs(m.importo);
+    if (m.importo >= 0) continue;
+    const giorno = giornoDaIso(m.data);
+    const candidati = uscite
+      .filter(t => !usati.has(t.id) && t.conto === m.conto && stessoImporto(t.importo, importo)
+        && Math.abs(giornoDaIt(t.data) - giorno) <= SCARTO_GIORNI)
+      .sort((a, b) => Math.abs(giornoDaIt(a.data) - giorno) - Math.abs(giornoDaIt(b.data) - giorno));
+    if (candidati[0]) {
+      usati.add(candidati[0].id);
+      trovati.set(m.id, `${candidati[0].descrizione} del ${candidati[0].data.slice(0, 5)}`);
+    }
+  }
+  return trovati;
+}

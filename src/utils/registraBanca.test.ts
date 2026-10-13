@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pianificaRegistrazioni, type ContestoRegistrazione } from './registraBanca';
+import { pianificaRegistrazioni, trovaGiaInseriti, type ContestoRegistrazione } from './registraBanca';
 import type { MovimentoClassificato } from './movimentiBanca';
 
 const ctx = (extra: Partial<ContestoRegistrazione> = {}): ContestoRegistrazione => ({
@@ -62,5 +62,32 @@ describe('pianificaRegistrazioni', () => {
     expect(pianificaRegistrazioni([
       cl(1, { id: 'a', conto: 'Unicredit', data: '2026-11-11', importo: 1600, esito: 'da-confermare', proposta: { tipo: 'entrata', categoria: 'Stipendio' } })
     ], ctx())).toEqual([]);
+  });
+});
+
+describe('trovaGiaInseriti', () => {
+  const uscita = (id: string, data: string, importo: number, conto = 'Trade Republic') =>
+    ({ id, data, mese: 'Ottobre', descrizione: `Spesa ${id}`, macroCategoria: 'Casa', categoria: 'Spesa', icon: '', conto, importo, primaria: false });
+  const mov = (id: string, data: string, importo: number, conto = 'Trade Republic') =>
+    ({ movimento: { id, conto, data, importo, descrizione: '' }, esito: 'da-confermare' as const });
+
+  it('uscita a mano con stesso conto e importo a pochi giorni: suggerita', () => {
+    const trovati = trovaGiaInseriti([mov('m1', '2026-10-11', -60.7), mov('m2', '2026-10-11', -55)], [uscita('a', '10/10/2026', 60.7), uscita('b', '09/10/2026', 55)]);
+    expect(trovati.get('m1')).toBe('Spesa a del 10/10');
+    expect(trovati.get('m2')).toBe('Spesa b del 09/10');
+  });
+
+  it('niente suggerimento con altro conto, altro importo o data lontana', () => {
+    const trovati = trovaGiaInseriti([mov('m1', '2026-10-11', -55)], [uscita('a', '10/10/2026', 55, 'Unicredit'), uscita('b', '10/10/2026', 54), uscita('c', '01/10/2026', 55)]);
+    expect(trovati.size).toBe(0);
+  });
+
+  it('un record vale per un solo movimento', () => {
+    const trovati = trovaGiaInseriti([mov('m1', '2026-10-11', -55), mov('m2', '2026-10-11', -55)], [uscita('a', '11/10/2026', 55)]);
+    expect(trovati.size).toBe(1);
+  });
+
+  it('entrate escluse', () => {
+    expect(trovaGiaInseriti([mov('m1', '2026-10-27', 1800, 'Unicredit')], [uscita('a', '27/10/2026', 1800, 'Unicredit')]).size).toBe(0);
   });
 });
