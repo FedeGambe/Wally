@@ -27,25 +27,51 @@ const jwt = (): string => {
   return `${header}.${payload}.${b64(firma)}`;
 };
 
-export const chiamaEB = async (metodo: 'GET' | 'POST', percorso: string, body?: unknown): Promise<any> => {
+/** Errore di una chiamata a Enable Banking, con lo stato HTTP (429 = limite di richieste della banca). */
+export class ErroreEB extends Error {
+  stato: number;
+  constructor(messaggio: string, stato: number) {
+    super(messaggio);
+    this.stato = stato;
+  }
+}
+
+export const chiamaEB = async (metodo: 'GET' | 'POST', percorso: string, body?: unknown, extra: Record<string, string> = {}): Promise<any> => {
   const res = await fetch(`${API}${percorso}`, {
     method: metodo,
-    headers: { Authorization: `Bearer ${jwt()}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${jwt()}`, 'Content-Type': 'application/json', ...extra },
     body: body ? JSON.stringify(body) : undefined
   });
   const testo = await res.text();
-  if (!res.ok) throw new Error(`Enable Banking ${metodo} ${percorso} → ${res.status}: ${testo}`);
+  if (!res.ok) throw new ErroreEB(`Enable Banking ${metodo} ${percorso} → ${res.status}: ${testo}`, res.status);
   return JSON.parse(testo);
 };
 
+/**
+ * Intestazioni PSU ricavate dalla richiesta del browser: dicono alla banca che
+ * il titolare è presente. Senza, la PSD2 consente alla banca di limitare le
+ * letture a 4 al giorno per conto (UniCredit lo fa, con un 429). Il cron non
+ * le manda, perché di notte non c'è nessuno davanti.
+ */
+export const intestazioniPsu = (request: Request): Record<string, string> => {
+  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || request.headers.get('x-real-ip') || '';
+  const psu: Record<string, string> = {};
+  if (ip) psu['Psu-Ip-Address'] = ip;
+  for (const [da, a] of [['user-agent', 'Psu-User-Agent'], ['referer', 'Psu-Referer'], ['accept', 'Psu-Accept'], ['accept-language', 'Psu-Accept-Language']]) {
+    const v = request.headers.get(da);
+    if (v) psu[a] = v;
+  }
+  return psu;
+};
+
 /** Tutti i movimenti contabilizzati di un conto dal giorno indicato, seguendo la paginazione. */
-export const scaricaMovimenti = async (uid: string, dal: string): Promise<any[]> => {
+export const scaricaMovimenti = async (uid: string, dal: string, psu: Record<string, string> = {}): Promise<any[]> => {
   const tutti: any[] = [];
   let continuation: string | undefined;
   do {
     const q = new URLSearchParams({ date_from: dal });
     if (continuation) q.set('continuation_key', continuation);
-    const pagina = await chiamaEB('GET', `/accounts/${uid}/transactions?${q}`);
+    const pagina = await chiamaEB('GET', `/accounts/${uid}/transactions?${q}`, undefined, psu);
     tutti.push(...(pagina.transactions ?? []));
     continuation = pagina.continuation_key || undefined;
   } while (continuation);

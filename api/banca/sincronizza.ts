@@ -8,7 +8,7 @@
  * con tutti i movimenti sotto mano, così un giro tra conti i cui due lati
  * arrivano in giorni diversi viene comunque abbinato.
  */
-import { env, scaricaMovimenti } from '../_lib/enableBanking.js';
+import { env, scaricaMovimenti, intestazioniPsu, ErroreEB } from '../_lib/enableBanking.js';
 import { daCron, daProprietario, nonAutorizzato } from '../_lib/accesso.js';
 import { assicuraScheda, leggiScheda, aggiungiRighe } from '../_lib/google.js';
 import { COLLEGAMENTI, MOVIMENTI, daRigaCollegamento } from '../_lib/schede.js';
@@ -18,7 +18,7 @@ import { normalizzaMovimenti } from '../../src/utils/movimentiBanca.js';
 // qualche giorno di ritardo, e i doppioni si scartano con l'ID.
 const GIORNI_INDIETRO = 10;
 
-const sincronizza = async () => {
+const sincronizza = async (psu: Record<string, string> = {}) => {
   const oggi = new Date().toISOString().slice(0, 10);
   const daGiorni = new Date(Date.now() - GIORNI_INDIETRO * 86400_000).toISOString().slice(0, 10);
 
@@ -43,7 +43,7 @@ const sincronizza = async () => {
       const dal = c.sincronizzaDal > daGiorni ? c.sincronizzaDal : daGiorni;
       // Il filtro sulla data va rifatto qui: Trade Republic ignora date_from
       // e restituisce comunque tutti i movimenti recenti.
-      const nuovi = normalizzaMovimenti(await scaricaMovimenti(c.account, dal), c.contoWally)
+      const nuovi = normalizzaMovimenti(await scaricaMovimenti(c.account, dal, psu), c.contoWally)
         .filter(m => m.data >= dal && !giaPresenti.has(m.id));
       for (const m of nuovi) {
         giaPresenti.add(m.id);
@@ -52,7 +52,9 @@ const sincronizza = async () => {
       esito.perConto[etichetta] = (esito.perConto[etichetta] ?? 0) + nuovi.length;
     } catch (e) {
       console.error(e);
-      esito.errori.push(`${etichetta}: ${(e as Error).message.slice(0, 200)}`);
+      esito.errori.push(e instanceof ErroreEB && e.stato === 429
+        ? `${etichetta}: la banca ha raggiunto il limite di letture per oggi, riprova domani`
+        : `${etichetta}: ${(e as Error).message.slice(0, 200)}`);
     }
   }
 
@@ -69,5 +71,5 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   if (!(await daProprietario(request))) return nonAutorizzato();
-  return Response.json(await sincronizza());
+  return Response.json(await sincronizza(intestazioniPsu(request)));
 }
