@@ -7,12 +7,12 @@ import { useBolleAperte, setBolleAperte, useNascondiAggiunta } from '../hooks/us
 
 /**
  * Bottone "+" della Home su telefono: al posto del popup con la griglia dei tipi,
- * fa uscire in colonna sopra di sé (stessi pallini vetro della barra in basso)
- * cinque pallini, con l'etichetta in una pillola a sinistra: Entrate, Uscite,
- * Trasferimenti, Investimenti, Consumi. In colonna, e non a ventaglio, perché
- * sull'arco l'etichetta sotto un pallino finiva sotto il pallino successivo.
- * Uscite e Investimenti hanno un secondo passaggio: gli altri spariscono e subito
- * sopra il pallino scelto escono "Una tantum" e "Ricorrente".
+ * fa uscire su un quarto di cerchio attorno a sé (stessi pallini vetro della barra
+ * in basso) cinque pallini: Entrate, Uscite, Trasferimenti, Investimenti, Consumi.
+ * L'etichetta di ogni pallino sta all'esterno dell'arco, sulla retta che va dal "+"
+ * al pallino: messa sotto finiva sotto il pallino successivo.
+ * Uscite e Investimenti hanno un secondo passaggio: gli altri spariscono e ai due
+ * posti accanto al pallino scelto, sullo stesso arco, escono "Una tantum" e "Ricorrente".
  * Scelto il tipo, chiama `onScegli` e Panoramica apre AggiungiDatoModal
  * direttamente sul form giusto. Toccando fuori, Esc o di nuovo il "+" si chiude;
  * toccando il pallino già scelto si torna ai cinque.
@@ -25,16 +25,39 @@ interface AggiungiDatoBubblesProps {
 
 type Principale = 'entrata' | 'uscita' | 'trasferimento' | 'investimento' | 'consumo';
 
-// Distanza verticale fra un posto della colonna e il successivo (pallino 56px + spazio).
-const PASSO = 66;
-const posto = (n: number) => -n * PASSO;
+// Cinque posti sull'arco, da dritto in su (90°) a dritto a sinistra (180°), a
+// RAGGIO px dal centro del "+": con pallini da 56px restano ~10px fra uno e l'altro.
+const RAGGIO = 170;
+const ANGOLI = [90, 112.5, 135, 157.5, 180];
+
+const polare = (gradi: number, raggio: number) => {
+  const rad = (gradi * Math.PI) / 180;
+  return { x: raggio * Math.cos(rad), y: -raggio * Math.sin(rad) };
+};
+
+// Etichetta agganciata al pallino: il punto d'aggancio sta sulla retta dal "+",
+// 6px fuori dal bordo del pallino (raggio 28), e la pillola vi si appoggia con il
+// lato (o l'angolo, in diagonale) rivolto verso il pallino. Lo spostamento in % della
+// pillola stessa la tiene attaccata qualunque sia la lunghezza del testo.
+function agganciaEtichetta(gradi: number) {
+  const rad = (gradi * Math.PI) / 180;
+  const dx = Math.cos(rad);
+  const dy = -Math.sin(rad);
+  const max = Math.max(Math.abs(dx), Math.abs(dy));
+  const punto = polare(gradi, 34);
+  return {
+    left: punto.x,
+    top: punto.y,
+    transform: `translate(${-50 + 50 * (dx / max)}%, ${-50 + 50 * (dy / max)}%)`
+  };
+}
 
 interface Voce {
   id: Principale;
   label: string;
   icon: React.ElementType;
   colorClass: string;
-  /** Posto nella colonna sopra il "+", contando da 1 (il più vicino). */
+  /** Indice del posto sull'arco (ANGOLI), da 0 = dritto in su. */
   posto: number;
   /** Se presente, il pallino apre il secondo passaggio invece di scegliere subito. */
   sotto?: { tipo: Exclude<TipoDato, null>; label: string; icon: React.ElementType }[];
@@ -42,47 +65,57 @@ interface Voce {
 }
 
 const VOCI: Voce[] = [
-  { id: 'entrata', label: 'Entrate', icon: ArrowUpRight, colorClass: 'bg-emerald-600', posto: 1, tipo: 'entrata' },
+  { id: 'entrata', label: 'Entrate', icon: ArrowUpRight, colorClass: 'bg-emerald-600', posto: 0, tipo: 'entrata' },
   {
-    id: 'uscita', label: 'Uscite', icon: ArrowDownLeft, colorClass: 'bg-orange-600', posto: 2,
+    id: 'uscita', label: 'Uscite', icon: ArrowDownLeft, colorClass: 'bg-orange-600', posto: 1,
     sotto: [
       { tipo: 'uscita', label: 'Una tantum', icon: Sparkles },
       { tipo: 'usciteRicorrenti', label: 'Ricorrente', icon: Repeat }
     ]
   },
-  { id: 'trasferimento', label: 'Trasferimenti', icon: ArrowLeftRight, colorClass: 'bg-blue-600', posto: 3, tipo: 'trasferimento' },
+  { id: 'trasferimento', label: 'Trasferimenti', icon: ArrowLeftRight, colorClass: 'bg-blue-600', posto: 2, tipo: 'trasferimento' },
   {
-    id: 'investimento', label: 'Investimenti', icon: TrendingUp, colorClass: 'bg-sky-500', posto: 4,
+    id: 'investimento', label: 'Investimenti', icon: TrendingUp, colorClass: 'bg-sky-500', posto: 3,
     sotto: [
       { tipo: 'investimentoUnaTantum', label: 'Una tantum', icon: Sparkles },
       { tipo: 'investimentiRicorrenti', label: 'Ricorrente', icon: Repeat }
     ]
   },
-  { id: 'consumo', label: 'Consumi', icon: Fuel, colorClass: 'bg-rose-600', posto: 5, tipo: 'consumo' }
+  { id: 'consumo', label: 'Consumi', icon: Fuel, colorClass: 'bg-rose-600', posto: 4, tipo: 'consumo' }
 ];
 
 const MOLLA = { type: 'spring' as const, stiffness: 420, damping: 26 };
 
-function Pallino({ label, icon: Icon, colorClass, y, delay = 0, attivo = false, onClick }: {
-  label: string; icon: React.ElementType; colorClass: string; y: number;
+function Pallino({ label, icon: Icon, colorClass, posto, delay = 0, attivo = false, onClick }: {
+  label: string; icon: React.ElementType; colorClass: string; posto: number;
   delay?: number; attivo?: boolean; onClick: () => void;
 }) {
+  const gradi = ANGOLI[posto];
+  const { x, y } = polare(gradi, RAGGIO);
   return (
+    // Bottone a dimensione zero centrato sul "+": pallino ed etichetta sono
+    // posizionati rispetto al suo centro, così tutto parte e rientra dal "+".
     <motion.button
       type="button"
       onClick={onClick}
       aria-label={label}
       aria-expanded={attivo || undefined}
-      className="pallino-nav absolute right-0 top-0 flex items-center gap-3 cursor-pointer"
-      style={{ transformOrigin: 'right center' }}
-      initial={{ y: 0, scale: 0.3, opacity: 0 }}
-      animate={{ y, scale: 1, opacity: 1 }}
-      exit={{ y: 0, scale: 0.3, opacity: 0 }}
+      className="pallino-nav absolute left-1/2 top-1/2 w-0 h-0 cursor-pointer"
+      initial={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
+      // Nel secondo passaggio il pallino scelto si rimpicciolisce per lasciare la scena
+      // alle due sotto-azioni accanto a lui.
+      animate={{ x, y, scale: attivo ? 0.55 : 1, opacity: 1 }}
+      exit={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
       transition={{ ...MOLLA, delay }}
     >
-      <span className="px-3 py-1 rounded-full bg-black/75 text-white text-xs font-bold whitespace-nowrap shadow-lg">{label}</span>
-      <span className={`w-14 h-14 shrink-0 rounded-full ${colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}>
+      <span className={`absolute -left-7 -top-7 w-14 h-14 rounded-full ${colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}>
         <Icon className="w-6 h-6" />
+      </span>
+      <span
+        className="absolute px-3 py-1 rounded-full bg-black/75 text-white text-xs font-bold whitespace-nowrap shadow-lg"
+        style={agganciaEtichetta(gradi)}
+      >
+        {label}
       </span>
     </motion.button>
   );
@@ -150,6 +183,22 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
 
       <div className="fixed z-[60] right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] w-14 h-14">
         <AnimatePresence>
+          {/* Titolo dentro l'arco, fra il "+" e i pallini: quello spazio resta libero. */}
+          {aperto && (
+            <motion.span
+              key="titolo"
+              aria-hidden="true"
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-28 text-center text-sm font-bold leading-tight text-white drop-shadow pointer-events-none"
+              style={{ left: 'calc(50% - 57px)', top: 'calc(50% - 57px)' }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+            >
+              Aggiungi dato manuale
+            </motion.span>
+          )}
+
           {aperto && VOCI.map((v, i) => {
             // Nel secondo passaggio resta solo il pallino scelto (con l'anello bianco).
             if (scelta && scelta !== v.id) return null;
@@ -159,7 +208,7 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
                 label={v.label}
                 icon={v.icon}
                 colorClass={v.colorClass}
-                y={posto(v.posto)}
+                posto={v.posto}
                 delay={scelta ? 0 : i * 0.04}
                 attivo={scelta === v.id}
                 onClick={() => {
@@ -177,7 +226,7 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
                 label={s.label}
                 icon={s.icon}
                 colorClass={voceScelta.colorClass}
-                y={posto(voceScelta.posto + 1 + i)}
+                posto={voceScelta.posto + (i === 0 ? -1 : 1)}
                 delay={i * 0.04}
                 onClick={() => scegli(s.tipo)}
               />
