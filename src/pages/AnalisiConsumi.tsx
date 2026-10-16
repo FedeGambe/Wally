@@ -98,7 +98,7 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
         handleChartClick={handleChartClick}
       />
 
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Consumo">
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Consumo" fullScreenOnMobile>
         <AggiungiConsumoForm onSaved={() => setShowAddModal(false)} />
       </Modal>
     </div>

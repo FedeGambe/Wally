@@ -43,6 +43,7 @@ export default function AggiungiInvestimentoModal({ isOpen, onClose }: AggiungiI
       title={tipo ? TITOLI[tipo] : 'Aggiungi Investimento'}
       maxWidthClass={tipo ? 'max-w-lg' : 'max-w-md'}
       borderless
+      fullScreenOnMobile
     >
       {!tipo && (
         <div className="space-y-2.5">

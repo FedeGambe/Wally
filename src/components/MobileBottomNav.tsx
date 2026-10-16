@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   PiggyBank
 } from 'lucide-react';
 import type { InvestimentiTab } from '../pages/Investimenti';
+import { useBolleAperte, setBolleAperte } from '../hooks/useBolleAperte';
 
 /**
  * Barra di navigazione in basso, solo su telefono (sotto md). Cinque voci:
@@ -39,23 +40,24 @@ interface Pallino {
   label: string;
   icon: React.ElementType;
   colorClass: string;
-  /** Spostamento finale rispetto al centro della voce, in px: escono a ventaglio verso l'alto. */
+  /** Spostamento finale rispetto al centro della voce, in px: escono a ventaglio verso l'alto,
+   *  abbastanza da stare tutti (etichetta compresa) sopra la barra, nell'area dell'app. */
   x: number;
   y: number;
 }
 
 const PALLINI: Record<Gruppo, Pallino[]> = {
   transazioni: [
-    { id: 'entrate', label: 'Entrate', icon: ArrowUpRight, colorClass: 'bg-emerald-600', x: -40, y: -78 },
-    { id: 'uscite', label: 'Uscite', icon: ArrowDownLeft, colorClass: 'bg-orange-600', x: 40, y: -78 }
+    { id: 'entrate', label: 'Entrate', icon: ArrowUpRight, colorClass: 'bg-emerald-600', x: -40, y: -100 },
+    { id: 'uscite', label: 'Uscite', icon: ArrowDownLeft, colorClass: 'bg-orange-600', x: 40, y: -100 }
   ],
   // Investimenti è la 4ª voce, vicino al bordo destro: l'arco è spostato a sinistra
   // per non far uscire dallo schermo il pallino più a destra.
   investimenti: [
-    { id: 'cruscotto', label: 'Cruscotto', icon: Gauge, colorClass: 'bg-sky-600', x: -122, y: -76 },
-    { id: 'rendimenti', label: 'Rendimenti', icon: Percent, colorClass: 'bg-sky-600', x: -62, y: -136 },
-    { id: 'conti', label: 'Conti', icon: Landmark, colorClass: 'bg-sky-600', x: 6, y: -136 },
-    { id: 'pensione', label: 'Fondo pensione', icon: PiggyBank, colorClass: 'bg-sky-600', x: 66, y: -76 }
+    { id: 'cruscotto', label: 'Cruscotto', icon: Gauge, colorClass: 'bg-sky-500', x: -122, y: -112 },
+    { id: 'rendimenti', label: 'Rendimenti', icon: Percent, colorClass: 'bg-sky-500', x: -62, y: -172 },
+    { id: 'conti', label: 'Conti', icon: Landmark, colorClass: 'bg-sky-500', x: 6, y: -172 },
+    { id: 'pensione', label: 'Fondo pensione', icon: PiggyBank, colorClass: 'bg-sky-500', x: 66, y: -112 }
   ]
 };
 
@@ -78,7 +80,10 @@ const COLORE_ATTIVO: Record<string, string> = {
 };
 
 export default function MobileBottomNav({ activeView, setActiveView, investimentiTab, setInvestimentiTab }: MobileBottomNavProps) {
-  const [aperto, setAperto] = useState<Gruppo | null>(null);
+  // Stato condiviso con il "+" della Home: aprire un menu a pallini chiude l'altro.
+  const menu = useBolleAperte();
+  const aperto: Gruppo | null = menu === 'transazioni' || menu === 'investimenti' ? menu : null;
+  const setAperto = (g: Gruppo | null) => setBolleAperte(g);
 
   useEffect(() => {
     if (!aperto) return;
@@ -117,7 +122,7 @@ export default function MobileBottomNav({ activeView, setActiveView, investiment
         {aperto && (
           <motion.div
             key="velo"
-            className="md:hidden fixed inset-0 z-40 bg-black/25"
+            className="md:hidden fixed inset-0 z-40 bg-black/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -159,7 +164,7 @@ export default function MobileBottomNav({ activeView, setActiveView, investiment
                         exit={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
                         transition={{ type: 'spring', stiffness: 420, damping: 26, delay: i * 0.04 }}
                       >
-                        <span className={`w-14 h-14 rounded-full ${p.colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}>
+                        <span className={`w-14 h-14 rounded-full ${p.colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}>
                           <PIcon className="w-6 h-6" />
                         </span>
                         <span className="mt-1 text-2xs font-bold text-white text-center leading-tight drop-shadow">{p.label}</span>
@@ -171,7 +176,7 @@ export default function MobileBottomNav({ activeView, setActiveView, investiment
 
               <button
                 type="button"
-                onClick={() => (gruppo ? setAperto(a => (a === gruppo ? null : gruppo)) : vai(item.id))}
+                onClick={() => (gruppo ? setAperto(aperto === gruppo ? null : gruppo) : vai(item.id))}
                 aria-current={!gruppo && isActive ? 'page' : undefined}
                 aria-expanded={gruppo ? isOpen : undefined}
                 className="flex flex-col items-center justify-center w-full py-1 cursor-pointer transition-all"

@@ -107,7 +107,7 @@ export default function Entrate({
         stats={drawerStats}
       />
 
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Entrata">
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Entrata" fullScreenOnMobile>
         <AggiungiEntrataForm onSaved={() => setShowAddModal(false)} />
       </Modal>
     </div>

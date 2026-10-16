@@ -32,7 +32,7 @@ const TIPI: { id: Tipo; label: string; icon: React.ComponentType<{ className?: s
  */
 export default function RegistraMovimentoModal({ movimento, onClose, onRegistrato }: RegistraMovimentoModalProps) {
   return (
-    <Modal isOpen={Boolean(movimento)} onClose={onClose} title="Registra movimento" borderless>
+    <Modal isOpen={Boolean(movimento)} onClose={onClose} title="Registra movimento" borderless fullScreenOnMobile>
       {/* key: il contenuto riparte da zero per ogni movimento aperto */}
       {movimento && <Contenuto key={movimento.movimento.id} m={movimento} onRegistrato={() => onRegistrato(movimento)} />}
     </Modal>

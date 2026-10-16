@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Fuel, ArrowLeftRight, Repeat, TrendingUp, Sparkles } from 'lucide-react';
 import Modal from './Modal';
 import AggiungiUscitaForm from './uscite/AggiungiUscitaForm';
@@ -9,11 +9,14 @@ import AggiungiUsciteRicorrentiForm from './uscite/AggiungiUsciteRicorrentiForm'
 import AggiungiInvestimentiRicorrentiForm from './investimenti/AggiungiInvestimentiRicorrentiForm';
 import AggiungiInvestimentoUnaTantumForm from './investimenti/AggiungiInvestimentoUnaTantumForm';
 
-type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | 'investimentiRicorrenti' | 'investimentoUnaTantum' | null;
+export type TipoDato = 'entrata' | 'uscita' | 'consumo' | 'trasferimento' | 'usciteRicorrenti' | 'investimentiRicorrenti' | 'investimentoUnaTantum' | null;
 
 interface AggiungiDatoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Apre il popup già sul form di questo tipo, senza la griglia di scelta: lo usa
+   *  la Home su telefono, dove il tipo si sceglie dai pallini (AggiungiDatoBubbles). */
+  tipoIniziale?: TipoDato;
 }
 
 const TITOLI: Record<Exclude<TipoDato, null>, string> = {
@@ -34,8 +37,12 @@ const TITOLI: Record<Exclude<TipoDato, null>, string> = {
  * Trasferimento restano disabilitati finché le Fasi 3/5 del piano non
  * esistono (docs/archive/PIANO-INSERIMENTO-DATI.md).
  */
-export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModalProps) {
+export default function AggiungiDatoModal({ isOpen, onClose, tipoIniziale = null }: AggiungiDatoModalProps) {
   const [tipo, setTipo] = useState<TipoDato>(null);
+
+  useEffect(() => {
+    if (isOpen && tipoIniziale) setTipo(tipoIniziale);
+  }, [isOpen, tipoIniziale]);
 
   // Il reset del tipo scelto è ritardato di poco per non "smontare" il form
   // mentre il popup sta ancora animando la chiusura.
@@ -48,10 +55,12 @@ export default function AggiungiDatoModal({ isOpen, onClose }: AggiungiDatoModal
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      onBack={tipo ? () => setTipo(null) : undefined}
+      // Aperto dai pallini non c'è una griglia a cui tornare: si chiude e basta.
+      onBack={tipo && !tipoIniziale ? () => setTipo(null) : undefined}
       title={tipo ? TITOLI[tipo] : 'Aggiungi Dato'}
       maxWidthClass={tipo === 'usciteRicorrenti' || tipo === 'investimentiRicorrenti' ? 'max-w-lg' : 'max-w-md'}
       borderless
+      fullScreenOnMobile
     >
       {!tipo && (
         <div className="grid grid-cols-2 gap-3">

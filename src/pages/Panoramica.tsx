@@ -18,7 +18,8 @@
 // ============================================================================
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
-import AggiungiDatoModal from '../components/AggiungiDatoModal';
+import AggiungiDatoModal, { type TipoDato } from '../components/AggiungiDatoModal';
+import AggiungiDatoBubbles from '../components/AggiungiDatoBubbles';
 import FloatingAddButton from '../components/FloatingAddButton';
 import Drawer from '../components/Drawer';
 import PanoramicaWealthCards from '../components/panoramica/PanoramicaWealthCards';
@@ -67,6 +68,9 @@ export default function Panoramica({
   } = usePanoramicaData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
   const [showAddDataModal, setShowAddDataModal] = useState(false);
+  // Tipo scelto dai pallini (solo telefono); null = popup con la griglia (desktop).
+  const [tipoDaPallini, setTipoDaPallini] = useState<TipoDato>(null);
+  const isPhone = useIsMobile(768);
 
   const rendicontoWidget = (
     <PanoramicaRendicontoWidget
@@ -80,7 +84,12 @@ export default function Panoramica({
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Panoramica</h1>
-      <FloatingAddButton label="Aggiungi Dato" colorClass="bg-blue-600 hover:bg-blue-700" onClick={() => setShowAddDataModal(true)} />
+      {/* Su telefono il "+" apre i pallini dei tipi, su desktop il popup con la griglia */}
+      {isPhone ? (
+        <AggiungiDatoBubbles theme={theme} onScegli={(tipo) => { setTipoDaPallini(tipo); setShowAddDataModal(true); }} />
+      ) : (
+        <FloatingAddButton label="Aggiungi Dato" colorClass="bg-blue-600 hover:bg-blue-700" onClick={() => { setTipoDaPallini(null); setShowAddDataModal(true); }} />
+      )}
 
       <PanoramicaWealthCards
         capitaleDisponibile={capitaleDisponibile}
@@ -163,7 +172,7 @@ export default function Panoramica({
         dynamicThresholds={dynamicThresholds}
       />
 
-      <AggiungiDatoModal isOpen={showAddDataModal} onClose={() => setShowAddDataModal(false)} />
+      <AggiungiDatoModal isOpen={showAddDataModal} onClose={() => setShowAddDataModal(false)} tipoIniziale={tipoDaPallini} />
     </div>
   );
 }

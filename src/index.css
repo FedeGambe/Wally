@@ -353,6 +353,13 @@ body {
   box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3) !important;
 }
 
+/* Pallini della barra in basso su telefono (MobileBottomNav): le regole qui sopra
+   sostituiscono il box-shadow, e con lui l'anello `ring-*` di Tailwind. Il pallino
+   della pagina aperta riprende l'anello bianco sopra il bagliore colorato. */
+.glass-theme .pallino-nav > span.pallino-attivo {
+  box-shadow: 0 0 0 4px #fff, 0 4px 15px rgba(0, 0, 0, 0.35) !important;
+}
+
 
 
 

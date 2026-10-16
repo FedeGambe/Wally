@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 /**
- * Popup centrato (non fullscreen, non un drawer laterale) — usato dai form di
+ * Popup centrato (o a tutto schermo, vedi fullScreen/fullScreenOnMobile) — usato dai form di
  * inserimento manuale (Aggiungi Uscita/Entrata/...). A differenza di
  * SlideOverPanel (che scorre da destra, per pannelli di dettaglio/lettura),
  * questo è pensato per form brevi e azioni puntuali.
@@ -29,9 +30,16 @@ interface ModalProps {
    * lasciando solo lo sfondo/ombra a delimitare il popup. Default false: non
    * tocca l'aspetto degli altri popup che usano questo componente. */
   borderless?: boolean;
+  /** A tutto schermo solo su telefono (sotto md), centrato da md in su: per i form
+   * di inserimento, che in una card piccola su telefono restano stretti. Su
+   * telefono il pannello sale dal basso e rispetta le aree sicure (notch, barra home). */
+  fullScreenOnMobile?: boolean;
 }
 
-export default function Modal({ isOpen, onClose, title, children, fullScreen = false, maxWidthClass = 'max-w-md', blurBackdrop = false, onBack, borderless = false }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, fullScreen: fullScreenProp = false, maxWidthClass = 'max-w-md', blurBackdrop = false, onBack, borderless = false, fullScreenOnMobile = false }: ModalProps) {
+  const isPhone = useIsMobile(768);
+  const mobileFull = fullScreenOnMobile && isPhone && !fullScreenProp;
+  const fullScreen = fullScreenProp || mobileFull;
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   useFocusTrap(isOpen, onClose, panelRef);
@@ -65,9 +73,9 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
               aria-modal="true"
               aria-labelledby={titleId}
               tabIndex={-1}
-              initial={fullScreen ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
-              animate={fullScreen ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-              exit={fullScreen ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
+              initial={mobileFull ? { opacity: 0, y: 40 } : fullScreen ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
+              animate={mobileFull ? { opacity: 1, y: 0 } : fullScreen ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={mobileFull ? { opacity: 0, y: 40 } : fullScreen ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
               className={
@@ -76,7 +84,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
                   : `w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl outline-hidden ${borderless ? '' : 'border border-hairline dark:border-white/10'}`
               }
             >
-              <div className={`p-5 flex items-center gap-2.5 shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'} ${borderless ? '' : 'border-b border-hairline dark:border-white/10'}`}>
+              <div className={`p-5 flex items-center gap-2.5 shrink-0 sticky top-0 bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'} ${mobileFull ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : ''} ${borderless ? '' : 'border-b border-hairline dark:border-white/10'}`}>
                 {onBack && (
                   <button
                     onClick={onBack}
@@ -95,7 +103,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen = f
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className={`p-5 ${fullScreen ? 'flex-1 overflow-y-auto' : ''}`}>{children}</div>
+              <div className={`p-5 ${fullScreen ? 'flex-1 overflow-y-auto' : ''} ${mobileFull ? 'pb-[max(1.25rem,env(safe-area-inset-bottom))]' : ''}`}>{children}</div>
             </motion.div>
           </div>
         </>

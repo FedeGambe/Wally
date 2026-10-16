@@ -352,7 +352,7 @@ export default function Uscite({
         stats={drawerStats}
       />
 
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Uscita">
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Uscita" fullScreenOnMobile>
         <AggiungiUscitaForm onSaved={() => setShowAddModal(false)} />
       </Modal>
     </div>
