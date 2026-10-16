@@ -81,7 +81,6 @@ export function parseMeseStringToMonthYear(meseStr: string): { month: number; ye
  */
 export function useInvestimentiData(globalSelectedMonth: string, globalSelectedYear: string) {
   const { data } = useFinanceData();
-  const [activeTab, setActiveTab] = useState<'cruscotto' | 'rendimenti' | 'conti' | 'pensione'>('cruscotto');
   const [activeConto, setActiveConto] = useState<'scalable' | 'trade'>('scalable');
   const [selectedMacroCategories, setSelectedMacroCategories] = useState<Array<'Azioni' | 'Obbligazioni' | 'Monetari'>>(['Azioni', 'Obbligazioni', 'Monetari']);
   const [timeRange, setTimeRange] = useState<'storico' | '12mesi'>('storico');
@@ -717,7 +716,6 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   }, [nestedPieData.detailData, selectedMacroCategories]);
 
   return {
-    activeTab, setActiveTab,
     activeConto, setActiveConto,
     selectedMacroCategories, setSelectedMacroCategories,
     timeRange, setTimeRange,

@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Database, Sliders, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Database, Fuel, Sun, CloudSun, Moon, Eye, EyeOff } from 'lucide-react';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { MESI_ITALIANI } from '../utils/date';
 import DropdownMenu from './DropdownMenu';
 
 /**
  * Barra superiore dell'app (usata in App.tsx sopra il contenuto di ogni pagina).
- * Mostra l'icona dell'ora del giorno (e scorciatoia mobile alle Impostazioni), il
+ * Mostra il saluto con l'icona dell'ora del giorno (su mobile al suo posto l'accesso ad Analisi consumi), il
  * toggle della modalità incognito, e i due selettori (DropdownMenu) per anno e mese, che
  * pilotano il filtro temporale globale usato da tutte le pagine (selectedYear/
  * selectedMonth arrivano come props da App.tsx e vengono modificati da qui).
@@ -20,7 +20,8 @@ interface HeaderProps {
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
-  onOpenMobileSettings?: () => void;
+  onOpenConsumi?: () => void;
+  isConsumiActive?: boolean;
   onGoToToday?: () => void;
 }
 
@@ -29,14 +30,15 @@ export default function Header({
   setSelectedYear,
   selectedMonth,
   setSelectedMonth,
-  onOpenMobileSettings,
+  onOpenConsumi,
+  isConsumiActive,
   onGoToToday
 }: HeaderProps) {
   const { data, isIncognito, toggleIncognito } = useFinanceData();
 
   // Saluto testuale + icona in base all'ora del giorno (Sole/Nuvola/Luna), mostrato
-  // solo su desktop/tablet. Su mobile non c'è spazio: si mostra solo l'icona
-  // Impostazioni come scorciatoia per aprirle.
+  // solo su desktop/tablet. Su mobile al suo posto c'è l'icona di Analisi consumi,
+  // che non sta nella barra in basso (vedi MobileBottomNav).
   const { GreetingIcon, greeting } = useMemo(() => {
     const hour = new Date().getHours();
     if (hour >= 13 && hour < 18) return { GreetingIcon: CloudSun, greeting: 'Buon pomeriggio' };
@@ -116,19 +118,22 @@ export default function Header({
         </span>
       </div>
 
-      {/* Icona Impostazioni - solo mobile */}
-      <button
-        type="button"
-        onClick={onOpenMobileSettings}
-        title="Impostazioni"
-        aria-label="Impostazioni"
-        className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-canvas cursor-pointer shrink-0"
-      >
-        <Sliders className="w-4.5 h-4.5 text-accent shrink-0" />
-      </button>
+      {/* Icona Analisi consumi - solo mobile */}
+      {onOpenConsumi && (
+        <button
+          type="button"
+          onClick={onOpenConsumi}
+          title="Analisi consumi"
+          aria-label="Analisi consumi"
+          aria-current={isConsumiActive ? 'page' : undefined}
+          className={`md:hidden flex items-center justify-center w-10 h-10 rounded-lg cursor-pointer shrink-0 ${isConsumiActive ? 'bg-down/10' : 'hover:bg-canvas'}`}
+        >
+          <Fuel className={`w-4.5 h-4.5 shrink-0 ${isConsumiActive ? 'text-down' : 'text-ink-soft'}`} />
+        </button>
+      )}
 
       {/* Action controls */}
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto">
         {/* Incognito Mode Toggle - shows fictional demo data instead of real data */}
         <button
           onClick={() => toggleIncognito(!isIncognito)}
@@ -150,6 +155,7 @@ export default function Header({
           icon={Database}
           label="Anno"
           accent="indigo"
+          hideLabelOnMobile
           value={selectedYear}
           displayValue={selectedYear}
           options={availableYears}
@@ -163,6 +169,7 @@ export default function Header({
           icon={Calendar}
           label="Mese"
           accent="indigo"
+          hideLabelOnMobile
           value={selectedMonth}
           displayValue={selectedMonth}
           options={MESI_ITALIANI}

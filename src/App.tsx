@@ -23,20 +23,13 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import {
-  CheckCircle2,
-  LayoutDashboard,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Coins,
-  TrendingUp,
-  Fuel,
-  Settings
-} from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 // Components & Views
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import MobileBottomNav from './components/MobileBottomNav';
+import type { InvestimentiTab } from './pages/Investimenti';
 import Login from './pages/Login';
 import SheetsModal from './components/SheetsModal';
 import RiepilogoMesePopup from './components/panoramica/RiepilogoMesePopup';
@@ -461,6 +454,7 @@ function DashboardShell({
   const [showRefreshToast, setShowRefreshToast] = useState(false);
   const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
   const [riepilogoMese, setRiepilogoMese] = useState(() => computeRiepilogoPrecedente(data));
+  const [investimentiTab, setInvestimentiTab] = useState<InvestimentiTab>('cruscotto');
 
   const handleCloseRiepilogo = (visto: boolean) => {
     if (visto && riepilogoMese) {
@@ -542,6 +536,8 @@ function DashboardShell({
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
             theme={theme}
+            activeTab={investimentiTab}
+            setActiveTab={setInvestimentiTab}
           />
         );
       case 'consumi':
@@ -604,7 +600,8 @@ function DashboardShell({
           setSelectedYear={setSelectedYear}
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
-          onOpenMobileSettings={() => setActiveView('impostazioni')}
+          onOpenConsumi={() => setActiveView('consumi')}
+          isConsumiActive={activeView === 'consumi'}
           onGoToToday={() => setGoToTodaySignal(s => s + 1)}
         />
 
@@ -649,40 +646,13 @@ function DashboardShell({
         />
       )}
 
-      {/* Mobile Bottom Navigation Bar styled dynamically per active tab color */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-hairline flex justify-around items-center pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-2 select-none shadow-lg">
-        {[
-          { id: 'panoramica', label: 'Home', icon: LayoutDashboard },
-          { id: 'entrate', label: 'Entrate', icon: ArrowUpRight },
-          { id: 'uscite', label: 'Uscite', icon: ArrowDownLeft },
-          { id: 'patrimonio', label: 'Patr', icon: Coins },
-          { id: 'investimenti', label: 'Inv', icon: TrendingUp },
-          { id: 'consumi', label: 'Cons', icon: Fuel },
-        ].map((item) => {
-          const Icon = item.icon;
-          const isActive = activeView === item.id;
-          const activeColorMap: { [key: string]: string } = {
-            panoramica: 'text-blue-600 font-extrabold',
-            entrate: 'text-up font-extrabold',
-            uscite: 'text-orange-600 font-extrabold',
-            patrimonio: 'text-amber-500 font-extrabold',
-            investimenti: 'text-sky-500 font-extrabold',
-            consumi: 'text-down font-extrabold'
-          };
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id)}
-              className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-all"
-            >
-              <Icon className={`w-5 h-5 ${isActive ? activeColorMap[item.id] || 'text-blue-600' : 'text-ink-soft'}`} />
-              <span className={`text-3xs mt-0.5 tracking-tighter ${isActive ? 'text-ink font-extrabold' : 'text-ink-soft'}`}>
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Barra di navigazione in basso su telefono */}
+      <MobileBottomNav
+        activeView={activeView}
+        setActiveView={setActiveView}
+        investimentiTab={investimentiTab}
+        setInvestimentiTab={setInvestimentiTab}
+      />
 
       {/* Refreshing Sync success Toast notification */}
       <AnimatePresence>

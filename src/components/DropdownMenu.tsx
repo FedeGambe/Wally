@@ -58,6 +58,9 @@ interface DropdownMenuProps {
    * quando la label è già resa a parte sopra il campo (form), evitando la
    * ripetizione "Categoria: Categoria: Cibo". */
   hideLabel?: boolean;
+  /** Come `hideLabel` ma solo su telefono (sotto md): su desktop resta "Label: valore".
+   * Per l'Header, dove su mobile "Anno: 2026" / "Mese: Ottobre" si capiscono dal valore. */
+  hideLabelOnMobile?: boolean;
   placeholder?: string;
   /** Nome accessibile esplicito per il bottone trigger — da passare quando `hideLabel`
    * è true e la label visiva del campo è resa come <label> separato non collegato via
@@ -84,6 +87,7 @@ export default function DropdownMenu({
   layout = 'list',
   fullWidth = false,
   hideLabel = false,
+  hideLabelOnMobile = false,
   placeholder = 'Scegli...',
   ariaLabel,
   borderless = false
@@ -160,7 +164,7 @@ export default function DropdownMenu({
         onClick={() => setOpen(o => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={ariaLabel ?? (hideLabel ? `${label}: ${displayValue || placeholder}` : undefined)}
+        aria-label={ariaLabel ?? (hideLabel || hideLabelOnMobile ? `${label}: ${displayValue || placeholder}` : undefined)}
         className={`flex items-center gap-1 sm:gap-1.5 bg-canvas dark:bg-slate-800/60 hover:bg-canvas dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-ink-soft dark:text-slate-300 transition-all cursor-pointer ${
           borderless ? '' : 'border border-hairline dark:border-slate-700/60 hover:border-hairline dark:hover:border-slate-600'
         } ${fullWidth ? 'w-full justify-between px-3 py-2.5' : 'px-2 py-1'}`}
@@ -170,7 +174,7 @@ export default function DropdownMenu({
           {hideLabel ? (
             <strong className={accentCls.value}>{displayValue || placeholder}</strong>
           ) : (
-            <>{label}: <strong className={accentCls.value}>{displayValue}</strong></>
+            <><span className={hideLabelOnMobile ? 'hidden md:inline' : ''}>{label}: </span><strong className={accentCls.value}>{displayValue}</strong></>
           )}
         </span>
         <ChevronDown className="w-3.5 h-3.5 text-ink-soft shrink-0" />

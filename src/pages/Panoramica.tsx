@@ -30,6 +30,7 @@ import PanoramicaBilancioStorico from '../components/panoramica/PanoramicaBilanc
 import { usePanoramicaData } from '../hooks/usePanoramicaData';
 import { useFinanceData } from '../context/FinanceDataContext';
 import MovimentiBancaCard from '../components/banca/MovimentiBancaCard';
+import PanoramicaConsumiCard from '../components/panoramica/PanoramicaConsumiCard';
 
 interface PanoramicaProps {
   selectedYear: string;
@@ -96,6 +97,9 @@ export default function Panoramica({
       <div className="md:hidden">
         {rendicontoWidget}
       </div>
+
+      {/* Analisi consumi: su telefono non sta nella barra in basso, si apre da qui */}
+      {setActiveView && <PanoramicaConsumiCard onOpen={() => setActiveView('consumi')} />}
 
       {/* Main KPI Month Strip & Indicators: nascosto su mobile, il suo contenuto
           è già coperto dal widget "Rendiconto Mese Corrente" sopra e dal suo

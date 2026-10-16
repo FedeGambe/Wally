@@ -17,12 +17,19 @@ import { useInvestimentiData } from '../hooks/useInvestimentiData';
 import FloatingAddButton from '../components/FloatingAddButton';
 import AggiungiInvestimentoModal from '../components/investimenti/AggiungiInvestimentoModal';
 
+export type InvestimentiTab = 'cruscotto' | 'rendimenti' | 'conti' | 'pensione';
+
 interface InvestimentiProps {
   selectedMonth?: string;
   setSelectedMonth?: (month: string) => void;
   selectedYear?: string;
   setSelectedYear?: (year: string) => void;
   theme?: 'light' | 'dark';
+  /** Scheda attiva, decisa da App.tsx: su telefono la scelgono i pallini della
+   *  barra in basso (MobileBottomNav) e la barra delle schede qui in alto sparisce.
+   *  Senza queste props (es. nella demo) la pagina tiene la scheda per conto suo. */
+  activeTab?: InvestimentiTab;
+  setActiveTab?: (tab: InvestimentiTab) => void;
 }
 
 export default function Investimenti({
@@ -30,10 +37,15 @@ export default function Investimenti({
   // solo se la pagina viene montata senza props (es. in isolamento/test), non nell'uso normale.
   selectedMonth: globalSelectedMonth = 'Luglio',
   selectedYear: globalSelectedYear = '2026',
+  activeTab: activeTabProp,
+  setActiveTab: setActiveTabProp,
 }: InvestimentiProps = {}) {
+  const [activeTabLocale, setActiveTabLocale] = useState<InvestimentiTab>('cruscotto');
+  const activeTab = activeTabProp ?? activeTabLocale;
+  const setActiveTab = setActiveTabProp ?? setActiveTabLocale;
+
   // Tutta la logica (filtri, aggregazioni, KPI) è calcolata dall'hook: qui prendiamo solo i risultati.
   const {
-    activeTab, setActiveTab,
     activeConto, setActiveConto,
     selectedMacroCategories, setSelectedMacroCategories,
     timeRange, setTimeRange,
@@ -58,9 +70,10 @@ export default function Investimenti({
       <h1 className="sr-only">Investimenti</h1>
       <FloatingAddButton label="Aggiungi Investimento" colorClass="bg-sky-600 hover:bg-sky-700" onClick={() => setShowAddModal(true)} />
       <AggiungiInvestimentoModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
-      {/* 3 Inner Tabs buttons (Sticky & Glassmorphic) */}
+      {/* Barra delle 4 schede (sticky). Su telefono, quando la scheda arriva da App,
+          è nascosta: la scelta si fa dai pallini di Investimenti nella barra in basso. */}
       <div
-        className={`sticky transition-all duration-300 z-30 ${
+        className={`${activeTabProp ? 'hidden md:block' : ''} sticky transition-all duration-300 z-30 ${
           isSticky
             ? 'top-[-16px] md:top-[-32px] -mx-4 px-4 md:-mx-8 md:px-8 pt-4 pb-2 bg-canvas/30 dark:bg-[#060a13]/30 backdrop-blur-md border-b border-hairline/30 dark:border-slate-800/10 shadow-xs'
             : 'top-0 pt-0 pb-3 bg-transparent'
