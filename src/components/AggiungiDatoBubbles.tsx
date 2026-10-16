@@ -36,19 +36,20 @@ const polare = (gradi: number, raggio: number) => {
 };
 
 // Etichetta agganciata al pallino: il punto d'aggancio sta sulla retta dal "+",
-// 6px fuori dal bordo del pallino (raggio 28), e la pillola vi si appoggia con il
+// 6px fuori dal bordo del cerchio (raggio 28 per la scala), e la pillola vi si appoggia con il
 // lato (o l'angolo, in diagonale) rivolto verso il pallino. Lo spostamento in % della
 // pillola stessa la tiene attaccata qualunque sia la lunghezza del testo.
-function agganciaEtichetta(gradi: number) {
+function agganciaEtichetta(gradi: number, scala: number) {
   const rad = (gradi * Math.PI) / 180;
   const dx = Math.cos(rad);
   const dy = -Math.sin(rad);
   const max = Math.max(Math.abs(dx), Math.abs(dy));
-  const punto = polare(gradi, 34);
+  const punto = polare(gradi, 28 * scala + 6);
   return {
     left: punto.x,
     top: punto.y,
-    transform: `translate(${-50 + 50 * (dx / max)}%, ${-50 + 50 * (dy / max)}%)`
+    // `translate` e non `transform`: transform lo gestisce motion per le animazioni.
+    translate: `${-50 + 50 * (dx / max)}% ${-50 + 50 * (dy / max)}%`
   };
 }
 
@@ -92,6 +93,10 @@ function Pallino({ label, icon: Icon, colorClass, posto, delay = 0, attivo = fal
 }) {
   const gradi = ANGOLI[posto];
   const { x, y } = polare(gradi, RAGGIO);
+  // Nel secondo passaggio il cerchio del pallino scelto si rimpicciolisce per lasciare
+  // la scena alle due sotto-azioni; l'etichetta resta a grandezza normale e lo segue.
+  const scala = attivo ? 0.55 : 1;
+  const etichetta = agganciaEtichetta(gradi, scala);
   return (
     // Bottone a dimensione zero centrato sul "+": pallino ed etichetta sono
     // posizionati rispetto al suo centro, così tutto parte e rientra dal "+".
@@ -102,21 +107,26 @@ function Pallino({ label, icon: Icon, colorClass, posto, delay = 0, attivo = fal
       aria-expanded={attivo || undefined}
       className="pallino-nav absolute left-1/2 top-1/2 w-0 h-0 cursor-pointer"
       initial={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
-      // Nel secondo passaggio il pallino scelto si rimpicciolisce per lasciare la scena
-      // alle due sotto-azioni accanto a lui.
-      animate={{ x, y, scale: attivo ? 0.55 : 1, opacity: 1 }}
+      animate={{ x, y, scale: 1, opacity: 1 }}
       exit={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
       transition={{ ...MOLLA, delay }}
     >
-      <span className={`absolute -left-7 -top-7 w-14 h-14 rounded-full ${colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}>
+      <motion.span
+        className={`absolute -left-7 -top-7 w-14 h-14 rounded-full ${colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}
+        animate={{ scale: scala }}
+        transition={MOLLA}
+      >
         <Icon className="w-6 h-6" />
-      </span>
-      <span
+      </motion.span>
+      <motion.span
         className="absolute px-3 py-1 rounded-full bg-black/75 text-white text-xs font-bold whitespace-nowrap shadow-lg"
-        style={agganciaEtichetta(gradi)}
+        style={{ translate: etichetta.translate }}
+        initial={false}
+        animate={{ left: etichetta.left, top: etichetta.top }}
+        transition={MOLLA}
       >
         {label}
-      </span>
+      </motion.span>
     </motion.button>
   );
 }
