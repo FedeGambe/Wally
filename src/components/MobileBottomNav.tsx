@@ -134,7 +134,7 @@ export default function MobileBottomNav({ activeView, setActiveView, investiment
 
       <nav
         aria-label="Navigazione principale"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-hairline flex justify-around items-center pt-2 pb-[max(2rem,calc(env(safe-area-inset-bottom)+0.75rem))] px-2 select-none shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-hairline flex justify-around items-center pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-2 select-none shadow-lg"
       >
         {VOCI.map((item) => {
           const Icon = item.icon;

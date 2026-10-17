@@ -109,7 +109,7 @@ export default function Header({
   });
 
   return (
-    <header className="h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] md:h-16 md:pt-0 bg-white border-b border-hairline flex flex-row items-center justify-between px-3 sm:px-6 md:px-8 gap-2 sticky top-0 z-40 shrink-0 w-full">
+    <header className="h-16 bg-white border-b border-hairline flex flex-row items-center justify-between px-3 sm:px-6 md:px-8 gap-2 sticky top-0 z-40 shrink-0 w-full">
       {/* Saluto testuale con icona - desktop/tablet */}
       <div className="hidden md:flex items-center gap-2 min-w-0">
         <GreetingIcon className="w-4.5 h-4.5 text-accent shrink-0" />
