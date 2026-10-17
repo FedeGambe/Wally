@@ -46,7 +46,7 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
         <span className="font-bold font-display text-slate-300">{formatEuro(currentMonthData.speseSecondarie)}</span>
       </div>
       <div className="flex items-center justify-between text-xs">
-        <span className="text-slate-400 font-medium">Uscite totali:</span>
+        <span className="text-slate-400 font-medium">Spese totali:</span>
         <span className="font-bold font-display text-slate-300">{formatEuro(currentMonthData.speseTotali)}</span>
       </div>
       <div className="flex items-center justify-between text-xs">

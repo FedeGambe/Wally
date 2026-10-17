@@ -263,7 +263,7 @@ export default function PanoramicaMeseCorrenteStrip({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-ink-soft dark:text-slate-400 font-semibold">Uscite Totali:</span>
+            <span className="text-ink-soft dark:text-slate-400 font-semibold">Spese Totali:</span>
             <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${speseDelta !== undefined && speseDelta <= 0 ? "bg-up/15 text-up" : "bg-down/15 text-down"}`}>
               {speseDelta !== undefined && speseDelta >= 0 ? '+' : ''}{formatPercent(speseDelta)}
             </span>

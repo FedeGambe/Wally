@@ -10,7 +10,8 @@ interface PanoramicaWealthCardsProps {
   patrimonioTotale: number;
 }
 
-/** Le 4 card patrimonio in cima a Panoramica: Disponibile / Investito / Accantonato / Totale. */
+/** Le 4 card patrimonio di Panoramica: Disponibile / Investito / Accantonato /
+ * Totale libero (disponibile + investito, senza l'accantonato, che è nella riga sotto). */
 export default function PanoramicaWealthCards({
   capitaleDisponibile,
   capitaleInvestito,
@@ -60,13 +61,13 @@ export default function PanoramicaWealthCards({
 
       <FinanceKpiCard
         type="totale"
-        title="Capitale Totale"
+        title="Totale libero"
         value={capitaleDisponibile + capitaleInvestito}
         icon={BarChart3}
         detail={
           <>
             <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-            <span>Incluso Accantonato: <strong className="text-xs sm:text-xs font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
+            <span>Con l'accantonato: <strong className="text-xs sm:text-xs font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(capitaleDisponibile + capitaleInvestito + capitaleImpegnato)}</strong></span>
           </>
         }
       />

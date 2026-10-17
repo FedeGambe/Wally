@@ -58,19 +58,20 @@ export const DEMO_ENTRATE_LIST: EntrataRecord[] = [
   { id: 'demo-e12', data: '27/12/2025', mese: 'Dicembre', anno: 2025, descrizione: 'Stipendio Dicembre', categoria: 'Stipendio', conto: 'Conto Corrente Demo', importo: 2200 }
 ];
 
+// Come nel foglio reale: Spese Totali = Spese Primarie + Spese Secondarie.
 export const DEMO_RISPARMIO_DATA: RisparmioMese[] = [
-  { mese: 'Gennaio', anno: 2026, entrate: 2000, speseTotali: 850, spesePrimarie: 420, speseSecondarie: 160, spendibile: 580, investito: 300, risparmioNetto: 850, andamentoRisparmio: 4200 },
-  { mese: 'Febbraio', anno: 2026, entrate: 2000, speseTotali: 920, spesePrimarie: 480, speseSecondarie: 180, spendibile: 520, investito: 280, risparmioNetto: 800, andamentoRisparmio: 5000 },
-  { mese: 'Marzo', anno: 2026, entrate: 2050, speseTotali: 780, spesePrimarie: 400, speseSecondarie: 150, spendibile: 650, investito: 350, risparmioNetto: 920, andamentoRisparmio: 5920 },
-  { mese: 'Aprile', anno: 2026, entrate: 2050, speseTotali: 830, spesePrimarie: 410, speseSecondarie: 170, spendibile: 640, investito: 330, risparmioNetto: 890, andamentoRisparmio: 6810 },
-  { mese: 'Maggio', anno: 2026, entrate: 2100, speseTotali: 900, spesePrimarie: 440, speseSecondarie: 190, spendibile: 660, investito: 350, risparmioNetto: 850, andamentoRisparmio: 7660 },
-  { mese: 'Giugno', anno: 2026, entrate: 2100, speseTotali: 860, spesePrimarie: 420, speseSecondarie: 170, spendibile: 680, investito: 320, risparmioNetto: 920, andamentoRisparmio: 8580 },
-  { mese: 'Luglio', anno: 2025, entrate: 1900, speseTotali: 780, spesePrimarie: 380, speseSecondarie: 160, spendibile: 570, investito: 250, risparmioNetto: 870, andamentoRisparmio: 1450 },
-  { mese: 'Agosto', anno: 2025, entrate: 1900, speseTotali: 810, spesePrimarie: 390, speseSecondarie: 170, spendibile: 560, investito: 250, risparmioNetto: 840, andamentoRisparmio: 2290 },
-  { mese: 'Settembre', anno: 2025, entrate: 1950, speseTotali: 850, spesePrimarie: 410, speseSecondarie: 180, spendibile: 590, investito: 260, risparmioNetto: 840, andamentoRisparmio: 3130 },
-  { mese: 'Ottobre', anno: 2025, entrate: 1950, speseTotali: 800, spesePrimarie: 400, speseSecondarie: 150, spendibile: 610, investito: 270, risparmioNetto: 880, andamentoRisparmio: 4010 },
-  { mese: 'Novembre', anno: 2025, entrate: 1950, speseTotali: 870, spesePrimarie: 430, speseSecondarie: 190, spendibile: 580, investito: 280, risparmioNetto: 800, andamentoRisparmio: 4810 },
-  { mese: 'Dicembre', anno: 2025, entrate: 2200, speseTotali: 980, spesePrimarie: 480, speseSecondarie: 220, spendibile: 660, investito: 300, risparmioNetto: 920, andamentoRisparmio: 5730 }
+  { mese: 'Gennaio', anno: 2026, entrate: 2000, speseTotali: 850, spesePrimarie: 690, speseSecondarie: 160, spendibile: 580, investito: 300, risparmioNetto: 850, andamentoRisparmio: 4200 },
+  { mese: 'Febbraio', anno: 2026, entrate: 2000, speseTotali: 920, spesePrimarie: 740, speseSecondarie: 180, spendibile: 520, investito: 280, risparmioNetto: 800, andamentoRisparmio: 5000 },
+  { mese: 'Marzo', anno: 2026, entrate: 2050, speseTotali: 780, spesePrimarie: 630, speseSecondarie: 150, spendibile: 650, investito: 350, risparmioNetto: 920, andamentoRisparmio: 5920 },
+  { mese: 'Aprile', anno: 2026, entrate: 2050, speseTotali: 830, spesePrimarie: 660, speseSecondarie: 170, spendibile: 640, investito: 330, risparmioNetto: 890, andamentoRisparmio: 6810 },
+  { mese: 'Maggio', anno: 2026, entrate: 2100, speseTotali: 900, spesePrimarie: 710, speseSecondarie: 190, spendibile: 660, investito: 350, risparmioNetto: 850, andamentoRisparmio: 7660 },
+  { mese: 'Giugno', anno: 2026, entrate: 2100, speseTotali: 860, spesePrimarie: 690, speseSecondarie: 170, spendibile: 680, investito: 320, risparmioNetto: 920, andamentoRisparmio: 8580 },
+  { mese: 'Luglio', anno: 2025, entrate: 1900, speseTotali: 780, spesePrimarie: 620, speseSecondarie: 160, spendibile: 570, investito: 250, risparmioNetto: 870, andamentoRisparmio: 1450 },
+  { mese: 'Agosto', anno: 2025, entrate: 1900, speseTotali: 810, spesePrimarie: 640, speseSecondarie: 170, spendibile: 560, investito: 250, risparmioNetto: 840, andamentoRisparmio: 2290 },
+  { mese: 'Settembre', anno: 2025, entrate: 1950, speseTotali: 850, spesePrimarie: 670, speseSecondarie: 180, spendibile: 590, investito: 260, risparmioNetto: 840, andamentoRisparmio: 3130 },
+  { mese: 'Ottobre', anno: 2025, entrate: 1950, speseTotali: 800, spesePrimarie: 650, speseSecondarie: 150, spendibile: 610, investito: 270, risparmioNetto: 880, andamentoRisparmio: 4010 },
+  { mese: 'Novembre', anno: 2025, entrate: 1950, speseTotali: 870, spesePrimarie: 680, speseSecondarie: 190, spendibile: 580, investito: 280, risparmioNetto: 800, andamentoRisparmio: 4810 },
+  { mese: 'Dicembre', anno: 2025, entrate: 2200, speseTotali: 980, spesePrimarie: 760, speseSecondarie: 220, spendibile: 660, investito: 300, risparmioNetto: 920, andamentoRisparmio: 5730 }
 ];
 
 export const DEMO_CONTI_PATRIMONIO: ContoPatrimonio[] = [
