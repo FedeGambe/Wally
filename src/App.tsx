@@ -20,10 +20,10 @@
  * variabili elencate nell'array delle dipendenze `[...]` alla fine.
  * Vedi docs/GUIDA-REACT-TS.md per una spiegazione più estesa.
  */
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, RefreshCw } from 'lucide-react';
 
 // Components & Views
 import Sidebar from './components/Sidebar';
@@ -34,6 +34,7 @@ import Login from './pages/Login';
 import SheetsModal from './components/SheetsModal';
 import RiepilogoMesePopup from './components/panoramica/RiepilogoMesePopup';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { usePullToRefresh, PULL_THRESHOLD } from './hooks/usePullToRefresh';
 
 // ponytail: spinner minimale, non serve altro per il breve gap del lazy-load pagina
 function PageLoadingFallback() {
@@ -472,6 +473,23 @@ function DashboardShell({
     refreshData();
   };
 
+  // Su telefono: tirando giù la pagina quando è già in cima si risincronizzano i fogli.
+  const mainRef = useRef<HTMLElement>(null);
+  const pull = usePullToRefresh(mainRef, handleRefreshData, isRefreshing);
+  // Dopo un aggiornamento finito bene, l'indicatore mostra una spunta per un attimo.
+  const [pullDone, setPullDone] = useState(false);
+  const wasRefreshing = useRef(false);
+  useEffect(() => {
+    if (wasRefreshing.current && !isRefreshing && !syncError) {
+      setPullDone(true);
+      const t = setTimeout(() => setPullDone(false), 1200);
+      wasRefreshing.current = false;
+      return () => clearTimeout(t);
+    }
+    wasRefreshing.current = isRefreshing;
+  }, [isRefreshing, syncError]);
+  const showPullIndicator = pull > 0 || isRefreshing || pullDone;
+
   // Auto-correct selectedMonth when selectedYear or the live finance data changes
   useEffect(() => {
     const yearNum = parseInt(selectedYear, 10);
@@ -593,7 +611,7 @@ function DashboardShell({
       />
 
       {/* Main Stage Panel Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="relative flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Header navbar */}
         <Header
           selectedYear={selectedYear}
@@ -606,7 +624,34 @@ function DashboardShell({
         />
 
         {/* View Section Panels scrollable */}
-        <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
+        {/* Indicatore "tira giù per aggiornare" (solo telefono) */}
+        <div
+          aria-hidden={!isRefreshing}
+          className="md:hidden pointer-events-none absolute left-1/2 z-30 -translate-x-1/2"
+          style={{
+            top: 64,
+            opacity: showPullIndicator ? 1 : 0,
+            transform: `translate(-50%, ${isRefreshing || pullDone ? 16 : pull - 40}px)`,
+            transition: pull > 0 ? 'opacity 0.15s' : 'transform 0.25s ease, opacity 0.25s',
+          }}
+        >
+          <div className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 border border-hairline dark:border-slate-700 shadow-md flex items-center justify-center text-accent">
+            {pullDone ? (
+              <CheckCircle2 className="w-5 h-5 text-up" />
+            ) : (
+              <RefreshCw
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                style={isRefreshing ? undefined : {
+                  transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)`,
+                  opacity: pull >= PULL_THRESHOLD ? 1 : 0.5,
+                }}
+              />
+            )}
+          </div>
+          {isRefreshing && <span className="sr-only" role="status">Sincronizzazione dei fogli in corso</span>}
+        </div>
+
+        <main ref={mainRef} id="main-content" className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}
