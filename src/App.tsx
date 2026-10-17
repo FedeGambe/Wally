@@ -256,6 +256,11 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
+    // Zona della Dynamic Island / barra di stato: stesso colore della top bar.
+    // Safari recente la colora col fondo del body, gli altri col meta theme-color.
+    const coloreBarra = theme === 'dark' ? '#0b0f19' : '#ffffff';
+    document.body.style.backgroundColor = coloreBarra;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', coloreBarra);
   }, [theme]);
 
   // Load Auth State Automatically on Load
@@ -632,7 +637,7 @@ function DashboardShell({
           aria-hidden={!isRefreshing}
           className="md:hidden pointer-events-none absolute left-1/2 z-30 text-accent"
           style={{
-            top: 64,
+            top: 'calc(64px + env(safe-area-inset-top))',
             opacity: showPullIndicator ? Math.min(1, pullOffset / 40) : 0,
             transform: `translate(-50%, ${pullOffset / 2 - 10}px)`,
             transition: pull > 0 ? 'none' : 'transform 0.25s ease, opacity 0.25s',
@@ -652,7 +657,7 @@ function DashboardShell({
           {isRefreshing && <span className="sr-only" role="status">Sincronizzazione dei fogli in corso</span>}
         </div>
 
-        <main ref={mainRef} id="main-content" className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
+        <main ref={mainRef} id="main-content" className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-8 max-w-7xl w-full mx-auto pb-[calc(9rem+env(safe-area-inset-bottom))] md:pb-8">
           {/* Su telefono il contenuto scende col dito durante il "tira giù per aggiornare" */}
           {/* Margine e non transform: un transform sposterebbe anche i pannelli "fixed"
               aperti mentre la sync è in corso. */}

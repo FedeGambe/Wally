@@ -191,7 +191,7 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
         )}
       </AnimatePresence>
 
-      <div className="fixed z-[60] right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] w-14 h-14">
+      <div className="fixed z-[60] right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] w-14 h-14">
         <AnimatePresence>
           {/* Titolo dentro l'arco, fra il "+" e i pallini: quello spazio resta libero. */}
           {aperto && (
