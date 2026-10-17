@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useId } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
+  AlertTriangle,
   X,
   Database,
   Plus,
@@ -373,7 +374,7 @@ export default function SheetsModal({
               {showConfirmPush && (
                 <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-3">
                   <h4 className="text-xs font-bold text-ink flex items-center gap-1.5 uppercase tracking-wide">
-                    ⚠️ Attenzione Sovrascrittura
+                    <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> Attenzione: sovrascrittura
                   </h4>
                   <p className="text-xs text-ink-soft leading-relaxed">
                     Vuoi davvero sovrascrivere il foglio Google Sheets con i tuoi attuali dati locali? Le modifiche precedenti sul foglio verranno perse per sempre.
@@ -406,7 +407,7 @@ export default function SheetsModal({
               {showConfirmDisconnect && (
                 <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-left space-y-3">
                   <h4 className="text-xs font-bold text-ink flex items-center gap-1.5 uppercase tracking-wide">
-                    ⚠️ Scollega Google Sheets
+                    <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> Scollega Google Sheets
                   </h4>
                   <p className="text-xs text-ink-soft leading-relaxed">
                     Vuoi davvero scollegare il foglio Google Sheets corrente? Perderai la sincronizzazione dei dati con il cloud.

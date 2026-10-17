@@ -105,7 +105,7 @@ export default function Uscite({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-bold text-ink font-display text-base">
-                Andamento Spese {selectedMacroCat !== 'Tutte' ? `: ${selectedMacroCat}` : ''} {selectedMicroCat !== 'Tutte' ? `> ${selectedMicroCat}` : ''} (Ultimi 12 Mesi)
+                {['Andamento spese', selectedMacroCat !== 'Tutte' ? selectedMacroCat : null, selectedMicroCat !== 'Tutte' ? selectedMicroCat : null].filter(Boolean).join(' · ')}
               </h2>
               {(selectedMacroCat !== 'Tutte' || selectedMicroCat !== 'Tutte') && (
                 <button
@@ -123,7 +123,7 @@ export default function Uscite({
             </div>
             <p className="text-xs text-ink-soft mt-1">
               {selectedMacroCat !== 'Tutte' || selectedMicroCat !== 'Tutte'
-                ? `Mostrato il dettaglio storico per ${selectedMacroCat !== 'Tutte' ? `Macro: ${selectedMacroCat}` : ''} ${selectedMicroCat !== 'Tutte' ? `• Micro: ${selectedMicroCat}` : ''}.`
+                ? `Dettaglio storico di ${[selectedMacroCat !== 'Tutte' ? `Macro: ${selectedMacroCat}` : null, selectedMicroCat !== 'Tutte' ? `Micro: ${selectedMicroCat}` : null].filter(Boolean).join(' · ')}.`
                 : "Confronto temporale tra primarie e secondarie."
               }<span className="hidden md:inline"> Clicca sul grafico per selezionare il mese di <strong className="text-orange-600 uppercase font-bold">{localSelectedMonth}</strong>.</span>
             </p>

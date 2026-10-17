@@ -55,7 +55,7 @@ export default function ConsumiEfficienzaMarcia({
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
           <div className="h-44">
             {kmLtChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
@@ -90,7 +90,7 @@ export default function ConsumiEfficienzaMarcia({
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>
           <div className="h-44">
             {euro100ChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart

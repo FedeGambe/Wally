@@ -104,7 +104,7 @@ export default function EntrateTrendChart({ chartData, isMobile, localSelectedMo
                 domain={[yMin, 'auto']}
                 tickFormatter={(val) => isMobile
                   ? formatAxisCompact(val, yAxisMaxAbs)
-                  : `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
+                  : `${Number(val).toLocaleString('it-IT', { useGrouping: true })} €`}
               />
               <Tooltip
                 formatter={(value: any) => [formatEuro(value), 'Entrate']}

@@ -81,11 +81,12 @@ function niceAxisStep(maxAbs: number, tickCount = 5): number {
  * su un massimo di 1200), i numeri restano per intero: altrimenti "500" letto come
  * "0,5k" confonderebbe più di quanto risparmi spazio.
  */
-export function formatAxisCompact(value: unknown, maxAbsValue: number, prefix = '€'): string {
+// Simbolo dopo la cifra ("20k €", "1.000 €"), come tutte le cifre dell'app.
+export function formatAxisCompact(value: unknown, maxAbsValue: number, simbolo = '€'): string {
   const num = Number(value);
   if (isNaN(num)) return '';
   if (niceAxisStep(Math.abs(maxAbsValue)) >= 1000) {
-    return `${prefix}${(num / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k`;
+    return `${(num / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k ${simbolo}`;
   }
-  return `${prefix}${num.toLocaleString('it-IT', { useGrouping: true })}`;
+  return `${num.toLocaleString('it-IT', { useGrouping: true })} ${simbolo}`;
 }

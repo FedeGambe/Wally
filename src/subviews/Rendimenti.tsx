@@ -110,7 +110,7 @@ export default function Rendimenti({
   const makeAxisFormatter = (maxAbs: number) => (val: any) => {
     if (valueMode !== 'euro') return `${Number(val).toLocaleString('it-IT')}%`;
     if (isMobile) return formatAxisCompact(val, maxAbs);
-    return `€${Number(val).toLocaleString('it-IT')}`;
+    return `${Number(val).toLocaleString('it-IT')} €`;
   };
   const crescitaAxisFormatter = makeAxisFormatter(crescitaMaxAbs);
   const mensileAxisFormatter = makeAxisFormatter(mensileMaxAbs);

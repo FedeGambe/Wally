@@ -158,7 +158,7 @@ export default function UsciteTrendChart({
             allowDataOverflow={clipY}
             tickFormatter={(val) => isMobile
               ? formatAxisCompact(val, yAxisMaxAbs)
-              : `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
+              : `${Number(val).toLocaleString('it-IT', { useGrouping: true })} €`}
           />
           <Tooltip content={renderAreaTooltip} />
           <Legend verticalAlign="top" height={36} content={renderAreaLegend} />

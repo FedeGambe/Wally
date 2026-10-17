@@ -287,7 +287,7 @@ export default function FondoPensione({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const val = payload[0].value;
-      const pct = totalHistoricalContributions > 0 ? ((val / totalHistoricalContributions) * 100).toFixed(1) : '0.0';
+      const pct = totalHistoricalContributions > 0 ? ((val / totalHistoricalContributions) * 100).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '0,0';
       return (
         <div className="bg-slate-900/95 backdrop-blur-xs text-slate-100 px-3 py-2 rounded-xl shadow-xl text-xs font-medium border border-slate-800 leading-tight">
           <div className="flex items-center gap-1.5 mb-1 font-bold">
@@ -408,7 +408,7 @@ export default function FondoPensione({
             {/* Custom Legends under Pie chart */}
             <div className="space-y-1.5 mt-2 px-2">
               {pieData.map((item, index) => {
-                const pct = totalHistoricalContributions > 0 ? ((item.value / totalHistoricalContributions) * 100).toFixed(1) : '0.0';
+                const pct = totalHistoricalContributions > 0 ? ((item.value / totalHistoricalContributions) * 100).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '0,0';
                 return (
                   <div key={index} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 text-ink-soft dark:text-slate-350">
@@ -465,7 +465,7 @@ export default function FondoPensione({
                   width={isMobile ? 42 : 60}
                   tickFormatter={(val) => isMobile
                     ? formatAxisCompact(val, yAxisMaxAbs)
-                    : `€${Number(val).toLocaleString('it-IT')}`}
+                    : `${Number(val).toLocaleString('it-IT')} €`}
                 />
                 <Tooltip
                   formatter={(value: any) => formatEuro(value)}

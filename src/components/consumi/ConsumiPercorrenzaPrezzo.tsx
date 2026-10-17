@@ -44,7 +44,7 @@ export default function ConsumiPercorrenzaPrezzo({
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
           <div className="h-44">
             {kmChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -93,7 +93,7 @@ export default function ConsumiPercorrenzaPrezzo({
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
           <div className="h-44">
             {prezzoChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart

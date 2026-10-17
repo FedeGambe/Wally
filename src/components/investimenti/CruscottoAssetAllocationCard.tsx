@@ -146,7 +146,7 @@ export default function CruscottoAssetAllocationCard({
       const val = payload[0].value;
       const name = payload[0].name;
       const total = totalAssetAllocation;
-      const pct = total > 0 ? ((Number(val) / total) * 100).toFixed(1) : '0.0';
+      const pct = total > 0 ? ((Number(val) / total) * 100).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '0,0';
       const pctColor = data.color || payload[0].color || payload[0].payload?.color || '#10b981';
 
       return (
@@ -231,7 +231,7 @@ export default function CruscottoAssetAllocationCard({
                         <span className={`text-3xs truncate uppercase tracking-wider ${textTitleClass}`}>{item.name}</span>
                       </div>
                       <div className="mt-0.5 flex flex-col">
-                        <span className={`font-mono text-2xs leading-tight ${textPercentageClass}`}>{actualPercent.toFixed(1)}%</span>
+                        <span className={`font-mono text-2xs leading-tight ${textPercentageClass}`}>{actualPercent.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
                         <span className={`text-3xs font-mono leading-none ${textAmountClass}`}>{formatEuro(value)}</span>
                       </div>
                     </button>
@@ -335,7 +335,7 @@ export default function CruscottoAssetAllocationCard({
                           <span className="text-ink-soft truncate uppercase font-bold" title={row.name}>{row.name}</span>
                         </div>
                         <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                          <span className="text-ink-soft font-extrabold text-3xs">({rowPerc.toFixed(1)}%)</span>
+                          <span className="text-ink-soft font-extrabold text-3xs">({rowPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)</span>
                           <span className="text-slate-880 font-bold">{formatEuro(row.value)}</span>
                         </div>
                       </div>
@@ -374,7 +374,7 @@ export default function CruscottoAssetAllocationCard({
                           <span className="text-ink dark:text-white text-xs font-bold truncate" title={row.name}>{row.name}</span>
                         </div>
                         <span className="text-ink dark:text-white text-xs font-mono font-bold shrink-0">
-                          ({rowPerc.toFixed(1)}%) {formatEuro(row.value)}
+                          ({rowPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%) {formatEuro(row.value)}
                         </span>
                       </div>
                       {row.kind === 'group' && (
@@ -388,7 +388,7 @@ export default function CruscottoAssetAllocationCard({
                                   <span className="text-ink-soft dark:text-slate-400 text-2xs font-medium truncate" title={sub.name}>{sub.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                                  <span className="text-ink-soft text-3xs font-bold">({subPerc.toFixed(1)}%)</span>
+                                  <span className="text-ink-soft text-3xs font-bold">({subPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)</span>
                                   <span className="text-ink-soft dark:text-slate-400 text-2xs font-semibold">{formatEuro(sub.value)}</span>
                                 </div>
                               </div>

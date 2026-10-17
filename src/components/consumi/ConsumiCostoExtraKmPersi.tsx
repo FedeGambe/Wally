@@ -56,7 +56,7 @@ export default function ConsumiCostoExtraKmPersi({
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
           <div className="h-44">
             {costoExtraChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -98,7 +98,7 @@ export default function ConsumiCostoExtraKmPersi({
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Chilometri "persi" per uno stile di guida sopra la media consigliata</p>
           <div className="h-44">
             {kmPersiChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-450 dark:text-slate-550 text-xs">Nessun dato registrato</div>
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
