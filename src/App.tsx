@@ -489,6 +489,8 @@ function DashboardShell({
     wasRefreshing.current = isRefreshing;
   }, [isRefreshing, syncError]);
   const showPullIndicator = pull > 0 || isRefreshing || pullDone;
+  // Di quanto scende il contenuto: segue il dito, poi resta aperto finché si aggiorna.
+  const pullOffset = pull > 0 ? pull : (isRefreshing || pullDone ? 48 : 0);
 
   // Auto-correct selectedMonth when selectedYear or the live finance data changes
   useEffect(() => {
@@ -624,34 +626,39 @@ function DashboardShell({
         />
 
         {/* View Section Panels scrollable */}
-        {/* Indicatore "tira giù per aggiornare" (solo telefono) */}
+        {/* Indicatore "tira giù per aggiornare" (solo telefono): solo l'icona,
+            nello spazio che si apre sopra il contenuto quando lo si tira giù */}
         <div
           aria-hidden={!isRefreshing}
-          className="md:hidden pointer-events-none absolute left-1/2 z-30 -translate-x-1/2"
+          className="md:hidden pointer-events-none absolute left-1/2 z-30 text-accent"
           style={{
             top: 64,
-            opacity: showPullIndicator ? 1 : 0,
-            transform: `translate(-50%, ${isRefreshing || pullDone ? 16 : pull - 40}px)`,
-            transition: pull > 0 ? 'opacity 0.15s' : 'transform 0.25s ease, opacity 0.25s',
+            opacity: showPullIndicator ? Math.min(1, pullOffset / 40) : 0,
+            transform: `translate(-50%, ${pullOffset / 2 - 10}px)`,
+            transition: pull > 0 ? 'none' : 'transform 0.25s ease, opacity 0.25s',
           }}
         >
-          <div className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 border border-hairline dark:border-slate-700 shadow-md flex items-center justify-center text-accent">
-            {pullDone ? (
-              <CheckCircle2 className="w-5 h-5 text-up" />
-            ) : (
-              <RefreshCw
-                className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
-                style={isRefreshing ? undefined : {
-                  transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)`,
-                  opacity: pull >= PULL_THRESHOLD ? 1 : 0.5,
-                }}
-              />
-            )}
-          </div>
+          {pullDone ? (
+            <CheckCircle2 className="w-5 h-5 text-up" />
+          ) : (
+            <RefreshCw
+              className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`}
+              style={isRefreshing ? undefined : {
+                transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)`,
+                opacity: pull >= PULL_THRESHOLD ? 1 : 0.5,
+              }}
+            />
+          )}
           {isRefreshing && <span className="sr-only" role="status">Sincronizzazione dei fogli in corso</span>}
         </div>
 
         <main ref={mainRef} id="main-content" className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
+          {/* Su telefono il contenuto scende col dito durante il "tira giù per aggiornare" */}
+          {/* Margine e non transform: un transform sposterebbe anche i pannelli "fixed"
+              aperti mentre la sync è in corso. */}
+          <div
+            style={{ marginTop: pullOffset, transition: pull > 0 ? 'none' : 'margin-top 0.25s ease' }}
+          >
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}
@@ -665,6 +672,7 @@ function DashboardShell({
               </Suspense>
             </motion.div>
           </AnimatePresence>
+          </div>
         </main>
       </div>
 
