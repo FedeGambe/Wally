@@ -27,7 +27,7 @@ interface PanoramicaMeseCorrenteStripProps {
 }
 
 /**
- * Sezione "Mese Corrente in Evidenza": spendibile residuo, i 4 mini-widget
+ * Sezione "Mese in evidenza": spendibile residuo, i 4 mini-widget
  * Risparmio/Investito/Spese Primarie/Secondarie (con scostamento dalla soglia
  * dinamica sia in € che in punti percentuali) e la riga di delta % vs il mese
  * precedente. Nascosta su mobile: il suo contenuto è già coperto dal widget
@@ -83,8 +83,8 @@ export default function PanoramicaMeseCorrenteStrip({
     <div className="hidden md:block bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left">
       <h3 className="text-base font-bold text-ink font-display mb-4 flex items-center gap-2">
         <Calendar className="w-5 h-5 text-blue-600" />
-        <span className="hidden md:inline">Mese Corrente in Evidenza:</span>
-        <span className="md:hidden">Mese Corrente:</span>
+        {/* "Mese in evidenza", non "corrente": è il mese scelto in alto, che può essere passato */}
+        <span>Mese in evidenza:</span>
         <span className="text-blue-600 font-extrabold capitalize">
           {currentMonthData.mese} <span className="hidden md:inline">{currentMonthData.anno}</span><span className="md:hidden">{String(currentMonthData.anno).slice(2)}</span>
         </span>
@@ -237,7 +237,7 @@ export default function PanoramicaMeseCorrenteStrip({
       <div className="mt-4 p-4 bg-canvas dark:bg-slate-800 rounded-2xl border border-hairline dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <span className="text-3xs font-extrabold text-ink dark:text-slate-200 uppercase tracking-wider bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-lg">
-            Delta vs {prevMonthData ? `${prevMonthData.mese} ${prevMonthData.anno}` : 'Mese Precedente'}
+            Rispetto a {prevMonthData ? `${prevMonthData.mese} ${prevMonthData.anno}` : 'il mese prima'}
           </span>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs">

@@ -251,7 +251,7 @@ export default function Drawer({
 
           {transactions.length === 0 ? (
             <div className="text-center py-12 text-ink-soft text-xs">
-              Nessuna transazione corrispondente trovata per questo filone.
+              Nessun movimento da mostrare qui.
             </div>
           ) : (
             <div className="space-y-3">

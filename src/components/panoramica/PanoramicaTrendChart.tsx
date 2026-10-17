@@ -156,7 +156,7 @@ export default function PanoramicaTrendChart({
               tickLine={false}
               axisLine={false}
               width={isMobile ? 44 : 60}
-              tickFormatter={(val) => `€${Number(val).toLocaleString('it-IT', { useGrouping: true })}`}
+              tickFormatter={(val) => `${Number(val).toLocaleString('it-IT', { useGrouping: true })} €`}
             />
             <Tooltip content={renderTrendTooltip} />
             <Area

@@ -26,7 +26,7 @@ interface PanoramicaBilancioStoricoProps {
  * Risparmio Netto colorati in base a quanto la quota sulle entrate si
  * avvicina o supera la soglia target dinamica (vedi src/utils/kpiColorScale.ts).
  */
-// Classe del badge "Quota Invest.+Risp. %": stesse fasce in tabella e nell'elenco.
+// Classe del badge "Messo da parte" (risparmio + investito sulle entrate): stesse fasce in tabella e nell'elenco.
 function quotaBadgeClass(quota: number): string {
   return quota >= 35
     ? "bg-emerald-100 text-emerald-800"
@@ -78,8 +78,11 @@ function ElencoMesi({ filteredRisparmio, dynamicThresholds, handleOpenMonthDetai
               <span className="flex items-center justify-between gap-3">
                 <span className="text-sm font-bold text-ink capitalize">{r.mese} {r.anno}</span>
                 <span className="flex items-center gap-2">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-3xs font-bold tracking-wider ${quotaBadgeClass(quota)}`}>
-                    {formatPercent(quota)} risp.+inv.
+                  <span
+                    title="Risparmio + investito, sulle entrate del mese"
+                    className={`inline-flex items-center px-2 py-0.5 rounded-lg text-3xs font-bold tracking-wider ${quotaBadgeClass(quota)}`}
+                  >
+                    Messo da parte {formatPercent(quota)}
                   </span>
                   <ChevronRight className="w-4 h-4 text-ink-soft shrink-0" />
                 </span>
@@ -178,7 +181,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
             )
           },
           {
-            header: 'Quota Invest.+Risp. %',
+            header: 'Messo da parte',
             align: 'right',
             render: (r) => {
               const quota = r.entrate ? ((r.investito + r.risparmioNetto) / r.entrate) * 100 : 0;

@@ -4,6 +4,7 @@ import EuroAmount from '../EuroAmount';
 import { formatEuro } from '../../utils/format';
 import { getMonthIndex } from '../../utils/date';
 import type { RisparmioMese } from '../../data/mockData';
+import { useFinanceData } from '../../context/FinanceDataContext';
 
 interface PanoramicaRendicontoWidgetProps {
   currentMonthData: RisparmioMese;
@@ -26,6 +27,18 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
   // il residuo non ha senso e si mostra "—" invece di una cifra inventata.
   const spendibileMancante = !currentMonthData.spendibile || spendibileResiduo === undefined;
   const sforato = !spendibileMancante && spendibileResiduo! < 0;
+
+  // Da quando sono queste cifre: l'ultima lettura riuscita dal foglio in questa
+  // sessione; prima della prima lettura sono quelle salvate sul dispositivo.
+  // In incognito (e nella demo) i dati sono finti, quindi niente riga.
+  const { isIncognito, isRefreshing, ultimoPullRiuscito } = useFinanceData();
+  const aggiornamento = isIncognito
+    ? null
+    : isRefreshing
+      ? 'Lettura del foglio in corso…'
+      : ultimoPullRiuscito
+        ? `Foglio letto alle ${new Date(ultimoPullRiuscito).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`
+        : 'Dati salvati su questo dispositivo, foglio non ancora letto';
 
   return (
     <button
@@ -73,7 +86,7 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
           <span className="font-bold font-display text-slate-300">{formatEuro(currentMonthData.speseTotali)}</span>
         </span>
         <span className="flex items-center justify-between text-xs">
-          <span className="text-slate-400 font-medium">Capitale Investito:</span>
+          <span className="text-slate-400 font-medium">Investito:</span>
           <span className="font-bold font-display text-accent">{formatEuro(currentMonthData.investito)}</span>
         </span>
         <span className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
@@ -89,6 +102,10 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
         </span>
         <span className="font-extrabold text-emerald-400">{formatEuro(currentMonthData.entrate * (sogliaRisparmio / 100))}</span>
       </span>
+
+      {aggiornamento && (
+        <span className="block mt-3 text-2xs text-slate-400" aria-live="polite">{aggiornamento}</span>
+      )}
     </button>
   );
 }

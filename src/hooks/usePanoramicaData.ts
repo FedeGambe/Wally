@@ -211,7 +211,7 @@ export function usePanoramicaData(
     const delta = (curr?: number, prev?: number) =>
       (curr !== undefined && prev !== undefined && prev !== 0) ? ((curr - prev) / prev) * 100 : undefined;
 
-    setDrawerTitle(`Dettaglio Finanziario - ${monthName} ${yearValue}`);
+    setDrawerTitle(`Dettaglio Finanziario · ${monthName} ${yearValue}`);
     setDrawerSubtitle(`Analisi dei flussi e delle transazioni registrate`);
     setDrawerTransactions(matchedTx);
     setDrawerStats({
