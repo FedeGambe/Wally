@@ -10,3 +10,6 @@ coverage/
 # Chiavi e dati scaricati da Enable Banking (scripts/banca.ts)
 .banca/
 *.pem
+
+# Cache locale del controllo di design di Impeccable
+.impeccable/hook.cache.json
