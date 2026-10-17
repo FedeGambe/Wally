@@ -135,9 +135,9 @@ export default function Drawer({
             // cosa che non si potrebbe fare direttamente dentro le graffe {}.
             const m = stats.monthDetail;
             // Percentuale di ogni voce rispetto alle entrate del mese. Se le entrate
-            // sono 0 (o mancanti) si mostra "***%" invece di dividere per zero.
+            // sono 0 (o mancanti) la quota non ha senso: il riquadro non la mostra.
             const quotaOf = (v: number) => m.entrate ? (v / m.entrate) * 100 : 0;
-            const pct = (v: number) => m.entrate ? formatPercent(quotaOf(v)) : '***%';
+            const pct = (v: number) => m.entrate ? formatPercent(quotaOf(v)) : undefined;
             // Tinta del riquadro in base a quanto la quota si avvicina/supera la
             // soglia dinamica: per le spese "di meno è meglio" (higherIsBetter=false),
             // per investito/risparmio "di più è meglio". Senza soglia: riquadro neutro.

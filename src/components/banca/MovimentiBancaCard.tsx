@@ -41,7 +41,9 @@ export default function MovimentiBancaCard() {
     if (!esito) return;
     setMessaggio(esito === 'collegata'
       ? { ok: true, testo: `${parametri.get('nome') || 'Banca'} collegata: i movimenti arriveranno con la prossima sincronizzazione.` }
-      : { ok: false, testo: `Collegamento non riuscito: ${parametri.get('motivo') || 'errore sconosciuto'}` });
+      : { ok: false, testo: parametri.get('motivo')
+          ? `Collegamento non riuscito: ${parametri.get('motivo')}. Riprova da Impostazioni → Banche collegate.`
+          : 'Collegamento con la banca non riuscito. Riprova da Impostazioni → Banche collegate.' });
     window.history.replaceState(null, '', window.location.pathname);
   }, []);
 
@@ -57,7 +59,7 @@ export default function MovimentiBancaCard() {
     try {
       window.location.href = await avviaCollegamentoBanca(accessToken, banca, paese);
     } catch (e: any) {
-      setMessaggio({ ok: false, testo: e?.message || 'Rinnovo non riuscito' });
+      setMessaggio({ ok: false, testo: e?.message || 'Rinnovo del collegamento non riuscito: controlla la connessione e riprova.' });
     }
   };
 
@@ -68,10 +70,10 @@ export default function MovimentiBancaCard() {
         const problemi = [...esito.errori, ...esito.scaduti.map(s => `${s}: consenso scaduto`)];
         setMessaggio(problemi.length > 0
           ? { ok: false, testo: problemi.join(' · ') }
-          : { ok: true, testo: esito.aggiunti > 0 ? `${esito.aggiunti} movimenti nuovi scaricati.` : 'Nessun movimento nuovo.' });
+          : { ok: true, testo: esito.aggiunti === 0 ? 'Nessun movimento nuovo.' : esito.aggiunti === 1 ? '1 movimento nuovo scaricato.' : `${esito.aggiunti} movimenti nuovi scaricati.` });
       }
     } catch (e: any) {
-      setMessaggio({ ok: false, testo: e?.message || 'Sincronizzazione non riuscita' });
+      setMessaggio({ ok: false, testo: e?.message || 'Sincronizzazione non riuscita: controlla la connessione e riprova.' });
     }
   };
 
@@ -91,6 +93,7 @@ export default function MovimentiBancaCard() {
           type="button"
           onClick={sincronizza}
           disabled={inCaricamento}
+          aria-label={inCaricamento ? 'Sincronizzazione in corso' : 'Sincronizza ora'}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-ink-soft hover:text-ink dark:hover:text-slate-200 hover:bg-canvas dark:hover:bg-white/10 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait shrink-0"
         >
           <RefreshCw className={`w-4 h-4 ${inCaricamento ? 'animate-spin' : ''}`} />
@@ -98,16 +101,23 @@ export default function MovimentiBancaCard() {
         </button>
       </div>
 
+      {/* Esiti ed errori annunciati anche dagli screen reader (role status/alert). */}
       {messaggio && (
-        <p className={`mb-3 text-xs font-semibold ${messaggio.ok ? 'text-up' : 'text-down'}`}>{messaggio.testo}</p>
+        <p role={messaggio.ok ? 'status' : 'alert'} className={`mb-3 text-xs font-semibold ${messaggio.ok ? 'text-up' : 'text-down'}`}>{messaggio.testo}</p>
       )}
-      {errore && <p className="mb-3 text-xs font-semibold text-down">{errore}</p>}
+      {errore && <p role="alert" className="mb-3 text-xs font-semibold text-down">{errore}</p>}
 
       {inScadenza.map(c => (
         <div key={c.banca} className="mb-3 flex items-center justify-between gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-xs">
           <span className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold">
             <AlertTriangle className="w-4 h-4 shrink-0" />
-            {c.giorni < 0 ? `Il collegamento con ${c.banca} è scaduto` : `Il collegamento con ${c.banca} scade tra ${c.giorni} giorni`}
+            {c.giorni < 0
+              ? `Il collegamento con ${c.banca} è scaduto`
+              : c.giorni === 0
+                ? `Il collegamento con ${c.banca} scade oggi`
+                : c.giorni === 1
+                  ? `Il collegamento con ${c.banca} scade domani`
+                  : `Il collegamento con ${c.banca} scade tra ${c.giorni} giorni`}
           </span>
           <button type="button" onClick={() => rinnova(c.banca)} className="px-3 py-1.5 rounded-lg bg-amber-500 text-white font-bold cursor-pointer hover:bg-amber-600 shrink-0">
             Rinnova

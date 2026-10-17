@@ -18,6 +18,10 @@ export default function PanoramicaWealthCards({
   capitaleImpegnato,
   patrimonioTotale
 }: PanoramicaWealthCardsProps) {
+  // Quota sul patrimonio: con patrimonio a zero (nessun conto ancora) la
+  // divisione darebbe "***%" o "∞%", quindi la quota non si mostra.
+  const quota = (v: number) => patrimonioTotale > 0 ? ` (${formatPercent((v / patrimonioTotale) * 100)})` : '';
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
       <FinanceKpiCard
@@ -28,7 +32,7 @@ export default function PanoramicaWealthCards({
         detail={
           <>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Liquidità pronta all'uso ({formatPercent((capitaleDisponibile / patrimonioTotale) * 100)})</span>
+            <span>Liquidità pronta all'uso{quota(capitaleDisponibile)}</span>
           </>
         }
       />
@@ -41,7 +45,7 @@ export default function PanoramicaWealthCards({
         detail={
           <>
             <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-            <span>Strumenti finanziari attivi ({formatPercent((capitaleInvestito / patrimonioTotale) * 100)})</span>
+            <span>Strumenti finanziari attivi{quota(capitaleInvestito)}</span>
           </>
         }
       />
@@ -54,7 +58,7 @@ export default function PanoramicaWealthCards({
         detail={
           <>
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span>Fondi vincolati o prenotati ({formatPercent((capitaleImpegnato / patrimonioTotale) * 100)})</span>
+            <span>Fondi vincolati o prenotati{quota(capitaleImpegnato)}</span>
           </>
         }
       />

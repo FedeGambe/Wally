@@ -147,7 +147,7 @@ export function useMovimentiBanca() {
       setMovimenti(righe);
       scriviCache(righe, nuoviCollegamenti);
     } catch (e: any) {
-      setErrore(e?.message || 'Lettura dei movimenti bancari non riuscita');
+      setErrore(e?.message || 'Lettura dei movimenti bancari non riuscita: tocca Sincronizza ora per riprovare.');
     } finally {
       setInCaricamento(false);
     }
