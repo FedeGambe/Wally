@@ -18,6 +18,10 @@ interface FinanceKpiCardProps {
     detail: React.ReactNode;
     icon: React.ComponentType<{ className?: string }>;
     id?: string;
+    /** Classi aggiunte alla card (es. "lg:h-full" per allungarla quando sta in una griglia più alta). */
+    className?: string;
+    /** Taglia della cifra; default "text-2xl". La Home la ingrandisce da lg, dove le card sono più alte. */
+    valoreClassName?: string;
 }
 
 export default function FinanceKpiCard({
@@ -26,7 +30,9 @@ export default function FinanceKpiCard({
     value,
     detail,
     icon: Icon,
-    id
+    id,
+    className = '',
+    valoreClassName = 'text-2xl'
 }: FinanceKpiCardProps) {
     // Dynamic classes per card type (stile a riquadro chiaro/scuro, coerente con i widget del Cruscotto Investimenti)
     const typeConfigs = {
@@ -72,7 +78,7 @@ export default function FinanceKpiCard({
     return (
         <div
             id={id}
-            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-24 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01]`}
+            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-24 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${className}`}
         >
             {/* Top row with Title and small Icon Container */}
             <div className="flex justify-between items-start z-10">
@@ -86,7 +92,7 @@ export default function FinanceKpiCard({
 
             {/* Value */}
             <div className="z-10 mt-1">
-                <h3 className="text-2xl font-black font-display text-ink dark:text-slate-100 block leading-none">
+                <h3 className={`${valoreClassName} font-black font-display text-ink dark:text-slate-100 block leading-none`}>
                     <EuroAmount value={value} />
                 </h3>
             </div>

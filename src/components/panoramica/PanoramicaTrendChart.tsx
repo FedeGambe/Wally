@@ -60,7 +60,7 @@ export default function PanoramicaTrendChart({
   const [trendChartMode, setTrendChartMode] = useState<'mensile' | 'cumulato'>('mensile');
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left lg:col-span-2 transition-all duration-300 hover:shadow-md flex flex-col">
+    <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col">
       <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
         <div>
           <h3 className="font-bold text-ink font-display text-base flex items-center gap-1.5">
@@ -104,9 +104,9 @@ export default function PanoramicaTrendChart({
         </div>
       </div>
 
-      {/* Su desktop l'altezza la dà la card Rendiconto accanto (stessa riga della
-          griglia); sotto lg la card è da sola e senza min-h il grafico restava a 0px. */}
-      <div className="flex-1 min-h-[240px] pointer-events-none md:pointer-events-auto">
+      {/* Altezza fissa: il grafico (height 100%) ha bisogno di un'altezza definita,
+          con il solo min-h restava a 0px ora che la card è da sola nella sua riga. */}
+      <div className="h-[240px] md:h-[320px] pointer-events-none md:pointer-events-auto">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={trendChartMode === 'cumulato' ? cumulativeChartData : chartData}

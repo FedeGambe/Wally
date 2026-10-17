@@ -15,7 +15,6 @@ interface PanoramicaMeseCorrenteStripProps {
   currentMonthData: RisparmioMese;
   prevMonthData: RisparmioMese | undefined;
   dynamicThresholds: DynamicThresholds;
-  spendibileResiduo: number | undefined;
   primPerc: number | undefined;
   secPerc: number | undefined;
   invPerc: number | undefined;
@@ -39,7 +38,6 @@ export default function PanoramicaMeseCorrenteStrip({
   currentMonthData,
   prevMonthData,
   dynamicThresholds,
-  spendibileResiduo,
   primPerc,
   secPerc,
   invPerc,
@@ -91,19 +89,6 @@ export default function PanoramicaMeseCorrenteStrip({
           {currentMonthData.mese} <span className="hidden md:inline">{currentMonthData.anno}</span><span className="md:hidden">{String(currentMonthData.anno).slice(2)}</span>
         </span>
       </h3>
-
-      {/* Spendibile residuo: colonna "Spendibile" del foglio Risparmio meno
-          le spese secondarie già sostenute nel mese, cioè quanto resta
-          ancora da spendere ora. */}
-      <div className="mb-5 p-4 rounded-2xl border border-hairline dark:border-slate-700 bg-canvas dark:bg-slate-800 flex items-center justify-between gap-4">
-        <div>
-          <span className="text-3xs text-ink-soft dark:text-slate-400 font-bold uppercase tracking-wider block">Ancora Spendibile questo Mese</span>
-          <span className="text-xs text-ink-soft dark:text-slate-500 mt-0.5 block">Spendibile − Spese Secondarie</span>
-        </div>
-        <span className={`text-2xl font-black font-display shrink-0 ${spendibileResiduo !== undefined && spendibileResiduo < 0 ? 'text-down' : 'text-ink dark:text-slate-100'}`}>
-          {formatEuro(spendibileResiduo)} <span className="text-sm text-ink-soft dark:text-slate-500 font-bold">/ {formatEuro(currentMonthData.spendibile)}</span>
-        </span>
-      </div>
 
       {/* Nota sul verso dei confronti con la soglia: per Risparmio e
           Investito "di più è meglio" quindi il confronto è >= (raggiunto

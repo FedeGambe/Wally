@@ -11,7 +11,8 @@ interface PanoramicaWealthCardsProps {
 }
 
 /** Le 4 card patrimonio di Panoramica: Disponibile / Investito / Accantonato /
- * Totale libero (disponibile + investito, senza l'accantonato, che è nella riga sotto). */
+ * Totale libero (disponibile + investito, senza l'accantonato, che è nella riga sotto).
+ * Sempre 2×2: da lg stanno accanto a "Questo mese" e si allungano alla sua altezza. */
 export default function PanoramicaWealthCards({
   capitaleDisponibile,
   capitaleInvestito,
@@ -23,11 +24,13 @@ export default function PanoramicaWealthCards({
   const quota = (v: number) => patrimonioTotale > 0 ? ` (${formatPercent((v / patrimonioTotale) * 100)})` : '';
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+    <div className="grid grid-cols-2 lg:grid-rows-2 lg:h-full gap-3 sm:gap-6">
       <FinanceKpiCard
         type="disponibile"
         title="Capitale Disponibile"
         value={capitaleDisponibile}
+        className="lg:h-full"
+        valoreClassName="text-2xl lg:text-[1.75rem] xl:text-[2rem]"
         icon={PiggyBank}
         detail={
           <>
@@ -41,6 +44,8 @@ export default function PanoramicaWealthCards({
         type="investito"
         title="Capitale Investito"
         value={capitaleInvestito}
+        className="lg:h-full"
+        valoreClassName="text-2xl lg:text-[1.75rem] xl:text-[2rem]"
         icon={TrendingUp}
         detail={
           <>
@@ -54,6 +59,8 @@ export default function PanoramicaWealthCards({
         type="impegnato"
         title="Capitale Accantonato"
         value={capitaleImpegnato}
+        className="lg:h-full"
+        valoreClassName="text-2xl lg:text-[1.75rem] xl:text-[2rem]"
         icon={Coins}
         detail={
           <>
@@ -67,6 +74,8 @@ export default function PanoramicaWealthCards({
         type="totale"
         title="Totale libero"
         value={capitaleDisponibile + capitaleInvestito}
+        className="lg:h-full"
+        valoreClassName="text-2xl lg:text-[1.75rem] xl:text-[2rem]"
         icon={BarChart3}
         detail={
           <>
