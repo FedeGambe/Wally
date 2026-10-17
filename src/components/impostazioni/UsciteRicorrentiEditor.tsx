@@ -172,7 +172,7 @@ function SchedaPresetUscita({ originale, chiudi }: { originale: PresetUscita | n
               role="radio"
               aria-checked={form.primaria === o.v}
               onClick={() => aggiorna({ primaria: o.v })}
-              className={`py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${form.primaria === o.v ? 'bg-accent-strong text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
+              className={`py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${form.primaria === o.v ? 'bg-accent-strong text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
             >
               {o.l}
             </button>

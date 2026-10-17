@@ -2,6 +2,7 @@ import React from 'react';
 import { Coins } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatEuro } from '../../utils/format';
+import BarreCategorie from '../BarreCategorie';
 
 // Estratto da Patrimonio.tsx: torta "Capitale Accantonato", suddivisione del
 // capitale vincolato/impegnato per conto.
@@ -50,10 +51,15 @@ export default function PatrimonioEngagedCapitalCard({
         </div>
       </div>
 
-      <div className="h-64 mt-4 flex items-stretch gap-4">
+      <div className="md:h-64 mt-4 flex items-stretch gap-4">
         {engagedCapitalData.length > 0 ? (
           <>
-            <div className="flex-1 min-w-0 h-full min-h-[120px] relative pointer-events-none md:pointer-events-auto">
+            {/* Telefono: barre al posto della ciambella, nomi interi invece che troncati */}
+            <BarreCategorie
+              className="md:hidden w-full -mx-3"
+              voci={engagedCapitalData.map((item, idx) => ({ nome: item.name, valore: item.value, colore: colors[idx % colors.length] }))}
+            />
+            <div className="hidden md:block flex-1 min-w-0 h-full min-h-[120px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip wrapperStyle={{ zIndex: 50 }} content={renderPieTooltip} />
@@ -78,7 +84,7 @@ export default function PatrimonioEngagedCapitalCard({
                 <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalImpegnato)}</span>
               </div>
             </div>
-            <div className="flex flex-col gap-1.5 shrink-0 max-w-[30%] h-full overflow-y-auto pr-1">
+            <div className="hidden md:flex flex-col gap-1.5 shrink-0 max-w-[30%] h-full overflow-y-auto pr-1">
               {engagedCapitalData.map((item, idx) => (
                 <div key={idx} className="flex items-start gap-1.5">
                   <span className="w-2 h-2 rounded-full mt-1 shrink-0" style={{ backgroundColor: colors[idx % colors.length] }} />

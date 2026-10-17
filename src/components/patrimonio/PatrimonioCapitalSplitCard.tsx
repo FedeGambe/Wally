@@ -2,6 +2,7 @@ import React from 'react';
 import { Wallet } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatEuro } from '../../utils/format';
+import BarreCategorie from '../BarreCategorie';
 import type { ContoPatrimonio } from '../../data/mockData';
 
 // Estratto da Patrimonio.tsx: torta "Suddivisione Capitale" (Disponibile/
@@ -91,7 +92,13 @@ export default function PatrimonioCapitalSplitCard({
         </div>
       </div>
 
-      <div className="h-64 mt-4 flex items-stretch gap-4">
+      {/* Telefono: barre al posto della doppia ciambella (il dettaglio per conto resta da computer) */}
+      <BarreCategorie
+        className="md:hidden mt-4 -mx-3"
+        voci={splitCapitalData.map(item => ({ nome: item.name, valore: item.value, colore: item.color }))}
+      />
+
+      <div className="hidden md:flex h-64 mt-4 items-stretch gap-4">
         {splitCapitalData.length > 0 ? (
           <>
             <div className="flex-1 min-w-0 h-full min-h-[120px] relative pointer-events-none md:pointer-events-auto">

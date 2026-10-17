@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { rendColor, rendColorTesto } from '../utils/format';
+import RigheTelefono from '../components/RigheTelefono';
 import EuroAmount from '../components/EuroAmount';
 
 // Sotto-vista "Conti" della pagina Investimenti: mostra il dettaglio dei due
@@ -408,7 +409,33 @@ export default function Conti({
             <p className="text-sm text-ink-soft dark:text-slate-500 font-medium">Nessun dato mensile disponibile per l'anno {globalSelectedYear}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Telefono: un mese per riga con le cifre principali; le 14 colonne restano da computer */}
+          <RigheTelefono
+            righe={sortedFilteredRecords.map((r, idx) => {
+              const rendMese = Number(r.rendimentoMensileEuro || 0);
+              const rendCum = Number(r.rendimentoCumulativoEuro || 0);
+              const divSum = Number(r.dividendiIbonds || 0) + Number(r.dividendiAmundi || 0) + Number(r.dividendi || 0);
+              return {
+                chiave: idx,
+                titolo: r.mese,
+                destra: formatEuro(r.saldoConto || 0),
+                cifre: [
+                  { etichetta: 'Rend. mese', valore: `${rendMese >= 0 ? '+' : ''}${formatEuro(rendMese)}`, colore: rendColorTesto(Number(r.rendimentoMensilePerc || 0)) },
+                  { etichetta: 'Rend. mese %', valore: formatPercent(r.rendimentoMensilePerc || 0), colore: rendColorTesto(Number(r.rendimentoMensilePerc || 0)) },
+                  { etichetta: 'Investito mese', valore: formatEuro(r.importoMensileInvestitoe || r.importoMensileInvestito || 0) },
+                  { etichetta: 'Rend. cumulato', valore: `${rendCum >= 0 ? '+' : ''}${formatEuro(rendCum)}`, colore: rendColorTesto(Number(r.rendimentoCumulativoPerc || 0)) },
+                  { etichetta: 'Tot. investito', valore: formatEuro(r.totaleInvestito || 0) },
+                  activeConto === 'trade'
+                    ? { etichetta: 'Saveback', valore: formatEuro(r.savebacks || 0) }
+                    : { etichetta: 'Interessi', valore: formatEuro(r.interessiConto || 0) },
+                  ...(divSum > 0 ? [{ etichetta: 'Dividendi', valore: formatEuro(divSum) }] : [])
+                ]
+              };
+            })}
+          />
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
               <thead>
                 <tr className="border-b border-hairline dark:border-slate-800/60 text-2xs font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
@@ -475,6 +502,7 @@ export default function Conti({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

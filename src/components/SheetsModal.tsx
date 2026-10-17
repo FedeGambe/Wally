@@ -305,7 +305,7 @@ export default function SheetsModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-canvas text-ink-soft hover:text-ink-soft flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-xl hover:bg-canvas text-ink-soft hover:text-ink-soft flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -370,7 +370,7 @@ export default function SheetsModal({
                     <button
                       type="button"
                       onClick={() => setShowConfirmPush(false)}
-                      className="px-3 py-1.5 bg-canvas hover:bg-slate-200 text-ink-soft rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="px-3 py-2.5 bg-canvas hover:bg-slate-200 text-ink-soft rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                     >
                       Annulla
                     </button>
@@ -381,7 +381,7 @@ export default function SheetsModal({
                         executePushData();
                         setShowConfirmPush(false);
                       }}
-                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
+                      className="px-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
                     >
                       {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                       Sì, Sovrascrivi
@@ -403,7 +403,7 @@ export default function SheetsModal({
                     <button
                       type="button"
                       onClick={() => setShowConfirmDisconnect(false)}
-                      className="px-3 py-1.5 bg-canvas hover:bg-slate-200 text-ink-soft rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="px-3 py-2.5 bg-canvas hover:bg-slate-200 text-ink-soft rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                     >
                       Annulla
                     </button>
@@ -413,7 +413,7 @@ export default function SheetsModal({
                         executeDisconnect();
                         setShowConfirmDisconnect(false);
                       }}
-                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="px-3 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                     >
                       Sì, Scollega
                     </button>

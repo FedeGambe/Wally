@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Coins, ShieldAlert, AlertTriangle, Info } from 'lucide-react';
+import { Coins, ShieldAlert, AlertTriangle, Info, CreditCard, TrendingUp, Lock, CheckCircle2 } from 'lucide-react';
 import { formatEuro } from '../../utils/format';
 import type { ContoPatrimonio } from '../../data/mockData';
 
@@ -31,6 +31,32 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
     !isNaN(conto.rimanenteSoglia) &&
     !(Number(conto.allarmeSoglia) === 0 && Number(conto.rimanenteSoglia) === 0);
 
+  // Icona del tipo di conto, a sinistra: contanti (monete), conto o carta (carta),
+  // solo investimenti (grafico), solo vincolato (lucchetto). Trade Republic è sia
+  // conto che investimenti: prevale il conto.
+  const nome = (conto.categoria || '').toLowerCase();
+  const IconaTipo = nome.includes('contant')
+    ? Coins
+    : (nome.includes('conto') || nome.includes('carta') || nome.includes('trade republic'))
+      ? CreditCard
+      : conto.capitaleInvestito > 0
+        ? TrendingUp
+        : conto.capitaleImpegnato > 0
+          ? Lock
+          : CreditCard;
+
+  // Stato della soglia per il quadrato a destra (solo telefono): fuori soglia,
+  // attenzione o ok; senza soglia sul foglio si usa il confronto col saldo.
+  const stato: { classe: string; Icona: typeof AlertTriangle; testo: string } | null = hasSoglia
+    ? conto.allarmeSoglia! > 100
+      ? { classe: 'bg-down/15 text-down', Icona: AlertTriangle, testo: 'Fuori soglia' }
+      : conto.allarmeSoglia! > 85
+        ? { classe: 'bg-warn/15 text-warn', Icona: AlertTriangle, testo: 'Attenzione: vicino alla soglia' }
+        : { classe: 'bg-up/15 text-up', Icona: CheckCircle2, testo: 'Sopra la soglia' }
+    : isUnderThreshold
+      ? { classe: 'bg-warn/15 text-warn', Icona: ShieldAlert, testo: `Sotto soglia: mancano ${formatEuro(limitRemaining)}` }
+      : null;
+
   return (
     <div
       id={`conto-row-${conto.id}`}
@@ -46,24 +72,11 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
         aria-controls={`conto-details-${conto.id}`}
         className="w-full text-left p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200"
       >
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${hasSoglia
-            ? (conto.allarmeSoglia! > 100
-              ? 'bg-rose-50 text-rose-500'
-              : conto.allarmeSoglia! > 85
-                ? 'bg-amber-50 text-amber-500'
-                : 'bg-emerald-50 text-emerald-500')
-            : (isUnderThreshold ? 'bg-amber-50 text-amber-500' : 'bg-canvas text-ink-soft')
-            }`}>
-            {hasSoglia && conto.allarmeSoglia! > 100 ? (
-              <AlertTriangle className="w-5 h-5 text-rose-500" />
-            ) : (isUnderThreshold || (hasSoglia && conto.allarmeSoglia! > 85)) ? (
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-            ) : (
-              <Coins className="w-5 h-5" />
-            )}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-300">
+            <IconaTipo className="w-5 h-5" />
           </div>
-          <div className="text-left">
+          <div className="text-left min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">{conto.categoria}</p>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-2xs text-ink-soft font-medium">
               <span>Disponibile: <strong className="text-ink-soft">{formatEuro(conto.capitaleDisponibile)}</strong></span>
@@ -81,9 +94,15 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
               )}
             </div>
           </div>
+          {/* Telefono: stato della soglia come quadrato a destra, grande quanto l'icona */}
+          {stato && (
+            <div className={`sm:hidden w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stato.classe}`} title={stato.testo} role="img" aria-label={stato.testo}>
+              <stato.Icona className="w-5 h-5" />
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-slate-50 pt-2.5 sm:border-t-0 sm:pt-0">
+        <div className="hidden sm:flex items-center justify-end gap-4">
           {/* Threshold warnings alerts */}
           {hasSoglia ? (
             <div className="flex items-center shrink-0">

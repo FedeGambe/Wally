@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatEuro } from '../../utils/format';
+import BarreCategorie from '../BarreCategorie';
 
 /**
  * Torta + legenda cliccabile per la distribuzione di un importo su categorie
@@ -79,7 +80,16 @@ export default function CategoryPieCard({
       </h3>
       <p className="text-xs text-ink-soft mt-1">{subtitle}</p>
 
-      <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
+      {/* Telefono: barre al posto della ciambella (tocco = filtro, come la legenda) */}
+      <BarreCategorie
+        className="md:hidden mt-4 -mx-3"
+        voci={data.map((entry, idx) => ({ nome: entry.name || 'Altro', valore: entry.value, colore: colors[(idx + colorOffset) % colors.length] }))}
+        selezionata={selected}
+        onSelect={toggle}
+        classeSelezionata="bg-orange-500/10"
+      />
+
+      <div className="hidden md:flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
         <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

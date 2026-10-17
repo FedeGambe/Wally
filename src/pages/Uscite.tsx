@@ -23,8 +23,7 @@ import {
   Filter,
   Search,
   Grid,
-  CreditCard
-} from 'lucide-react';
+  CreditCard, Receipt } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DropdownMenu from '../components/DropdownMenu';
 import Modal from '../components/Modal';
@@ -126,7 +125,7 @@ export default function Uscite({
               {selectedMacroCat !== 'Tutte' || selectedMicroCat !== 'Tutte'
                 ? `Mostrato il dettaglio storico per ${selectedMacroCat !== 'Tutte' ? `Macro: ${selectedMacroCat}` : ''} ${selectedMicroCat !== 'Tutte' ? `• Micro: ${selectedMicroCat}` : ''}.`
                 : "Confronto temporale tra primarie e secondarie."
-              } Clicca sul grafico per selezionare il mese di <strong className="text-orange-600 uppercase font-bold">{localSelectedMonth}</strong>.
+              }<span className="hidden md:inline"> Clicca sul grafico per selezionare il mese di <strong className="text-orange-600 uppercase font-bold">{localSelectedMonth}</strong>.</span>
             </p>
           </div>
           {/* Action button to open details */}
@@ -283,7 +282,32 @@ export default function Uscite({
             Nessuna transazione soddisfa i filtri selezionati.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Telefono: un movimento per riga, importo sempre visibile a destra (la
+              tabella a 7 colonne su 390px mostrava solo data e descrizione) */}
+          <ul className="md:hidden -mx-2 space-y-1">
+            {finalFilteredTransactions.map((tx, idx) => (
+              <li key={tx.id || `txm-${idx}`} className="flex items-center gap-3 px-2 py-3 rounded-2xl odd:bg-canvas dark:odd:bg-white/[0.03]">
+                <span className="w-9 h-9 rounded-xl bg-canvas dark:bg-white/10 flex items-center justify-center text-lg shrink-0" aria-hidden="true">
+                  {tx.icon || <Receipt className="w-4 h-4 text-ink-soft dark:text-slate-400" />}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-semibold text-ink dark:text-slate-100 truncate">{tx.descrizione}</span>
+                  <span className="block text-2xs text-ink-soft dark:text-slate-400 truncate">
+                    {tx.data} · {tx.categoria} · {tx.conto}
+                  </span>
+                </span>
+                <span className="text-right shrink-0">
+                  <span className="block text-sm font-extrabold text-ink dark:text-slate-100 tabular-nums">{formatEuro(tx.importo)}</span>
+                  <span className={`block text-2xs font-bold ${tx.primaria ? 'text-orange-700 dark:text-orange-400' : 'text-ink-soft dark:text-slate-400'}`}>
+                    {tx.primaria ? 'Primaria' : 'Secondaria'}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-hairline text-2xs font-bold text-ink-soft uppercase tracking-wider">
@@ -304,7 +328,7 @@ export default function Uscite({
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="shrink-0">{tx.icon || '🍕'}</span>
+                        <span className="shrink-0">{tx.icon || <Receipt className="w-4 h-4 text-ink-soft" />}</span>
                         <span className="font-semibold text-ink truncate max-w-xs">{tx.descrizione}</span>
                       </div>
                     </td>
@@ -340,6 +364,7 @@ export default function Uscite({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

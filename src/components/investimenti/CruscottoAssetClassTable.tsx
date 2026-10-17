@@ -1,4 +1,5 @@
 import React from 'react';
+import RigheTelefono from '../RigheTelefono';
 
 // Estratto da CruscottoGenerale.tsx: tabella "Distribuzione Asset Class per Anno".
 interface CruscottoAssetClassTableProps {
@@ -16,8 +17,28 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
   return (
     <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-hairline shadow-sm transition-all duration-300 hover:shadow-md flex flex-col">
       <h3 className="font-bold text-ink font-display text-base mb-4 shrink-0">Distribuzione Asset Class per Anno</h3>
+      {/* Telefono: un anno per riga, valutazione accanto all'anno, asset class in griglia */}
+      <RigheTelefono
+        righe={cruscottoRows.map((row: any) => {
+          const parti = [row.azioniInvestitoCum, row.obbligazioniInvestitoCum, row.monetariInvestitoCum, row.rendimentoCumulativoEuro];
+          const valutazione = parti.some(mancante) ? undefined : parti.reduce((s: number, v: any) => s + Number(v), 0);
+          return {
+            chiave: row.anno,
+            titolo: row.anno,
+            destra: formatEuro(valutazione),
+            cifre: [
+              { etichetta: 'Azioni', valore: formatEuro(row.azioniInvestitoCum) },
+              { etichetta: 'Obbligazioni', valore: formatEuro(row.obbligazioniInvestitoCum) },
+              { etichetta: 'Monetari', valore: formatEuro(row.monetariInvestitoCum) },
+              { etichetta: 'Azioni anno', valore: conSegno(row.azioniInvestitoAnno) },
+              { etichetta: 'Obblig. anno', valore: conSegno(row.obbligazioniInvestitoAnno) },
+              { etichetta: 'Monet. anno', valore: conSegno(row.monetariInvestitoAnno) }
+            ]
+          };
+        })}
+      />
       <div
-        className="overflow-x-auto lg:overflow-y-auto"
+        className="hidden md:block overflow-x-auto lg:overflow-y-auto"
         style={maxHeight ? { maxHeight } : undefined}
       >
         <table className="w-full text-sm text-left border-collapse">

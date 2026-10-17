@@ -13,6 +13,8 @@ import {
 } from 'recharts';
 import { TrendingUp, Shield, Coins, Wallet, Landmark } from 'lucide-react';
 import EuroAmount from '../components/EuroAmount';
+import BarreCategorie from '../components/BarreCategorie';
+import RigheTelefono from '../components/RigheTelefono';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { formatAxisCompact } from '../utils/format';
 
@@ -365,7 +367,13 @@ export default function FondoPensione({
             </p>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center relative min-h-[220px]">
+          {/* Telefono: barre al posto della ciambella */}
+          <BarreCategorie
+            className="md:hidden -mx-3 mt-2"
+            voci={pieData.map(item => ({ nome: item.name, valore: item.value, colore: item.color }))}
+          />
+
+          <div className="hidden md:flex flex-1 flex-col justify-center relative min-h-[220px]">
             <div className="h-[180px] w-full relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -490,7 +498,22 @@ export default function FondoPensione({
       {/* Historical Records Table */}
       <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
         <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base mb-4">Registro Storico Versamenti Fondo Pensione</h3>
-        <div className="overflow-x-auto">
+        {/* Telefono: un mese per riga, totale del mese accanto, quote in griglia */}
+        <RigheTelefono
+          righe={descendingData.map((r, idx) => ({
+            chiave: idx,
+            titolo: r.mese,
+            destra: formatEuro(r.totMensile),
+            cifre: [
+              { etichetta: 'TFR', valore: formatEuro(r.tfr) },
+              { etichetta: 'Dipendente', valore: formatEuro(r.contrBase) },
+              { etichetta: 'Volontario', valore: formatEuro(r.contrVolont) },
+              { etichetta: 'Datoriale', valore: formatEuro(r.contrAzienda) },
+              { etichetta: 'Cumulato', valore: formatEuro(r.totCumulativo) }
+            ]
+          }))}
+        />
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
               <tr className="border-b border-hairline dark:border-slate-800/60 text-2xs font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatEuro } from '../../utils/format';
+import BarreCategorie from '../BarreCategorie';
 
 interface EntratePieCardEntry {
   name: string;
@@ -64,7 +65,12 @@ export default function EntratePieCard({ icon: Icon, title, subtitle, data, colo
           </div>
         ) : (
           <>
-            <div className="h-44 w-44 shrink-0 pointer-events-none md:pointer-events-auto">
+            {/* Telefono: barre al posto della ciambella */}
+            <BarreCategorie
+              className="md:hidden w-full -mx-3"
+              voci={data.map((entry, idx) => ({ nome: entry.name, valore: entry.value, colore: colors[(idx + colorOffset) % colors.length] }))}
+            />
+            <div className="hidden md:block h-44 w-44 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -87,7 +93,7 @@ export default function EntratePieCard({ icon: Icon, title, subtitle, data, colo
               </ResponsiveContainer>
             </div>
 
-            <div className="space-y-2.5 text-xs w-full max-w-xs">
+            <div className="hidden md:block space-y-2.5 text-xs w-full max-w-xs">
               {data.map((entry, idx) => (
                 <div key={idx} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

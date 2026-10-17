@@ -136,7 +136,7 @@ function SchedaPresetInvestimento({ originale, chiudi }: { originale: PresetInve
               role="radio"
               aria-checked={nuovo === o.v}
               onClick={() => { setNuovo(o.v); aggiorna({ strumento: '' }); }}
-              className={`py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${nuovo === o.v ? 'bg-accent-strong text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
+              className={`py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${nuovo === o.v ? 'bg-accent-strong text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
             >
               {o.l}
             </button>

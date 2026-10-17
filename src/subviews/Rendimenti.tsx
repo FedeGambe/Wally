@@ -16,6 +16,7 @@ import {
 import EuroAmount from '../components/EuroAmount';
 import DropdownMenu from '../components/DropdownMenu';
 import { rendColor, rendColorAlpha, rendColorTesto, formatAxisCompact } from '../utils/format';
+import RigheTelefono from '../components/RigheTelefono';
 import { kpiColor, kpiColorAlpha, kpiColorTesto, median, type KpiRange } from '../utils/kpiColorScale';
 import { parseMeseStringToMonthYear } from '../hooks/useInvestimentiData';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -614,7 +615,25 @@ export default function Rendimenti({
             <p className="text-sm text-ink-soft dark:text-slate-500 font-medium">Nessun dato disponibile per l'anno {tableYear}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Telefono: un mese per riga, saldo accanto al mese, cifre in griglia */}
+          <RigheTelefono
+            righe={tableRows.map((r: any, idx: number) => ({
+              chiave: idx,
+              titolo: r.mese,
+              destra: formatEuro(r.valoreAttualePortafoglio),
+              cifre: [
+                { etichetta: 'Mensile', valore: `${Number(r.rendimentoMensileEuro || 0) >= 0 ? '+' : ''}${formatEuro(r.rendimentoMensileEuro)}`, colore: kpiColorTesto(Number(r.rendimentoMensilePerc || 0), mensilePercRange) },
+                { etichetta: 'Mensile %', valore: formatPercent(r.rendimentoMensilePerc), colore: kpiColorTesto(Number(r.rendimentoMensilePerc || 0), mensilePercRange) },
+                { etichetta: 'Inv. mese', valore: formatEuro(r.importoMensileInvestito) },
+                { etichetta: 'Cumulato', valore: `${Number(r.rendimentoCumulativoEuro || 0) >= 0 ? '+' : ''}${formatEuro(r.rendimentoCumulativoEuro)}`, colore: kpiColorTesto(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) },
+                { etichetta: 'Cumulato %', valore: formatPercent(r.rendimentoCumulativoPerc), colore: kpiColorTesto(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) },
+                { etichetta: 'Investito', valore: formatEuro(r.importoInvestitoCumulato) }
+              ]
+            }))}
+          />
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap border-collapse">
               <thead>
                 <tr className="border-b border-hairline dark:border-slate-800/60 text-2xs font-bold text-ink-soft dark:text-slate-500 uppercase tracking-wider">
@@ -652,6 +671,7 @@ export default function Rendimenti({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

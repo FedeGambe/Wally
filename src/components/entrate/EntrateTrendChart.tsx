@@ -38,7 +38,7 @@ export default function EntrateTrendChart({ chartData, isMobile, localSelectedMo
         <div>
           <h3 className="font-bold text-ink font-display text-base">Andamento Entrate Mensili</h3>
           <p className="text-xs text-ink-soft mt-1">
-            Visualizzazione dei flussi di entrata storici estratti da Google Fogli. Clicca sul punto del mese per visualizzare il dettaglio dei bonifici.
+            Visualizzazione dei flussi di entrata storici estratti da Google Fogli.<span className="hidden md:inline"> Clicca sul punto del mese per visualizzare il dettaglio dei bonifici.</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
