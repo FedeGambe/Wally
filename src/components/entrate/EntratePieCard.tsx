@@ -51,10 +51,10 @@ function renderPieTooltip({ active, payload }: any) {
 export default function EntratePieCard({ icon: Icon, title, subtitle, data, colors, colorOffset = 0, emptyMessage }: EntratePieCardProps) {
   return (
     <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
-      <h3 className="font-bold text-ink font-display text-base flex items-center gap-2">
+      <h2 className="font-bold text-ink font-display text-base flex items-center gap-2">
         <Icon className="w-5 h-5 text-up" />
         {title}
-      </h3>
+      </h2>
       <p className="text-xs text-ink-soft mt-1">{subtitle}</p>
 
       <div className="flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">

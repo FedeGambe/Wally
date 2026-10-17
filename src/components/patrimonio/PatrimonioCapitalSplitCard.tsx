@@ -87,7 +87,7 @@ export default function PatrimonioCapitalSplitCard({
       <div className="flex items-center gap-2">
         <Wallet className="w-5 h-5 text-amber-500" />
         <div>
-          <h3 className="font-bold text-ink font-display text-base leading-snug">Suddivisione Capitale</h3>
+          <h2 className="font-bold text-ink font-display text-base leading-snug">Suddivisione Capitale</h2>
           <p className="text-xs text-ink-soft mt-0.5">Ripartizione tra capitale disponibile, investito e accantonato</p>
         </div>
       </div>

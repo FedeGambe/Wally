@@ -43,7 +43,7 @@ export default function PresetRicorrentiSettings({ compatto = false }: { compatt
       {!compatto && (
       <div className="flex items-center gap-2 mb-1">
         <Repeat className="w-5 h-5 text-accent" />
-        <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Preset Uscite Ricorrenti</h3>
+        <h2 className="font-bold text-lg font-display text-ink dark:text-slate-100">Preset Uscite Ricorrenti</h2>
       </div>
       )}
       <p className="text-xs text-ink-soft mb-5 leading-relaxed">

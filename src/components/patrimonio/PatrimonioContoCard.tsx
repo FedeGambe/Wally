@@ -52,7 +52,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
       ? { classe: 'bg-down/15 text-down', Icona: AlertTriangle, testo: 'Fuori soglia' }
       : conto.allarmeSoglia! > 85
         ? { classe: 'bg-warn/15 text-warn', Icona: AlertTriangle, testo: 'Attenzione: vicino alla soglia' }
-        : { classe: 'bg-up/15 text-up', Icona: CheckCircle2, testo: 'Sopra la soglia' }
+        : { classe: 'bg-up/15 text-up', Icona: CheckCircle2, testo: 'Nei limiti' }
     : isUnderThreshold
       ? { classe: 'bg-warn/15 text-warn', Icona: ShieldAlert, testo: `Sotto soglia: mancano ${formatEuro(limitRemaining)}` }
       : null;
@@ -119,7 +119,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
               ) : (
                 <span className="inline-flex items-center gap-1.5 bg-up/15 text-up border border-up/30 text-3xs font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  Sotto Soglia
+                  Nei limiti
                 </span>
               )}
             </div>
@@ -157,7 +157,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
             <div id={`conto-details-${conto.id}`} className="conto-panel-espanso px-5 pb-5 pt-4 border-t border-hairline dark:border-white/10 text-ink">
               <div className="flex justify-between items-center border-b border-hairline pb-3 mb-3">
                 <div>
-                  <h4 className="font-bold font-display text-sm text-ink">{conto.categoria}</h4>
+                  <h3 className="font-bold font-display text-sm text-ink">{conto.categoria}</h3>
                   <p className="text-3xs text-ink-soft">Analisi approfondita disponibilità del conto</p>
                 </div>
                 <span className="text-3xs bg-canvas dark:bg-white/10 text-ink-soft dark:text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-hairline dark:border-white/10">
@@ -205,8 +205,8 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
               </div>
 
               <div className="mt-4 pt-3.5 border-t border-hairline text-3xs text-ink-soft flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-ink-soft animate-pulse" />
-                <span>Valori storici e saldi sincronizzati in tempo reale dal foglio di calcolo Google Sheets.</span>
+                <Info className="w-3.5 h-3.5 text-ink-soft" />
+                <span>Valori dal foglio Google, aggiornati all'ultima sincronizzazione.</span>
               </div>
             </div>
           </motion.div>

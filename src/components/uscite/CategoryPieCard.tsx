@@ -74,10 +74,10 @@ export default function CategoryPieCard({
         highlighted ? 'border-orange-400 ring-4 ring-orange-400/30' : 'border-hairline'
       }`}
     >
-      <h3 className="font-bold text-ink font-display text-base flex items-center gap-2">
+      <h2 className="font-bold text-ink font-display text-base flex items-center gap-2">
         <Icon className="w-5 h-5 text-orange-600" />
         {title}
-      </h3>
+      </h2>
       <p className="text-xs text-ink-soft mt-1">{subtitle}</p>
 
       {/* Telefono: barre al posto della ciambella (tocco = filtro, come la legenda) */}

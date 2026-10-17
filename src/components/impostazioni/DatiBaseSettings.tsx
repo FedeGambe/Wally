@@ -42,9 +42,12 @@ export default function DatiBaseSettings({ compatto = false }: { compatto?: bool
   const { accessToken } = useFinanceData();
   const [isImporting, setIsImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
+  // Conferma dentro la card invece di window.confirm (che nel tema vetro esce dallo
+  // stile e su telefono è un popup di sistema): dice cosa verrà sovrascritto.
+  const [conferma, setConferma] = useState<'importa' | 'ripristina' | null>(null);
 
   const ripristinaDefault = () => {
-    if (!window.confirm('Sovrascrivere conti e categorie (anche sul foglio Google) con i valori di default? Le modifiche fatte finora andranno perse.')) return;
+    setConferma(null);
     updateDatiBase({
       conti: CONTI_SEED,
       categorieEntrate: CATEGORIE_ENTRATE_SEED,
@@ -65,8 +68,7 @@ export default function DatiBaseSettings({ compatto = false }: { compatto?: bool
       setTimeout(() => setImportMsg(null), 6000);
       return;
     }
-    if (!window.confirm('Importare conti, categorie e soglie dal foglio di configurazione? Sovrascriverà i valori attuali (anche sul foglio Google principale).')) return;
-
+    setConferma(null);
     setIsImporting(true);
     setImportMsg(null);
     try {
@@ -87,7 +89,7 @@ export default function DatiBaseSettings({ compatto = false }: { compatto?: bool
       {!compatto && (
       <div className="flex items-center gap-2 mb-1">
         <Tags className="w-5 h-5 text-accent" />
-        <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Dati Base</h3>
+        <h2 className="font-bold text-lg font-display text-ink dark:text-slate-100">Dati Base</h2>
       </div>
       )}
       <p className="text-xs text-ink-soft mb-5 leading-relaxed">
@@ -117,19 +119,44 @@ export default function DatiBaseSettings({ compatto = false }: { compatto?: bool
       </div>
 
       <button
-        onClick={importaDaConfigSheet}
+        type="button"
+        onClick={() => setConferma(conferma === 'importa' ? null : 'importa')}
         disabled={isImporting}
-        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-ink-soft dark:text-slate-400 hover:text-accent dark:hover:text-blue-400 cursor-pointer transition-colors disabled:opacity-50"
+        aria-expanded={conferma === 'importa'}
+        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-ink-soft dark:text-slate-400 hover:text-accent cursor-pointer transition-colors disabled:opacity-50"
       >
         <Download className="w-3.5 h-3.5" /> {isImporting ? 'Importazione...' : 'Importa da foglio di configurazione'}
       </button>
+      {conferma === 'importa' && (
+        <div role="alertdialog" aria-label="Conferma importazione" className="mt-2 p-3.5 rounded-2xl bg-canvas dark:bg-white/5 text-xs">
+          <p className="text-ink dark:text-slate-200">Conti, categorie e soglie verranno sostituiti con quelli del foglio di configurazione, anche sul foglio Google principale.</p>
+          <div className="flex gap-2 mt-3">
+            <button type="button" onClick={() => setConferma(null)} className="flex-1 px-3 py-2.5 rounded-xl font-semibold text-ink-soft hover:bg-hairline/60 dark:hover:bg-white/10 cursor-pointer">Annulla</button>
+            <button type="button" onClick={importaDaConfigSheet} className="flex-1 px-3 py-2.5 rounded-xl font-bold bg-accent-strong text-white hover:opacity-90 cursor-pointer">Importa</button>
+          </div>
+        </div>
+      )}
 
-      <button
-        onClick={ripristinaDefault}
-        className="w-full flex items-center justify-center gap-1.5 mt-1 px-3 py-2 text-xs font-semibold text-ink-soft dark:text-slate-400 hover:text-down dark:hover:text-rose-400 cursor-pointer transition-colors"
-      >
-        <RotateCcw className="w-3.5 h-3.5" /> Ripristina valori di default
-      </button>
+      {/* Azione distruttiva staccata dalle altre e nel colore delle perdite */}
+      <div className="mt-3 pt-3 border-t border-dashed border-hairline dark:border-white/10">
+        <button
+          type="button"
+          onClick={() => setConferma(conferma === 'ripristina' ? null : 'ripristina')}
+          aria-expanded={conferma === 'ripristina'}
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-down cursor-pointer transition-opacity hover:opacity-80"
+        >
+          <RotateCcw className="w-3.5 h-3.5" /> Ripristina valori di default
+        </button>
+        {conferma === 'ripristina' && (
+          <div role="alertdialog" aria-label="Conferma ripristino" className="mt-2 p-3.5 rounded-2xl bg-down/10 border border-down/25 text-xs">
+            <p className="text-ink dark:text-slate-200">Conti, categorie e <strong>soglie</strong> torneranno ai valori di default, anche sul foglio Google. Le modifiche fatte finora andranno perse.</p>
+            <div className="flex gap-2 mt-3">
+              <button type="button" onClick={() => setConferma(null)} className="flex-1 px-3 py-2.5 rounded-xl font-semibold text-ink-soft hover:bg-hairline/60 dark:hover:bg-white/10 cursor-pointer">Annulla</button>
+              <button type="button" onClick={ripristinaDefault} className="flex-1 px-3 py-2.5 rounded-xl font-bold bg-rose-600 text-white hover:opacity-90 cursor-pointer">Ripristina</button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {importMsg && (
         <p className="text-2xs text-center text-ink-soft dark:text-slate-400 font-semibold mt-2">{importMsg}</p>

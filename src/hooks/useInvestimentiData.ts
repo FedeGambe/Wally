@@ -615,50 +615,18 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   const localScalableInstruments = data.scalableInstruments;
   const localTradeRepublicInstruments = data.tradeRepublicInstruments;
 
-  // Se il foglio "Scalable" non ha righe reali, si mostra una serie demo hardcoded
-  // (12 mesi plausibili) cosi' la pagina non appare vuota prima di collegare lo sheet.
-  const localScalableMonthly = useMemo(() => {
-    const raw = data.scalable || [];
-    if (raw.length > 0) return raw;
+  // Serie mensili dei broker: solo dal foglio. Le serie di esempio stanno nei dati
+  // demo (DEMO_SCALABLE_MONTHLY / DEMO_TRADE_REPUBLIC_MONTHLY), usati da incognito e
+  // demo: prima erano qui come ripiego e comparivano anche nell'app vera a foglio vuoto.
+  const localScalableMonthly = useMemo(
+    () => (data.scalable?.length ? data.scalable : (data as any).scalableMensileDemo || []),
+    [data]
+  );
 
-    return [
-      { mese: 'Lug 25', anno: 2025, rendimentoMensileEuro: 45, rendimentoMensilePerc: 0.9, importoMensileInvestitoe: 200, rendimentoCumulativoEuro: 45, rendimentoCumulativoPerc: 0.9, totaleInvestito: 5000, saldoConto: 5045, saldoContoCompleto: 5045, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 2.99, dividendi: 0 },
-      { mese: 'Ago 25', anno: 2025, rendimentoMensileEuro: -30, rendimentoMensilePerc: -0.6, importoMensileInvestitoe: 200, rendimentoCumulativoEuro: 15, rendimentoCumulativoPerc: 0.3, totaleInvestito: 5200, saldoConto: 5215, saldoContoCompleto: 5215, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 5.98, dividendi: 0 },
-      { mese: 'Set 25', anno: 2025, rendimentoMensileEuro: 85, rendimentoMensilePerc: 1.6, importoMensileInvestitoe: 200, rendimentoCumulativoEuro: 100, rendimentoCumulativoPerc: 1.8, totaleInvestito: 5400, saldoConto: 5500, saldoContoCompleto: 5500, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 8.97, dividendi: 12 },
-      { mese: 'Ott 25', anno: 2025, rendimentoMensileEuro: 50, rendimentoMensilePerc: 0.9, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 150, rendimentoCumulativoPerc: 2.6, totaleInvestito: 5700, saldoConto: 5850, saldoContoCompleto: 5850, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 11.96, dividendi: 0 },
-      { mese: 'Nov 25', anno: 2025, rendimentoMensileEuro: 90, rendimentoMensilePerc: 1.5, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 240, rendimentoCumulativoPerc: 4.0, totaleInvestito: 6000, saldoConto: 6240, saldoContoCompleto: 6240, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 14.95, dividendi: 0 },
-      { mese: 'Dic 25', anno: 2025, rendimentoMensileEuro: 120, rendimentoMensilePerc: 1.9, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 360, rendimentoCumulativoPerc: 5.6, totaleInvestito: 6400, saldoConto: 6760, saldoContoCompleto: 6760, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 17.94, dividendi: 25 },
-
-      { mese: 'Gen 26', anno: 2026, rendimentoMensileEuro: -40, rendimentoMensilePerc: -0.6, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 320, rendimentoCumulativoPerc: 4.8, totaleInvestito: 6700, saldoConto: 7020, saldoContoCompleto: 7020, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 20.93, dividendi: 0 },
-      { mese: 'Feb 26', anno: 2026, rendimentoMensileEuro: 75, rendimentoMensilePerc: 1.1, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 395, rendimentoCumulativoPerc: 5.6, totaleInvestito: 7000, saldoConto: 7395, saldoContoCompleto: 7395, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 23.92, dividendi: 18 },
-      { mese: 'Mar 26', anno: 2026, rendimentoMensileEuro: 110, rendimentoMensilePerc: 1.5, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 505, rendimentoCumulativoPerc: 6.8, totaleInvestito: 7400, saldoConto: 7905, saldoContoCompleto: 7905, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 26.91, dividendi: 0 },
-      { mese: 'Apr 26', anno: 2026, rendimentoMensileEuro: 130, rendimentoMensilePerc: 1.6, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 635, rendimentoCumulativoPerc: 8.2, totaleInvestito: 7700, saldoConto: 8335, saldoContoCompleto: 8335, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 29.90, dividendi: 0 },
-      { mese: 'Mag 26', anno: 2026, rendimentoMensileEuro: -50, rendimentoMensilePerc: -0.6, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 585, rendimentoCumulativoPerc: 7.3, totaleInvestito: 8000, saldoConto: 8585, saldoContoCompleto: 8585, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 32.89, dividendi: 35 },
-      { mese: 'Giu 26', anno: 2026, rendimentoMensileEuro: 150, rendimentoMensilePerc: 1.7, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 735, rendimentoCumulativoPerc: 8.8, totaleInvestito: 8400, saldoConto: 9135, saldoContoCompleto: 9135, interessiConto: 0, interessiContoComulativo: 0, commissioniMensili: 2.99, commissioniomulative: 35.88, dividendi: 0 }
-    ];
-  }, [data.scalable]);
-
-  // Stesso principio del blocco sopra, ma per il foglio "Trade Republic".
-  const localTradeRepublicMonthly = useMemo(() => {
-    const raw = data.tradeRepublic || [];
-    if (raw.length > 0) return raw;
-
-    return [
-      { mese: 'Lug 25', anno: 2025, rendimentoMensileEuro: 165, rendimentoMensilePerc: 1.1, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 1285, rendimentoCumulativoPerc: 8.6, totaleInvestito: 4470, saldoConto: 5755, interessiConto: 10.50, interessiContoComulativo: 10.50, commissioniMensili: 1.00, commissioniomulative: 1.00, dividendi: 15 },
-      { mese: 'Ago 25', anno: 2025, rendimentoMensileEuro: -110, rendimentoMensilePerc: -0.7, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 1175, rendimentoCumulativoPerc: 7.7, totaleInvestito: 4770, saldoConto: 5945, interessiConto: 11.20, interessiContoComulativo: 21.70, commissioniMensili: 1.00, commissioniomulative: 2.00, dividendi: 0 },
-      { mese: 'Set 25', anno: 2025, rendimentoMensileEuro: 225, rendimentoMensilePerc: 1.4, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 1400, rendimentoCumulativoPerc: 8.9, totaleInvestito: 5170, saldoConto: 6570, interessiConto: 12.10, interessiContoComulativo: 33.80, commissioniMensili: 1.00, commissioniomulative: 3.00, dividendi: 28 },
-      { mese: 'Ott 25', anno: 2025, rendimentoMensileEuro: 130, rendimentoMensilePerc: 0.8, importoMensileInvestitoe: 350, rendimentoCumulativoEuro: 1530, rendimentoCumulativoPerc: 9.5, totaleInvestito: 5520, saldoConto: 7050, interessiConto: 12.40, interessiContoComulativo: 46.20, commissioniMensili: 1.00, commissioniomulative: 4.00, dividendi: 0 },
-      { mese: 'Nov 25', anno: 2025, rendimentoMensileEuro: 200, rendimentoMensilePerc: 1.1, importoMensileInvestitoe: 300, rendimentoCumulativoEuro: 1730, rendimentoCumulativoPerc: 10.6, totaleInvestito: 5820, saldoConto: 7550, interessiConto: 12.85, interessiContoComulativo: 59.05, commissioniMensili: 1.00, commissioniomulative: 5.00, dividendi: 0 },
-      { mese: 'Dic 25', anno: 2025, rendimentoMensileEuro: 300, rendimentoMensilePerc: 1.6, importoMensileInvestitoe: 500, rendimentoCumulativoEuro: 2030, rendimentoCumulativoPerc: 12.1, totaleInvestito: 6320, saldoConto: 8350, interessiConto: 13.50, interessiContoComulativo: 72.55, commissioniMensili: 1.00, commissioniomulative: 6.00, dividendi: 45 },
-
-      { mese: 'Gen 26', anno: 2026, rendimentoMensileEuro: -40, rendimentoMensilePerc: -0.2, importoMensileInvestitoe: 350, rendimentoCumulativoEuro: 1990, rendimentoCumulativoPerc: 11.6, totaleInvestito: 6670, saldoConto: 8660, interessiConto: 13.80, interessiContoComulativo: 86.35, commissioniMensili: 1.00, commissioniomulative: 7.00, dividendi: 0 },
-      { mese: 'Feb 26', anno: 2026, rendimentoMensileEuro: 115, rendimentoMensilePerc: 0.6, importoMensileInvestitoe: 310, rendimentoCumulativoEuro: 2105, rendimentoCumulativoPerc: 11.9, totaleInvestito: 6980, saldoConto: 9085, interessiConto: 14.10, interessiContoComulativo: 100.45, commissioniMensili: 1.00, commissioniomulative: 8.00, dividendi: 22 },
-      { mese: 'Mar 26', anno: 2026, rendimentoMensileEuro: 230, rendimentoMensilePerc: 1.2, importoMensileInvestitoe: 450, rendimentoCumulativoEuro: 2335, rendimentoCumulativoPerc: 13.0, totaleInvestito: 7430, saldoConto: 9765, interessiConto: 14.50, interessiContoComulativo: 114.95, commissioniMensili: 1.00, commissioniomulative: 9.00, dividendi: 0 },
-      { mese: 'Apr 26', anno: 2026, rendimentoMensileEuro: 280, rendimentoMensilePerc: 1.4, importoMensileInvestitoe: 410, rendimentoCumulativoEuro: 2615, rendimentoCumulativoPerc: 14.2, totaleInvestito: 7840, saldoConto: 10455, interessiConto: 15.10, interessiContoComulativo: 130.05, commissioniMensili: 1.00, commissioniomulative: 10.00, dividendi: 0 },
-      { mese: 'Mag 26', anno: 2026, rendimentoMensileEuro: -70, rendimentoMensilePerc: -0.3, importoMensileInvestitoe: 450, rendimentoCumulativoEuro: 2545, rendimentoCumulativoPerc: 13.5, totaleInvestito: 8290, saldoConto: 10835, interessiConto: 15.30, interessiContoComulativo: 145.35, commissioniMensili: 1.00, commissioniomulative: 11.00, dividendi: 38 },
-      { mese: 'Giu 26', anno: 2026, rendimentoMensileEuro: 300, rendimentoMensilePerc: 1.4, importoMensileInvestitoe: 400, rendimentoCumulativoEuro: 2845, rendimentoCumulativoPerc: 14.8, totaleInvestito: 8690, saldoConto: 11535, interessiConto: 15.80, interessiContoComulativo: 161.15, commissioniMensili: 1.00, commissioniomulative: 12.00, dividendi: 0 }
-    ];
-  }, [data.tradeRepublic]);
+  const localTradeRepublicMonthly = useMemo(
+    () => (data.tradeRepublic?.length ? data.tradeRepublic : (data as any).tradeRepublicMensileDemo || []),
+    [data]
+  );
 
   const localFondoPensione = data.fondoPensione;
 

@@ -38,7 +38,7 @@ export default function BancheCollegateSettings({ compatto = false }: { compatto
         {!compatto && (
           <div className="flex items-center gap-2">
             <Landmark className="w-5 h-5 text-accent" />
-            <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Banche collegate</h3>
+            <h2 className="font-bold text-lg font-display text-ink dark:text-slate-100">Banche collegate</h2>
           </div>
         )}
         <button

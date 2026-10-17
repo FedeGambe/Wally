@@ -79,51 +79,34 @@ export default function Investimenti({
             : 'top-0 pt-0 pb-3 bg-transparent'
         }`}
       >
-        <div className={`flex transition-all duration-300 p-1.5 rounded-2xl border gap-2 ${
+        <div role="tablist" aria-label="Sezioni di Investimenti" className={`flex transition-all duration-300 p-1.5 rounded-2xl border gap-2 ${
           isSticky
             ? 'bg-white/35 dark:bg-[#0c1425]/35 border-hairline/30 dark:border-slate-800/20'
             : 'bg-white/85 dark:bg-[#0c1425]/85 border-hairline dark:border-slate-800/60 shadow-xs'
         }`}>
-          <button
-            onClick={() => setActiveTab('cruscotto')}
-            className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-              activeTab === 'cruscotto'
-                ? 'bg-sky-700 text-white shadow-xs'
-                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
-            }`}
-          >
-            Cruscotto
-          </button>
-          <button
-            onClick={() => setActiveTab('rendimenti')}
-            className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-              activeTab === 'rendimenti'
-                ? 'bg-sky-700 text-white shadow-xs'
-                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
-            }`}
-          >
-            Rendimenti
-          </button>
-          <button
-            onClick={() => setActiveTab('conti')}
-            className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-              activeTab === 'conti'
-                ? 'bg-sky-700 text-white shadow-xs'
-                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
-            }`}
-          >
-            Conti
-          </button>
-          <button
-            onClick={() => setActiveTab('pensione')}
-            className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-              activeTab === 'pensione'
-                ? 'bg-sky-700 text-white shadow-xs'
-                : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
-            }`}
-          >
-            Fondo Pensione
-          </button>
+          {/* Linguette vere per lo screen reader (role tab + aria-selected): prima erano
+              quattro pulsanti copiati uguali, senza dire quale fosse aperto */}
+          {([
+            ['cruscotto', 'Cruscotto'],
+            ['rendimenti', 'Rendimenti'],
+            ['conti', 'Conti'],
+            ['pensione', 'Fondo Pensione']
+          ] as const).map(([id, etichetta]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === id}
+              onClick={() => setActiveTab(id)}
+              className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+                activeTab === id
+                  ? 'bg-sky-700 text-white shadow-xs'
+                  : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
+              }`}
+            >
+              {etichetta}
+            </button>
+          ))}
         </div>
       </div>
 

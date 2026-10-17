@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useId, useState } from 'react';
 import { ChevronRight, Plus, Trash2, Check } from 'lucide-react';
 
 /**
@@ -95,12 +95,30 @@ export function AggiungiVoce({ label, onClick }: { label: string; onClick: () =>
 export const inputEditorClass =
   'w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 border border-transparent focus:outline-hidden focus:ring-2 focus:ring-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
 
+/**
+ * Etichetta + campo + nota. L'etichetta è collegata al campo per lo screen
+ * reader: a un input/select/textarea nativo si dà un id (htmlFor) e la nota come
+ * descrizione; per i controlli composti (DropdownMenu, segmenti) il gruppo prende
+ * il nome dall'etichetta (aria-labelledby).
+ */
 export function Campo({ label, nota, children }: { label: string; nota?: string; children: React.ReactNode }) {
+  const base = useId();
+  const labelId = `${base}-label`;
+  const notaId = `${base}-nota`;
+  const nativo = React.isValidElement(children) && typeof children.type === 'string' && ['input', 'select', 'textarea'].includes(children.type);
+  const campoId = nativo ? ((children as React.ReactElement<any>).props.id ?? `${base}-campo`) : undefined;
+  const contenuto = nativo
+    ? React.cloneElement(children as React.ReactElement<any>, {
+        id: campoId,
+        'aria-describedby': nota ? notaId : undefined
+      })
+    : children;
+
   return (
-    <div>
-      <label className="block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider">{label}</label>
-      {children}
-      {nota && <p className="text-2xs text-ink-soft mt-1.5 leading-relaxed">{nota}</p>}
+    <div role={nativo ? undefined : 'group'} aria-labelledby={nativo ? undefined : labelId}>
+      <label id={labelId} htmlFor={campoId} className="block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider">{label}</label>
+      {contenuto}
+      {nota && <p id={notaId} className="text-2xs text-ink-soft mt-1.5 leading-relaxed">{nota}</p>}
     </div>
   );
 }

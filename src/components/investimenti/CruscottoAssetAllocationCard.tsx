@@ -169,10 +169,10 @@ export default function CruscottoAssetAllocationCard({
     <>
       <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md h-auto md:h-[540px]">
         <div>
-          <h3 className="font-bold text-ink font-display text-base flex items-center gap-1.5 mb-1">
+          <h2 className="font-bold text-ink font-display text-base flex items-center gap-1.5 mb-1">
             <Briefcase className="w-5 h-5 text-sky-600" />
             Ripartizione Asset e Strumenti
-          </h3>
+          </h2>
           <p className="text-xs text-ink-soft mb-2">
             Asset class all'interno, dettaglio strumenti all'esterno (Scalable e Trade Republic)
           </p>

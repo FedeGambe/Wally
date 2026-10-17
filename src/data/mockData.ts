@@ -26,6 +26,8 @@ import {
   DEMO_CRUSCOTTO_DATA,
   DEMO_SCALABLE_INSTRUMENTS,
   DEMO_TRADE_REPUBLIC_INSTRUMENTS,
+  DEMO_SCALABLE_MONTHLY,
+  DEMO_TRADE_REPUBLIC_MONTHLY,
   DEMO_FONDO_PENSIONE_DATA,
   DEMO_RISPARMIO_HEADERS
 } from './demoData';
@@ -671,6 +673,11 @@ const getDemoExportableData = () => ({
   cruscottoData: DEMO_CRUSCOTTO_DATA,
   scalable: [],
   tradeRepublic: [],
+  // Solo demo/incognito: serie mensili di esempio per Investimenti > Conti. Chiavi a
+  // parte perché con scalable/tradeRepublic pieni il cruscotto ricalcolerebbe la
+  // ripartizione dalle colonne del foglio, che nella demo non ci sono.
+  scalableMensileDemo: DEMO_SCALABLE_MONTHLY,
+  tradeRepublicMensileDemo: DEMO_TRADE_REPUBLIC_MONTHLY,
   scalableFields: [],
   scalableHeaders: [],
   tradeRepublicFields: [],

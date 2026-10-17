@@ -41,15 +41,15 @@ export default function ConsumiEfficienzaMarcia({
 
   return (
     <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
-      <h3 className="font-bold text-ink dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
+      <h2 className="font-bold text-ink dark:text-slate-100 font-display text-sm flex items-center gap-1.5 mb-4">
         <Gauge className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
         Efficienza di Marcia
-      </h3>
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Km / Litro */}
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Evoluzione Km / Litro</h4>
+            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Evoluzione Km / Litro</h3>
             <TimeRangeToggle value={kmLtChartRange} onChange={setKmLtChartRange} />
           </div>
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Km/lt calcolato (verde/rosso vs media) e km/lt bordo auto (grigio)</p>
@@ -84,7 +84,7 @@ export default function ConsumiEfficienzaMarcia({
         {/* €/100km */}
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo per 100 Km</h4>
+            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo per 100 Km</h3>
             <TimeRangeToggle value={euro100ChartRange} onChange={setEuro100ChartRange} />
           </div>
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Spesa carburante normalizzata ogni 100 km percorsi</p>

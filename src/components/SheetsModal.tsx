@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -16,6 +16,7 @@ import {
 import { createSpreadsheet, fetchSpreadsheetData, pushSpreadsheetData } from '../lib/sheetsService';
 import { getExportableData, saveToLocalStorage } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 /**
  * Modale "Integrazione Google Sheets" (apribile dalla Sidebar/Impostazioni).
@@ -44,6 +45,10 @@ export default function SheetsModal({
   onRefreshCompleted
 }: SheetsModalProps) {
   const { bumpVersion } = useFinanceData();
+  // Come Modal.tsx: focus intrappolato nel popup, Esc chiude, titolo letto dallo screen reader.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titoloId = useId();
+  useFocusTrap(isOpen, onClose, panelRef);
   const [sheetId, setSheetId] = useState<string>('');
   const [inputUrl, setInputUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -290,22 +295,29 @@ export default function SheetsModal({
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="relative bg-white rounded-3xl shadow-2xl border border-slate-105 w-full max-w-lg overflow-hidden shrink-0 z-50 text-ink"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titoloId}
+        tabIndex={-1}
+        className="relative bg-white rounded-3xl shadow-2xl border border-hairline w-full max-w-lg overflow-hidden shrink-0 z-50 text-ink outline-hidden"
       >
         {/* Header */}
         <div className="px-6 py-5 border-b border-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-accent/15 text-accent flex items-center justify-center">
-              <Database className="w-5 h-5 animate-pulse" />
+              <Database className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <h3 className="font-bold font-display text-ink text-base">Integrazione Google Sheets</h3>
+              <h3 id={titoloId} className="font-bold font-display text-ink text-base">Integrazione Google Sheets</h3>
               <p className="text-xs text-ink-soft mt-0.5">Sincronizza le tue finanze con un foglio Google</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-xl hover:bg-canvas text-ink-soft hover:text-ink-soft flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Chiudi"
+            className="w-9 h-9 rounded-xl bg-down/15 hover:bg-down/25 border border-down/30 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -474,7 +486,7 @@ export default function SheetsModal({
                   Creazione Automatica Rapida
                 </h4>
                 <p className="text-xs text-ink-soft mt-1 leading-relaxed">
-                  Crea un nuovo foglio Wally formattato ed esporta all'istante i dati di esempio correnti per iniziare subito.
+                  Crea un nuovo foglio Wally già formattato e ci carica subito i dati salvati su questo dispositivo.
                 </p>
                 <button
                   type="button"
@@ -539,11 +551,6 @@ export default function SheetsModal({
           )}
         </div>
 
-        {/* Footer info banner */}
-        <div className="px-6 py-4 bg-canvas border-t border-hairline flex items-center justify-between text-3xs text-ink-soft font-mono">
-          <span>Wally Engine v2</span>
-          <span>Google Drive API v3</span>
-        </div>
       </motion.div>
     </div>
   );

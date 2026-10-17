@@ -392,10 +392,10 @@ export default function Rendimenti({
       {/* Widget unico: Andamento Rendimenti, con i due grafici affiancati dentro */}
       <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
-          <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-1.5">
+          <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-1.5">
             <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             Andamento Rendimenti
-          </h3>
+          </h2>
           <div className="flex bg-canvas dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-hairline dark:border-slate-700/60 select-none">
             <button
               onClick={() => setValueMode('euro')}
@@ -420,10 +420,10 @@ export default function Rendimenti({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-canvas/60 dark:bg-slate-900/20 border border-hairline/70 dark:border-slate-800/60">
             <div className="flex items-center justify-between gap-3 mb-2">
-              <h4 className="font-bold text-ink dark:text-slate-200 text-sm flex items-center gap-1.5">
+              <h3 className="font-bold text-ink dark:text-slate-200 text-sm flex items-center gap-1.5">
                 <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 Crescita Rendimento
-              </h4>
+              </h3>
               <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-hairline dark:border-slate-700/60 select-none">
                 <button
                   onClick={() => setCrescitaRange('storico')}
@@ -523,10 +523,10 @@ export default function Rendimenti({
 
           <div className="flex flex-col h-[440px] p-4 rounded-2xl bg-canvas/60 dark:bg-slate-900/20 border border-hairline/70 dark:border-slate-800/60">
             <div className="flex items-center justify-between gap-3 mb-2">
-              <h4 className="font-bold text-ink dark:text-slate-200 text-sm flex items-center gap-1.5">
+              <h3 className="font-bold text-ink dark:text-slate-200 text-sm flex items-center gap-1.5">
                 <BarChart3 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                 Rendimenti Mensili
-              </h4>
+              </h3>
               <div className="flex bg-white dark:bg-slate-800/60 p-1 rounded-xl gap-0.5 border border-hairline dark:border-slate-700/60 select-none">
                 <button
                   onClick={() => setMensileRange('storico')}
@@ -593,10 +593,10 @@ export default function Rendimenti({
       {/* Tabella Rendimenti: tutte le voci dallo sheet Rendimenti, filtrate per anno */}
       <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
+          <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             Registro Rendimenti
-          </h3>
+          </h2>
           <DropdownMenu
             icon={Database}
             label="Esercizio"

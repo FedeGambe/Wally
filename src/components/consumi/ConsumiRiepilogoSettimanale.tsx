@@ -50,7 +50,7 @@ export default function ConsumiRiepilogoSettimanale({
     <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
       <div className="flex items-center justify-between flex-wrap gap-3 border-b border-hairline dark:border-slate-800/60 pb-4 mb-4">
         <div>
-          <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h3>
+          <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base">Riepilogo Settimanale</h2>
           <p className="text-2xs text-ink-soft dark:text-slate-500 mt-0.5">{selectedWeek.settimana} · Andamento consumi e inefficienze</p>
         </div>
         <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-8 sm:pr-4 w-full sm:w-auto min-w-0">
@@ -191,7 +191,7 @@ export default function ConsumiRiepilogoSettimanale({
       </div>
 
       <div className="mt-4 px-1 text-2xs text-ink-soft dark:text-slate-400 leading-relaxed">
-        <span className="font-bold block mb-0.5 text-down">💡 Analisi per Federico:</span>
+        <span className="font-bold block mb-0.5 text-ink dark:text-slate-200">Come leggere i colori</span>
         I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? fmtNum(stats.kmAlLitro.median, 1) + ' km/lt' : '***'}).
       </div>
     </div>

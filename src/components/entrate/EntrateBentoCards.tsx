@@ -44,9 +44,9 @@ export default function EntrateBentoCards({ selectedRecord, prevRecord, totalInc
             Entrate Mensili ({selectedRecord?.meseDisplay} {selectedRecord?.anno})
           </span>
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            <h3 className="text-3xl font-extrabold font-display text-white leading-none">
+            <div className="text-3xl font-extrabold font-display text-white leading-none">
               <EuroAmount value={selectedRecord?.entrate || 0} />
-            </h3>
+            </div>
             {renderDelta(selectedRecord?.entrate || 0, prevRecord?.entrate)}
           </div>
         </div>
@@ -65,16 +65,16 @@ export default function EntrateBentoCards({ selectedRecord, prevRecord, totalInc
         </div>
         <div className="z-10 text-left">
           <span className="text-xs text-up font-bold uppercase tracking-wider block">
-            Entrate Anno Corrente ({selectedRecord?.anno})
+            Entrate del {selectedRecord?.anno}
           </span>
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            <h3 className="text-3xl font-extrabold font-display text-ink leading-none">
+            <div className="text-3xl font-extrabold font-display text-ink leading-none">
               <EuroAmount value={totalIncomeForSelectedYear} />
-            </h3>
+            </div>
           </div>
         </div>
         <p className="text-xs text-ink-soft mt-auto z-10 font-medium text-left">
-          Media mensile stimata di <strong className="font-bold text-ink">{formatEuro(avgMonthlyIncome)}</strong>
+          Media mensile di <strong className="font-bold text-ink">{formatEuro(avgMonthlyIncome)}</strong>
         </p>
         <div className="absolute -right-4 -bottom-4 text-emerald-500/10">
           <TrendingUp className="w-32 h-32" />

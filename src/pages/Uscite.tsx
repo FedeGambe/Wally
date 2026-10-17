@@ -104,9 +104,9 @@ export default function Uscite({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-bold text-ink font-display text-base">
+              <h2 className="font-bold text-ink font-display text-base">
                 Andamento Spese {selectedMacroCat !== 'Tutte' ? `: ${selectedMacroCat}` : ''} {selectedMicroCat !== 'Tutte' ? `> ${selectedMicroCat}` : ''} (Ultimi 12 Mesi)
-              </h3>
+              </h2>
               {(selectedMacroCat !== 'Tutte' || selectedMicroCat !== 'Tutte') && (
                 <button
                   onClick={() => {
@@ -179,8 +179,8 @@ export default function Uscite({
       <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 intense-search-bar">
           <div>
-            <h3 className="font-bold text-ink font-display text-base">Archivio Transazioni Uscite</h3>
-            <p className="text-xs text-ink-soft mt-1">Cerca, filtra e analizza i flussi in tempo reale</p>
+            <h2 className="font-bold text-ink font-display text-base">Archivio Transazioni Uscite</h2>
+            <p className="text-xs text-ink-soft mt-1">Movimenti del mese, con ricerca e filtri</p>
           </div>
 
           {/* Quick search input */}

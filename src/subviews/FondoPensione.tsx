@@ -358,10 +358,10 @@ export default function FondoPensione({
         {/* 1/3 Pie Chart for Historical Contribution composition */}
         <div className="lg:col-span-1 bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md min-h-[380px]">
           <div>
-            <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2 mb-1">
+            <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2 mb-1">
               <Shield className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               Ripartizione Totale Versamenti
-            </h3>
+            </h2>
             <p className="text-xs text-ink-soft dark:text-slate-400 mb-2 font-medium">
               Somma delle quote di tutti i versamenti storici effettuati nel fondo
             </p>
@@ -428,10 +428,10 @@ export default function FondoPensione({
         {/* 2/3 Area/Line Chart for Accumulated Value over time */}
         <div className="lg:col-span-2 bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md min-h-[380px]">
           <div>
-            <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2 mb-1">
+            <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2 mb-1">
               <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               Andamento Valore Accumulato
-            </h3>
+            </h2>
             <p className="text-xs text-ink-soft dark:text-slate-400 mb-4 font-medium">
               Crescita progressiva del capitale accumulato nel fondo pensione
             </p>
@@ -497,7 +497,7 @@ export default function FondoPensione({
 
       {/* Historical Records Table */}
       <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
-        <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base mb-4">Registro Storico Versamenti Fondo Pensione</h3>
+        <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base mb-4">Registro Storico Versamenti Fondo Pensione</h2>
         {/* Telefono: un mese per riga, totale del mese accanto, quote in griglia */}
         <RigheTelefono
           righe={descendingData.map((r, idx) => ({

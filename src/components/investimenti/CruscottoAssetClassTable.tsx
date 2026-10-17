@@ -16,7 +16,7 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
 
   return (
     <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-hairline shadow-sm transition-all duration-300 hover:shadow-md flex flex-col">
-      <h3 className="font-bold text-ink font-display text-base mb-4 shrink-0">Distribuzione Asset Class per Anno</h3>
+      <h2 className="font-bold text-ink font-display text-base mb-4 shrink-0">Distribuzione Asset Class per Anno</h2>
       {/* Telefono: un anno per riga, valutazione accanto all'anno, asset class in griglia */}
       <RigheTelefono
         righe={cruscottoRows.map((row: any) => {

@@ -136,7 +136,7 @@ export default function PatrimonioTrendChart({
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-amber-500" />
           <div>
-            <h3 className="font-bold text-ink font-display text-base leading-snug">Andamento Finanziario</h3>
+            <h2 className="font-bold text-ink font-display text-base leading-snug">Andamento Finanziario</h2>
             <p className="text-xs text-ink-soft mt-0.5">
               Analisi storica e cumulativa del patrimonio netto
               {isPointerFine && <span className="hidden sm:inline"> · trascina sul grafico per zoomare</span>}

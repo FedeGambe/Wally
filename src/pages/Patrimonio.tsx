@@ -117,10 +117,10 @@ export default function Patrimonio() {
 
       {/* Accounts Summary Cards List - full width, 2 columns (primi 4 a sx, restanti a dx) */}
       <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
-        <h3 className="font-bold text-ink font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <h2 className="font-bold text-ink font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <span>Sintesi Situazione Conti</span>
           <span className="text-3xs text-ink-soft font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
-        </h3>
+        </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-3">

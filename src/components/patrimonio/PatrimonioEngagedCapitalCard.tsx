@@ -46,7 +46,7 @@ export default function PatrimonioEngagedCapitalCard({
       <div className="flex items-center gap-2">
         <Coins className="w-5 h-5 text-amber-500" />
         <div>
-          <h3 className="font-bold text-ink font-display text-base leading-snug">Capitale Accantonato</h3>
+          <h2 className="font-bold text-ink font-display text-base leading-snug">Capitale Accantonato</h2>
           <p className="text-xs text-ink-soft mt-0.5">Suddivisione del capitale vincolato e dei debiti attivi per conto</p>
         </div>
       </div>

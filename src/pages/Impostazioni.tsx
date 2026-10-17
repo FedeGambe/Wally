@@ -97,9 +97,9 @@ export default function Impostazioni({
         {!isMobile && (
         <div className="flex items-center gap-2 mb-4">
           <Database className="w-5 h-5 text-accent" />
-          <h3 className="font-bold text-lg font-display text-ink">
+          <h2 className="font-bold text-lg font-display text-ink">
             Collegamento Google Sheets
-          </h3>
+          </h2>
         </div>
         )}
         <button
@@ -120,7 +120,7 @@ export default function Impostazioni({
             <form onSubmit={handleSaveSpreadsheet} className="space-y-3">
               <div>
                 <label className="block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider">
-                  Spreadsheet ID
+                  ID del foglio
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -231,13 +231,13 @@ export default function Impostazioni({
         ) : (
           <Sun className="w-5 h-5 text-amber-500" />
         )}
-        <h3 className="font-bold text-lg font-display text-ink">
+        <h2 className="font-bold text-lg font-display text-ink">
           Tema Grafico
-        </h3>
+        </h2>
       </div>
       )}
       <p className="text-xs text-ink-soft mb-6 leading-relaxed">
-        Scegli il tema grafico dell'applicazione. Il tema scuro offre la visualizzazione "Glassmorphic" con contrasti neon, mentre il tema chiaro offre un layout minimalista classico e luminoso.
+        Scuro (vetro) o chiaro: si applica subito a tutta l'app ed è ricordato su questo dispositivo.
       </p>
 
       <div className="grid grid-cols-2 gap-4 flex-1">

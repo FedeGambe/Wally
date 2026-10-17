@@ -36,10 +36,10 @@ export default function ConsumiCostoExtraKmPersi({
   return (
     <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
       <div className="flex items-start justify-between gap-2 mb-4">
-        <h3 className="font-bold text-ink dark:text-slate-100 font-display text-sm flex items-center gap-1.5">
+        <h2 className="font-bold text-ink dark:text-slate-100 font-display text-sm flex items-center gap-1.5">
           <AlertOctagon className="w-4.5 h-4.5 text-rose-500 dark:text-rose-400" />
           Costo Extra & Km Persi
-        </h3>
+        </h2>
         <SegmentedToggle<ExtraMode>
           value={extraMode}
           onChange={setExtraMode}
@@ -50,7 +50,7 @@ export default function ConsumiCostoExtraKmPersi({
         {/* Costo extra */}
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo Extra da Inefficienza Carburante</h4>
+            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo Extra da Inefficienza Carburante</h3>
             <TimeRangeToggle value={costoExtraChartRange} onChange={setCostoExtraChartRange} />
           </div>
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
@@ -92,7 +92,7 @@ export default function ConsumiCostoExtraKmPersi({
         {/* Km persi */}
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Km Persi per Inefficienza</h4>
+            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Km Persi per Inefficienza</h3>
             <TimeRangeToggle value={kmPersiChartRange} onChange={setKmPersiChartRange} />
           </div>
           <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Chilometri "persi" per uno stile di guida sopra la media consigliata</p>

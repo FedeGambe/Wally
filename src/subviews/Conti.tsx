@@ -253,10 +253,10 @@ export default function Conti({
       {activeConto === 'trade' && (
         <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
           <div className="mb-6 border-b border-hairline dark:border-slate-800/60 pb-4">
-            <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
+            <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
               <Landmark className="w-5 h-5 text-sky-500 dark:text-sky-400" />
               Dettaglio Rendimenti e Benefit Accumulati ({globalSelectedYear})
-            </h3>
+            </h2>
             <p className="text-xs text-ink-soft dark:text-slate-500 mt-0.5">
               Riepilogo delle voci di rendimento passivo con dettaglio sullo storico e progressione cumulativa.
             </p>
@@ -391,12 +391,12 @@ export default function Conti({
       <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
+            <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-sky-500 dark:text-sky-400" />
-              Registro Storico Mensile — Foglio di Calcolo ({activeConto === 'scalable' ? 'Scalable Capital' : 'Trade Republic'})
-            </h3>
+              Storico mensile · {activeConto === 'scalable' ? 'Scalable Capital' : 'Trade Republic'}
+            </h2>
             <p className="text-xs text-ink-soft dark:text-slate-500 font-medium mt-0.5">
-              Rappresentazione della struttura del foglio Google filtrata per l'anno {globalSelectedYear}
+              Mese per mese, anno {globalSelectedYear}
             </p>
           </div>
           <div className="px-3 py-1 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-full text-xs font-bold font-mono self-start sm:self-center">

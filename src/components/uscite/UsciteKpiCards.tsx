@@ -71,9 +71,9 @@ export default function UsciteKpiCards({
           </span>
           <div className="mt-3 text-left">
             <div className="flex items-center gap-2.5">
-              <h3 className="text-3xl font-extrabold font-display text-white leading-none">
+              <div className="text-3xl font-extrabold font-display text-white leading-none">
                 <EuroAmount value={selectedRecord.speseTotali} />
-              </h3>
+              </div>
               {prevRecord?.speseTotali && (
                 <div className="flex flex-col items-start leading-none mt-1">
                   {renderDeltaBadge(selectedRecord.speseTotali, prevRecord?.speseTotali, true)}
@@ -149,9 +149,9 @@ export default function UsciteKpiCards({
             </span>
             <div className="mt-3 text-left">
               <div className="flex items-center flex-wrap gap-2.5">
-                <h3 className="text-3xl font-extrabold font-display leading-none text-ink">
+                <div className="text-3xl font-extrabold font-display leading-none text-ink">
                   <EuroAmount value={selectedRecord.spesePrimarie} />
-                </h3>
+                </div>
                 {prevRecord?.spesePrimarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.spesePrimarie, prevRecord?.spesePrimarie, false)}
@@ -219,9 +219,9 @@ export default function UsciteKpiCards({
             </span>
             <div className="mt-3 text-left">
               <div className="flex items-center flex-wrap gap-2.5">
-                <h3 className="text-3xl font-extrabold font-display leading-none text-ink">
+                <div className="text-3xl font-extrabold font-display leading-none text-ink">
                   <EuroAmount value={selectedRecord.speseSecondarie} />
-                </h3>
+                </div>
                 {prevRecord?.speseSecondarie && (
                   <div className="flex flex-col items-start leading-none mt-1">
                     {renderDeltaBadge(selectedRecord.speseSecondarie, prevRecord?.speseSecondarie, false)}

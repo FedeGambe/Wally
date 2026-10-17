@@ -13,9 +13,9 @@ export default function EntrateMovimentiTable({ selectedRecord, activeMonthEntri
     <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="font-bold text-ink font-display text-base">
+          <h2 className="font-bold text-ink font-display text-base">
             Movimenti Entrate - {selectedRecord?.meseDisplay} {selectedRecord?.anno}
-          </h3>
+          </h2>
           <p className="text-xs text-ink-soft mt-1">
             Lista dei singoli flussi reali registrati per questo mese nel foglio Entrate.
           </p>
