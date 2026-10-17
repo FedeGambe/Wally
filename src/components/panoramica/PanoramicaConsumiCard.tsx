@@ -46,7 +46,7 @@ export default function PanoramicaConsumiCard({ onOpen }: PanoramicaConsumiCardP
         <div className="grid grid-cols-3 gap-2 mt-4">
           <div>
             <span className="block text-3xs uppercase tracking-wider text-ink-soft font-bold">Km/litro</span>
-            <span className="block text-base font-black font-display text-ink">{ultima.kmAlLitro.toFixed(1)}</span>
+            <span className="block text-base font-black font-display text-ink">{ultima.kmAlLitro.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
           </div>
           <div>
             <span className="block text-3xs uppercase tracking-wider text-ink-soft font-bold">€/100 km</span>

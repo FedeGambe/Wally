@@ -236,21 +236,9 @@ export default function PatrimonioTrendChart({
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
-                  width={38}
+                  width={52}
                   tickFormatter={(value) =>
-                    value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value
-                  }
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  stroke="#64748b"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  width={38}
-                  tickFormatter={(value) =>
-                    value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value
+                    value >= 1000 ? `${(value / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k €` : `${value} €`
                   }
                 />
 
@@ -284,10 +272,11 @@ export default function PatrimonioTrendChart({
                   hide={!visibleLines.risparmio}
                 />
 
-                {/* Line 3: Quota Investimenti (scala destra, blu/indigo) */}
+                {/* Line 3: Quota Investimenti (stessa scala in euro delle altre: con due assi la linea
+                    dell'investito passava sopra il netto pur valendo meno) */}
                 <Area
                   type="monotone"
-                  yAxisId="right"
+                  yAxisId="left"
                   name="Quota Investimenti"
                   dataKey="investito"
                   stroke="#0284c7"
@@ -302,7 +291,7 @@ export default function PatrimonioTrendChart({
                 {/* Stima mese mancante Investito: scenario ottimistico e pessimistico (tratteggiate, stesso colore della linea Quota Investimenti) */}
                 <Area
                   type="monotone"
-                  yAxisId="right"
+                  yAxisId="left"
                   name="Stima Investito (ottimistica)"
                   dataKey="investitoStimaOttimistica"
                   stroke="#0284c7"
@@ -316,7 +305,7 @@ export default function PatrimonioTrendChart({
                 />
                 <Area
                   type="monotone"
-                  yAxisId="right"
+                  yAxisId="left"
                   name="Stima Investito (pessimistica)"
                   dataKey="investitoStimaPessimistica"
                   stroke="#0284c7"

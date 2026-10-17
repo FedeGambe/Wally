@@ -114,7 +114,7 @@ export default function ConsumiPercorrenzaPrezzo({
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                     itemStyle={{ color: '#f59e0b' }}
-                    formatter={(value: any) => [`€${fmtNum(value, 3)}`, 'Prezzo al Lt']}
+                    formatter={(value: any) => [`${fmtNum(value, 3)} €`, 'Prezzo al Lt']}
                   />
                   <Area type="monotone" dataKey="prezzoAlLitro" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrezzoAlLitro)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
                 </AreaChart>

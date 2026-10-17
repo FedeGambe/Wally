@@ -117,7 +117,7 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
           )}
 
           <div className="text-right shrink-0">
-            <span className="text-ink-soft font-bold text-3xs uppercase block">Capitale Totale</span>
+            <span className="text-ink-soft font-bold text-3xs uppercase block">Saldo</span>
             <span className="text-sm font-bold text-ink font-display block mt-0.5">
               {formatEuro(conto.capitaleTotale)}
             </span>

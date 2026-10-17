@@ -28,8 +28,10 @@ export function fmtNum(val: unknown, dec = 2): string {
 }
 export const formatAxisNumber = (val: number) => fmtNum(val);
 export const formatAxisKm = (val: number) => fmtNum(val, 0);
-export const formatAxisPrezzo = (val: number) => `€${fmtNum(val, 3)}`;
-export const formatAxisEuro = (val: number) => `€${fmtNum(val)}`;
+export const formatAxisPrezzo = (val: number) => `${fmtNum(val, 3)} €`;
+// Sotto 1 € (es. la modalità €/Km, centesimi per km) servono 3 decimali: con 2
+// le tacche diventavano uguali ("0,02 €, 0,02 €, 0,01 €").
+export const formatAxisEuro = (val: number) => `${fmtNum(val, Math.abs(val) < 1 && val !== 0 ? 3 : 2)} €`;
 
 // Toggle generico a segmenti, riusato per storico/12 mesi e per accumulato/per km
 export function SegmentedToggle<T extends string>({ value, onChange, options }: {

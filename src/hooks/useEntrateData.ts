@@ -332,7 +332,8 @@ export function useEntrateData(
       // Fallback grezzo se la riga non ha una data propria: assume che il mese sia
       // giugno o maggio (unico caso gestito). Va bene solo perche' finora i dati
       // reali hanno sempre una data; se compaiono altri mesi senza data, va estesa.
-      data: e.data || `01/${monthName === 'Giugno' ? '06' : '05'}/${yearValue}`,
+      // Le entrate inserite a mano non hanno data: si mostra il mese, mai una data inventata.
+      data: e.data || `${monthName} ${yearValue}`,
       mese: e.meseNorm.toLowerCase(),
       descrizione: e.categoria || 'Entrata generica',
       macroCategoria: 'Entrate',

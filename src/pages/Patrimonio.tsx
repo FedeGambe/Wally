@@ -54,17 +54,17 @@ export default function Patrimonio() {
       <h1 className="sr-only">Patrimonio</h1>
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        {/* Wealth card 1 - Capitale Totale (Slate-900) */}
+        {/* Totale libero: disponibile + investito, come nella Home; con l'accantonato sotto */}
         <FinanceKpiCard
           id="card-patrimonio"
           type="totale"
-          title="Capitale Totale"
+          title="Totale libero"
           value={totalDisponibile + totalInvestito}
           icon={BarChart3}
           detail={
             <>
               <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-              <span>Incluso Accantonamento: <strong className="text-xs sm:text-xs font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
+              <span>Con l'accantonato: <strong className="text-xs sm:text-xs font-black font-mono text-ink dark:text-slate-100 tracking-tight ml-1">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</strong></span>
             </>
           }
         />

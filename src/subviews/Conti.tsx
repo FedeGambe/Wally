@@ -239,7 +239,11 @@ export default function Conti({
             <EuroAmount value={Math.abs(topKPIs.plusvalenza)} />
           </span>
           <p className="text-3xs text-ink-soft dark:text-slate-500 mt-1 truncate">
-            {topKPIs.isReal ? `Rendimento cumulativo registrato al mese di ${topKPIs.mese}` : `Contributore principale: ${accountKPIs[activeConto]?.topContributor || 'SToxx 600'}`}
+            {topKPIs.isReal
+              ? `Rendimento cumulativo registrato al mese di ${topKPIs.mese}`
+              : accountKPIs[activeConto]?.topContributor
+                ? `Contributore principale: ${accountKPIs[activeConto].topContributor}`
+                : 'Contributore principale non disponibile'}
           </p>
         </div>
       </div>

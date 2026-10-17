@@ -113,6 +113,8 @@ export const DEMO_HISTORICAL_CAR_MEASUREMENTS: ConsumoAutoWeek[] = [
   { settimana: 'Giu W1', data: '05/06/2026', mese: 'giugno', costo: 40.00, quantitaLitri: 22.2, prezzoAlLitro: 1.802, kmFinali: 52080, kmEffettuati: 400, kmAlLitro: 18.0, kmAlLitroAuto: 17.7, euroPer100Km: 10.00, kmPersi: 0, esitoSettimana: 'Buona', efficienzaPercentuale: 0.86, costoExtra: 0 }
 ];
 
+// Dati demo allineati a Giugno 2026: investito cumulato 17.090 € ovunque (rendimenti,
+// cruscotto, somma degli strumenti, Scalable 8.400 + Trade Republic 8.690 in Conti).
 export const DEMO_SCALABLE_INSTRUMENTS: InstrumentDetail[] = [
   { nome: 'Indice Azionario Europa Demo', tipo: 'ETF', importoInvestito: 1800, rendimentoMensileEuro: 32, rendimentoMensilePerc: 1.8, rendimentoCumulativoEuro: 190, rendimentoCumulativoPerc: 10.5, saldoConto: 1990 },
   { nome: 'Indice Globale Value Demo', tipo: 'ETF', importoInvestito: 2200, rendimentoMensileEuro: -12, rendimentoMensilePerc: -0.5, rendimentoCumulativoEuro: 230, rendimentoCumulativoPerc: 10.4, saldoConto: 2430 },
@@ -122,7 +124,7 @@ export const DEMO_SCALABLE_INSTRUMENTS: InstrumentDetail[] = [
 
 export const DEMO_TRADE_REPUBLIC_INSTRUMENTS: InstrumentDetail[] = [
   { nome: 'Indice Mondiale Sostenibile Demo', tipo: 'ETF', importoInvestito: 4200, rendimentoMensileEuro: 85, rendimentoMensilePerc: 2.0, rendimentoCumulativoEuro: 780, rendimentoCumulativoPerc: 18.6, saldoConto: 4980 },
-  { nome: 'Indice Tecnologico USA Demo', tipo: 'ETF', importoInvestito: 5200, rendimentoMensileEuro: 140, rendimentoMensilePerc: 2.7, rendimentoCumulativoEuro: 900, rendimentoCumulativoPerc: 17.3, saldoConto: 6100 },
+  { nome: 'Indice Tecnologico USA Demo', tipo: 'ETF', importoInvestito: 6090, rendimentoMensileEuro: 140, rendimentoMensilePerc: 2.3, rendimentoCumulativoEuro: 900, rendimentoCumulativoPerc: 14.8, saldoConto: 6990 },
   { nome: 'Obbligazionario Governativo Demo', tipo: 'ETF', importoInvestito: 1400, rendimentoMensileEuro: 10, rendimentoMensilePerc: 0.7, rendimentoCumulativoEuro: 45, rendimentoCumulativoPerc: 3.2, saldoConto: 1445 },
   { nome: 'Interessi Conto Broker Beta Demo', tipo: 'Liquidita', importoInvestito: 800, rendimentoMensileEuro: 2.6, rendimentoMensilePerc: 0.3, rendimentoCumulativoEuro: 28, rendimentoCumulativoPerc: 3.5, saldoConto: 828 }
 ];
@@ -144,6 +146,8 @@ export const DEMO_CRUSCOTTO_DATA: any[] = [
     azioniInvestitoAnno: 1700,
     obbligazioniInvestitoCum: 4400,
     obbligazioniInvestitoAnno: 800,
+    monetariInvestitoCum: 4090,
+    monetariInvestitoAnno: -570,
     investitoCumulativo: 17090,
     investitoAnnuale: 1930,
     rendimentoCumulativoEuro: 2370,
@@ -157,6 +161,8 @@ export const DEMO_CRUSCOTTO_DATA: any[] = [
     azioniInvestitoAnno: 6900,
     obbligazioniInvestitoCum: 3600,
     obbligazioniInvestitoAnno: 3600,
+    monetariInvestitoCum: 4660,
+    monetariInvestitoAnno: 4660,
     investitoCumulativo: 15160,
     investitoAnnuale: 15160,
     rendimentoCumulativoEuro: 1570,

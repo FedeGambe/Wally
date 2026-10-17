@@ -306,7 +306,8 @@ export function useUsciteData(
     const record = localRisparmio.find(r => r.mese.toLowerCase() === formattedMonth && r.anno === yearValue);
 
     setDrawerTitle(`Analisi Completa Uscite - ${monthName} ${yearValue}`);
-    setDrawerSubtitle(`Spesa totale: ${formatEuro(record ? record.speseTotali : 1100)}`);
+    // Senza riga nel foglio Risparmio per il mese: somma dei movimenti, mai una cifra fissa.
+    setDrawerSubtitle(`Spesa totale: ${formatEuro(record ? record.speseTotali : matchedTx.reduce((sum, t) => sum + t.importo, 0))}`);
     setDrawerTransactions(matchedTx);
     setDrawerStats({
       total: record ? record.speseTotali : matchedTx.reduce((sum, t) => sum + t.importo, 0),

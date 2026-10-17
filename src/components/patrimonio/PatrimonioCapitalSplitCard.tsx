@@ -132,7 +132,7 @@ export default function PatrimonioCapitalSplitCard({
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <span className="text-3xs text-ink-soft font-bold block uppercase tracking-wider">Totale</span>
+                <span className="text-3xs text-ink-soft font-bold block uppercase tracking-wider">Complessivo</span>
                 <span className="text-sm font-black font-display text-amber-500">{formatEuro(totalDisponibile + totalInvestito + totalImpegnato)}</span>
               </div>
             </div>

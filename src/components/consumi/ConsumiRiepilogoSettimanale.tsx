@@ -3,6 +3,7 @@ import { Calendar } from 'lucide-react';
 import EuroAmount from '../EuroAmount';
 import DropdownMenu from '../DropdownMenu';
 import { formatEuro } from '../../utils/format';
+import { fmtNum } from './ConsumiChartHelpers';
 import { kpiColorAlpha, kpiTextColor, KpiRange } from '../../utils/kpiColorScale';
 import type { RecordConsumo } from '../../hooks/useAnalisiConsumiData';
 
@@ -66,7 +67,7 @@ export default function ConsumiRiepilogoSettimanale({
           <div className="text-right">
             <span className="text-3xs text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Punteggio</span>
             <span className="text-xl font-black font-display text-ink dark:text-slate-100">
-              {typeof selectedWeek.efficienzaPercentuale === 'number' && !isNaN(selectedWeek.efficienzaPercentuale) ? selectedWeek.efficienzaPercentuale.toFixed(2) : '***'}
+              {typeof selectedWeek.efficienzaPercentuale === 'number' && !isNaN(selectedWeek.efficienzaPercentuale) ? fmtNum(selectedWeek.efficienzaPercentuale, 2) : '***'}
               <span className="text-xs font-medium text-ink-soft dark:text-slate-500"> /1</span>
             </span>
           </div>
@@ -98,10 +99,10 @@ export default function ConsumiRiepilogoSettimanale({
         <div className="bg-canvas dark:bg-slate-900/40 p-4 rounded-2xl border border-hairline dark:border-slate-800/60">
           <span className="text-3xs text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
           <span className="text-4xl font-black font-display text-blue-600 dark:text-rose-400 mt-1 block">
-            {selectedWeek.kmEffettuati} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
+            {fmtNum(selectedWeek.kmEffettuati, 1)} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
           </span>
           <span className="text-3xs text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">
-            Rifornimento: {selectedWeek.data} • {Number(selectedWeek.quantitaLitri).toFixed(2)} Lt • {Number(selectedWeek.prezzoAlLitro).toFixed(3)} €/Lt
+            Rifornimento: {selectedWeek.data} • {fmtNum(Number(selectedWeek.quantitaLitri), 2)} Lt • {fmtNum(Number(selectedWeek.prezzoAlLitro), 3)} €/Lt
           </span>
           {previousWeek && (
             <div className="mt-1.5 space-y-0.5">
@@ -112,12 +113,12 @@ export default function ConsumiRiepilogoSettimanale({
               )}
               {litriDelta !== null && (
                 <span className={`text-3xs block ${deltaClass(litriDelta, true)}`}>
-                  <span className="font-bold">{litriDelta >= 0 ? '▲' : '▼'} {Math.abs(litriDelta).toFixed(1)} Lt</span> vs sett. precedente
+                  <span className="font-bold">{litriDelta >= 0 ? '▲' : '▼'} {fmtNum(Math.abs(litriDelta), 1)} Lt</span> vs sett. precedente
                 </span>
               )}
               {prezzoDelta !== null && (
                 <span className={`text-3xs block ${deltaClass(prezzoDelta, true)}`}>
-                  <span className="font-bold">{prezzoDelta >= 0 ? '▲' : '▼'} {Math.abs(prezzoDelta).toFixed(3)} €/Lt</span> vs sett. precedente
+                  <span className="font-bold">{prezzoDelta >= 0 ? '▲' : '▼'} {fmtNum(Math.abs(prezzoDelta), 3)} €/Lt</span> vs sett. precedente
                 </span>
               )}
             </div>
@@ -133,12 +134,12 @@ export default function ConsumiRiepilogoSettimanale({
             <div className="col-span-2 h-full flex flex-col justify-between">
               <span className="text-3xs font-bold uppercase tracking-wider block">Consumo medio (Km/Lt)</span>
               <span className="text-xl font-bold font-display block">
-                {typeof selectedWeek.kmAlLitro === 'number' && !isNaN(selectedWeek.kmAlLitro) ? selectedWeek.kmAlLitro.toFixed(1) + ' km/lt' : '***'}
+                {typeof selectedWeek.kmAlLitro === 'number' && !isNaN(selectedWeek.kmAlLitro) ? fmtNum(selectedWeek.kmAlLitro, 1) + ' km/lt' : '***'}
               </span>
             </div>
             <div className="text-right">
               <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.kmAlLitro, stats.kmAlLitro, true)}>{kmLtLabel}</span>
-              <span className="text-xs font-mono opacity-70 block">{stats.kmAlLitro.median.toFixed(1)} km/lt</span>
+              <span className="text-xs font-mono opacity-70 block">{fmtNum(stats.kmAlLitro.median, 1)} km/lt</span>
             </div>
           </div>
           <div
@@ -156,21 +157,21 @@ export default function ConsumiRiepilogoSettimanale({
           </div>
         </div>
 
-        {/* Sotto-widget 3: Incurrenza e costo extra */}
+        {/* Sotto-widget 3: km persi e costo extra (rispetto alla mediana) */}
         <div className="h-full flex flex-col gap-3">
           <div
             className="p-3.5 rounded-xl border transition-all grid grid-cols-3 gap-2 flex-1 hover:shadow-[0_0_20px_-4px_var(--glow)]"
             style={kpiCardStyle(selectedWeek.kmPersi, stats.kmPersi, false)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-3xs font-bold uppercase tracking-wider block">Km Persi (Incurrenza)</span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">Km Persi</span>
               <span className="text-xl font-bold font-display block">
-                {typeof selectedWeek.kmPersi === 'number' && !isNaN(selectedWeek.kmPersi) ? selectedWeek.kmPersi.toFixed(1) + ' km' : '***'}
+                {typeof selectedWeek.kmPersi === 'number' && !isNaN(selectedWeek.kmPersi) ? fmtNum(selectedWeek.kmPersi, 1) + ' km' : '***'}
               </span>
             </div>
             <div className="text-right">
               <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.kmPersi, stats.kmPersi, false)}>{kmPersiLabel}</span>
-              <span className="text-xs font-mono opacity-70 block">{stats.kmPersi.median.toFixed(1)} km</span>
+              <span className="text-xs font-mono opacity-70 block">{fmtNum(stats.kmPersi.median, 1)} km</span>
             </div>
           </div>
           <div
@@ -191,7 +192,7 @@ export default function ConsumiRiepilogoSettimanale({
 
       <div className="mt-4 px-1 text-2xs text-ink-soft dark:text-slate-400 leading-relaxed">
         <span className="font-bold block mb-0.5 text-down">💡 Analisi per Federico:</span>
-        I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? stats.kmAlLitro.median.toFixed(1) + ' km/lt' : '***'}).
+        I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? fmtNum(stats.kmAlLitro.median, 1) + ' km/lt' : '***'}).
       </div>
     </div>
   );

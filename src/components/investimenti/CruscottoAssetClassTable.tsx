@@ -7,7 +7,12 @@ interface CruscottoAssetClassTableProps {
   maxHeight?: number;
 }
 
+// Valore assente nel foglio (formatEuro lo mostrerebbe come "***").
+const mancante = (v: any) => v === undefined || v === null || v === '' || isNaN(Number(v));
 export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, maxHeight }: CruscottoAssetClassTableProps) {
+  // Importo dell'anno col segno: "+" solo se il dato c'è ed è positivo, niente "+***".
+  const conSegno = (v: any) => mancante(v) ? formatEuro(v) : `${Number(v) > 0 ? '+' : ''}${formatEuro(v)}`;
+
   return (
     <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-hairline shadow-sm transition-all duration-300 hover:shadow-md flex flex-col">
       <h3 className="font-bold text-ink font-display text-base mb-4 shrink-0">Distribuzione Asset Class per Anno</h3>
@@ -34,10 +39,10 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
               // nelle 3 asset class + plusvalenza cumulata a fine anno. Le commissioni NON
               // si sommano qui: il rendimento (foglio Rendimenti) è già calcolato al netto
               // di quelle, sommarle di nuovo sarebbe doppio conteggio.
-              const valuationSum = Number(row.azioniInvestitoCum || 0) +
-                Number(row.obbligazioniInvestitoCum || 0) +
-                Number(row.monetariInvestitoCum || 0) +
-                Number(row.rendimentoCumulativoEuro || 0);
+              // Se manca una delle quattro parti la somma sarebbe sbagliata (prima
+              // contava 0): la valutazione resta vuota invece di sottostimare.
+              const parti = [row.azioniInvestitoCum, row.obbligazioniInvestitoCum, row.monetariInvestitoCum, row.rendimentoCumulativoEuro];
+              const valuationSum = parti.some(mancante) ? undefined : parti.reduce((s: number, v: any) => s + Number(v), 0);
               return (
                 <tr key={row.anno} className="hover:bg-canvas/60 dark:hover:bg-slate-800/20 transition-colors">
                   <td className="py-3.5 px-4 font-semibold text-ink dark:text-slate-100">
@@ -45,15 +50,15 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
                   <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
-                    +{formatEuro(row.azioniInvestitoAnno)}
+                    {conSegno(row.azioniInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
                   <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
-                    +{formatEuro(row.obbligazioniInvestitoAnno)}
+                    {conSegno(row.obbligazioniInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
                   <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
-                    +{formatEuro(row.monetariInvestitoAnno)}
+                    {conSegno(row.monetariInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-bold text-sky-600 font-mono">
                     {formatEuro(valuationSum)}
