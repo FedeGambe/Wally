@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard, ChevronLeft, ChevronRight, Receipt } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../data/mockData';
 import { formatEuro, formatPercent } from '../utils/format';
@@ -224,9 +224,12 @@ export default function Drawer({
                       </div>
                       <div className="w-1/2 space-y-2 text-xs">
                         {pieData.map((d, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                            <span className="text-ink-soft dark:text-slate-300 truncate">{d.name}</span>
+                          <div key={idx} className="flex items-start gap-1.5">
+                            <span className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ backgroundColor: d.color }} />
+                            <span className="min-w-0">
+                              <span className="block text-ink-soft dark:text-slate-300 truncate">{d.name}</span>
+                              <span className="block font-semibold text-ink dark:text-slate-100 tabular-nums">{formatEuro(d.value)}</span>
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -292,7 +295,7 @@ export default function Drawer({
                   className="p-3.5 bg-white hover:bg-canvas dark:bg-white/5 dark:hover:bg-white/10 rounded-xl border border-hairline dark:border-white/10 transition-all flex items-start gap-3.5"
                 >
                   <div className="w-9 h-9 rounded-lg bg-canvas dark:bg-white/10 flex items-center justify-center text-lg shadow-xs shrink-0 border border-hairline dark:border-white/10">
-                    {t.icon || '💸'}
+                    {t.icon || <Receipt className="w-4 h-4 text-ink-soft dark:text-slate-400" />}
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between gap-1.5">

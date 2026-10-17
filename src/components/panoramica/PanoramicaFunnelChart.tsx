@@ -44,10 +44,10 @@ export default function PanoramicaFunnelChart({ data, mese, anno, theme }: Panor
     <div className="hidden md:block bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
       <div className="flex items-start justify-between gap-3 flex-wrap mb-1">
         <div>
-          <h3 className="font-bold text-ink font-display text-base flex items-center gap-1.5">
+          <h2 className="font-bold text-ink font-display text-base flex items-center gap-1.5">
             <Waypoints className="w-5 h-5 text-blue-600" />
             Flusso del Mese
-          </h3>
+          </h2>
           <p className="text-xs text-ink-soft mt-1">
             {mese} {anno} — dalle entrate a investimenti (per strumento) e uscite primarie/secondarie (per macro categoria)
           </p>

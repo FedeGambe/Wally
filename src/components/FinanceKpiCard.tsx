@@ -92,9 +92,9 @@ export default function FinanceKpiCard({
 
             {/* Value */}
             <div className="z-10 mt-1">
-                <h3 className={`${valoreClassName} font-black font-display text-ink dark:text-slate-100 block leading-none`}>
+                <div className={`${valoreClassName} font-black font-display text-ink dark:text-slate-100 block leading-none`}>
                     <EuroAmount value={value} />
-                </h3>
+                </div>
             </div>
 
             {/* Separator line + Detail description below: nascosto su mobile per

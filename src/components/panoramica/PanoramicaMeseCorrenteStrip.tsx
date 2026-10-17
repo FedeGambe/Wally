@@ -81,14 +81,14 @@ export default function PanoramicaMeseCorrenteStrip({
 
   return (
     <div className="hidden md:block bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left">
-      <h3 className="text-base font-bold text-ink font-display mb-4 flex items-center gap-2">
+      <h2 className="text-base font-bold text-ink font-display mb-4 flex items-center gap-2">
         <Calendar className="w-5 h-5 text-blue-600" />
         {/* "Mese in evidenza", non "corrente": è il mese scelto in alto, che può essere passato */}
         <span>Mese in evidenza:</span>
         <span className="text-blue-600 font-extrabold capitalize">
           {currentMonthData.mese} <span className="hidden md:inline">{currentMonthData.anno}</span><span className="md:hidden">{String(currentMonthData.anno).slice(2)}</span>
         </span>
-      </h3>
+      </h2>
 
       {/* Nota sul verso dei confronti con la soglia: per Risparmio e
           Investito "di più è meglio" quindi il confronto è >= (raggiunto
@@ -101,7 +101,7 @@ export default function PanoramicaMeseCorrenteStrip({
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm text-slate-300 font-bold">Risparmio & Investito</span>
             <div className="text-right">
-              <span className="font-extrabold font-display text-ink block">{formatEuro(rispInvTotale)}</span>
+              <span className="font-extrabold font-display text-ink block"><EuroAmount value={rispInvTotale} /></span>
               <span className={`text-3xs font-bold ${rispInvPerc !== undefined && rispInvPerc >= rispInvSoglia ? 'text-up' : 'text-down'}`}>
                 {formatPercent(rispInvPerc)} / Soglia {rispInvSoglia}%
               </span>
@@ -169,7 +169,7 @@ export default function PanoramicaMeseCorrenteStrip({
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm text-slate-300 font-bold">Spese</span>
             <div className="text-right">
-              <span className="font-extrabold font-display text-ink block">{formatEuro(speseTotaleWidget)}</span>
+              <span className="font-extrabold font-display text-ink block"><EuroAmount value={speseTotaleWidget} /></span>
               <span className={`text-3xs font-bold ${spesePerc !== undefined && spesePerc <= speseSoglia ? 'text-up' : 'text-down'}`}>
                 {formatPercent(spesePerc)} / Soglia {speseSoglia}%
               </span>

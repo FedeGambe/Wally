@@ -63,11 +63,11 @@ export default function PanoramicaTrendChart({
     <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md flex flex-col">
       <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
         <div>
-          <h3 className="font-bold text-ink font-display text-base flex items-center gap-1.5">
+          <h2 className="font-bold text-ink font-display text-base flex items-center gap-1.5">
             <TrendingUp className="w-5 h-5 text-blue-600" />
             <span className="md:hidden">Trend Risparmio</span>
             <span className="hidden md:inline">Trend Risparmio: investimenti e risparmi</span>
-          </h3>
+          </h2>
           <p className="text-xs text-ink-soft mt-1">Confronto tra flussi di risparmio e quota investimenti</p>
         </div>
 

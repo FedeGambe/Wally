@@ -393,3 +393,12 @@ input[type="date"]::-webkit-date-and-time-value {
     min-width: 2.25rem;
   }
 }
+
+/* "Riduci movimento" del sistema: si fermano i pallini che pulsano (animate-pulse,
+   anche le macchie di colore dello sfondo scuro). Lo spin dei caricamenti resta,
+   perché dice che qualcosa sta succedendo. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+  }
+}

@@ -117,7 +117,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
     <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-bold text-ink font-display text-base">Bilancio Storico Mensile</h3>
+          <h2 className="font-bold text-ink font-display text-base">Bilancio Storico Mensile</h2>
           <p className="text-xs text-ink-soft mt-1">Sintesi consolidata ricavata dal foglio Risparmio</p>
         </div>
         <span className="text-3xs text-ink-soft font-bold bg-canvas px-2.5 py-1 rounded-full uppercase tracking-wider">
