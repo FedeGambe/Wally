@@ -2,6 +2,7 @@ import React, { useId, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { usePannelloAperto } from '../hooks/useBolleAperte';
 
 /**
  * Guscio condiviso per tutti i pannelli laterali scorrevoli (drawer) dell'app:
@@ -24,6 +25,8 @@ export default function SlideOverPanel({ isOpen, onClose, title, subtitle, child
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   useFocusTrap(isOpen, onClose, panelRef);
+  // Il "+" in basso a destra starebbe sopra il pannello: sparisce finché è aperto.
+  usePannelloAperto(isOpen);
 
   return (
     <AnimatePresence>
@@ -52,15 +55,19 @@ export default function SlideOverPanel({ isOpen, onClose, title, subtitle, child
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
             className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-[#0b0f19]/95 backdrop-blur-xl shadow-2xl z-[60] flex flex-col h-full border-l border-hairline dark:border-white/10 outline-hidden"
           >
-            <div className="p-6 border-b border-hairline dark:border-white/10 flex items-center justify-between shrink-0">
-              <div>
-                <h3 id={titleId} className="text-lg font-bold text-ink dark:text-slate-100 font-display">{title}</h3>
-                {subtitle && <p className="text-xs text-ink-soft mt-1">{subtitle}</p>}
+            {/* Intestazione come quella di Modal.tsx (stesso padding, titolo e bottone
+                chiudi rosso), così pannelli laterali e popup sembrano della stessa app.
+                Su telefono il pannello è a tutta altezza: rispetta il notch in alto. */}
+            <div className="p-5 pt-[max(1.25rem,env(safe-area-inset-top))] md:pt-5 border-b border-hairline dark:border-white/10 flex items-start gap-3 shrink-0">
+              <div className="flex-1 min-w-0">
+                <h3 id={titleId} className="text-base font-bold text-ink dark:text-slate-100 font-display text-balance">{title}</h3>
+                {subtitle && <p className="text-xs text-ink-soft dark:text-slate-400 mt-1">{subtitle}</p>}
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 aria-label="Chiudi"
-                className="w-8 h-8 rounded-lg hover:bg-canvas dark:hover:bg-white/10 flex items-center justify-center text-ink-soft hover:text-ink-soft dark:hover:text-slate-300 transition-colors cursor-pointer shrink-0"
+                className="w-9 h-9 rounded-xl bg-down/15 hover:bg-down/25 border border-down/30 flex items-center justify-center text-rose-600 dark:text-rose-400 transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>

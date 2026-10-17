@@ -16,11 +16,16 @@ export default function PanoramicaConsumiCard({ onOpen }: PanoramicaConsumiCardP
   const { consumiRecords } = useAnalisiConsumiData();
   const ultima = consumiRecords[consumiRecords.length - 1];
 
+  // Il fondo sta su un div e non sul bottone: nel tema scuro ".glass-theme
+  // button.bg-white" schiarisce i bottoni bianchi (pensato per i tab attivi), e
+  // la card risultava più chiara del Trend Risparmio accanto. Così prende lo
+  // stesso vetro delle altre card.
   return (
+    <div className="md:hidden bg-white border border-hairline rounded-3xl shadow-sm transition-all duration-300 hover:shadow-md">
     <button
       type="button"
       onClick={onOpen}
-      className="md:hidden w-full bg-white border border-hairline rounded-3xl p-5 shadow-xs text-left cursor-pointer active:scale-[0.99] transition-all"
+      className="w-full p-5 rounded-3xl text-left cursor-pointer active:scale-[0.99] transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
     >
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2">
@@ -54,5 +59,6 @@ export default function PanoramicaConsumiCard({ onOpen }: PanoramicaConsumiCardP
         </div>
       )}
     </button>
+    </div>
   );
 }

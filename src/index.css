@@ -31,9 +31,6 @@
   --color-info: #0284c7;   /* stato informativo secondario — sky-600 */
   --color-accent: #00A19A; /* brand / CTA — teal (nuovo logo) */
   --glow-white-mix: 45%;   /* pallini/glow con colore dinamico (inline style): li schiarisce in chiaro */
-  --drawer-tint: #F7F7F6;         /* Drawer.tsx: fallback riquadro neutro senza soglia */
-  --drawer-tint-strong: #E7E7E5;  /* Drawer.tsx: bordo dello stesso riquadro */
-  --drawer-text-soft: #6E6E6C;    /* Drawer.tsx: fallback testo secondario nei riquadri con colore dinamico */
 }
 
 .dark {
@@ -43,9 +40,6 @@
   --color-info: #38bdf8;
   --color-accent: #15B4B7;
   --glow-white-mix: 0%;    /* in scuro il colore resta quello originale, non schiarito */
-  --drawer-tint: rgba(255, 255, 255, 0.10);
-  --drawer-tint-strong: rgba(255, 255, 255, 0.25);
-  --drawer-text-soft: #94a3b8;
 }
 
 @theme inline {

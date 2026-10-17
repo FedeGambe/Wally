@@ -9,12 +9,16 @@
 // composizione delle sezioni, ciascuna un componente in
 // src/components/panoramica/:
 //  1. PanoramicaWealthCards — 4 card di patrimonio (Disponibile/Investito/Accantonato/Totale)
-//  2. PanoramicaRendicontoWidget — "Disponibilità Netta", renderizzato 2 volte
-//     (mobile in alto, desktop accanto al grafico) a seconda del breakpoint
+//  2. PanoramicaRendicontoWidget — renderizzato 2 volte: "Questo mese" in cima
+//     su telefono, "Disponibilità Netta" accanto al grafico su computer
 //  3. PanoramicaMeseCorrenteStrip — KPI del mese con soglie e delta % vs mese precedente
 //  4. PanoramicaTrendChart — grafico ad area Risparmio/Investito, mensile o cumulato
-//  5. PanoramicaBilancioStorico — tabella storica mensile
+//  5. PanoramicaBilancioStorico — tabella storica mensile (su telefono in un popup)
 //  6. Drawer laterale con il dettaglio movimenti quando si apre un mese
+//
+// Su telefono l'ordine non è quello del codice: lo decidono le classi order-*
+// (mese, poi movimenti dalla banca, poi patrimonio, consumi, grafico); da md in
+// su order-none rimette l'ordine del codice, che è quello del computer.
 // ============================================================================
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -22,6 +26,7 @@ import AggiungiDatoModal, { type TipoDato } from '../components/AggiungiDatoModa
 import AggiungiDatoBubbles from '../components/AggiungiDatoBubbles';
 import FloatingAddButton from '../components/FloatingAddButton';
 import Drawer from '../components/Drawer';
+import Modal from '../components/Modal';
 import PanoramicaWealthCards from '../components/panoramica/PanoramicaWealthCards';
 import PanoramicaRendicontoWidget from '../components/panoramica/PanoramicaRendicontoWidget';
 import PanoramicaMeseCorrenteStrip from '../components/panoramica/PanoramicaMeseCorrenteStrip';
@@ -71,18 +76,21 @@ export default function Panoramica({
   // Tipo scelto dai pallini (solo telefono); null = popup con la griglia (desktop).
   const [tipoDaPallini, setTipoDaPallini] = useState<TipoDato>(null);
   const isPhone = useIsMobile(768);
+  // Popup "Storico mesi": su telefono la tabella storica non sta nella Home.
+  const [storicoAperto, setStoricoAperto] = useState(false);
 
-  const rendicontoWidget = (
+  const rendicontoWidget = (variante: 'telefono' | 'computer') => (
     <PanoramicaRendicontoWidget
       currentMonthData={currentMonthData}
       sogliaRisparmio={dynamicThresholds.risparmio}
-      isMobile={isMobile}
+      spendibileResiduo={spendibileResiduo}
+      variante={variante}
       onOpenDetail={() => handleOpenMonthDetail(currentMonthData.mese, currentMonthData.anno)}
     />
   );
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <h1 className="sr-only">Panoramica</h1>
       {/* Su telefono il "+" apre i pallini dei tipi, su desktop il popup con la griglia */}
       {isPhone ? (
@@ -91,24 +99,33 @@ export default function Panoramica({
         <FloatingAddButton label="Aggiungi Dato" colorClass="bg-blue-600 hover:bg-blue-700" onClick={() => { setTipoDaPallini(null); setShowAddDataModal(true); }} />
       )}
 
-      <PanoramicaWealthCards
-        capitaleDisponibile={capitaleDisponibile}
-        capitaleInvestito={capitaleInvestito}
-        capitaleImpegnato={capitaleImpegnato}
-        patrimonioTotale={patrimonioTotale}
-      />
+      <div className="order-3 md:order-none">
+        <PanoramicaWealthCards
+          capitaleDisponibile={capitaleDisponibile}
+          capitaleInvestito={capitaleInvestito}
+          capitaleImpegnato={capitaleImpegnato}
+          patrimonioTotale={patrimonioTotale}
+        />
+      </div>
 
-      {/* Movimenti scaricati dalle banche: compare solo con una banca collegata */}
-      <MovimentiBancaCard />
+      {/* Movimenti scaricati dalle banche: compare solo con una banca collegata.
+          Il wrapper vuoto non lascia spazi: in un flex con gap un div vuoto conta,
+          per questo :empty lo nasconde. */}
+      <div className="order-2 md:order-none empty:hidden">
+        <MovimentiBancaCard />
+      </div>
 
-      {/* Rendiconto Mese Corrente: solo mobile, subito dopo i 4 widget patrimonio
-          (su desktop resta nella sua posizione originale, vedi sotto) */}
-      <div className="md:hidden">
-        {rendicontoWidget}
+      {/* "Questo mese": solo telefono, prima card della Home */}
+      <div className="order-1 md:hidden">
+        {rendicontoWidget('telefono')}
       </div>
 
       {/* Analisi consumi: su telefono non sta nella barra in basso, si apre da qui */}
-      {setActiveView && <PanoramicaConsumiCard onOpen={() => setActiveView('consumi')} />}
+      {setActiveView && (
+        <div className="order-4 md:hidden">
+          <PanoramicaConsumiCard onOpen={() => setActiveView('consumi')} />
+        </div>
+      )}
 
       {/* Main KPI Month Strip & Indicators: nascosto su mobile, il suo contenuto
           è già coperto dal widget "Rendiconto Mese Corrente" sopra e dal suo
@@ -130,7 +147,7 @@ export default function Panoramica({
       />
 
       {/* Line Chart & General Status Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="order-5 md:order-none grid grid-cols-1 lg:grid-cols-3 gap-6">
         <PanoramicaTrendChart
           chartData={chartData}
           cumulativeChartData={cumulativeChartData}
@@ -139,11 +156,12 @@ export default function Panoramica({
           isMobile={isMobile}
           handleChartClick={handleChartClick}
           handleOpenMonthDetail={handleOpenMonthDetail}
+          onApriStorico={() => setStoricoAperto(true)}
         />
 
-        {/* Status Summary Widget: solo desktop qui, su mobile è duplicato subito dopo i 4 widget patrimonio in alto */}
+        {/* Status Summary Widget: solo desktop qui, su telefono c'è "Questo mese" in cima */}
         <div className="hidden md:block">
-          {rendicontoWidget}
+          {rendicontoWidget('computer')}
         </div>
       </div>
 
@@ -155,11 +173,27 @@ export default function Panoramica({
         theme={theme}
       />
 
-      <PanoramicaBilancioStorico
-        filteredRisparmio={filteredRisparmio}
-        dynamicThresholds={dynamicThresholds}
-        handleOpenMonthDetail={handleOpenMonthDetail}
-      />
+      {/* Su telefono lo storico si apre da "Storico mesi" nel grafico */}
+      <div className="hidden md:block">
+        <PanoramicaBilancioStorico
+          filteredRisparmio={filteredRisparmio}
+          dynamicThresholds={dynamicThresholds}
+          handleOpenMonthDetail={handleOpenMonthDetail}
+        />
+      </div>
+
+      <Modal isOpen={storicoAperto} onClose={() => setStoricoAperto(false)} title="Storico mesi" fullScreenOnMobile maxWidthClass="max-w-3xl">
+        {/* Il popup va in un portal fuori dal contenitore dell'app: senza
+            glass-theme la tabella perde i colori del tema scuro (testo scuro su scuro) */}
+        <div className={theme === 'dark' ? 'glass-theme' : undefined}>
+          <PanoramicaBilancioStorico
+            filteredRisparmio={filteredRisparmio}
+            dynamicThresholds={dynamicThresholds}
+            handleOpenMonthDetail={(mese, anno) => { setStoricoAperto(false); handleOpenMonthDetail(mese, anno); }}
+            inPopup
+          />
+        </div>
+      </Modal>
 
       {/* Drawer detailed details */}
       <Drawer

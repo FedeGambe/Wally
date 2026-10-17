@@ -5,6 +5,7 @@ import { Transaction } from '../data/mockData';
 import { formatEuro, formatPercent } from '../utils/format';
 import { kpiColor, kpiColorAlpha, thresholdRange } from '../utils/kpiColorScale';
 import SlideOverPanel from './SlideOverPanel';
+import EuroAmount from './EuroAmount';
 
 /**
  * Pannello laterale scorrevole (drawer) usato dalle pagine (es. Panoramica,
@@ -64,6 +65,47 @@ function DeltaBadge({ value, goodWhenPositive }: { value?: number; goodWhenPosit
   );
 }
 
+/**
+ * Riquadro del riepilogo mensile. Senza `tinta` è neutro (Entrate, Spese
+ * Totali); con `tinta` prende fondo e bordo leggeri dal colore a soglia, come
+ * le card KPI dell'app: il colore pieno resta solo all'etichetta e alla quota.
+ */
+function Riquadro({ label, valore, quota, delta, goodWhenPositive, tinta }: {
+  label: string;
+  valore: number;
+  /** Quota sulle entrate; assente per le Entrate stesse (sarebbe sempre 100%). */
+  quota?: string;
+  delta?: number;
+  goodWhenPositive: boolean;
+  tinta?: { fondo: string; bordo: string; testo: string };
+}) {
+  return (
+    <div
+      className={`p-3.5 rounded-2xl border flex flex-col text-left ${tinta ? '' : 'bg-canvas border-hairline dark:bg-white/[0.04] dark:border-white/10'}`}
+      style={tinta ? { backgroundColor: tinta.fondo, borderColor: tinta.bordo } : undefined}
+    >
+      <span
+        className={`text-3xs font-bold uppercase tracking-wider block ${tinta ? '' : 'text-ink-soft dark:text-slate-400'}`}
+        style={tinta ? { color: tinta.testo } : undefined}
+      >
+        {label}
+      </span>
+      <span className="text-xl font-black font-display text-ink dark:text-slate-100 block mt-1.5 leading-none tabular-nums">
+        <EuroAmount value={valore} />
+      </span>
+      {quota && (
+        <span
+          className={`text-3xs font-semibold mt-1.5 ${tinta ? '' : 'text-ink-soft dark:text-slate-400'}`}
+          style={tinta ? { color: tinta.testo } : undefined}
+        >
+          {quota} delle entrate
+        </span>
+      )}
+      <DeltaBadge value={delta} goodWhenPositive={goodWhenPositive} />
+    </div>
+  );
+}
+
 export default function Drawer({
   isOpen,
   onClose,
@@ -79,11 +121,6 @@ export default function Drawer({
       onClose={onClose}
       title={title}
       subtitle={subtitle}
-      footer={
-        <div className="p-4 bg-canvas dark:bg-white/5 border-t border-hairline dark:border-white/10 text-center text-3xs text-ink-soft font-mono">
-          Dashboard Finanze • Sincronia Google Sheet
-        </div>
-      }
     >
       {/* Quick stats summarizing this scope */}
       {/* Il drawer ha due "modalità" di contenuto, mutuamente esclusive:
@@ -101,26 +138,18 @@ export default function Drawer({
             // sono 0 (o mancanti) si mostra "***%" invece di dividere per zero.
             const quotaOf = (v: number) => m.entrate ? (v / m.entrate) * 100 : 0;
             const pct = (v: number) => m.entrate ? formatPercent(quotaOf(v)) : '***%';
-            const glass = "dark:backdrop-blur-md p-3 rounded-2xl border flex flex-col justify-between text-left shadow-sm";
-            // Sfondo/bordo neutro (stesso stile delle card "Mese Corrente" su
-            // desktop): base per tutte e 6 le card, sovrascritto sotto per le 4 legate
-            // a una soglia (Spese Primarie/Secondarie, Investito, Risparmio).
-            const neutralBox = "bg-canvas border border-hairline dark:bg-white/10 dark:border-white/25";
-            // Colora l'intero riquadro (sfondo+bordo, sfumatura continua rosso->verde)
-            // in base a quanto la quota si avvicina/supera la soglia dinamica: per le
-            // spese "di meno è meglio" (higherIsBetter=false), per investito/risparmio
-            // "di più è meglio" (default true). Alpha più alto delle altre card (glass)
-            // perché su sfondo quasi nero un tint troppo leggero risultava spento.
-            const thresholdStyle = (quota: number, threshold: number | undefined, higherIsBetter = true) => {
+            // Tinta del riquadro in base a quanto la quota si avvicina/supera la
+            // soglia dinamica: per le spese "di meno è meglio" (higherIsBetter=false),
+            // per investito/risparmio "di più è meglio". Senza soglia: riquadro neutro.
+            const tinta = (quota: number, threshold: number | undefined, higherIsBetter = true) => {
               if (threshold === undefined) return undefined;
               const range = thresholdRange(threshold, 10, higherIsBetter);
               return {
-                backgroundColor: kpiColorAlpha(quota, range, 0.28),
-                borderColor: kpiColorAlpha(quota, range, 0.75),
+                fondo: kpiColorAlpha(quota, range, 0.12),
+                bordo: kpiColorAlpha(quota, range, 0.4),
+                testo: kpiColor(quota, range),
               };
             };
-            const thresholdTextColor = (quota: number, threshold: number | undefined, higherIsBetter = true) =>
-              threshold === undefined ? undefined : kpiColor(quota, thresholdRange(threshold, 10, higherIsBetter));
             // Dati per la torta di ripartizione: si scartano i valori negativi (Math.max(0, ...))
             // e le voci a zero (.filter) perché Recharts disegnerebbe comunque uno spicchio
             // vuoto/fastidioso per un valore 0 o negativo.
@@ -136,47 +165,17 @@ export default function Drawer({
             return (
               <>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className={`${glass} ${neutralBox}`}>
-                    <span className="text-3xs text-ink-soft dark:text-slate-300 font-bold uppercase tracking-wider block">Entrate</span>
-                    <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.entrate)}</span>
-                    <span className="text-3xs text-ink-soft font-semibold mt-0.5">{pct(m.entrate)}</span>
-                    <DeltaBadge value={m.entrateDelta} goodWhenPositive={true} />
-                  </div>
-                  <div className={`${glass} ${neutralBox}`}>
-                    <span className="text-3xs text-ink-soft dark:text-slate-300 font-bold uppercase tracking-wider block">Spese Totali</span>
-                    <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.speseTotali)}</span>
-                    <span className="text-3xs text-ink-soft font-semibold mt-0.5">{pct(m.speseTotali)}</span>
-                    <DeltaBadge value={m.speseTotaliDelta} goodWhenPositive={false} />
-                  </div>
-                  <div className={glass} style={thresholdStyle(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? 'var(--drawer-text-soft)' }}>Spese Primarie</span>
-                    <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.spesePrimarie)}</span>
-                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false) ?? 'var(--drawer-text-soft)' }}>{pct(m.spesePrimarie)}</span>
-                    <DeltaBadge value={m.spesePrimarieDelta} goodWhenPositive={false} />
-                  </div>
-                  <div className={glass} style={thresholdStyle(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? 'var(--drawer-text-soft)' }}>Spese Secondarie</span>
-                    <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.speseSecondarie)}</span>
-                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false) ?? 'var(--drawer-text-soft)' }}>{pct(m.speseSecondarie)}</span>
-                    <DeltaBadge value={m.speseSecondarieDelta} goodWhenPositive={false} />
-                  </div>
-                  <div className={glass} style={thresholdStyle(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? 'var(--drawer-text-soft)' }}>Investito</span>
-                    <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.investito)}</span>
-                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.investito), dynamicThresholds?.investiti, true) ?? 'var(--drawer-text-soft)' }}>{pct(m.investito)}</span>
-                    <DeltaBadge value={m.investitoDelta} goodWhenPositive={true} />
-                  </div>
-                  <div className={glass} style={thresholdStyle(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? { backgroundColor: 'var(--drawer-tint)', borderColor: 'var(--drawer-tint-strong)' }}>
-                    <span className="text-3xs font-bold uppercase tracking-wider block" style={{ color: thresholdTextColor(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? 'var(--drawer-text-soft)' }}>Risparmio Netto</span>
-                    <span className="text-lg font-bold font-display text-ink dark:text-slate-100 block mt-1">{formatEuro(m.risparmioNetto)}</span>
-                    <span className="text-3xs font-semibold mt-0.5" style={{ color: thresholdTextColor(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true) ?? 'var(--drawer-text-soft)' }}>{pct(m.risparmioNetto)}</span>
-                    <DeltaBadge value={m.risparmioNettoDelta} goodWhenPositive={true} />
-                  </div>
+                  <Riquadro label="Entrate" valore={m.entrate} delta={m.entrateDelta} goodWhenPositive={true} />
+                  <Riquadro label="Spese Totali" valore={m.speseTotali} quota={pct(m.speseTotali)} delta={m.speseTotaliDelta} goodWhenPositive={false} />
+                  <Riquadro label="Spese Primarie" valore={m.spesePrimarie} quota={pct(m.spesePrimarie)} delta={m.spesePrimarieDelta} goodWhenPositive={false} tinta={tinta(quotaOf(m.spesePrimarie), dynamicThresholds?.primarie, false)} />
+                  <Riquadro label="Spese Secondarie" valore={m.speseSecondarie} quota={pct(m.speseSecondarie)} delta={m.speseSecondarieDelta} goodWhenPositive={false} tinta={tinta(quotaOf(m.speseSecondarie), dynamicThresholds?.secondarie, false)} />
+                  <Riquadro label="Investito" valore={m.investito} quota={pct(m.investito)} delta={m.investitoDelta} goodWhenPositive={true} tinta={tinta(quotaOf(m.investito), dynamicThresholds?.investiti, true)} />
+                  <Riquadro label="Risparmio Netto" valore={m.risparmioNetto} quota={pct(m.risparmioNetto)} delta={m.risparmioNettoDelta} goodWhenPositive={true} tinta={tinta(quotaOf(m.risparmioNetto), dynamicThresholds?.risparmio, true)} />
                 </div>
 
                 {/* Ripartizione: spese primarie/secondarie, investito, risparmio */}
                 {pieData.length > 0 && (
-                  <div className="dark:backdrop-blur-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/10 rounded-2xl p-4">
+                  <div className="bg-canvas dark:bg-white/[0.04] border border-hairline dark:border-white/10 rounded-2xl p-4">
                     <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block mb-2">Ripartizione</span>
                     <div className="h-52 flex items-center">
                       <div className="w-1/2 h-full">

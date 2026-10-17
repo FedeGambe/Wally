@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 /**
  * Quale menu a pallini è aperto in questo momento, condiviso fra componenti che
@@ -27,8 +27,27 @@ export function useBolleAperte(): MenuBolle | null {
   return useSyncExternalStore(subscribe, () => aperto, () => null);
 }
 
-/** True se sono aperti i pallini della barra in basso: il "+" in basso a destra si nasconde. */
+// Pannelli laterali aperti (SlideOverPanel, es. il dettaglio del mese): il "+"
+// sta sopra di loro, quindi mentre ce n'è uno aperto deve sparire. Contatore e
+// non booleano, nel caso se ne aprano due uno sopra l'altro.
+let pannelliAperti = 0;
+
+/** Da chiamare in un pannello laterale: finché `isOpen` è true il "+" resta nascosto. */
+export function usePannelloAperto(isOpen: boolean) {
+  useEffect(() => {
+    if (!isOpen) return;
+    pannelliAperti++;
+    ascoltatori.forEach(fn => fn());
+    return () => {
+      pannelliAperti--;
+      ascoltatori.forEach(fn => fn());
+    };
+  }, [isOpen]);
+}
+
+/** True se sono aperti i pallini della barra in basso o un pannello laterale: il "+" in basso a destra si nasconde. */
 export function useNascondiAggiunta(): boolean {
   const menu = useBolleAperte();
-  return menu === 'transazioni' || menu === 'investimenti';
+  const pannello = useSyncExternalStore(subscribe, () => pannelliAperti > 0, () => false);
+  return menu === 'transazioni' || menu === 'investimenti' || pannello;
 }

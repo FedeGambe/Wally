@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, ChevronRight } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -19,6 +19,8 @@ interface PanoramicaTrendChartProps {
   isMobile: boolean;
   handleChartClick: (e: any) => void;
   handleOpenMonthDetail: (mese: string, anno: number) => void;
+  /** Solo telefono: apre la tabella "Bilancio Storico Mensile", che lì non sta nella Home. */
+  onApriStorico?: () => void;
 }
 
 // Tooltip custom del grafico Trend Risparmio: nome della variabile in grassetto
@@ -50,7 +52,8 @@ export default function PanoramicaTrendChart({
   selectedYear,
   isMobile,
   handleChartClick,
-  handleOpenMonthDetail
+  handleOpenMonthDetail,
+  onApriStorico
 }: PanoramicaTrendChartProps) {
   // Vista del grafico: mensile (aree separate, come sempre) o cumulato (le
   // stesse due aree impilate una sopra l'altra con stackId).
@@ -210,6 +213,17 @@ export default function PanoramicaTrendChart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {onApriStorico && (
+        <button
+          type="button"
+          onClick={onApriStorico}
+          className="md:hidden mt-4 pt-3 w-full flex items-center justify-between gap-3 border-t border-hairline text-sm font-semibold text-blue-600 dark:text-blue-400 cursor-pointer"
+        >
+          Storico mesi
+          <ChevronRight className="w-4 h-4 shrink-0" />
+        </button>
+      )}
     </div>
   );
 }
