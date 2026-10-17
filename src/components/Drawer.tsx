@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard } f
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../data/mockData';
 import { formatEuro, formatPercent } from '../utils/format';
-import { kpiColor, kpiColorAlpha, thresholdRange } from '../utils/kpiColorScale';
+import { kpiColorAlpha, kpiColorTesto, thresholdRange } from '../utils/kpiColorScale';
 import SlideOverPanel from './SlideOverPanel';
 import EuroAmount from './EuroAmount';
 
@@ -147,7 +147,7 @@ export default function Drawer({
               return {
                 fondo: kpiColorAlpha(quota, range, 0.12),
                 bordo: kpiColorAlpha(quota, range, 0.4),
-                testo: kpiColor(quota, range),
+                testo: kpiColorTesto(quota, range),
               };
             };
             // Dati per la torta di ripartizione: si scartano i valori negativi (Math.max(0, ...))

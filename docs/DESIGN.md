@@ -18,6 +18,8 @@ colors:
   warn-dark: "#fbbf24"
   info: "#0284c7"
   info-dark: "#38bdf8"
+  dato-risparmio: "#d946ef"
+  dato-spese-secondarie: "#fb923c"
   ink: "#1D1D1B"
   ink-soft: "#6E6E6C"
   canvas: "#F7F7F6"
@@ -154,6 +156,11 @@ Una tavolozza a mappa: sei colori di sezione saturi più un teal di marca, tre c
 
 Questi quattro sono variabili CSS (`--color-up`, ecc.) che cambiano da sole col tema: si scrive `text-up`, mai `text-up dark:text-...`.
 
+### Colori dei dati
+- **Fucsia Risparmio** (dato-risparmio): la serie Risparmio nei grafici (Trend Risparmio, torta del Dettaglio Finanziario).
+- **Arancio Chiaro Secondarie** (dato-spese-secondarie): lo spicchio Spese Secondarie nella torta, accanto all'arancio scuro delle primarie (`orange-700`).
+- **Scala a soglia** (`src/utils/kpiColorScale.ts`): rosso → arancio → ambra → lime (la soglia) → smeraldo, interpolata sul valore. Dice quanto una quota è lontana dal suo target, non il segno.
+
 ### Neutral
 - **Inchiostro** (ink): testo principale in chiaro.
 - **Inchiostro Tenue** (ink-soft): etichette e testo secondario in chiaro.
@@ -168,6 +175,10 @@ Questi quattro sono variabili CSS (`--color-up`, ecc.) che cambiano da sole col 
 **The Un Colore per Territorio Rule.** Ogni sezione ha un solo colore e lo usa ovunque al suo interno (navigazione, pulsante principale, focus, KPI). Un elemento nuovo in una sezione prende il colore della sezione, non uno nuovo.
 
 **The Segno Semantico Rule.** Il segno di un numero (positivo, negativo, soglia) si mostra solo con up / down / warn, mai col colore di sezione: il verde di Entrate e il verde Crescita sono due ruoli diversi anche se vicini.
+
+**The Fuori Soglia Rosso Rule.** Fuori soglia è rosso per ogni voce, anche per Investito e Risparmio: la scala a soglia dice quanto si è lontani dal target, e lontano è rosso.
+
+**The Testo a Soglia Leggibile Rule.** Il testo colorato con la scala a soglia passa da `kpiColorTesto`, che lo scurisce in chiaro e lo schiarisce in scuro (`--kpi-testo-mix`) sopra 4,5:1; `kpiColor` puro solo per fondi, bordi e grafici.
 
 ## Typography
 

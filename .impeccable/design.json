@@ -353,6 +353,34 @@
           "#cbd5e1",
           "#f8fafc"
         ]
+      },
+      "dato-risparmio": {
+        "role": "tertiary",
+        "displayName": "Fucsia Risparmio",
+        "tonalRamp": [
+          "#4a044e",
+          "#701a75",
+          "#a21caf",
+          "#c026d3",
+          "#d946ef",
+          "#e879f9",
+          "#f5d0fe",
+          "#fdf4ff"
+        ]
+      },
+      "dato-spese-secondarie": {
+        "role": "tertiary",
+        "displayName": "Arancio Chiaro Secondarie",
+        "tonalRamp": [
+          "#431407",
+          "#7c2d12",
+          "#c2410c",
+          "#ea580c",
+          "#fb923c",
+          "#fdba74",
+          "#ffedd5",
+          "#fff7ed"
+        ]
       }
     },
     "typographyMeta": {
@@ -532,6 +560,16 @@
         "name": "The Atmosfera Dietro Rule",
         "body": "Il colore sfocato vive solo sullo sfondo; sopra le cifre il vetro resta neutro e leggibile.",
         "section": "elevation"
+      },
+      {
+        "name": "The Fuori Soglia Rosso Rule",
+        "body": "Fuori soglia è rosso per ogni voce, anche per Investito e Risparmio: la scala a soglia dice quanto si è lontani dal target, e lontano è rosso.",
+        "section": "colors"
+      },
+      {
+        "name": "The Testo a Soglia Leggibile Rule",
+        "body": "Il testo colorato con la scala a soglia passa da `kpiColorTesto`, che lo scurisce in chiaro e lo schiarisce in scuro (`--kpi-testo-mix`) sopra 4,5:1; `kpiColor` puro solo per fondi, bordi e grafici.",
+        "section": "colors"
       }
     ],
     "dos": [

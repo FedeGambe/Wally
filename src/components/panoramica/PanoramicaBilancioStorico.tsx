@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import DataTable from '../DataTable';
 import { formatEuro, formatPercent } from '../../utils/format';
-import { kpiColor, thresholdRange } from '../../utils/kpiColorScale';
+import { kpiColorTesto, thresholdRange } from '../../utils/kpiColorScale';
 import type { RisparmioMese } from '../../data/mockData';
 
 interface DynamicThresholds {
@@ -86,10 +86,10 @@ function ElencoMesi({ filteredRisparmio, dynamicThresholds, handleOpenMonthDetai
               </span>
               <span className="grid grid-cols-3 gap-x-3 gap-y-3 mt-3">
                 {cifra('Entrate', r.entrate)}
-                {cifra('Primarie', r.spesePrimarie, kpiColor(perc(r.spesePrimarie), thresholdRange(dynamicThresholds.primarie, 10, false)))}
-                {cifra('Secondarie', r.speseSecondarie, kpiColor(perc(r.speseSecondarie), thresholdRange(dynamicThresholds.secondarie, 10, false)))}
-                {cifra('Investito', r.investito, kpiColor(perc(r.investito), thresholdRange(dynamicThresholds.investiti, 10)))}
-                {cifra('Risparmio', r.risparmioNetto, kpiColor(perc(r.risparmioNetto), thresholdRange(dynamicThresholds.risparmio, 10)), true)}
+                {cifra('Primarie', r.spesePrimarie, kpiColorTesto(perc(r.spesePrimarie), thresholdRange(dynamicThresholds.primarie, 10, false)))}
+                {cifra('Secondarie', r.speseSecondarie, kpiColorTesto(perc(r.speseSecondarie), thresholdRange(dynamicThresholds.secondarie, 10, false)))}
+                {cifra('Investito', r.investito, kpiColorTesto(perc(r.investito), thresholdRange(dynamicThresholds.investiti, 10)))}
+                {cifra('Risparmio', r.risparmioNetto, kpiColorTesto(perc(r.risparmioNetto), thresholdRange(dynamicThresholds.risparmio, 10)), true)}
               </span>
             </button>
           </li>
@@ -145,7 +145,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
             header: 'Spese Primarie',
             align: 'right',
             render: (r) => (
-              <span className="font-medium font-mono" style={{ color: kpiColor(r.entrate ? (r.spesePrimarie / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.primarie, 10, false)) }}>
+              <span className="font-medium font-mono" style={{ color: kpiColorTesto(r.entrate ? (r.spesePrimarie / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.primarie, 10, false)) }}>
                 {formatEuro(r.spesePrimarie)}
               </span>
             )
@@ -154,7 +154,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
             header: 'Spese Secondarie',
             align: 'right',
             render: (r) => (
-              <span className="font-medium font-mono" style={{ color: kpiColor(r.entrate ? (r.speseSecondarie / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.secondarie, 10, false)) }}>
+              <span className="font-medium font-mono" style={{ color: kpiColorTesto(r.entrate ? (r.speseSecondarie / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.secondarie, 10, false)) }}>
                 {formatEuro(r.speseSecondarie)}
               </span>
             )
@@ -163,7 +163,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
             header: 'Investito',
             align: 'right',
             render: (r) => (
-              <span className="font-semibold font-mono" style={{ color: kpiColor(r.entrate ? (r.investito / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.investiti, 10)) }}>
+              <span className="font-semibold font-mono" style={{ color: kpiColorTesto(r.entrate ? (r.investito / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.investiti, 10)) }}>
                 {formatEuro(r.investito)}
               </span>
             )
@@ -172,7 +172,7 @@ export default function PanoramicaBilancioStorico({ filteredRisparmio, dynamicTh
             header: 'Risparmio Netto',
             align: 'right',
             render: (r) => (
-              <span className="font-extrabold font-mono" style={{ color: kpiColor(r.entrate ? (r.risparmioNetto / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.risparmio, 10)) }}>
+              <span className="font-extrabold font-mono" style={{ color: kpiColorTesto(r.entrate ? (r.risparmioNetto / r.entrate) * 100 : 0, thresholdRange(dynamicThresholds.risparmio, 10)) }}>
                 {formatEuro(r.risparmioNetto)}
               </span>
             )

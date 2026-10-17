@@ -79,6 +79,17 @@ export function kpiColorAlpha(value: number, range: KpiRange, alpha: number): st
   return `rgb(${r} ${g} ${b} / ${alpha})`;
 }
 
+/**
+ * Colore della scala per il TESTO, leggibile in entrambi i temi: il colore puro
+ * viene mescolato con --kpi-testo-mix (index.css), nero in chiaro e bianco in
+ * scuro. Senza, il rosso su fondo scuro stava sotto 3:1 e il lime su bianco
+ * sotto 2:1; così ogni punto della scala supera 4,5:1.
+ */
+export function kpiColorTesto(value: number, range: KpiRange): string {
+  const [r, g, b] = kpiColorRGB(value, range);
+  return `color-mix(in srgb, rgb(${r} ${g} ${b}), var(--kpi-testo-mix))`;
+}
+
 // Variante scurita: per testo su sfondo chiaro/tinta o per badge pieni con testo bianco sopra,
 // dove il colore "puro" della scala (es. il giallo-verde della mediana) non basta come contrasto.
 export function kpiTextColor(value: number, range: KpiRange): string {

@@ -31,6 +31,7 @@
   --color-info: #0284c7;   /* stato informativo secondario — sky-600 */
   --color-accent: #00A19A; /* brand / CTA — teal (nuovo logo) */
   --glow-white-mix: 45%;   /* pallini/glow con colore dinamico (inline style): li schiarisce in chiaro */
+  --kpi-testo-mix: black 50%; /* kpiColorTesto: scurisce la scala a soglia per il testo su chiaro */
 }
 
 .dark {
@@ -40,6 +41,7 @@
   --color-info: #38bdf8;
   --color-accent: #15B4B7;
   --glow-white-mix: 0%;    /* in scuro il colore resta quello originale, non schiarito */
+  --kpi-testo-mix: white 35%; /* kpiColorTesto: schiarisce la scala a soglia per il testo su scuro */
 }
 
 @theme inline {
