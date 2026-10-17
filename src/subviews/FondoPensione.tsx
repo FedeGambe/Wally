@@ -339,15 +339,15 @@ export default function FondoPensione({
         </div>
 
         {/* Contributo Azienda Attivo */}
-        <div className="p-5 rounded-3xl border flex flex-col justify-between h-32 bg-emerald-50/10 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] dark:border-emerald-500/80 dark:bg-[#0c2514]/15 transition-all duration-300 hover:shadow-[0_0_22px_rgba(16,185,129,0.55)]">
+        <div className="p-5 rounded-3xl border flex flex-col justify-between h-32 bg-sky-50/10 border-sky-500/40 dark:border-sky-500/40 dark:bg-sky-950/20 transition-all duration-300 hover:shadow-md">
           <div className="flex justify-between items-start">
-            <span className="text-3xs text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-wider block">Contributo Azienda Attivo</span>
-            <Wallet className="w-4 h-4 text-up" />
+            <span className="text-3xs text-sky-700 dark:text-sky-300 font-black uppercase tracking-wider block">Contributo Azienda Attivo</span>
+            <Wallet className="w-4 h-4 text-sky-600 dark:text-sky-400" />
           </div>
-          <span className="text-2xl font-black font-display text-up block mt-1">
+          <span className="text-2xl font-black font-display text-ink dark:text-slate-100 block mt-1">
             <EuroAmount value={activeCompanyContrib} />
           </span>
-          <p className="text-3xs text-up dark:text-emerald-500/80 font-medium mt-1">Ultimo versamento base datoriale sbloccato</p>
+          <p className="text-3xs text-ink-soft dark:text-slate-400 font-medium mt-1">Ultimo versamento base datoriale sbloccato</p>
         </div>
       </div>
 

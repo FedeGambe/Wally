@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
-import { rendColor } from '../utils/format';
+import { rendColor, rendColorTesto } from '../utils/format';
 import EuroAmount from '../components/EuroAmount';
 
 // Sotto-vista "Conti" della pagina Investimenti: mostra il dettaglio dei due
@@ -442,17 +442,17 @@ export default function Conti({
                   return (
                     <tr key={idx} className="hover:bg-canvas/60 dark:hover:bg-slate-800/20 transition-colors">
                       <td className="py-3.5 px-4 font-semibold text-ink dark:text-slate-200 capitalize">{r.mese}</td>
-                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColorTesto(Number(r.rendimentoMensilePerc || 0)) }}>
                         {rendMese >= 0 ? '+' : ''}{formatEuro(rendMese)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoMensilePerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColorTesto(Number(r.rendimentoMensilePerc || 0)) }}>
                         {formatPercent(r.rendimentoMensilePerc || 0)}
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.importoMensileInvestitoe || r.importoMensileInvestito || 0)}</td>
-                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColorTesto(Number(r.rendimentoCumulativoPerc || 0)) }}>
                         {rendCum >= 0 ? '+' : ''}{formatEuro(rendCum)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColor(Number(r.rendimentoCumulativoPerc || 0)) }}>
+                      <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: rendColorTesto(Number(r.rendimentoCumulativoPerc || 0)) }}>
                         {formatPercent(r.rendimentoCumulativoPerc || 0)}
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.totaleInvestito || 0)}</td>

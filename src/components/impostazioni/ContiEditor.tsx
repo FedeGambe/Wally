@@ -27,7 +27,7 @@ export default function ContiEditor() {
           return (
             <VoceRiga
               key={c}
-              icona={<Wallet className="w-4 h-4 text-blue-600" />}
+              icona={<Wallet className="w-4 h-4 text-accent" />}
               titolo={c}
               sottotitolo={usi > 0 ? `Usato in ${usi} preset` : undefined}
               onClick={() => setAperto(c)}

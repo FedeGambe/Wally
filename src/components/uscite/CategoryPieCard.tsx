@@ -132,15 +132,15 @@ export default function CategoryPieCard({
                 aria-pressed={isSelected}
                 className={`w-full flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
                   isSelected
-                    ? 'bg-accent/10 border border-accent/20 shadow-xs'
+                    ? 'bg-orange-500/10 border border-orange-500/25 shadow-xs'
                     : 'hover:bg-canvas dark:hover:bg-white/5 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colors[(idx + colorOffset) % colors.length] }} />
-                  <span className={`text-ink-soft dark:text-slate-300 truncate ${isSelected ? 'font-bold text-accent' : 'font-semibold'}`}>{name}</span>
+                  <span className={`text-ink-soft dark:text-slate-300 truncate ${isSelected ? 'font-bold text-orange-700 dark:text-orange-300' : 'font-semibold'}`}>{name}</span>
                 </div>
-                <span className={`font-bold ${isSelected ? 'text-accent' : 'text-ink dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
+                <span className={`font-bold ${isSelected ? 'text-orange-700 dark:text-orange-300' : 'text-ink dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
               </button>
             );
           })}

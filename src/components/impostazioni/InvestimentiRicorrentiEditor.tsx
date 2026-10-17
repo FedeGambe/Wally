@@ -116,7 +116,7 @@ function SchedaPresetInvestimento({ originale, chiudi }: { originale: PresetInve
         <DropdownMenu
           icon={Landmark}
           label="Broker"
-          accent="indigo"
+          accent="teal"
           fullWidth
           hideLabel
           placeholder="Scegli..."
@@ -136,7 +136,7 @@ function SchedaPresetInvestimento({ originale, chiudi }: { originale: PresetInve
               role="radio"
               aria-checked={nuovo === o.v}
               onClick={() => { setNuovo(o.v); aggiorna({ strumento: '' }); }}
-              className={`py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${nuovo === o.v ? 'bg-accent text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
+              className={`py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${nuovo === o.v ? 'bg-accent-strong text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
             >
               {o.l}
             </button>
@@ -153,7 +153,7 @@ function SchedaPresetInvestimento({ originale, chiudi }: { originale: PresetInve
             <DropdownMenu
               icon={Layers}
               label="Asset class"
-              accent="indigo"
+              accent="teal"
               fullWidth
               hideLabel
               value={assetClass}
@@ -171,7 +171,7 @@ function SchedaPresetInvestimento({ originale, chiudi }: { originale: PresetInve
             <DropdownMenu
               icon={LineChart}
               label="Strumento"
-              accent="indigo"
+              accent="teal"
               fullWidth
               hideLabel
               placeholder="Scegli..."

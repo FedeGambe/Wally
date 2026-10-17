@@ -105,7 +105,7 @@ function SchedaPresetUscita({ originale, chiudi }: { originale: PresetUscita | n
           <DropdownMenu
             icon={Grid}
             label="Macro categoria"
-            accent="indigo"
+            accent="teal"
             fullWidth
             hideLabel
             placeholder="Scegli..."
@@ -123,7 +123,7 @@ function SchedaPresetUscita({ originale, chiudi }: { originale: PresetUscita | n
             <DropdownMenu
               icon={Tag}
               label="Categoria"
-              accent="indigo"
+              accent="teal"
               fullWidth
               hideLabel
               placeholder="Scegli..."
@@ -140,7 +140,7 @@ function SchedaPresetUscita({ originale, chiudi }: { originale: PresetUscita | n
         <DropdownMenu
           icon={CreditCard}
           label="Conto"
-          accent="indigo"
+          accent="teal"
           fullWidth
           hideLabel
           placeholder="Scegli..."
@@ -172,7 +172,7 @@ function SchedaPresetUscita({ originale, chiudi }: { originale: PresetUscita | n
               role="radio"
               aria-checked={form.primaria === o.v}
               onClick={() => aggiorna({ primaria: o.v })}
-              className={`py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${form.primaria === o.v ? 'bg-accent text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
+              className={`py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${form.primaria === o.v ? 'bg-accent-strong text-white' : 'text-ink-soft hover:text-ink dark:hover:text-slate-200'}`}
             >
               {o.l}
             </button>

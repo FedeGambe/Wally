@@ -96,7 +96,7 @@ export default function Impostazioni({
       <div>
         {!isMobile && (
         <div className="flex items-center gap-2 mb-4">
-          <Database className="w-5 h-5 text-emerald-500" />
+          <Database className="w-5 h-5 text-accent" />
           <h3 className="font-bold text-lg font-display text-ink">
             Collegamento Google Sheets
           </h3>
@@ -132,7 +132,7 @@ export default function Impostazioni({
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2.5 bg-accent hover:opacity-90 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                    className="px-4 py-2.5 bg-accent-strong hover:opacity-90 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                   >
                     {saveSuccess ? (
                       <Check className="w-4 h-4 text-emerald-300" />
@@ -145,7 +145,7 @@ export default function Impostazioni({
             </form>
 
             {saveSuccess && (
-              <p className="text-2xs text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
+              <p className="text-2xs text-up font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
                 <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
               </p>
             )}
@@ -177,7 +177,7 @@ export default function Impostazioni({
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-accent hover:opacity-90 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  className="px-4 py-2.5 bg-accent-strong hover:opacity-90 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
                   {configSaveSuccess ? (
                     <Check className="w-4 h-4 text-emerald-300" />
@@ -187,7 +187,7 @@ export default function Impostazioni({
                 </button>
               </form>
               {configSaveSuccess && (
-                <p className="text-2xs text-emerald-500 font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
+                <p className="text-2xs text-up font-semibold mt-2 flex items-center gap-1 animate-fadeIn">
                   <Check className="w-3.5 h-3.5" /> ID salvato correttamente in locale.
                 </p>
               )}
@@ -212,7 +212,7 @@ export default function Impostazioni({
             type="button"
             onClick={onRefreshData}
             disabled={isRefreshing}
-            className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-accent-strong hover:opacity-90 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             Sincronizza Ora
@@ -326,15 +326,15 @@ export default function Impostazioni({
     {
       titolo: 'Collegamenti',
       voci: [
-        { id: 'sheets', label: 'Google Sheets', icon: Database, iconColor: 'text-emerald-500', content: sheetsContent },
-        { id: 'banche', label: 'Banche collegate', icon: Landmark, iconColor: 'text-blue-600', content: <BancheCollegateSettings compatto /> },
+        { id: 'sheets', label: 'Google Sheets', icon: Database, iconColor: 'text-accent', content: sheetsContent },
+        { id: 'banche', label: 'Banche collegate', icon: Landmark, iconColor: 'text-accent', content: <BancheCollegateSettings compatto /> },
       ],
     },
     {
       titolo: 'Dati',
       voci: [
-        { id: 'datiBase', label: 'Dati base', icon: Tags, iconColor: 'text-blue-600', content: <DatiBaseSettings compatto /> },
-        { id: 'preset', label: 'Preset uscite ricorrenti', icon: Repeat, iconColor: 'text-orange-600', content: <PresetRicorrentiSettings compatto /> },
+        { id: 'datiBase', label: 'Dati base', icon: Tags, iconColor: 'text-accent', content: <DatiBaseSettings compatto /> },
+        { id: 'preset', label: 'Preset uscite ricorrenti', icon: Repeat, iconColor: 'text-accent', content: <PresetRicorrentiSettings compatto /> },
       ],
     },
   ];

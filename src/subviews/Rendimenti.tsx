@@ -15,8 +15,8 @@ import {
 } from 'recharts';
 import EuroAmount from '../components/EuroAmount';
 import DropdownMenu from '../components/DropdownMenu';
-import { rendColor, rendColorAlpha, formatAxisCompact } from '../utils/format';
-import { kpiColor, kpiColorAlpha, median, type KpiRange } from '../utils/kpiColorScale';
+import { rendColor, rendColorAlpha, rendColorTesto, formatAxisCompact } from '../utils/format';
+import { kpiColor, kpiColorAlpha, kpiColorTesto, median, type KpiRange } from '../utils/kpiColorScale';
 import { parseMeseStringToMonthYear } from '../hooks/useInvestimentiData';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -325,7 +325,7 @@ export default function Rendimenti({
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColor(normalizeAnnual(Number(tableYearRow.rendimentoAnnualeEuro || 0)), 1) }}>
+                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: rendColorTesto(normalizeAnnual(Number(tableYearRow.rendimentoAnnualeEuro || 0)), 1) }}>
                   {annualUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
                   <EuroAmount value={tableYearRow.rendimentoAnnualeEuro} />
                 </span>
@@ -342,7 +342,7 @@ export default function Rendimenti({
                   style={{
                     backgroundColor: rendColorAlpha(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 0.15, 1),
                     borderColor: rendColor(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 1),
-                    color: rendColor(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 1),
+                    color: rendColorTesto(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 1),
                     boxShadow: `0 0 10px ${rendColorAlpha(normalizeAnnualPerc(Number(tableYearRow.rendimentoAnnuoStimatoPerc || 0)), 0.45, 1)}`,
                   }}
                 >
@@ -359,7 +359,7 @@ export default function Rendimenti({
                 </div>
               </div>
               <div className="mt-2">
-                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange) }}>
+                <span className="text-lg sm:text-2xl font-extrabold font-display flex items-center gap-1" style={{ color: kpiColorTesto(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange) }}>
                   {monthlyUp ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
                   <EuroAmount value={globalInspectorRecord?.rendimentoMensileEuro} />
                 </span>
@@ -376,7 +376,7 @@ export default function Rendimenti({
                   style={{
                     backgroundColor: kpiColorAlpha(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange, 0.15),
                     borderColor: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange),
-                    color: kpiColor(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange),
+                    color: kpiColorTesto(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange),
                     boxShadow: `0 0 10px ${kpiColorAlpha(Number(globalInspectorRecord?.rendimentoMensilePerc || 0), mensilePercRange, 0.45)}`,
                   }}
                 >
@@ -599,7 +599,7 @@ export default function Rendimenti({
           <DropdownMenu
             icon={Database}
             label="Esercizio"
-            accent="blue"
+            accent="sky"
             value={String(tableYear)}
             displayValue={String(tableYear)}
             options={availableYears.map(String)}
@@ -632,17 +632,17 @@ export default function Rendimenti({
                 {tableRows.map((r: any, idx: number) => (
                   <tr key={idx} className="hover:bg-canvas/60 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-ink dark:text-slate-200 capitalize">{r.mese}</td>
-                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoMensilePerc || 0), mensilePercRange) }}>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColorTesto(Number(r.rendimentoMensilePerc || 0), mensilePercRange) }}>
                       {Number(r.rendimentoMensileEuro || 0) >= 0 ? '+' : ''}{formatEuro(r.rendimentoMensileEuro)}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoMensilePerc || 0), mensilePercRange) }}>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColorTesto(Number(r.rendimentoMensilePerc || 0), mensilePercRange) }}>
                       {formatPercent(r.rendimentoMensilePerc)}
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.importoMensileInvestito)}</td>
-                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) }}>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColorTesto(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) }}>
                       {Number(r.rendimentoCumulativoEuro || 0) >= 0 ? '+' : ''}{formatEuro(r.rendimentoCumulativoEuro)}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColor(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) }}>
+                    <td className="py-3.5 px-4 text-right font-semibold font-mono" style={{ color: kpiColorTesto(Number(r.rendimentoCumulativoPerc || 0), cumulativoPercRange) }}>
                       {formatPercent(r.rendimentoCumulativoPerc)}
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono">{formatEuro(r.importoInvestitoCumulato)}</td>

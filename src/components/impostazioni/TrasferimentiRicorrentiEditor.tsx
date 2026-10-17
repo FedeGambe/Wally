@@ -35,7 +35,7 @@ export default function TrasferimentiRicorrentiEditor() {
         {presetTrasferimenti.map(p => (
           <VoceRiga
             key={p.id}
-            icona={<ArrowLeftRight className="w-4 h-4 text-blue-600" />}
+            icona={<ArrowLeftRight className="w-4 h-4 text-accent" />}
             titolo={p.categoria}
             sottotitolo={`${p.contoOrdinante || QUALSIASI} → ${p.contoBeneficiario}`}
             valore={formatEuro(p.importo)}
@@ -84,7 +84,7 @@ function SchedaPresetTrasferimento({ originale, chiudi }: { originale: PresetTra
         <DropdownMenu
           icon={Repeat}
           label="Uscita ricorrente"
-          accent="indigo"
+          accent="teal"
           fullWidth
           hideLabel
           placeholder="Scegli un preset..."
@@ -101,7 +101,7 @@ function SchedaPresetTrasferimento({ originale, chiudi }: { originale: PresetTra
           <DropdownMenu
             icon={CreditCard}
             label="Conto ordinante"
-            accent="indigo"
+            accent="teal"
             fullWidth
             hideLabel
             placeholder={QUALSIASI}
@@ -115,7 +115,7 @@ function SchedaPresetTrasferimento({ originale, chiudi }: { originale: PresetTra
           <DropdownMenu
             icon={ArrowRight}
             label="Conto beneficiario"
-            accent="indigo"
+            accent="teal"
             fullWidth
             hideLabel
             placeholder="Scegli..."

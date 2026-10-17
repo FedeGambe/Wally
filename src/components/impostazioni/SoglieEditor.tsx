@@ -27,11 +27,11 @@ export default function SoglieEditor() {
       </IntroEditor>
       <ListaVoci vuota="Nessuna soglia ancora.">
         {soglie.map(s => (
-          <VoceRiga key={s.categoria} icona={<Percent className="w-4 h-4 text-down" />} titolo={s.categoria} valore={`${s.percentuale}%`} onClick={() => setAperta(s.categoria)} />
+          <VoceRiga key={s.categoria} icona={<Percent className="w-4 h-4 text-accent" />} titolo={s.categoria} valore={`${s.percentuale}%`} onClick={() => setAperta(s.categoria)} />
         ))}
       </ListaVoci>
       {soglie.length > 0 && (
-        <div className={`mt-3 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold ${totale === 100 ? 'bg-up/10 text-up' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+        <div className={`mt-3 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold ${totale === 100 ? 'bg-up/10 text-up' : 'bg-warn/10 text-warn'}`}>
           <span>Totale</span>
           <span className="tabular-nums">{totale}%{totale !== 100 && ' · dovrebbe essere 100%'}</span>
         </div>

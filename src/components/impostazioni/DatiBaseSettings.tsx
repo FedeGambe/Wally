@@ -13,10 +13,10 @@ import { CONTI_SEED, CATEGORIE_ENTRATE_SEED, MACRO_CATEGORIE_USCITE_SEED, SOGLIE
 type Voce = 'conti' | 'categorieEntrate' | 'categorieUscite' | 'soglie' | null;
 
 const VOCI: { id: Exclude<Voce, null>; label: string; desc: string; icon: React.ComponentType<{ className?: string }>; iconColor: string }[] = [
-  { id: 'conti', label: 'Conti', desc: 'Lista conti usati nei form di inserimento', icon: Wallet, iconColor: 'text-blue-600' },
-  { id: 'categorieEntrate', label: 'Categorie Entrate', desc: 'Categorie del form "Aggiungi Entrata"', icon: ArrowDownCircle, iconColor: 'text-up' },
+  { id: 'conti', label: 'Conti', desc: 'Lista conti usati nei form di inserimento', icon: Wallet, iconColor: 'text-accent' },
+  { id: 'categorieEntrate', label: 'Categorie Entrate', desc: 'Categorie del form "Aggiungi Entrata"', icon: ArrowDownCircle, iconColor: 'text-emerald-600 dark:text-emerald-400' },
   { id: 'categorieUscite', label: 'Categorie Uscite', desc: 'Macro e sotto-categorie del form "Aggiungi Uscita"', icon: Tags, iconColor: 'text-orange-600' },
-  { id: 'soglie', label: 'Soglie', desc: 'Target % per Entrate, Uscite Primarie/Secondarie, Investimenti', icon: Percent, iconColor: 'text-down' }
+  { id: 'soglie', label: 'Soglie', desc: 'Target % per Entrate, Uscite Primarie/Secondarie, Investimenti', icon: Percent, iconColor: 'text-accent' }
 ];
 
 const TITOLI: Record<Exclude<Voce, null>, string> = {
@@ -86,7 +86,7 @@ export default function DatiBaseSettings({ compatto = false }: { compatto?: bool
     <div className={compatto ? '' : 'bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm'}>
       {!compatto && (
       <div className="flex items-center gap-2 mb-1">
-        <Tags className="w-5 h-5 text-blue-600" />
+        <Tags className="w-5 h-5 text-accent" />
         <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Dati Base</h3>
       </div>
       )}
@@ -119,7 +119,7 @@ export default function DatiBaseSettings({ compatto = false }: { compatto?: bool
       <button
         onClick={importaDaConfigSheet}
         disabled={isImporting}
-        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-ink-soft dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-1.5 mt-3 px-3 py-2 text-xs font-semibold text-ink-soft dark:text-slate-400 hover:text-accent dark:hover:text-blue-400 cursor-pointer transition-colors disabled:opacity-50"
       >
         <Download className="w-3.5 h-3.5" /> {isImporting ? 'Importazione...' : 'Importa da foglio di configurazione'}
       </button>

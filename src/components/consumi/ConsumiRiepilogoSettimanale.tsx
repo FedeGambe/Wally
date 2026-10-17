@@ -98,7 +98,7 @@ export default function ConsumiRiepilogoSettimanale({
         {/* Sotto-widget 1: Km Effettuati */}
         <div className="bg-canvas dark:bg-slate-900/40 p-4 rounded-2xl border border-hairline dark:border-slate-800/60">
           <span className="text-3xs text-ink-soft dark:text-slate-500 font-bold uppercase tracking-wider block">Chilometri Effettuati</span>
-          <span className="text-4xl font-black font-display text-blue-600 dark:text-rose-400 mt-1 block">
+          <span className="text-4xl font-black font-display text-rose-600 dark:text-rose-400 mt-1 block">
             {fmtNum(selectedWeek.kmEffettuati, 1)} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
           </span>
           <span className="text-3xs text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">

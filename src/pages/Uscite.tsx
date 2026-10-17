@@ -114,7 +114,7 @@ export default function Uscite({
                     setSelectedMacroCat('Tutte');
                     setSelectedMicroCat('Tutte');
                   }}
-                  className="bg-accent/10 hover:bg-accent/20 text-accent text-3xs px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer"
+                  className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-3xs px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 cursor-pointer"
                   title="Azzera filtri categoria"
                 >
                   <span>Ripristina Totale</span>
@@ -192,7 +192,7 @@ export default function Uscite({
               placeholder="Cerca transazione, desc, cat..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-canvas border border-hairline rounded-xl py-2 pl-10 pr-4 text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-accent"
+              className="w-full bg-canvas border border-hairline rounded-xl py-2 pl-10 pr-4 text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-orange-500"
             />
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function Uscite({
 
           {/* Micro category selection indicator */}
           {selectedMicroCat !== 'Tutte' && (
-            <span className="inline-flex items-center gap-1 bg-accent/10 border border-accent/25 text-accent px-2.5 py-1 rounded-lg font-bold shrink-0">
+            <span className="inline-flex items-center gap-1 bg-orange-500/10 border border-orange-500/25 text-orange-700 dark:text-orange-300 px-2.5 py-1 rounded-lg font-bold shrink-0">
               <span>Micro: {selectedMicroCat}</span>
               <button
                 onClick={() => setSelectedMicroCat('Tutte')}

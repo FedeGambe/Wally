@@ -138,7 +138,7 @@ export function AzioniScheda({ onSalva, salvaAbilitato, onElimina, etichettaSalv
         type="button"
         onClick={onSalva}
         disabled={!salvaAbilitato}
-        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-accent text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity cursor-pointer"
+        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-accent-strong text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity cursor-pointer"
       >
         <Check className="w-4 h-4" /> {etichettaSalva}
       </button>

@@ -10,6 +10,7 @@ colors:
   sezione-consumi: "#e11d48"
   accent: "#00A19A"
   accent-dark: "#15B4B7"
+  accent-strong: "#00796F"
   up: "#089B3C"
   up-dark: "#34d399"
   down: "#e11d48"
@@ -147,6 +148,7 @@ Una tavolozza a mappa: sei colori di sezione saturi più un teal di marca, tre c
 
 ### Secondary
 - **Teal Wally** (accent / accent-dark): il colore del logo. Impostazioni, azioni di marca e CTA non legate a una sezione. In scuro si schiarisce.
+- **Teal Pieno** (accent-strong): solo per i pulsanti pieni teal con testo bianco (5,3:1 in entrambi i temi); col teal del logo il bianco stava a 3,2:1.
 
 ### Tertiary
 - **Verde Crescita** (up / up-dark): entrate, crescita, esito positivo.
@@ -159,6 +161,7 @@ Questi quattro sono variabili CSS (`--color-up`, ecc.) che cambiano da sole col 
 ### Colori dei dati
 - **Fucsia Risparmio** (dato-risparmio): la serie Risparmio nei grafici (Trend Risparmio, torta del Dettaglio Finanziario).
 - **Arancio Chiaro Secondarie** (dato-spese-secondarie): lo spicchio Spese Secondarie nella torta, accanto all'arancio scuro delle primarie (`orange-700`).
+- **Scala dei rendimenti** (`rendColor` in `src/utils/format.ts`): per segno, rosa-rosso i negativi e verde i positivi, più intensi verso ±maxAbs; per il testo `rendColorTesto`.
 - **Scala a soglia** (`src/utils/kpiColorScale.ts`): rosso → arancio → ambra → lime (la soglia) → smeraldo, interpolata sul valore. Dice quanto una quota è lontana dal suo target, non il segno.
 
 ### Neutral

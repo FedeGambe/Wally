@@ -12,16 +12,20 @@ import { ChevronDown } from 'lucide-react';
  * "portal" (vedi commento più sotto) per evitare problemi di stile/hover
  * con il contenitore in cui il bottone si trova.
  */
-export type DropdownAccent = 'blue' | 'indigo' | 'orange' | 'emerald' | 'rose';
+export type DropdownAccent = 'blue' | 'teal' | 'sky' | 'orange' | 'emerald' | 'rose';
 
 const ACCENT_STYLES: Record<DropdownAccent, { value: string; selected: string }> = {
   blue: {
     value: 'text-blue-600 dark:text-blue-400',
     selected: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400'
   },
-  indigo: {
+  teal: {
     value: 'text-accent',
     selected: 'bg-accent/15 text-accent'
+  },
+  sky: {
+    value: 'text-sky-600 dark:text-sky-400',
+    selected: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-400'
   },
   orange: {
     value: 'text-orange-600 dark:text-orange-400',

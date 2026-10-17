@@ -110,8 +110,8 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
   if (presetUscite.length === 0) {
     return (
       <div className="flex flex-col items-center text-center gap-3 py-6">
-        <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
-          <Repeat className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+        <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
+          <Repeat className="w-6 h-6 text-orange-600 dark:text-orange-400" />
         </div>
         <p className="text-sm text-ink-soft max-w-xs">
           Non hai ancora configurato preset di uscite ricorrenti. Puoi crearli da{' '}
@@ -132,7 +132,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
           <button
             type="button"
             onClick={toggleTutte}
-            className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer shrink-0"
+            className="text-xs font-bold text-orange-700 dark:text-orange-400 hover:underline cursor-pointer shrink-0"
           >
             {tutteSelezionate ? 'Deseleziona tutte' : 'Seleziona tutte'}
           </button>
@@ -149,7 +149,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
                 key={p.id}
                 className={`flex items-center gap-3 pl-3 pr-3.5 py-2.5 rounded-2xl text-sm cursor-pointer select-none transition-all ${
                   selezionato
-                    ? 'bg-amber-50 dark:bg-amber-500/10'
+                    ? 'bg-orange-50 dark:bg-orange-500/10'
                     : 'bg-canvas dark:bg-white/5 opacity-55 hover:opacity-80'
                 }`}
               >
@@ -160,7 +160,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
                   className="sr-only"
                 />
                 {selezionato
-                  ? <CheckCircle2 className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                  ? <CheckCircle2 className="w-5 h-5 text-orange-600 dark:text-orange-400 shrink-0" />
                   : <Circle className="w-5 h-5 text-ink-soft/50 shrink-0" />}
 
                 <span className="w-9 h-9 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center text-base shrink-0">
@@ -215,7 +215,7 @@ export default function AggiungiUsciteRicorrentiForm({ onSaved }: AggiungiUscite
           <button
             type="submit"
             disabled={!isValid || isSaving}
-            className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3 bg-orange-700 hover:bg-orange-800 text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSaving ? 'Salvataggio...' : `Aggiungi ${presetSelezionati.length} uscit${presetSelezionati.length === 1 ? 'a' : 'e'} ricorrent${presetSelezionati.length === 1 ? 'e' : 'i'}`}
           </button>

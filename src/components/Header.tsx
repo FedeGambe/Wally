@@ -154,7 +154,7 @@ export default function Header({
         <DropdownMenu
           icon={Database}
           label="Anno"
-          accent="indigo"
+          accent="teal"
           hideLabelOnMobile
           value={selectedYear}
           displayValue={selectedYear}
@@ -168,7 +168,7 @@ export default function Header({
         <DropdownMenu
           icon={Calendar}
           label="Mese"
-          accent="indigo"
+          accent="teal"
           hideLabelOnMobile
           value={selectedMonth}
           displayValue={selectedMonth}

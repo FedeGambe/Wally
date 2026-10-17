@@ -11,9 +11,9 @@ type Voce = 'usciteRicorrenti' | 'trasferimentiRicorrenti' | 'investimentiRicorr
 
 const VOCI: { id: Exclude<Voce, null>; label: string; desc: string; icon: React.ComponentType<{ className?: string }>; iconColor: string }[] = [
   { id: 'usciteRicorrenti', label: 'Uscite Ricorrenti', desc: 'Preset per uscite quasi identiche ogni mese (es. accantonamento)', icon: Repeat, iconColor: 'text-orange-600' },
-  { id: 'trasferimentiRicorrenti', label: 'Trasferimenti Ricorrenti', desc: 'Preset per trasferimenti fissi tra conti', icon: ArrowLeftRight, iconColor: 'text-blue-600' },
+  { id: 'trasferimentiRicorrenti', label: 'Trasferimenti Ricorrenti', desc: 'Preset per trasferimenti fissi tra conti', icon: ArrowLeftRight, iconColor: 'text-accent' },
   { id: 'investimentiRicorrenti', label: 'Investimenti Ricorrenti', desc: 'Investimenti mensili su Scalable e Trade Republic', icon: TrendingUp, iconColor: 'text-sky-600' },
-  { id: 'fondoPensione', label: 'Quota Fondo Pensione', desc: 'Quota TFR mensile, aggiunta insieme allo stipendio', icon: PiggyBank, iconColor: 'text-up' }
+  { id: 'fondoPensione', label: 'Quota Fondo Pensione', desc: 'Quota TFR mensile, aggiunta insieme allo stipendio', icon: PiggyBank, iconColor: 'text-sky-600' }
 ];
 
 const TITOLI: Record<Exclude<Voce, null>, string> = {
@@ -42,7 +42,7 @@ export default function PresetRicorrentiSettings({ compatto = false }: { compatt
     <div className={compatto ? '' : 'bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm'}>
       {!compatto && (
       <div className="flex items-center gap-2 mb-1">
-        <Repeat className="w-5 h-5 text-orange-600" />
+        <Repeat className="w-5 h-5 text-accent" />
         <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Preset Uscite Ricorrenti</h3>
       </div>
       )}

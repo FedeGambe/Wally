@@ -11,28 +11,23 @@ interface EntrateBentoCardsProps {
 }
 
 // Badge con la variazione percentuale rispetto al mese precedente. Per le
-// entrate "di più" è positivo: se il mese corrente è più basso del precedente
-// (isPreviousHigher) si mostra in rosso (peggioramento), altrimenti in verde
-// (miglioramento). Nessun badge se manca lo storico o se il mese precedente
-// vale 0 (per evitare divisioni per zero).
+// entrate "di più" è positivo: in calo rosa, in aumento verde, invariato neutro
+// ("= 0,0%", prima risultava verde come un aumento). Sta sulla card verde piena:
+// pillola chiara con testo scuro del segno, perché verde su verde stava a 2,4:1.
+// Nessun badge se manca lo storico o se il mese precedente vale 0 (per evitare
+// divisioni per zero).
 function renderDelta(current: number, previous?: number) {
   if (previous === undefined || previous === 0) return null;
-  const isPreviousHigher = previous > current;
-  const percentDiff = Math.abs(((current - previous) / previous) * 100);
-  const formattedPct = formatPercent(percentDiff);
+  const diff = current - previous;
+  const formattedPct = formatPercent(Math.abs((diff / previous) * 100));
+  const base = 'inline-flex items-center gap-0.5 text-2xs font-extrabold px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle';
 
-  if (isPreviousHigher) {
-    return (
-      <span className="inline-flex items-center gap-0.5 text-2xs font-extrabold text-down bg-down/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
-        <span>↓ {formattedPct}</span>
-      </span>
-    );
+  if (diff === 0) {
+    return <span className={`${base} bg-white/20 text-white`}><span>= {formattedPct}</span></span>;
   }
-  return (
-    <span className="inline-flex items-center gap-0.5 text-2xs font-extrabold text-up bg-up/15 px-1.5 py-0.5 rounded-md ml-1.5 shrink-0 align-middle">
-      <span>↑ {formattedPct}</span>
-    </span>
-  );
+  return diff < 0
+    ? <span className={`${base} bg-white/90 text-rose-700`}><span>↓ {formattedPct}</span></span>
+    : <span className={`${base} bg-white/90 text-emerald-800`}><span>↑ {formattedPct}</span></span>;
 }
 
 /** I due box "bento" in cima a Entrate: Entrate Mensili (con delta vs mese precedente) ed Entrate Annuali + media mensile. */

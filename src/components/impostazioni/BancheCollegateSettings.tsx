@@ -37,7 +37,7 @@ export default function BancheCollegateSettings({ compatto = false }: { compatto
       <div className={`flex items-center gap-3 mb-1 ${compatto ? 'justify-end' : 'justify-between'}`}>
         {!compatto && (
           <div className="flex items-center gap-2">
-            <Landmark className="w-5 h-5 text-blue-600" />
+            <Landmark className="w-5 h-5 text-accent" />
             <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Banche collegate</h3>
           </div>
         )}
@@ -77,7 +77,7 @@ export default function BancheCollegateSettings({ compatto = false }: { compatto
                 type="button"
                 onClick={() => collega(banca, paese)}
                 disabled={inAvvio !== null}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent text-white text-xs font-bold cursor-pointer hover:opacity-90 disabled:opacity-50 shrink-0"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent-strong text-white text-xs font-bold cursor-pointer hover:opacity-90 disabled:opacity-50 shrink-0"
               >
                 <Link2 className="w-4 h-4" />
                 {inAvvio === banca ? 'Apro…' : giorni === null ? 'Collega' : 'Rinnova'}

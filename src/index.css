@@ -30,6 +30,7 @@
   --color-warn: #d97706;   /* avviso / soglia — amber-600 */
   --color-info: #0284c7;   /* stato informativo secondario — sky-600 */
   --color-accent: #00A19A; /* brand / CTA — teal (nuovo logo) */
+  --color-accent-strong: #00796F; /* teal scuro per i pulsanti pieni con testo bianco (5,3:1): il teal del logo con il bianco sta a 3,2:1 */
   --glow-white-mix: 45%;   /* pallini/glow con colore dinamico (inline style): li schiarisce in chiaro */
   --kpi-testo-mix: black 50%; /* kpiColorTesto: scurisce la scala a soglia per il testo su chiaro */
 }
@@ -40,6 +41,7 @@
   --color-warn: #fbbf24;
   --color-info: #38bdf8;
   --color-accent: #15B4B7;
+  --color-accent-strong: #00796F;
   --glow-white-mix: 0%;    /* in scuro il colore resta quello originale, non schiarito */
   --kpi-testo-mix: white 35%; /* kpiColorTesto: schiarisce la scala a soglia per il testo su scuro */
 }
@@ -50,6 +52,7 @@
   --color-warn: var(--color-warn);
   --color-info: var(--color-info);
   --color-accent: var(--color-accent);
+  --color-accent-strong: var(--color-accent-strong);
 }
 
 /* Custom scrollbar to look sleek like StarAdmin */

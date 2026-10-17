@@ -49,15 +49,15 @@ export default function CruscottoAssetClassTable({ cruscottoRows, formatEuro, ma
                     {row.anno}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.azioniInvestitoCum)}</td>
-                  <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
+                  <td className={`py-3.5 px-4 text-right font-bold font-mono ${Number(row.azioniInvestitoAnno) < 0 ? 'text-down' : 'text-up'}`}>
                     {conSegno(row.azioniInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.obbligazioniInvestitoCum)}</td>
-                  <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
+                  <td className={`py-3.5 px-4 text-right font-bold font-mono ${Number(row.obbligazioniInvestitoAnno) < 0 ? 'text-down' : 'text-up'}`}>
                     {conSegno(row.obbligazioniInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono">{formatEuro(row.monetariInvestitoCum)}</td>
-                  <td className="py-3.5 px-4 text-right text-up font-bold font-mono">
+                  <td className={`py-3.5 px-4 text-right font-bold font-mono ${Number(row.monetariInvestitoAnno) < 0 ? 'text-down' : 'text-up'}`}>
                     {conSegno(row.monetariInvestitoAnno)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-bold text-sky-600 font-mono">

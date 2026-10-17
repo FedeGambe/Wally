@@ -24,7 +24,7 @@ export default function CruscottoInspectorWidget({ record, formatEuro, formatPer
         <span className="text-3xs text-slate-450 font-bold uppercase tracking-wider block">Filtro Mese Selezionato</span>
         <h3 className="text-xl font-bold font-display text-ink capitalize mt-2 flex items-center justify-between">
           <span>{record.mese}</span>
-          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${record.rendimentoMensileEuro >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${record.rendimentoMensileEuro >= 0 ? 'bg-up/15 text-up' : 'bg-down/15 text-down'
             }`}>
             {formatPercent(record.rendimentoMensilePerc)}
           </span>
@@ -43,7 +43,7 @@ export default function CruscottoInspectorWidget({ record, formatEuro, formatPer
         </div>
         <div className="flex justify-between">
           <span>Risultato Netto (€):</span>
-          <span className={`font-bold font-mono ${record.rendimentoMensileEuro >= 0 ? 'text-up' : 'text-rose-500'}`}>
+          <span className={`font-bold font-mono ${record.rendimentoMensileEuro >= 0 ? 'text-up' : 'text-down'}`}>
             {formatEuro(record.rendimentoMensileEuro)}
           </span>
         </div>

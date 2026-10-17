@@ -295,7 +295,7 @@ export default function SheetsModal({
         {/* Header */}
         <div className="px-6 py-5 border-b border-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-up/15 text-up flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-accent/15 text-accent flex items-center justify-center">
               <Database className="w-5 h-5 animate-pulse" />
             </div>
             <div className="text-left">
@@ -480,7 +480,7 @@ export default function SheetsModal({
                   type="button"
                   onClick={handleCreateNew}
                   disabled={isLoading}
-                  className="mt-4 px-4 py-2.5 bg-accent hover:opacity-90 text-white rounded-xl text-xs font-semibold transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-accent/10"
+                  className="mt-4 px-4 py-2.5 bg-accent-strong hover:opacity-90 text-white rounded-xl text-xs font-semibold transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-accent/10"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

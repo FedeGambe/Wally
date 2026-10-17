@@ -88,7 +88,7 @@ export default function Investimenti({
             onClick={() => setActiveTab('cruscotto')}
             className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'cruscotto'
-                ? 'bg-sky-600 text-white shadow-xs'
+                ? 'bg-sky-700 text-white shadow-xs'
                 : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
@@ -98,7 +98,7 @@ export default function Investimenti({
             onClick={() => setActiveTab('rendimenti')}
             className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'rendimenti'
-                ? 'bg-sky-600 text-white shadow-xs'
+                ? 'bg-sky-700 text-white shadow-xs'
                 : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
@@ -108,7 +108,7 @@ export default function Investimenti({
             onClick={() => setActiveTab('conti')}
             className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'conti'
-                ? 'bg-sky-600 text-white shadow-xs'
+                ? 'bg-sky-700 text-white shadow-xs'
                 : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >
@@ -118,7 +118,7 @@ export default function Investimenti({
             onClick={() => setActiveTab('pensione')}
             className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'pensione'
-                ? 'bg-sky-600 text-white shadow-xs'
+                ? 'bg-sky-700 text-white shadow-xs'
                 : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
             }`}
           >

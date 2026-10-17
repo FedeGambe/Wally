@@ -18,7 +18,7 @@ export default function CategorieEntrateEditor() {
       <IntroEditor>Categorie del modulo "Aggiungi Entrata" (es. Stipendio, Dividendi...).</IntroEditor>
       <ListaVoci vuota="Nessuna categoria ancora.">
         {categorieEntrate.map(c => (
-          <VoceRiga key={c} icona={<ArrowDownCircle className="w-4 h-4 text-up" />} titolo={c} onClick={() => setAperta(c)} />
+          <VoceRiga key={c} icona={<ArrowDownCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />} titolo={c} onClick={() => setAperta(c)} />
         ))}
       </ListaVoci>
       <AggiungiVoce label="Aggiungi categoria" onClick={() => setAperta('nuova')} />
