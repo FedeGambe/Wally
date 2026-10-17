@@ -33,7 +33,9 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
  * quando l'editor apre una scheda, titolo e freccia "indietro" del popup
  * seguono la scheda. Persistenza in src/data/datiBase.ts.
  */
-export default function DatiBaseSettings() {
+/** `compatto`: su telefono la scheda è dentro una voce dell'elenco Impostazioni,
+ *  che ha già titolo e bordo: qui niente card e niente titolo. */
+export default function DatiBaseSettings({ compatto = false }: { compatto?: boolean }) {
   const [voceAperta, setVoceAperta] = useState<Voce>(null);
   const [scheda, setScheda] = useState<SchedaAperta | null>(null);
   const { updateDatiBase } = useDatiBase();
@@ -81,11 +83,13 @@ export default function DatiBaseSettings() {
   };
 
   return (
-    <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm">
+    <div className={compatto ? '' : 'bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm'}>
+      {!compatto && (
       <div className="flex items-center gap-2 mb-1">
         <Tags className="w-5 h-5 text-blue-600" />
         <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Dati Base</h3>
       </div>
+      )}
       <p className="text-xs text-ink-soft mb-5 leading-relaxed">
         Conti, categorie e soglie usati nei form "Aggiungi" e nelle pagine. Modificabili qui, non serve più toccare il foglio Google.
       </p>

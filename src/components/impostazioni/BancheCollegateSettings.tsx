@@ -10,7 +10,9 @@ import { avviaCollegamentoBanca, giorniAllaScadenza, BANCHE_COLLEGABILI } from '
  * pulsanti per collegare o rinnovare. I conti e il "Conto Wally" di ciascuno
  * sono nella scheda "Banca Collegamenti" del foglio di configurazione.
  */
-export default function BancheCollegateSettings() {
+/** `compatto`: su telefono la scheda è dentro una voce dell'elenco Impostazioni,
+ *  che ha già titolo e bordo: qui niente card e niente titolo. */
+export default function BancheCollegateSettings({ compatto = false }: { compatto?: boolean }) {
   const { accessToken, isIncognito } = useFinanceData();
   const { collegamenti, inCaricamento, sincronizzaOra } = useMovimentiBanca();
   const [errore, setErrore] = useState<string | null>(null);
@@ -31,12 +33,14 @@ export default function BancheCollegateSettings() {
   };
 
   return (
-    <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm">
-      <div className="flex items-center justify-between gap-3 mb-1">
-        <div className="flex items-center gap-2">
-          <Landmark className="w-5 h-5 text-blue-600" />
-          <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Banche collegate</h3>
-        </div>
+    <div className={compatto ? '' : 'bg-white dark:bg-white/5 p-6 rounded-3xl border border-hairline dark:border-white/10 shadow-sm'}>
+      <div className={`flex items-center gap-3 mb-1 ${compatto ? 'justify-end' : 'justify-between'}`}>
+        {!compatto && (
+          <div className="flex items-center gap-2">
+            <Landmark className="w-5 h-5 text-blue-600" />
+            <h3 className="font-bold text-lg font-display text-ink dark:text-slate-100">Banche collegate</h3>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => sincronizzaOra().catch(e => setErrore(e?.message || 'Sincronizzazione non riuscita'))}
