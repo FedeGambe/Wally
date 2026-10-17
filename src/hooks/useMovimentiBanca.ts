@@ -179,7 +179,8 @@ export function useMovimentiBanca() {
       .sort((a, b) => b.movimento.data.localeCompare(a.movimento.data));
   }, [movimenti, classifica, data.uscite]);
 
-  const segna = useCallback(async (righe: number[], stato: typeof STATO_REGISTRATO | typeof STATO_IGNORATO) => {
+  // stato '' = di nuovo da confermare (l'"Annulla" dopo un Ignora nella card).
+  const segna = useCallback(async (righe: number[], stato: typeof STATO_REGISTRATO | typeof STATO_IGNORATO | '') => {
     if (!accessToken || !spreadsheetId) return;
     await segnaMovimentiBanca(accessToken, spreadsheetId, righe.map(riga => ({ riga, stato })));
     const aggiornati = movimenti.map(m => righe.includes(m.riga) ? { ...m, stato } : m);

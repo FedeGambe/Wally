@@ -652,7 +652,7 @@ function DashboardShell({
           {isRefreshing && <span className="sr-only" role="status">Sincronizzazione dei fogli in corso</span>}
         </div>
 
-        <main ref={mainRef} id="main-content" className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-8 max-w-7xl w-full mx-auto pb-32 md:pb-8">
+        <main ref={mainRef} id="main-content" className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-8 max-w-7xl w-full mx-auto pb-[calc(10rem+env(safe-area-inset-bottom))] md:pb-8">
           {/* Su telefono il contenuto scende col dito durante il "tira giù per aggiornare" */}
           {/* Margine e non transform: un transform sposterebbe anche i pannelli "fixed"
               aperti mentre la sync è in corso. */}

@@ -33,6 +33,15 @@ export default function MovimentiBancaCard() {
   const { attivo, daConfermare, collegamenti, registratiOra, errore, inCaricamento, segna, sincronizzaOra } = useMovimentiBanca();
   const [aperto, setAperto] = useState<MovimentoDaConfermare | null>(null);
   const [mostraTutti, setMostraTutti] = useState(false);
+  // Ultimo movimento ignorato: per qualche secondo si può annullare (la X è
+  // accanto alla riga e un tocco sbagliato non deve far perdere il movimento).
+  const [ignorato, setIgnorato] = useState<{ riga: number; descrizione: string } | null>(null);
+
+  useEffect(() => {
+    if (!ignorato) return;
+    const timer = setTimeout(() => setIgnorato(null), 8000);
+    return () => clearTimeout(timer);
+  }, [ignorato]);
   const [messaggio, setMessaggio] = useState<{ ok: boolean; testo: string } | null>(null);
 
   useEffect(() => {
@@ -77,6 +86,26 @@ export default function MovimentiBancaCard() {
     }
   };
 
+  const ignora = async (m: MovimentoDaConfermare) => {
+    try {
+      await segna([m.riga], STATO_IGNORATO);
+      setIgnorato({ riga: m.riga, descrizione: descrizioneBreve(m.movimento.descrizione) || m.movimento.descrizione || 'Pagamento con carta' });
+    } catch (e: any) {
+      setMessaggio({ ok: false, testo: e?.message || 'Movimento non ignorato: controlla la connessione e riprova.' });
+    }
+  };
+
+  const annullaIgnora = async () => {
+    if (!ignorato) return;
+    const { riga } = ignorato;
+    setIgnorato(null);
+    try {
+      await segna([riga], '');
+    } catch (e: any) {
+      setMessaggio({ ok: false, testo: e?.message || 'Annullamento non riuscito: controlla la connessione e riprova.' });
+    }
+  };
+
   const mostrati = mostraTutti ? daConfermare : daConfermare.slice(0, MOSTRATI_DI_BASE);
 
   return (
@@ -106,6 +135,16 @@ export default function MovimentiBancaCard() {
         <p role={messaggio.ok ? 'status' : 'alert'} className={`mb-3 text-xs font-semibold ${messaggio.ok ? 'text-up' : 'text-down'}`}>{messaggio.testo}</p>
       )}
       {errore && <p role="alert" className="mb-3 text-xs font-semibold text-down">{errore}</p>}
+      {ignorato && (
+        <div role="status" className="mb-3 flex items-center justify-between gap-3 p-3 rounded-2xl bg-canvas dark:bg-white/5 text-xs">
+          <span className="min-w-0 truncate text-ink-soft dark:text-slate-300">
+            Ignorato: <strong className="font-semibold text-ink dark:text-slate-100">{ignorato.descrizione}</strong>
+          </span>
+          <button type="button" onClick={annullaIgnora} className="px-3 py-1.5 rounded-lg font-bold text-accent hover:bg-accent/10 cursor-pointer shrink-0">
+            Annulla
+          </button>
+        </div>
+      )}
 
       {inScadenza.map(c => (
         <div key={c.banca} className="mb-3 flex items-center justify-between gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-xs">
@@ -174,10 +213,10 @@ export default function MovimentiBancaCard() {
                 )}
                 <button
                   type="button"
-                  onClick={() => segna([m.riga], STATO_IGNORATO)}
+                  onClick={() => ignora(m)}
                   aria-label="Ignora movimento"
                   title="Ignora (non registrarlo)"
-                  className="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-down dark:hover:text-down hover:bg-canvas dark:hover:bg-white/10 cursor-pointer shrink-0"
+                  className="w-9 h-9 ml-1 flex items-center justify-center rounded-lg text-ink-soft dark:text-slate-400 hover:text-down dark:hover:text-down hover:bg-canvas dark:hover:bg-white/10 cursor-pointer shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>

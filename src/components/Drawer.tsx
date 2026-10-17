@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingUp, Calendar, Tag, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../data/mockData';
 import { formatEuro, formatPercent } from '../utils/format';
@@ -43,6 +43,11 @@ interface DrawerProps {
       investitoDelta?: number;
       risparmioNettoDelta?: number;
     };
+  };
+  /** Mese precedente/successivo nel riepilogo mensile: frecce in cima per scorrere i mesi senza chiudere. */
+  navigazioneMese?: {
+    precedente?: { etichetta: string; onClick: () => void };
+    successivo?: { etichetta: string; onClick: () => void };
   };
   /** Soglie dinamiche (stesse di Panoramica) per colorare i 4 riquadri Spese/Investito/Risparmio in base a quanto si è vicini al target. */
   dynamicThresholds?: {
@@ -113,7 +118,8 @@ export default function Drawer({
   subtitle,
   transactions,
   stats,
-  dynamicThresholds
+  dynamicThresholds,
+  navigazioneMese
 }: DrawerProps) {
   return (
     <SlideOverPanel
@@ -164,6 +170,31 @@ export default function Drawer({
             ].filter(d => d.value > 0);
             return (
               <>
+                {navigazioneMese && (navigazioneMese.precedente || navigazioneMese.successivo) && (
+                  <div className="flex items-center justify-between gap-3 -mt-1">
+                    {navigazioneMese.precedente ? (
+                      <button
+                        type="button"
+                        onClick={navigazioneMese.precedente.onClick}
+                        className="flex items-center gap-1 px-2.5 py-2 -ml-2.5 rounded-xl text-xs font-semibold text-ink-soft hover:text-ink hover:bg-canvas dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer capitalize"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        {navigazioneMese.precedente.etichetta}
+                      </button>
+                    ) : <span />}
+                    {navigazioneMese.successivo && (
+                      <button
+                        type="button"
+                        onClick={navigazioneMese.successivo.onClick}
+                        className="flex items-center gap-1 px-2.5 py-2 -mr-2.5 rounded-xl text-xs font-semibold text-ink-soft hover:text-ink hover:bg-canvas dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer capitalize"
+                      >
+                        {navigazioneMese.successivo.etichetta}
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-3">
                   <Riquadro label="Entrate" valore={m.entrate} delta={m.entrateDelta} goodWhenPositive={true} />
                   <Riquadro label="Spese Totali" valore={m.speseTotali} quota={pct(m.speseTotali)} delta={m.speseTotaliDelta} goodWhenPositive={false} />

@@ -69,6 +69,7 @@ export default function Panoramica({
     currentMonthData, prevMonthData,
     patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
     handleChartClick, handleOpenMonthDetail,
+    dettaglioPrecedente, dettaglioSuccessivo,
     entrateDelta, speseDelta, spesePrimDelta, speseSecDelta,
     primPerc, secPerc, invPerc, rispPerc, spendibileResiduo
   } = usePanoramicaData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
@@ -206,6 +207,16 @@ export default function Panoramica({
         transactions={drawerTransactions}
         stats={drawerStats}
         dynamicThresholds={dynamicThresholds}
+        navigazioneMese={{
+          precedente: dettaglioPrecedente && {
+            etichetta: `${dettaglioPrecedente.mese} ${dettaglioPrecedente.anno}`,
+            onClick: () => handleOpenMonthDetail(dettaglioPrecedente.mese, dettaglioPrecedente.anno)
+          },
+          successivo: dettaglioSuccessivo && {
+            etichetta: `${dettaglioSuccessivo.mese} ${dettaglioSuccessivo.anno}`,
+            onClick: () => handleOpenMonthDetail(dettaglioSuccessivo.mese, dettaglioSuccessivo.anno)
+          }
+        }}
       />
 
       <AggiungiDatoModal isOpen={showAddDataModal} onClose={() => setShowAddDataModal(false)} tipoIniziale={tipoDaPallini} />

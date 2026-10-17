@@ -37,6 +37,8 @@ export function usePanoramicaData(
   const [drawerSubtitle, setDrawerSubtitle] = useState('');
   const [drawerTransactions, setDrawerTransactions] = useState<Transaction[]>([]);
   const [drawerStats, setDrawerStats] = useState<any>(undefined);
+  // Mese mostrato nel dettaglio, per le frecce mese precedente/successivo.
+  const [meseDettaglio, setMeseDettaglio] = useState<{ mese: string; anno: number } | null>(null);
 
   // Filter data based on selected year
   const chronologicalData = useMemo(() => {
@@ -211,6 +213,7 @@ export function usePanoramicaData(
     const delta = (curr?: number, prev?: number) =>
       (curr !== undefined && prev !== undefined && prev !== 0) ? ((curr - prev) / prev) * 100 : undefined;
 
+    setMeseDettaglio({ mese: monthName, anno: yearValue });
     setDrawerTitle(`Dettaglio Finanziario · ${monthName} ${yearValue}`);
     setDrawerSubtitle(`Analisi dei flussi e delle transazioni registrate`);
     setDrawerTransactions(matchedTx);
@@ -267,6 +270,14 @@ export function usePanoramicaData(
   // Quanto resta ancora da spendere questo mese: colonna "Spendibile" del
   // foglio Risparmio (budget mensile per le spese secondarie) meno quanto
   // già speso in secondarie.
+  // Mesi accanto a quello aperto nel dettaglio (fra tutti i mesi del foglio,
+  // non solo l'anno scelto: da Gennaio si torna a Dicembre dell'anno prima).
+  const idxDettaglio = meseDettaglio
+    ? chronologicalData.findIndex(r => r.mese.toLowerCase() === meseDettaglio.mese.toLowerCase() && r.anno === meseDettaglio.anno)
+    : -1;
+  const dettaglioPrecedente = idxDettaglio > 0 ? chronologicalData[idxDettaglio - 1] : undefined;
+  const dettaglioSuccessivo = idxDettaglio !== -1 && idxDettaglio < chronologicalData.length - 1 ? chronologicalData[idxDettaglio + 1] : undefined;
+
   const spendibileResiduo = (currentMonthData && currentMonthData.spendibile !== undefined && currentMonthData.speseSecondarie !== undefined)
     ? currentMonthData.spendibile - currentMonthData.speseSecondarie
     : undefined;
@@ -282,6 +293,7 @@ export function usePanoramicaData(
     currentMonthData, prevMonthData,
     patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
     handleChartClick, handleOpenMonthDetail,
+    dettaglioPrecedente, dettaglioSuccessivo,
     entrateDelta, speseDelta, spesePrimDelta, speseSecDelta,
     primPerc, secPerc, invPerc, rispPerc, spendibileResiduo
   };
