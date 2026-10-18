@@ -25,7 +25,6 @@ import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import AggiungiDatoModal, { type TipoDato } from '../components/AggiungiDatoModal';
 import AggiungiDatoBubbles from '../components/AggiungiDatoBubbles';
-import FloatingAddButton from '../components/FloatingAddButton';
 import Drawer from '../components/Drawer';
 import Modal from '../components/Modal';
 import PanoramicaWealthCards from '../components/panoramica/PanoramicaWealthCards';
@@ -75,7 +74,7 @@ export default function Panoramica({
   } = usePanoramicaData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
   const [showAddDataModal, setShowAddDataModal] = useState(false);
-  // Tipo scelto dai pallini (solo telefono); null = popup con la griglia (desktop).
+  // Tipo scelto dai pallini: il popup si apre direttamente sul form giusto.
   const [tipoDaPallini, setTipoDaPallini] = useState<TipoDato>(null);
   const isPhone = useIsMobile(768);
   // Popup "Storico mesi": su telefono la tabella storica non sta nella Home.
@@ -84,12 +83,8 @@ export default function Panoramica({
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-3">
       <h1 className="sr-only">Panoramica</h1>
-      {/* Su telefono il "+" apre i pallini dei tipi, su desktop il popup con la griglia */}
-      {isPhone ? (
-        <AggiungiDatoBubbles theme={theme} onScegli={(tipo) => { setTipoDaPallini(tipo); setShowAddDataModal(true); }} />
-      ) : (
-        <FloatingAddButton label="Aggiungi Dato" colorClass="bg-blue-600 hover:bg-blue-700" onClick={() => { setTipoDaPallini(null); setShowAddDataModal(true); }} />
-      )}
+      {/* Il "+" apre i pallini dei tipi; su desktop più grandi */}
+      <AggiungiDatoBubbles theme={theme} grande={!isPhone} onScegli={(tipo) => { setTipoDaPallini(tipo); setShowAddDataModal(true); }} />
 
       {/* "Questo mese": prima card su telefono; da lg a sinistra, alta quanto
           la colonna di destra */}

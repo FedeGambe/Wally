@@ -15,7 +15,7 @@ interface AggiungiDatoModalProps {
   isOpen: boolean;
   onClose: () => void;
   /** Apre il popup già sul form di questo tipo, senza la griglia di scelta: lo usa
-   *  la Home su telefono, dove il tipo si sceglie dai pallini (AggiungiDatoBubbles). */
+   *  la Home, dove il tipo si sceglie dai pallini (AggiungiDatoBubbles). */
   tipoIniziale?: TipoDato;
 }
 

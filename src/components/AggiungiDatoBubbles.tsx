@@ -6,7 +6,7 @@ import type { TipoDato } from './AggiungiDatoModal';
 import { useBolleAperte, setBolleAperte, useNascondiAggiunta } from '../hooks/useBolleAperte';
 
 /**
- * Bottone "+" della Home su telefono: al posto del popup con la griglia dei tipi,
+ * Bottone "+" della Home: al posto del popup con la griglia dei tipi,
  * fa uscire su un quarto di cerchio attorno a sé (stessi pallini vetro della barra
  * in basso) cinque pallini: Entrate, Uscite, Trasferimenti, Investimenti, Consumi.
  * L'etichetta di ogni pallino sta all'esterno dell'arco, sulla retta che va dal "+"
@@ -16,19 +16,56 @@ import { useBolleAperte, setBolleAperte, useNascondiAggiunta } from '../hooks/us
  * Scelto il tipo, chiama `onScegli` e Panoramica apre AggiungiDatoModal
  * direttamente sul form giusto. Toccando fuori, Esc o di nuovo il "+" si chiude;
  * toccando il pallino già scelto si torna ai cinque.
+ * Da md in su (`grande`) il bottone mostra anche l'etichetta come sulle altre
+ * pagine e i pallini sono più grandi, su un arco più largo: lo spazio c'è.
  */
 
 interface AggiungiDatoBubblesProps {
   onScegli: (tipo: Exclude<TipoDato, null>) => void;
   theme: 'dark' | 'light';
+  /** Desktop: pallini, etichette e arco più grandi. */
+  grande?: boolean;
 }
 
 type Principale = 'entrata' | 'uscita' | 'trasferimento' | 'investimento' | 'consumo';
 
 // Cinque posti sull'arco, da dritto in su (90°) a dritto a sinistra (180°), a
-// RAGGIO px dal centro del "+": con pallini da 56px restano ~10px fra uno e l'altro.
-const RAGGIO = 170;
+// `raggio` px dal centro del "+": fra due posti vicini ci sono 0,39 × raggio, quindi
+// con pallini da 56px (telefono, raggio 170) restano ~10px fra uno e l'altro, con
+// quelli da 80px (desktop, raggio 270) ~25px.
 const ANGOLI = [90, 112.5, 135, 157.5, 180];
+
+interface Geometria {
+  raggio: number;
+  /** Raggio del cerchio del pallino in px, per agganciarci l'etichetta. */
+  raggioPallino: number;
+  cerchio: string;
+  icona: string;
+  etichetta: string;
+  /** Distanza del titolo dal centro del "+", su ciascun asse, dentro l'arco. */
+  titolo: number;
+  classeTitolo: string;
+}
+
+const PICCOLA: Geometria = {
+  raggio: 170,
+  raggioPallino: 28,
+  cerchio: '-left-7 -top-7 w-14 h-14',
+  icona: 'w-6 h-6',
+  etichetta: 'px-3 py-1 text-xs',
+  titolo: 57,
+  classeTitolo: 'w-28 text-sm'
+};
+
+const GRANDE: Geometria = {
+  raggio: 270,
+  raggioPallino: 40,
+  cerchio: '-left-10 -top-10 w-20 h-20',
+  icona: 'w-8 h-8',
+  etichetta: 'px-4 py-1.5 text-sm',
+  titolo: 95,
+  classeTitolo: 'w-40 text-lg'
+};
 
 const polare = (gradi: number, raggio: number) => {
   const rad = (gradi * Math.PI) / 180;
@@ -36,15 +73,15 @@ const polare = (gradi: number, raggio: number) => {
 };
 
 // Etichetta agganciata al pallino: il punto d'aggancio sta sulla retta dal "+",
-// 6px fuori dal bordo del cerchio (raggio 28 per la scala), e la pillola vi si appoggia con il
+// 6px fuori dal bordo del cerchio (raggio del pallino per la scala), e la pillola vi si appoggia con il
 // lato (o l'angolo, in diagonale) rivolto verso il pallino. Lo spostamento in % della
 // pillola stessa la tiene attaccata qualunque sia la lunghezza del testo.
-function agganciaEtichetta(gradi: number, scala: number) {
+function agganciaEtichetta(gradi: number, raggioPallino: number, scala: number) {
   const rad = (gradi * Math.PI) / 180;
   const dx = Math.cos(rad);
   const dy = -Math.sin(rad);
   const max = Math.max(Math.abs(dx), Math.abs(dy));
-  const punto = polare(gradi, 28 * scala + 6);
+  const punto = polare(gradi, raggioPallino * scala + 6);
   return {
     left: punto.x,
     top: punto.y,
@@ -87,16 +124,16 @@ const VOCI: Voce[] = [
 
 const MOLLA = { type: 'spring' as const, stiffness: 420, damping: 26 };
 
-function Pallino({ label, icon: Icon, colorClass, posto, delay = 0, attivo = false, onClick }: {
-  label: string; icon: React.ElementType; colorClass: string; posto: number;
+function Pallino({ g, label, icon: Icon, colorClass, posto, delay = 0, attivo = false, onClick }: {
+  g: Geometria; label: string; icon: React.ElementType; colorClass: string; posto: number;
   delay?: number; attivo?: boolean; onClick: () => void;
 }) {
   const gradi = ANGOLI[posto];
-  const { x, y } = polare(gradi, RAGGIO);
+  const { x, y } = polare(gradi, g.raggio);
   // Nel secondo passaggio il cerchio del pallino scelto si rimpicciolisce per lasciare
   // la scena alle due sotto-azioni; l'etichetta resta a grandezza normale e lo segue.
   const scala = attivo ? 0.55 : 1;
-  const etichetta = agganciaEtichetta(gradi, scala);
+  const etichetta = agganciaEtichetta(gradi, g.raggioPallino, scala);
   return (
     // Bottone a dimensione zero centrato sul "+": pallino ed etichetta sono
     // posizionati rispetto al suo centro, così tutto parte e rientra dal "+".
@@ -112,14 +149,14 @@ function Pallino({ label, icon: Icon, colorClass, posto, delay = 0, attivo = fal
       transition={{ ...MOLLA, delay }}
     >
       <motion.span
-        className={`absolute -left-7 -top-7 w-14 h-14 rounded-full ${colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}
+        className={`absolute ${g.cerchio} rounded-full ${colorClass} text-white flex items-center justify-center shadow-lg ring-4 ${attivo ? 'pallino-attivo ring-white' : 'ring-white/50 dark:ring-slate-900/60'}`}
         animate={{ scale: scala }}
         transition={MOLLA}
       >
-        <Icon className="w-6 h-6" />
+        <Icon className={g.icona} />
       </motion.span>
       <motion.span
-        className="absolute px-3 py-1 rounded-full bg-black/75 text-white text-xs font-bold whitespace-nowrap shadow-lg"
+        className={`absolute ${g.etichetta} rounded-full bg-black/75 text-white font-bold whitespace-nowrap shadow-lg`}
         style={{ translate: etichetta.translate }}
         initial={false}
         animate={{ left: etichetta.left, top: etichetta.top }}
@@ -131,7 +168,8 @@ function Pallino({ label, icon: Icon, colorClass, posto, delay = 0, attivo = fal
   );
 }
 
-export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBubblesProps) {
+export default function AggiungiDatoBubbles({ onScegli, theme, grande = false }: AggiungiDatoBubblesProps) {
+  const g = grande ? GRANDE : PICCOLA;
   // Stato condiviso con la barra in basso: aprire Transazioni/Investimenti chiude
   // questi pallini, e mentre quelli sono aperti il "+" sparisce.
   const aperto = useBolleAperte() === 'aggiungi';
@@ -191,15 +229,17 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
         )}
       </AnimatePresence>
 
-      <div className="fixed z-[60] right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] w-14 h-14">
+      {/* Su desktop il contenitore prende la misura della pillola con l'etichetta:
+          l'arco parte dal suo centro. */}
+      <div className={`fixed z-[60] ${grande ? 'right-8 bottom-8' : 'right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] w-14 h-14'}`}>
         <AnimatePresence>
           {/* Titolo dentro l'arco, fra il "+" e i pallini: quello spazio resta libero. */}
           {aperto && (
             <motion.span
               key="titolo"
               aria-hidden="true"
-              className="absolute -translate-x-1/2 -translate-y-1/2 w-28 text-center text-sm font-bold leading-tight text-white drop-shadow pointer-events-none"
-              style={{ left: 'calc(50% - 57px)', top: 'calc(50% - 57px)' }}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 ${g.classeTitolo} text-center font-bold leading-tight text-white drop-shadow pointer-events-none`}
+              style={{ left: `calc(50% - ${g.titolo}px)`, top: `calc(50% - ${g.titolo}px)` }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -215,6 +255,7 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
             return (
               <Pallino
                 key={v.id}
+                g={g}
                 label={v.label}
                 icon={v.icon}
                 colorClass={v.colorClass}
@@ -233,6 +274,7 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
             return (
               <Pallino
                 key={`${voceScelta.id}-${s.tipo}`}
+                g={g}
                 label={s.label}
                 icon={s.icon}
                 colorClass={voceScelta.colorClass}
@@ -253,11 +295,12 @@ export default function AggiungiDatoBubbles({ onScegli, theme }: AggiungiDatoBub
           aria-expanded={aperto}
           tabIndex={nascosto ? -1 : undefined}
           aria-hidden={nascosto || undefined}
-          className={`relative w-14 h-14 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''}`}
+          className={`relative rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white flex items-center justify-center gap-2 shadow-lg ${grande ? 'px-5 py-3.5 text-sm font-bold' : 'w-14 h-14'} hover:shadow-xl transition-all duration-200 cursor-pointer ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''}`}
         >
           <motion.span animate={{ rotate: aperto ? 45 : 0 }} transition={MOLLA} className="flex">
-            <Plus className="w-6 h-6" />
+            <Plus className={grande ? 'w-4 h-4' : 'w-6 h-6'} />
           </motion.span>
+          {grande && <span>{aperto ? 'Chiudi' : 'Aggiungi Dato'}</span>}
         </button>
       </div>
     </div>,

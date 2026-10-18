@@ -23,14 +23,14 @@ import {
   Filter,
   Search,
   Grid,
-  CreditCard, Receipt } from 'lucide-react';
+  CreditCard, Receipt, ZoomIn, ZoomOut } from 'lucide-react';
 import Drawer from '../components/Drawer';
 import DropdownMenu from '../components/DropdownMenu';
 import Modal from '../components/Modal';
 import FloatingAddButton from '../components/FloatingAddButton';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
-import UsciteTrendChart from '../components/uscite/UsciteTrendChart';
+import UsciteTrendChart, { scalaAsseUscite } from '../components/uscite/UsciteTrendChart';
 import AggiungiUscitaForm from '../components/uscite/AggiungiUscitaForm';
 import { formatEuro } from '../utils/format';
 import { useUsciteData } from '../hooks/useUsciteData';
@@ -74,6 +74,8 @@ export default function Uscite({
   const microPanelRef = useRef<HTMLDivElement>(null);
   const [microFocused, setMicroFocused] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [zoomedOut, setZoomedOut] = useState(false);
+  const { hasOutliers } = scalaAsseUscite(rolling12MonthsData, activeChartFilter);
 
   useEffect(() => {
     if (selectedMacroCat === 'Tutte') return;
@@ -139,6 +141,16 @@ export default function Uscite({
             >
               Vedi Transazioni
             </button>
+            {hasOutliers && (
+              <button
+                onClick={() => setZoomedOut(z => !z)}
+                className="ml-auto inline-flex items-center gap-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs px-3 py-2 rounded-xl transition cursor-pointer"
+                title={zoomedOut ? 'Torna alla scala sulla media' : 'Mostra anche i valori molto alti'}
+              >
+                {zoomedOut ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
+                {zoomedOut ? 'Zoom in' : 'Zoom out'}
+              </button>
+            )}
           </div>
         </div>
         <UsciteTrendChart
@@ -146,6 +158,7 @@ export default function Uscite({
           activeChartFilter={activeChartFilter}
           localSelectedMonth={localSelectedMonth}
           handleChartClick={handleChartClick}
+          zoomedOut={zoomedOut}
         />
       </div>
 

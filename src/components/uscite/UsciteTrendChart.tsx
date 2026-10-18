@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { ZoomIn, ZoomOut } from 'lucide-react';
+import React from 'react';
 import {
   XAxis,
   YAxis,
@@ -31,6 +30,7 @@ interface UsciteTrendChartProps {
   activeChartFilter: string;
   localSelectedMonth: string;
   handleChartClick: (event: any) => void;
+  zoomedOut: boolean;
 }
 
 const renderAreaLegend = ({ payload }: any) => (
@@ -44,15 +44,9 @@ const renderAreaLegend = ({ payload }: any) => (
   </div>
 );
 
-export default function UsciteTrendChart({
-  rolling12MonthsData,
-  activeChartFilter,
-  localSelectedMonth,
-  handleChartClick
-}: UsciteTrendChartProps) {
-  const isMobile = useIsMobile();
-  const [zoomedOut, setZoomedOut] = useState(false);
-
+// Scala dell'asse Y, esportata perché anche la pagina deve sapere se ci sono
+// outlier (il bottone "Zoom out" sta nell'intestazione della card).
+export function scalaAsseUscite(rolling12MonthsData: RollingMonthDatum[], activeChartFilter: string) {
   // Massimo assoluto delle serie effettivamente disegnate (dipende dal filtro
   // primarie/secondarie/all): decide se l'asse Y può usare la notazione compatta
   // "k" su mobile (vedi formatAxisCompact in utils/format.ts).
@@ -73,6 +67,19 @@ export default function UsciteTrendChart({
   const Y_GAP = 1.25; // margine sopra la media (+25%)
   const zoomedMax = Math.max(100, Math.ceil((avgMonthly * Y_GAP) / 100) * 100);
   const hasOutliers = yAxisMaxAbs > zoomedMax;
+  return { visibleKeys, yAxisMaxAbs, zoomedMax, hasOutliers };
+}
+
+export default function UsciteTrendChart({
+  rolling12MonthsData,
+  activeChartFilter,
+  localSelectedMonth,
+  handleChartClick,
+  zoomedOut
+}: UsciteTrendChartProps) {
+  const isMobile = useIsMobile();
+
+  const { visibleKeys, yAxisMaxAbs, zoomedMax, hasOutliers } = scalaAsseUscite(rolling12MonthsData, activeChartFilter);
   const clipY = hasOutliers && !zoomedOut;
   const yMin = minimoAsseConScarto(
     visibleKeys.flatMap(k => rolling12MonthsData.map(r => Number(r[k]) || 0)),
@@ -108,116 +115,108 @@ export default function UsciteTrendChart({
   };
 
   return (
-    <div className="relative h-72 mt-6 pointer-events-none md:pointer-events-auto">
-      {hasOutliers && (
-        <button
-          onClick={() => setZoomedOut(z => !z)}
-          className="absolute top-0 right-0 z-10 pointer-events-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 text-3xs font-bold transition cursor-pointer"
-          title={zoomedOut ? 'Torna alla scala sulla media' : 'Mostra anche i valori molto alti'}
-        >
-          {zoomedOut ? <ZoomIn className="w-3 h-3" /> : <ZoomOut className="w-3 h-3" />}
-          {zoomedOut ? 'Zoom in' : 'Zoom out'}
-        </button>
-      )}
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={rolling12MonthsData}
-          margin={{ top: 15, right: 15, left: isMobile ? 0 : 10, bottom: 0 }}
-          onClick={handleChartClick}
-        >
-          <defs>
-            <linearGradient id="colorUscitePrimarie" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#c2410c" stopOpacity={0.25}/>
-              <stop offset="95%" stopColor="#c2410c" stopOpacity={0.01}/>
-            </linearGradient>
-            <linearGradient id="colorUsciteSecondarie" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#fb923c" stopOpacity={0.2}/>
-              <stop offset="95%" stopColor="#fb923c" stopOpacity={0.01}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis
-            dataKey="mese"
-            stroke="#94a3b8"
-            fontSize={11}
-            tickLine={false}
-            axisLine={false}
-            interval={isMobile ? 2 : 0}
-            tickFormatter={(val) => {
-              const match = rolling12MonthsData.find(d => d.mese === val);
-              return match ? `${val} '${String(match.anno).slice(2)}` : val;
-            }}
-          />
-          <YAxis
-            stroke="#94a3b8"
-            fontSize={11}
-            tickLine={false}
-            axisLine={false}
-            width={isMobile ? 44 : 60}
-            domain={clipY ? [yMin, zoomedMax] : [yMin, 'auto']}
-            allowDataOverflow={clipY}
-            tickFormatter={(val) => isMobile
-              ? formatAxisCompact(val, yAxisMaxAbs)
-              : `${Number(val).toLocaleString('it-IT', { useGrouping: true })} €`}
-          />
-          <Tooltip content={renderAreaTooltip} />
-          <Legend verticalAlign="top" height={36} content={renderAreaLegend} />
-          {(activeChartFilter === 'all' || activeChartFilter === 'primarie') && (
-            <Area
-              type="monotone"
-              dataKey="spesePrimarie"
-              name="Spese Primarie"
-              stroke="#c2410c"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#colorUscitePrimarie)"
-              dot={(props: any) => {
-                const { cx, cy, payload } = props;
-                const isSelected = payload.mese.toLowerCase() === localSelectedMonth.toLowerCase();
-                return (
-                  <circle
-                    key={payload.mese + '-primary'}
-                    cx={cx}
-                    cy={cy}
-                    r={isSelected ? 6 : 4}
-                    fill={isSelected ? '#c2410c' : '#fff'}
-                    stroke="#c2410c"
-                    strokeWidth={isSelected ? 3 : 2}
-                    className="cursor-pointer transition-all"
-                  />
-                );
+    <div className="mt-6">
+      <div className="h-72 pointer-events-none md:pointer-events-auto">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={rolling12MonthsData}
+            margin={{ top: 15, right: 15, left: isMobile ? 0 : 10, bottom: 0 }}
+            onClick={handleChartClick}
+          >
+            <defs>
+              <linearGradient id="colorUscitePrimarie" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#c2410c" stopOpacity={0.25}/>
+                <stop offset="95%" stopColor="#c2410c" stopOpacity={0.01}/>
+              </linearGradient>
+              <linearGradient id="colorUsciteSecondarie" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#fb923c" stopOpacity={0.2}/>
+                <stop offset="95%" stopColor="#fb923c" stopOpacity={0.01}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis
+              dataKey="mese"
+              stroke="#94a3b8"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              interval={isMobile ? 2 : 0}
+              tickFormatter={(val) => {
+                const match = rolling12MonthsData.find(d => d.mese === val);
+                return match ? `${val} '${String(match.anno).slice(2)}` : val;
               }}
             />
-          )}
-          {(activeChartFilter === 'all' || activeChartFilter === 'secondarie') && (
-            <Area
-              type="monotone"
-              dataKey="speseSecondarie"
-              name="Spese Secondarie"
-              stroke="#fb923c"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#colorUsciteSecondarie)"
-              dot={(props: any) => {
-                const { cx, cy, payload } = props;
-                const isSelected = payload.mese.toLowerCase() === localSelectedMonth.toLowerCase();
-                return (
-                  <circle
-                    key={payload.mese + '-secondary'}
-                    cx={cx}
-                    cy={cy}
-                    r={isSelected ? 6 : 4}
-                    fill={isSelected ? '#fb923c' : '#fff'}
-                    stroke="#fb923c"
-                    strokeWidth={isSelected ? 3 : 2}
-                    className="cursor-pointer transition-all"
-                  />
-                );
-              }}
+            <YAxis
+              stroke="#94a3b8"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              width={isMobile ? 44 : 60}
+              domain={clipY ? [yMin, zoomedMax] : [yMin, 'auto']}
+              allowDataOverflow={clipY}
+              tickFormatter={(val) => isMobile
+                ? formatAxisCompact(val, yAxisMaxAbs)
+                : `${Number(val).toLocaleString('it-IT', { useGrouping: true })} €`}
             />
-          )}
-        </AreaChart>
-      </ResponsiveContainer>
+            <Tooltip content={renderAreaTooltip} />
+            <Legend verticalAlign="top" height={36} content={renderAreaLegend} />
+            {(activeChartFilter === 'all' || activeChartFilter === 'primarie') && (
+              <Area
+                type="monotone"
+                dataKey="spesePrimarie"
+                name="Spese Primarie"
+                stroke="#c2410c"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorUscitePrimarie)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props;
+                  const isSelected = payload.mese.toLowerCase() === localSelectedMonth.toLowerCase();
+                  return (
+                    <circle
+                      key={payload.mese + '-primary'}
+                      cx={cx}
+                      cy={cy}
+                      r={isSelected ? 6 : 4}
+                      fill={isSelected ? '#c2410c' : '#fff'}
+                      stroke="#c2410c"
+                      strokeWidth={isSelected ? 3 : 2}
+                      className="cursor-pointer transition-all"
+                    />
+                  );
+                }}
+              />
+            )}
+            {(activeChartFilter === 'all' || activeChartFilter === 'secondarie') && (
+              <Area
+                type="monotone"
+                dataKey="speseSecondarie"
+                name="Spese Secondarie"
+                stroke="#fb923c"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorUsciteSecondarie)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props;
+                  const isSelected = payload.mese.toLowerCase() === localSelectedMonth.toLowerCase();
+                  return (
+                    <circle
+                      key={payload.mese + '-secondary'}
+                      cx={cx}
+                      cy={cy}
+                      r={isSelected ? 6 : 4}
+                      fill={isSelected ? '#fb923c' : '#fff'}
+                      stroke="#fb923c"
+                      strokeWidth={isSelected ? 3 : 2}
+                      className="cursor-pointer transition-all"
+                    />
+                  );
+                }}
+              />
+            )}
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
