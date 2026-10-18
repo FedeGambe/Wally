@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TrendingUp, Sparkles, ClipboardCheck } from 'lucide-react';
 import Modal from '../Modal';
 import AggiungiInvestimentiRicorrentiForm from './AggiungiInvestimentiRicorrentiForm';
 import AggiungiInvestimentoUnaTantumForm from './AggiungiInvestimentoUnaTantumForm';
 import VerificaMensileForm from './VerificaMensileForm';
 
-type TipoInvestimento = 'ricorrenti' | 'unaTantum' | 'verifica' | null;
+export type TipoInvestimento = 'ricorrenti' | 'unaTantum' | 'verifica' | null;
 
 interface AggiungiInvestimentoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Apre il popup già sul form di questo tipo, scelto dai pallini (AggiungiDatoBubbles). */
+  tipoIniziale?: TipoInvestimento;
 }
 
 const TITOLI: Record<Exclude<TipoInvestimento, null>, string> = {
@@ -19,12 +21,17 @@ const TITOLI: Record<Exclude<TipoInvestimento, null>, string> = {
 };
 
 /**
- * Bottone "+" della pagina Investimenti: come AggiungiDatoModal, prima si
- * sceglie cosa inserire, poi si apre lo STESSO form usato da Aggiungi Dato
+ * Popup del "+" della pagina Investimenti: il tipo si sceglie dai pallini
+ * (AggiungiDatoBubbles) e qui si apre lo STESSO form usato da Aggiungi Dato
  * (ricorrenti e una tantum), oppure la verifica di fine mese dei broker.
+ * Senza `tipoIniziale` mostra ancora la lista di scelta.
  */
-export default function AggiungiInvestimentoModal({ isOpen, onClose }: AggiungiInvestimentoModalProps) {
+export default function AggiungiInvestimentoModal({ isOpen, onClose, tipoIniziale = null }: AggiungiInvestimentoModalProps) {
   const [tipo, setTipo] = useState<TipoInvestimento>(null);
+
+  useEffect(() => {
+    if (isOpen && tipoIniziale) setTipo(tipoIniziale);
+  }, [isOpen, tipoIniziale]);
 
   // Come in AggiungiDatoModal: reset ritardato per non smontare il form
   // mentre il popup anima la chiusura.
@@ -39,7 +46,8 @@ export default function AggiungiInvestimentoModal({ isOpen, onClose }: AggiungiI
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      onBack={tipo ? () => setTipo(null) : undefined}
+      // Aperto dai pallini non c'è una lista a cui tornare: si chiude e basta.
+      onBack={tipo && !tipoIniziale ? () => setTipo(null) : undefined}
       title={tipo ? TITOLI[tipo] : 'Aggiungi Investimento'}
       maxWidthClass={tipo ? 'max-w-lg' : 'max-w-md'}
       borderless

@@ -6,7 +6,7 @@ import type { TipoDato } from './AggiungiDatoModal';
 import { useBolleAperte, setBolleAperte, useNascondiAggiunta } from '../hooks/useBolleAperte';
 
 /**
- * Bottone "+" della Home: al posto del popup con la griglia dei tipi,
+ * Bottone "+" della Home e di Investimenti (che passa `voci` e testi suoi): al posto del popup con la griglia dei tipi,
  * fa uscire su un quarto di cerchio attorno a sé (stessi pallini vetro della barra
  * in basso) cinque pallini: Entrate, Uscite, Trasferimenti, Investimenti, Consumi.
  * L'etichetta di ogni pallino sta all'esterno dell'arco, sulla retta che va dal "+"
@@ -20,14 +20,20 @@ import { useBolleAperte, setBolleAperte, useNascondiAggiunta } from '../hooks/us
  * pagine e i pallini sono più grandi, su un arco più largo: lo spazio c'è.
  */
 
-interface AggiungiDatoBubblesProps {
-  onScegli: (tipo: Exclude<TipoDato, null>) => void;
+interface AggiungiDatoBubblesProps<T extends string> {
+  onScegli: (tipo: T) => void;
   theme: 'dark' | 'light';
   /** Desktop: pallini, etichette e arco più grandi. */
   grande?: boolean;
+  /** Pallini da mostrare; di default quelli della Home. Investimenti passa i suoi. */
+  voci?: Voce<T>[];
+  /** Testo dentro l'arco. */
+  titolo?: string;
+  /** Etichetta del bottone su desktop e nome accessibile. */
+  etichetta?: string;
+  /** Sfondo e hover del bottone come colori arbitrari (vedi nota sul "+" più sotto). */
+  coloreBottone?: string;
 }
-
-type Principale = 'entrata' | 'uscita' | 'trasferimento' | 'investimento' | 'consumo';
 
 // Cinque posti sull'arco, da dritto in su (90°) a dritto a sinistra (180°), a
 // `raggio` px dal centro del "+": fra due posti vicini ci sono 0,39 × raggio, quindi
@@ -90,19 +96,19 @@ function agganciaEtichetta(gradi: number, raggioPallino: number, scala: number) 
   };
 }
 
-interface Voce {
-  id: Principale;
+export interface Voce<T extends string> {
+  id: string;
   label: string;
   icon: React.ElementType;
   colorClass: string;
   /** Indice del posto sull'arco (ANGOLI), da 0 = dritto in su. */
   posto: number;
   /** Se presente, il pallino apre il secondo passaggio invece di scegliere subito. */
-  sotto?: { tipo: Exclude<TipoDato, null>; label: string; icon: React.ElementType }[];
-  tipo?: Exclude<TipoDato, null>;
+  sotto?: { tipo: T; label: string; icon: React.ElementType }[];
+  tipo?: T;
 }
 
-const VOCI: Voce[] = [
+const VOCI: Voce<Exclude<TipoDato, null>>[] = [
   { id: 'entrata', label: 'Entrate', icon: ArrowUpRight, colorClass: 'bg-emerald-600', posto: 0, tipo: 'entrata' },
   {
     id: 'uscita', label: 'Uscite', icon: ArrowDownLeft, colorClass: 'bg-orange-600', posto: 1,
@@ -168,13 +174,19 @@ function Pallino({ g, label, icon: Icon, colorClass, posto, delay = 0, attivo = 
   );
 }
 
-export default function AggiungiDatoBubbles({ onScegli, theme, grande = false }: AggiungiDatoBubblesProps) {
+export default function AggiungiDatoBubbles<T extends string = Exclude<TipoDato, null>>({
+  onScegli, theme, grande = false,
+  voci = VOCI as unknown as Voce<T>[],
+  titolo = 'Aggiungi dato manuale',
+  etichetta = 'Aggiungi Dato',
+  coloreBottone = 'bg-[#2563eb] hover:bg-[#1d4ed8]'
+}: AggiungiDatoBubblesProps<T>) {
   const g = grande ? GRANDE : PICCOLA;
   // Stato condiviso con la barra in basso: aprire Transazioni/Investimenti chiude
   // questi pallini, e mentre quelli sono aperti il "+" sparisce.
   const aperto = useBolleAperte() === 'aggiungi';
   const nascosto = useNascondiAggiunta();
-  const [scelta, setScelta] = useState<Principale | null>(null);
+  const [scelta, setScelta] = useState<string | null>(null);
 
   const chiudi = () => {
     if (aperto) setBolleAperte(null);
@@ -202,12 +214,12 @@ export default function AggiungiDatoBubbles({ onScegli, theme, grande = false }:
     return () => window.removeEventListener('keydown', onKey);
   }, [aperto, scelta]);
 
-  const scegli = (tipo: Exclude<TipoDato, null>) => {
+  const scegli = (tipo: T) => {
     chiudi();
     onScegli(tipo);
   };
 
-  const voceScelta = VOCI.find(v => v.id === scelta);
+  const voceScelta = voci.find(v => v.id === scelta);
 
   // In portal su body come FloatingAddButton: le animazioni d'ingresso delle pagine
   // usano transform, che renderebbe il `fixed` relativo alla pagina. Fuori dal
@@ -245,11 +257,11 @@ export default function AggiungiDatoBubbles({ onScegli, theme, grande = false }:
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
             >
-              Aggiungi dato manuale
+              {titolo}
             </motion.span>
           )}
 
-          {aperto && VOCI.map((v, i) => {
+          {aperto && voci.map((v, i) => {
             // Nel secondo passaggio resta solo il pallino scelto (con l'anello bianco).
             if (scelta && scelta !== v.id) return null;
             return (
@@ -291,16 +303,16 @@ export default function AggiungiDatoBubbles({ onScegli, theme, grande = false }:
         <button
           type="button"
           onClick={() => (aperto ? chiudi() : setBolleAperte('aggiungi'))}
-          aria-label={aperto ? 'Chiudi' : 'Aggiungi Dato'}
+          aria-label={aperto ? 'Chiudi' : etichetta}
           aria-expanded={aperto}
           tabIndex={nascosto ? -1 : undefined}
           aria-hidden={nascosto || undefined}
-          className={`relative rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white flex items-center justify-center gap-2 shadow-lg ${grande ? 'px-5 py-3.5 text-sm font-bold' : 'w-14 h-14'} hover:shadow-xl transition-all duration-200 cursor-pointer ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''}`}
+          className={`relative rounded-full ${coloreBottone} text-white flex items-center justify-center gap-2 shadow-lg ${grande ? 'px-5 py-3.5 text-sm font-bold' : 'w-14 h-14'} hover:shadow-xl transition-all duration-200 cursor-pointer ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''}`}
         >
           <motion.span animate={{ rotate: aperto ? 45 : 0 }} transition={MOLLA} className="flex">
             <Plus className={grande ? 'w-4 h-4' : 'w-6 h-6'} />
           </motion.span>
-          {grande && <span>{aperto ? 'Chiudi' : 'Aggiungi Dato'}</span>}
+          {grande && <span>{aperto ? 'Chiudi' : etichetta}</span>}
         </button>
       </div>
     </div>,

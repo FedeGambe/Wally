@@ -8,14 +8,24 @@
  * risultati dell'hook e smistati alla scheda attiva.
  */
 import React, { useState } from 'react';
+import { Repeat, Sparkles, ClipboardCheck } from 'lucide-react';
 import CruscottoGenerale from '../subviews/CruscottoGenerale';
 import Rendimenti from '../subviews/Rendimenti';
 import Conti from '../subviews/Conti';
 import FondoPensione from '../subviews/FondoPensione';
 import { formatEuro } from '../utils/format';
 import { useInvestimentiData } from '../hooks/useInvestimentiData';
-import FloatingAddButton from '../components/FloatingAddButton';
-import AggiungiInvestimentoModal from '../components/investimenti/AggiungiInvestimentoModal';
+import AggiungiDatoBubbles, { type Voce } from '../components/AggiungiDatoBubbles';
+import { useIsMobile } from '../hooks/useIsMobile';
+import AggiungiInvestimentoModal, { type TipoInvestimento } from '../components/investimenti/AggiungiInvestimentoModal';
+
+// Pallini del "+" su tre posti dell'arco (dritto in su, diagonale, dritto a sinistra).
+// "Verifica" e non "Verifica mensile": a sinistra, su telefoni da 360px, uscirebbe dallo schermo.
+const VOCI_INVESTIMENTO: Voce<Exclude<TipoInvestimento, null>>[] = [
+  { id: 'ricorrenti', label: 'Ricorrente', icon: Repeat, colorClass: 'bg-sky-500', posto: 0, tipo: 'ricorrenti' },
+  { id: 'unaTantum', label: 'Una tantum', icon: Sparkles, colorClass: 'bg-sky-500', posto: 2, tipo: 'unaTantum' },
+  { id: 'verifica', label: 'Verifica', icon: ClipboardCheck, colorClass: 'bg-sky-500', posto: 4, tipo: 'verifica' }
+];
 
 export type InvestimentiTab = 'cruscotto' | 'rendimenti' | 'conti' | 'pensione';
 
@@ -39,6 +49,7 @@ export default function Investimenti({
   selectedYear: globalSelectedYear = '2026',
   activeTab: activeTabProp,
   setActiveTab: setActiveTabProp,
+  theme = 'light',
 }: InvestimentiProps = {}) {
   const [activeTabLocale, setActiveTabLocale] = useState<InvestimentiTab>('cruscotto');
   const activeTab = activeTabProp ?? activeTabLocale;
@@ -64,12 +75,23 @@ export default function Investimenti({
     localRendimenti, activeRendimenti
   } = useInvestimentiData(globalSelectedMonth, globalSelectedYear);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [tipoDaPallini, setTipoDaPallini] = useState<TipoInvestimento>(null);
+  const isPhone = useIsMobile(768);
 
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Investimenti</h1>
-      <FloatingAddButton label="Aggiungi Investimento" colorClass="bg-sky-600 hover:bg-sky-700" onClick={() => setShowAddModal(true)} />
-      <AggiungiInvestimentoModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
+      {/* Il "+" apre i pallini come nella Home; su desktop più grandi */}
+      <AggiungiDatoBubbles
+        theme={theme}
+        grande={!isPhone}
+        voci={VOCI_INVESTIMENTO}
+        titolo="Aggiungi investimento"
+        etichetta="Aggiungi Investimento"
+        coloreBottone="bg-[#0284c7] hover:bg-[#0369a1]"
+        onScegli={(tipo) => { setTipoDaPallini(tipo); setShowAddModal(true); }}
+      />
+      <AggiungiInvestimentoModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} tipoIniziale={tipoDaPallini} />
       {/* Barra delle 4 schede (sticky). Su telefono, quando la scheda arriva da App,
           è nascosta: la scelta si fa dai pallini di Investimenti nella barra in basso. */}
       <div
