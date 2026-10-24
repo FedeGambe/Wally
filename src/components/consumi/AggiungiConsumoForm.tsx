@@ -32,8 +32,8 @@ interface AggiungiConsumoFormProps {
  * Esito settimana, ...) sono in SHEETS_CONFIG.formulaFields — li copia e
  * shifta appendRowToSheet (sheetsService.tsx) dalla riga sopra, leggendo la
  * riga giusta fresca dal foglio invece che dal conteggio locale (che può
- * disallinearsi se un push precedente è fallito). "Efficienza" non si inserisce
- * più da form (deciso: non manuale), resta vuota sulle righe aggiunte da qui.
+ * disallinearsi se un push precedente è fallito). Anche "Efficienza" (colonna P)
+ * è una formula del foglio e segue la stessa strada.
  */
 export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProps) {
   const dataId = useId();

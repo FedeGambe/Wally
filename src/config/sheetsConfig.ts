@@ -255,7 +255,7 @@ export const SHEETS_CONFIG: SheetDefinition[] = [
     dateFields: ['data'],
     // Colonne calcolate dal foglio Google (formula = riga sopra shiftata di 1, vedi
     // appendRowToSheet in sheetsService.tsx): l'app non le ricalcola mai da sola.
-    formulaFields: ['kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'esitoSettimana'],
+    formulaFields: ['kmEffettuati', 'litriPrecedenti', 'kmAlLitro', 'euroPer100Km', 'litriPer100Km', 'kmPersi', 'kmPersiMediani', 'costoExtra', 'esitoSettimana', 'efficienzaPercentuale'],
     dataKey: 'analisiConsumi'
   }
 ];

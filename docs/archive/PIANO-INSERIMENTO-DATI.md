@@ -135,7 +135,7 @@ Campi form:
 | €/Lt | input utente |
 | Km finali | input utente |
 | Km/lt (auto — bordo cruscotto) | input utente |
-| Efficienza | **da chiarire** — unico campo senza tag "formula sheet" nella lista originale, va confermato se manuale o calcolato |
+| Efficienza | auto, formula del foglio (confermato): copiata dalla riga sopra come le altre |
 | Km effettuati, Litri precedenti, Km/lt (calcolato), €/100km, Lt/100km, Km persi, Km persi mediani, Costo extra, Esito settimana | auto, via tecnica "copia formula riga sopra" |
 
 ### Fase 4 — Investimenti (rimandata)
@@ -170,7 +170,7 @@ di aprire la successiva.
 
 ## Aperto / da confermare prima o durante l'implementazione
 
-- Campo "Efficienza" in Analisi Consumi: manuale o calcolato?
+- ~~Campo "Efficienza" in Analisi Consumi: manuale o calcolato?~~ Calcolato (formula del foglio).
 - Meccanica d'uso dei preset (Fase 2): precompila form vs inserimento automatico.
 - Fase 5: un trasferimento tocca i saldi Patrimonio o resta solo un log?
 - Fase 2 / Fase 5: unificare "uscite verso accantonamento" con "trasferimenti"?
