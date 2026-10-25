@@ -7,12 +7,12 @@ coverage/
 .env*
 !.env.example
 
-# Chiavi e dati scaricati da Enable Banking (scripts/banca.ts)
+# Chiavi scaricate da Enable Banking
 .banca/
 *.pem
 
 # Cache locale del controllo di design di Impeccable
-.impeccable/
+.impeccable
 
 # Python
 __pycache__/
@@ -21,3 +21,6 @@ __pycache__/
 
 # Collegamento locale a Vercel (npx vercel link)
 .vercel
+
+# Script locali (npm run dev)
+scripts/

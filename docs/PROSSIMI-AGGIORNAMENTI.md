@@ -60,4 +60,4 @@ Idee e lavori decisi ma non ancora fatti. Quando un punto è finito si toglie da
 
 - [ ] **Consensi bancari in scadenza.** Trade Republic scade l'8/1/2027 (massimo 90 giorni), UniCredit l'8/4/2027. Si rinnovano da Impostazioni → Banche collegate. Si può aggiungere un avviso, anche su Telegram, qualche giorno prima della scadenza.
 - [ ] **Sviluppo in locale.** Senza `VITE_GOOGLE_OAUTH_CLIENT_ID` in `.env.local` il token Google scade dopo un'ora e l'app fa logout.
-- [ ] **Collegamento banca solo in produzione.** Il redirect di Enable Banking punta al dominio di produzione, quindi in locale si collega solo con `npm run banca`.
+- [ ] **Collegamento banca solo in produzione.** Il redirect di Enable Banking punta al dominio di produzione, quindi in locale non si può collegare una banca.

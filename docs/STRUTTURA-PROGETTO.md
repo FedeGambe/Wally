@@ -9,7 +9,7 @@ Wally/
 ├── frontend/          l'app React (src/, public/, index.html, demo.html, vite.config.ts, package.json)
 ├── backend/           il backend Python (FastAPI)
 ├── api/index.py       unica funzione Vercel: serve backend/app.py (deve stare in api/ in cima)
-├── scripts/           banca.ts (esplora Enable Banking, npm run banca), dev.sh (npm run dev)
+├── scripts/           dev.sh (npm run dev), solo in locale: non è in git
 ├── docs/              documentazione e demo pubblicata (docs/demo/)
 ├── package.json       solo comandi (npm run dev, api, test…), nessuna dipendenza
 ├── requirements.txt   dipendenze Python usate su Vercel (requirements-dev.txt: in più quelle locali)

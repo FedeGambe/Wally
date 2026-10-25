@@ -1,7 +1,7 @@
 """
 Client minimo di Enable Banking (open banking PSD2).
-Stessa logica di scripts/banca.ts, ma la chiave privata arriva dalla variabile
-d'ambiente EB_PRIVATE_KEY (contenuto del .pem) invece che da file.
+La chiave privata arriva dalla variabile d'ambiente EB_PRIVATE_KEY
+(contenuto del .pem).
 """
 import time
 

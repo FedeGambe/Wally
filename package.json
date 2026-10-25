@@ -12,7 +12,6 @@
     "lint": "npm --prefix frontend run lint",
     "test": "npm --prefix frontend test",
     "api": "uv run --with-requirements requirements-dev.txt uvicorn backend.app:app --reload --port 8000 --env-file .env.local",
-    "test:py": "uv run --with-requirements requirements-dev.txt pytest",
-    "banca": "frontend/node_modules/.bin/tsx scripts/banca.ts"
+    "test:py": "uv run --with-requirements requirements-dev.txt pytest"
   }
 }
