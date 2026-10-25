@@ -16,10 +16,12 @@ Una dashboard di finanza personale, per un solo utente, tutta in italiano. Non h
 ## Comandi utili
 
 ```bash
-npm run dev      # avvia l'app in locale (http://localhost:3000)
+npm run dev      # avvia l'app in locale (http://localhost:3000), backend compreso
 npm run build    # crea la build di produzione (usata da Vercel per pubblicare l'app)
 npm run lint     # controlla che il codice TypeScript sia corretto (tsc --noEmit)
-npm test         # esegue i test automatici (vitest)
+npm test         # esegue i test automatici del frontend (vitest)
+npm run api      # avvia solo il backend Python (porta 8000)
+npm run test:py  # esegue i test del backend (pytest)
 ```
 
-C'è una suite di test (vitest, file `*.test.ts` accanto al codice che testano, es. `src/lib/sheetsService.test.ts`) ma copre solo una piccola parte del codice — non sostituisce la verifica manuale. Dopo ogni modifica: `npm run lint`, poi `npm test`, poi va comunque provata l'app a mano nel browser.
+C'è una suite di test (vitest, file `*.test.ts` accanto al codice che testano, es. `frontend/src/lib/sheetsService.test.ts`) ma copre solo una piccola parte del codice — non sostituisce la verifica manuale. Dopo ogni modifica: `npm run lint`, poi `npm test`, poi va comunque provata l'app a mano nel browser.

@@ -18,9 +18,9 @@ Idee e lavori decisi ma non ancora fatti. Quando un punto è finito si toglie da
 
 ### Flusso
 
-1. `api/banca/sincronizza.ts` scarica i movimenti come oggi e poi li classifica con `classificaMovimenti` (`src/utils/movimentiBanca.ts`).
+1. `sincronizza` in `backend/routes/banca.py` scarica i movimenti come oggi e poi li classifica con `classifica` (`backend/domain/classificazione.py`), come fa già `/api/banca/elabora`.
 2. Per ogni movimento ancora "da confermare" su Trade Republic manda un messaggio Telegram (`sendMessage` con `inline_keyboard`). L'ID del movimento va nel `callback_data`.
-3. Una nuova funzione `api/telegram.ts` riceve i tocchi tramite webhook:
+3. Una nuova rotta `backend/routes/telegram.py` riceve i tocchi tramite webhook:
    - **categoria**: scrive l'uscita nel foglio (conto Trade Republic, data con `dataProbabile`, importo del movimento, Secondaria come in Aggiungi Uscita), segna il movimento come registrato nella colonna `Stato` di "Movimenti Banca" e modifica il messaggio in "✓ Registrata in Ristoranti";
    - **Altro ▸**: mostra le altre categorie o le macro categorie;
    - **Salta**: lascia `Stato` vuoto, così il movimento resta nella card "Dalla banca" dell'app.
@@ -28,16 +28,16 @@ Idee e lavori decisi ma non ancora fatti. Quando un punto è finito si toglie da
 
 ### Da fare nel codice
 
-- [ ] `api/_lib/telegram.ts`: `inviaMessaggio`, `modificaMessaggio`, `rispondiCallback` (fetch diretto alle Bot API, nessuna libreria).
-- [ ] Scrittura dell'uscita lato server. Oggi la fa solo l'app (`src/utils/registraBanca.ts` + `sheetsService`), quindi va estratta la parte che costruisce la riga, per usarla anche con il service account (`api/_lib/google.ts`).
+- [ ] `backend/services/telegram.py`: `invia_messaggio`, `modifica_messaggio`, `rispondi_callback` (chiamate dirette alle Bot API con `requests`, nessuna libreria).
+- [x] Scrittura dell'uscita lato server: c'è già (`scritture.aggiungi_riga` in `backend/services/scritture.py`, usata anche da `/api/banca/elabora`); con il cron va chiamata con `GoogleSheets.service_account()`.
 - [ ] Le categorie per i pulsanti si leggono dal foglio Dati Base, così restano allineate all'app.
 - [ ] La sincronizzazione deve mandare il messaggio una volta sola per movimento. Serve uno stato come `notificato` nella colonna `Stato`, oppure una colonna nuova.
-- [ ] L'app considera gestiti i movimenti registrati da Telegram (`src/hooks/useMovimentiBanca.ts`).
+- [ ] L'app considera gestiti i movimenti registrati da Telegram (`frontend/src/hooks/useMovimentiBanca.ts`).
 - [ ] Test del pezzo puro (costruzione della tastiera e della riga uscita).
 
 ### Sicurezza
 
-- Il webhook si registra con `secret_token`: `api/telegram.ts` rifiuta le richieste senza l'header `X-Telegram-Bot-Api-Secret-Token` giusto.
+- Il webhook si registra con `secret_token`: la rotta Telegram rifiuta le richieste senza l'header `X-Telegram-Bot-Api-Secret-Token` giusto.
 - Si accettano solo messaggi e tocchi da `TELEGRAM_CHAT_ID`, cioè la tua chat.
 
 ### Configurazione (da fare a mano)

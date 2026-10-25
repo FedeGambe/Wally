@@ -161,8 +161,8 @@ Questi quattro sono variabili CSS (`--color-up`, ecc.) che cambiano da sole col 
 ### Colori dei dati
 - **Fucsia Risparmio** (dato-risparmio): la serie Risparmio nei grafici (Trend Risparmio, torta del Dettaglio Finanziario).
 - **Arancio Chiaro Secondarie** (dato-spese-secondarie): lo spicchio Spese Secondarie nella torta, accanto all'arancio scuro delle primarie (`orange-700`).
-- **Scala dei rendimenti** (`rendColor` in `src/utils/format.ts`): per segno, rosa-rosso i negativi e verde i positivi, più intensi verso ±maxAbs; per il testo `rendColorTesto`.
-- **Scala a soglia** (`src/utils/kpiColorScale.ts`): rosso → arancio → ambra → lime (la soglia) → smeraldo, interpolata sul valore. Dice quanto una quota è lontana dal suo target, non il segno.
+- **Scala dei rendimenti** (`rendColor` in `frontend/src/utils/format.ts`): per segno, rosa-rosso i negativi e verde i positivi, più intensi verso ±maxAbs; per il testo `rendColorTesto`.
+- **Scala a soglia** (`frontend/src/utils/kpiColorScale.ts`): rosso → arancio → ambra → lime (la soglia) → smeraldo, interpolata sul valore. Dice quanto una quota è lontana dal suo target, non il segno.
 
 ### Neutral
 - **Inchiostro** (ink): testo principale in chiaro.

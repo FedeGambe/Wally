@@ -1,0 +1,5 @@
+# Dipendenze del backend Python (funzione Vercel api/index.py).
+fastapi==0.118.0
+requests==2.32.5
+google-auth==2.41.1
+PyJWT[crypto]==2.10.1

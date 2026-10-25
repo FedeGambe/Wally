@@ -1,30 +1,31 @@
 # Architettura: come si muovono i dati
 
-Wally **non ha un backend/database proprio**. I dati vivono in tre livelli, e passano dall'uno all'altro così:
+Wally **non ha un database proprio**: i dati stanno nel foglio Google dell'utente. Vivono in tre livelli, e passano dall'uno all'altro così:
 
 ```
 Google Sheet  <──pull/push──>  localStorage  <──lettura/scrittura──>  Stato React (schermo)
- (src/lib/            (src/data/               (src/context/FinanceDataContext.tsx
+ (frontend/src/lib/            (frontend/src/data/               (frontend/src/context/FinanceDataContext.tsx
  sheetsService.tsx)    mockData.ts)              + pagine/hook)
 ```
 
-## Livello 1 — Google Sheet (`src/lib/sheetsService.tsx`)
+## Livello 1 — Google Sheet (`frontend/src/lib/sheetsService.tsx`)
 
-Il foglio Google è la fonte "definitiva" dei dati, di proprietà dell'utente. L'app ci parla solo tramite due funzioni:
+Il foglio Google è la fonte "definitiva" dei dati, di proprietà dell'utente. L'app non ci parla più direttamente: passa sempre dal **backend Python**, mandandogli il token Google dell'utente, e il backend legge e scrive con quel token (quindi vede solo i fogli che l'utente può aprire). Nel frontend `frontend/src/lib/sheetsService.tsx` contiene solo le chiamate:
 
-- **`fetchSpreadsheetData(accessToken, spreadsheetId)`** — PULL. Legge tutte le schede (tab) del foglio in un'unica chiamata e le converte in oggetti JavaScript.
-- **`pushSpreadsheetData(accessToken, spreadsheetId, data)`** — PUSH. Scrive lo stato attuale dell'app nel foglio, sovrascrivendo ogni tab per intero.
+- **`fetchSpreadsheetData`** → `GET /api/fogli/dati` (`backend/routes/fogli.py`): legge tutte le schede in un'unica chiamata, le converte in oggetti (`backend/domain/lettura.py`) e calcola il Cruscotto Investimenti. `fetchDatiBaseFromConfigSheet` → `GET /api/fogli/dati-base` fa lo stesso per il foglio di configurazione.
+- **Scritture** (`backend/routes/scritture.py`, logica in `backend/domain/scrittura.py`): `appendRowToSheet` aggiunge una riga cella per cella, copiando le formule della riga sopra nelle colonne-formula; poi portafoglio contanti, investimenti ricorrenti ed extra, nuovo strumento, verifica mensile, Dati Base. Scrivono solo celle precise e rifiutano di scrivere su celle già piene quando non è previsto.
+- **`pushSpreadsheetData`** (riscrittura completa delle schede) è **spento**: aveva corrotto il foglio due volte. Non esiste nel backend.
 
-Il *mapping* tra colonne del foglio e campi JS non è scritto qui: è tutto in **`src/config/sheetsConfig.ts`** (`SHEETS_CONFIG`), un array dove ogni voce dice: nome del tab, quali campi/intestazioni ha, quali vanno letti come numero o booleano. Per aggiungere o modificare una colonna/scheda del foglio Google **si modifica solo `SHEETS_CONFIG`**, non `sheetsService.tsx` (che ci cicla sopra dinamicamente).
+La *mappa* tra colonne del foglio e campi dell'app è **una sola**: `SCHEDE` in **`backend/models/foglio.py`**. Ogni voce dice nome del tab, campi e intestazioni, quali vanno letti come numero o booleano, quali colonne sono date, mesi o formule. Per aggiungere o modificare una colonna o una scheda **si modifica solo lì**.
 
 Le schede "Scalable" e "Trade Republic" (i due broker di investimento) sono un'eccezione: hanno colonne che cambiano nel tempo (nuovi ETF/azioni), quindi vengono "scoperte" leggendo a runtime le righe 1-2 del foglio, cercando parole chiave come `azioni`, `obbligazioni`, `monetari`.
 
-Due funzioni di parsing meritano attenzione perché **un bug qui corrompe silenziosamente le cifre**:
+Due funzioni del backend meritano attenzione perché **un bug qui corrompe silenziosamente le cifre** (ognuna ha i suoi test):
 
-- `parseLocalizedNumber` — un numero scritto nel foglio può essere in formato italiano (`1.234,56`) o americano (`1,234.56`). La funzione indovina il formato guardando l'ultima virgola/punto.
-- `parseDateString` — le date possono arrivare come testo (`31/12/2026`), come `YYYY-MM-DD`, o come "numero seriale" (il modo interno con cui Google Sheets rappresenta le date).
+- `numero_localizzato` (`backend/domain/conversioni.py`) — un numero scritto nel foglio può essere in formato italiano (`1.234,56`) o americano (`1,234.56`). La funzione indovina il formato guardando l'ultima virgola/punto.
+- `data_da_testo` (`backend/domain/scrittura.py`) — le date possono arrivare come testo (`31/12/2026`), come `YYYY-MM-DD`, o come "numero seriale" (il modo interno con cui Google Sheets rappresenta le date).
 
-## Livello 2 — cache locale (`src/data/mockData.ts`)
+## Livello 2 — cache locale (`frontend/src/data/mockData.ts`)
 
 Questo file è la cache locale + stato in-memory. Non parla mai direttamente con Google: legge/scrive solo `localStorage` (tutte le chiavi iniziano per `sf_`, es. `sf_transactions`, `sf_conti_patrimonio`).
 
@@ -39,7 +40,7 @@ Nessuna pagina deve scrivere su `localStorage` direttamente per i dati finanza: 
 
 `getExportableData(incognito = false)` è la funzione che assembla l'**unico oggetto dati** che ogni consumatore legge (uscite, entrate, patrimonio, rendimenti, ecc. tutti in un solo oggetto). Il parametro `incognito` di default è **`false`** apposta: `SheetsModal.tsx` chiama `getExportableData()` senza argomenti quando fa il push verso il foglio reale, così i dati demo non possono mai finire per errore su Google Sheets. **Non cambiare questo default e non farlo auto-rilevare la modalità incognito.**
 
-## Livello 3 — stato React (`src/context/FinanceDataContext.tsx`)
+## Livello 3 — stato React (`frontend/src/context/FinanceDataContext.tsx`)
 
 Questo è l'unico punto di **lettura** per la UI. `FinanceDataProvider` (montato una volta in `App.tsx`, avvolge tutta la dashboard) espone tramite React Context:
 
@@ -65,9 +66,9 @@ Gli array in `mockData.ts` vengono mutati "sul posto" (`arr.push(...)`), non ric
 
 ## Modalità incognito
 
-Un toggle nell'Header (`toggleIncognito`) sostituisce **tutta** la dashboard con dati interamente fittizi da `src/data/demoData.ts` (flag persistito in `sf_incognito_mode`). Serve a nascondere le cifre reali durante una condivisione schermo. Non modifica né legge mai i dati reali: è sicuro tenerla attiva anche mentre si lavora sull'app. Quando aggiungi un campo a un tipo di dato reale, aggiungilo anche in `demoData.ts` (deve rispecchiare la stessa forma).
+Un toggle nell'Header (`toggleIncognito`) sostituisce **tutta** la dashboard con dati interamente fittizi da `frontend/src/data/demoData.ts` (flag persistito in `sf_incognito_mode`). Serve a nascondere le cifre reali durante una condivisione schermo. Non modifica né legge mai i dati reali: è sicuro tenerla attiva anche mentre si lavora sull'app. Quando aggiungi un campo a un tipo di dato reale, aggiungilo anche in `demoData.ts` (deve rispecchiare la stessa forma).
 
-## Autenticazione (`src/lib/googleAuth.ts`)
+## Autenticazione (`frontend/src/lib/googleAuth.ts`)
 
 Il login usa Firebase Auth (Google Sign-In) **solo per l'identità**. L'`accessToken` OAuth usato per chiamare l'API di Google Sheets è un dato separato, ottenuto dallo stesso popup di login, tenuto in memoria (si perde al reload) e — se l'utente sceglie "ricorda questo dispositivo" — salvato in `localStorage`. Il token Google scade sempre dopo ~1 ora (limite non aggirabile lato client, senza backend): per questo il codice considera valido un token salvato solo entro una finestra di 50 minuti.
 
@@ -75,4 +76,4 @@ Prima di forzare un nuovo login, si tenta però un **rinnovo silenzioso** via Go
 
 ## Configurazione ambiente
 
-Le credenziali Firebase arrivano da variabili d'ambiente `VITE_FIREBASE_*`, più `VITE_GOOGLE_OAUTH_CLIENT_ID` (Client ID OAuth Web usato dal rinnovo silenzioso, vedi sopra — vedi `src/vite-env.d.ts` per i tipi). In locale vanno messe in un file `.env.local` (non committato); su Vercel si impostano come Environment Variables del progetto.
+Le credenziali Firebase arrivano da variabili d'ambiente `VITE_FIREBASE_*`, più `VITE_GOOGLE_OAUTH_CLIENT_ID` (Client ID OAuth Web usato dal rinnovo silenzioso, vedi sopra — vedi `frontend/src/vite-env.d.ts` per i tipi). In locale vanno messe in un file `.env.local` (non committato); su Vercel si impostano come Environment Variables del progetto.

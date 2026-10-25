@@ -17,7 +17,7 @@ function formatta(importo: number): string { return importo.toFixed(2); }
 
 ### `interface`
 
-Un `interface` descrive la forma di un oggetto: quali proprietà ha e di che tipo sono. Nel progetto, `src/data/mockData.ts` ne definisce parecchi, es.:
+Un `interface` descrive la forma di un oggetto: quali proprietà ha e di che tipo sono. Nel progetto, `frontend/src/data/mockData.ts` ne definisce parecchi, es.:
 
 ```ts
 export interface Transaction {
@@ -41,7 +41,7 @@ tipo: 'ETF' | 'Azioni' | 'Liquidita';  // il valore DEVE essere una di queste 3 
 
 ### Generics e `ReturnType`
 
-A volte serve un tipo "derivato" da qualcos'altro invece di riscriverlo a mano. In `src/context/FinanceDataContext.tsx`:
+A volte serve un tipo "derivato" da qualcos'altro invece di riscriverlo a mano. In `frontend/src/context/FinanceDataContext.tsx`:
 
 ```ts
 type FinanceData = ReturnType<typeof getExportableData>;
@@ -62,7 +62,7 @@ function Saluto({ nome }: { nome: string }) {
 - `{ nome }: { nome: string }` sono le **props**: i "parametri" che vengono passati al componente da chi lo usa, es. `<Saluto nome="Federico" />`.
 - Le graffe `{ ... }` dentro il JSX permettono di inserire espressioni JavaScript/TypeScript in mezzo all'HTML (es. `{nome}`, oppure `{condizione && <div>...</div>}` per mostrare qualcosa solo se una condizione è vera).
 
-Nel progetto, `src/pages/*.tsx` sono le pagine (una per voce del menu), `src/components/*.tsx` sono pezzi riusabili (bottoni, tabelle, modali), `src/subviews/*.tsx` sono le schede interne della pagina Investimenti.
+Nel progetto, `frontend/src/pages/*.tsx` sono le pagine (una per voce del menu), `frontend/src/components/*.tsx` sono pezzi riusabili (bottoni, tabelle, modali), `frontend/src/subviews/*.tsx` sono le schede interne della pagina Investimenti.
 
 ## 3. Gli hook principali usati nel progetto
 
@@ -104,7 +104,7 @@ Evita di ricreare una funzione identica ad ogni render, utile quando quella funz
 const { data, isIncognito, refreshData } = useFinanceData();
 ```
 
-Non è un hook di React "di fabbrica": è definito in `src/context/FinanceDataContext.tsx` ed è la porta d'accesso ai dati finanziari da qualunque pagina/componente. Sotto il cofano usa `useContext` (vedi punto 4). Ogni `hooks/use*Data.ts` del progetto (es. `useEntrateData.ts`) è a sua volta un custom hook che usa `useFinanceData()` e ci fa sopra filtri/calcoli specifici di una pagina.
+Non è un hook di React "di fabbrica": è definito in `frontend/src/context/FinanceDataContext.tsx` ed è la porta d'accesso ai dati finanziari da qualunque pagina/componente. Sotto il cofano usa `useContext` (vedi punto 4). Ogni `hooks/use*Data.ts` del progetto (es. `useEntrateData.ts`) è a sua volta un custom hook che usa `useFinanceData()` e ci fa sopra filtri/calcoli specifici di una pagina.
 
 ## 4. Context — passare dati senza "prop-drilling"
 

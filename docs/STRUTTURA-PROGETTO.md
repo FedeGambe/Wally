@@ -2,39 +2,82 @@
 
 Prerequisito: leggi [ARCHITETTURA.md](./ARCHITETTURA.md) per il flusso dati generale. Qui trovi cosa fa ciascun file.
 
-## `src/main.tsx` e `src/App.tsx` — avvio e guscio dell'app
+## In cima al progetto
+
+```
+Wally/
+├── frontend/          l'app React (src/, public/, index.html, demo.html, vite.config.ts, package.json)
+├── backend/           il backend Python (FastAPI)
+├── api/index.py       unica funzione Vercel: serve backend/app.py (deve stare in api/ in cima)
+├── scripts/           banca.ts (esplora Enable Banking, npm run banca), dev.sh (npm run dev)
+├── docs/              documentazione e demo pubblicata (docs/demo/)
+├── package.json       solo comandi (npm run dev, api, test…), nessuna dipendenza
+├── requirements.txt   dipendenze Python usate su Vercel (requirements-dev.txt: in più quelle locali)
+├── vercel.json        build del frontend, rotte /api → api/index.py, cron notturno
+└── .env.local         variabili locali, condivise da frontend e backend (mai su git)
+```
+
+## `backend/` — il backend Python
+
+Le cartelle dividono il codice per il lavoro che fa:
+
+- **`app.py`** — crea l'app FastAPI e registra le rotte.
+- **`config.py`** — lettura delle variabili d'ambiente.
+- **`routes/`** — gli indirizzi `/api/...` che chiama il frontend. Controllano chi chiama e passano il lavoro agli altri.
+  - `fogli.py` — lettura del foglio principale (`/api/fogli/dati`) e di quello di configurazione (`/api/fogli/dati-base`).
+  - `scritture.py` — riga nuova, portafoglio, investimenti, nuovo strumento, verifica mensile, Dati Base, foglio nuovo.
+  - `banca.py` — collega, callback, sincronizza (service account), più movimenti, collegamenti, "Stato" ed `elabora` (token dell'utente): classificazione, registrazione automatica e lista "Da confermare".
+  - `comune.py` — `con_utente`: token dell'utente ed errori tradotti per l'app (401 sessione scaduta, 400 scrittura rifiutata, 502 errore di Google).
+- **`services/`** — chiamate all'esterno: `enable_banking.py` (banca, PSD2) e `google_sheets.py` (classe `GoogleSheets`: con il token dell'utente, o con il service account `wally-sync` per il cron).
+- **`domain/`** — logica pura, senza rete né foglio, la parte più testata:
+  - `conversioni.py` — numeri delle celle in formato italiano o americano (`numero_localizzato`). Un bug qui corrompe le cifre in silenzio.
+  - `righe.py` — righe del foglio in oggetti (`righe_in_oggetti`), riconoscendo le colonne dall'intestazione anche se riordinate.
+  - `lettura.py` — monta l'oggetto dati dell'app: colonne strumenti dei broker, liste dei Dati Base, preset, sistemazione di Risparmio ed Entrate.
+  - `cruscotto.py` — Cruscotto Investimenti anno per anno.
+  - `scrittura.py` — quali celle scrivere e con che valore: riga nuova con le formule copiate dalla riga sopra (`sposta_formula`), date (`data_da_testo`), contatori del portafoglio, investimenti accodati (`valore_accodato`), dove inserire un nuovo strumento, controlli per non sovrascrivere.
+  - `movimenti.py` — movimenti delle banche resi uniformi.
+  - `classificazione.py` — regole dai preset, giri tra conti, esiti (automatico / da confermare), suggerimenti per il modulo (data probabile, descrizione breve, conto nella causale).
+  - `regole_banca.py` — regole fisse (stipendio, PAC Scalable, bonifici a sé stessi).
+  - `registrazione.py` — dai movimenti riconosciuti ai record da scrivere, e il "già inserito a mano?".
+- **`models/`** — forma dei dati: `foglio.py` (la mappa delle schede del foglio, unica per letture e scritture: campi, intestazioni, numeri, date, mesi, formule) e `banca.py` (schede "Banca Collegamenti" e "Movimenti Banca").
+- **`security/`** — `accesso.py`: chi può chiamare le rotte (proprietario del foglio, cron di Vercel) e lo `state` firmato del collegamento banca.
+- **`tests/`** — test pytest, uno per modulo (`npm run test:py`). `test_allineamento_frontend.py` controlla le due piccole cose rimaste anche nel frontend (nome di campo degli strumenti, intestazioni del Risparmio).
+
+## `frontend/` — l'app React
+
+Da qui in giù i percorsi sono dentro `frontend/`.
+
+## `frontend/src/main.tsx` e `frontend/src/App.tsx` — avvio e guscio dell'app
 
 - **`main.tsx`** — punto di ingresso: monta `<App />` nel DOM. Non toccare quasi mai.
 - **`App.tsx`** — due componenti:
   - `App`: login/logout, tema chiaro/scuro, filtri anno/mese selezionati (stato deliberatamente **fuori** da `FinanceDataContext`, passato via props — vedi CLAUDE.md).
   - `DashboardShell`: la dashboard vera e propria una volta loggati (sidebar + header + pagina attiva + toast). Vive dentro `<FinanceDataProvider>` per poter leggere i dati con `useFinanceData()`.
 
-## `src/lib/` — integrazioni esterne
+## `frontend/src/lib/` — integrazioni esterne
 
 - **`googleAuth.ts`** — login Google via Firebase, gestione del token OAuth per Sheets/Drive, "ricorda questo dispositivo". Il token OAuth scade sempre dopo ~1 ora (limite di Google): `silentTokenRefresh` lo rinnova senza popup usando Google Identity Services (script caricato in `index.html`, richiede `VITE_GOOGLE_OAUTH_CLIENT_ID` — vedi `.env.example`), ma **solo se agganciato a un vero click dell'utente** (verificato: un rinnovo tentato da un timer in background viene sempre bloccato dal browser). App.tsx lo richiama da un listener sui click quando sono passati >40 minuti dall'ultimo rinnovo, e come fallback prima di un logout forzato su 401. Se il dispositivo resta inattivo/la scheda è chiusa per più di ~50 minuti, al ritorno serve comunque un nuovo click di login.
-- **`sheetsService.tsx`** — parla con l'API di Google Sheets. File più critico del progetto. Funzioni principali:
-  - `fetchSpreadsheetData` / `pushSpreadsheetData` — pull/push sul foglio principale (18 tab, `SHEETS_CONFIG`). `pushSpreadsheetData` sovrascrive intere tab: usata solo dai bottoni manuali di `SheetsModal.tsx` (dietro `WRITE_TO_SHEETS_DISABLED`) e dal push scoped dei Preset in `useDatiBase.ts`.
-  - `appendRowToSheet` — scrittura sicura riga-per-riga (non sovrascrive mai altre righe/tab), usata da tutti i form "Aggiungi..." tramite `appendAndPush` (`useSaveAndPush.ts`). Gestisce crescita automatica della griglia, formattazione date (`dateFields`/`monthDateFields`), e preserva le colonne-formula del foglio (`formulaFields`) copiando e shiftando la formula della riga sopra invece di scrivere un valore statico. Gate indipendente `APPEND_TO_SHEETS_DISABLED` (oggi `false`, attivo in produzione).
-  - `fetchDatiBaseFromConfigSheet` / `pushDatiBaseToConfigSheet` — pull/push del foglio di **configurazione** separato (Conti, Categorie Entrate/Uscite, Soglie, Preset Uscite/Trasferimenti Ricorrenti — tab che non esistono sul foglio principale). ID salvato in `sf_config_spreadsheet_id` (Impostazioni → "Foglio di configurazione"): se non è collegato, questi dati restano ai valori di default/vuoti anche se il resto dell'app funziona.
-  - `parseLocalizedNumber` / `parseDateString` — parsing robusto di numeri (formato IT `1.234,56` e US `1,234.56`) e date. Bug qui corrompono silenziosamente i dati finanziari: trattare con cura.
+- **`backend.ts`** — `chiamaBackend`: chiama le rotte `/api/*` del backend con il token Google dell'utente; un 401 diventa un errore "UNAUTHENTICATED" (rinnovo del login), gli altri errori portano il messaggio del backend.
+- **`sheetsService.tsx`** — le funzioni che l'app usa per il foglio, ognuna una chiamata al backend: `fetchSpreadsheetData`, `fetchDatiBaseFromConfigSheet`, `appendRowToSheet` (usata da tutti i form "Aggiungi..." tramite `appendAndPush` in `useSaveAndPush.ts`), `updatePortafoglioRawCounts`, `writeInvestimentiRicorrentiToSheet`, `addStrumentoBrokerColumn`, `writeVerificaMensileToSheet`, `pushDatiBaseToConfigSheet` (foglio di configurazione, ID in `sf_config_spreadsheet_id`), `createSpreadsheet`. `pushSpreadsheetData` (riscrittura completa) è spento e dà sempre l'errore "scrittura disattivata".
+- **`bancaService.ts`** — lato app della banca, tutto tramite il backend: `elaboraMovimentiBanca` (lista da confermare ed eventuale registrazione automatica), collegamenti, "Stato", collega e sincronizza. Qui ci sono anche i tipi dei movimenti.
 
-## `src/config/` — configurazione statica
+## `frontend/src/config/` — configurazione statica
 
-- **`sheetsConfig.ts`** (`SHEETS_CONFIG`) — mappatura di ogni tab del foglio Google verso campi/intestazioni/tipi. Modificare qui per aggiungere/cambiare colonne o schede. Ogni voce può avere `dateFields`/`monthDateFields` (colonne data) e `formulaFields` (colonne che sul foglio reale sono formule live, mai sovrascritte con valori — vedi `appendRowToSheet`).
+- **`sheetsConfig.ts`** — solo `INTESTAZIONI_RISPARMIO`, le intestazioni predefinite della scheda Risparmio. La mappa delle schede è nel backend (`backend/models/foglio.py`).
 - **`targets.ts`** — le percentuali obiettivo del piano di risparmio (35% spese primarie, 15% secondarie, 25% investimenti, il resto risparmio) usate per colorare/etichettare KPI in più pagine.
 - **`datiBaseSeed.ts`** — valori di default (Conti/Categorie/Preset Uscite e Trasferimenti Ricorrenti/Soglie) usati solo al primo avvio, prima che l'utente li modifichi da Impostazioni o li importi dal foglio di configurazione. `PresetUscita` include `giornoDelMese` (1-31): usato da "Uscite Ricorrenti" per datare ogni uscita aggiunta in blocco sul giorno giusto del mese, non sulla data odierna.
 
-## `src/data/` — dati e persistenza
+## `frontend/src/data/` — dati e persistenza
 
 - **`mockData.ts`** — cache locale + stato in-memory (livello 2 dell'architettura). Contiene tutti i tipi (`Transaction`, `RisparmioMese`, `ContoPatrimonio`, ...), gli array esportati, `saveToLocalStorage` (unico punto di scrittura, usato anche dai form "Aggiungi...") e `getExportableData` (assembla l'oggetto dati completo).
 - **`demoData.ts`** — dati interamente fittizi usati in modalità incognito. Deve rispecchiare le stesse forme (tipi) di `mockData.ts`.
 - **`datiBase.ts`** — solo re-export di comodo da `mockData.ts`/`config/datiBaseSeed.ts`, per non dover aggiornare gli import esistenti nei componenti di Impostazioni. Nessuna logica propria.
 
-## `src/context/` — ponte dati ↔ UI
+## `frontend/src/context/` — ponte dati ↔ UI
 
 - **`FinanceDataContext.tsx`** — `FinanceDataProvider` + hook `useFinanceData()`. Unico punto di lettura dati per la UI (livello 3 dell'architettura), più stato di sincronizzazione/incognito.
 
-## `src/hooks/` — logica per singola pagina
+## `frontend/src/hooks/` — logica per singola pagina
 
 Ogni hook prende `useFinanceData()` e ne deriva aggregati/filtri/KPI specifici di UNA pagina, tenendo la logica numerica separata dal JSX:
 
@@ -46,27 +89,27 @@ Ogni hook prende `useFinanceData()` e ne deriva aggregati/filtri/KPI specifici d
 
 Due hook a parte, per il percorso di **scrittura** invece che lettura/aggregazione (usati dai form "Aggiungi..." e da Impostazioni → Dati Base):
 
-- **`useSaveAndPush.ts`** — `saveAndPush` (salva in locale poi fa un push completo, usato solo dal percorso storico di `SheetsModal.tsx`) e `appendAndPush` (salva in locale poi chiama `appendRowToSheet` una volta per ogni `{tabTitle, record}` passato — il percorso usato da tutti i form "Aggiungi..."). Entrambi salvano sempre in locale per primi, poi propagano l'errore di push senza disfare il salvataggio locale.
+- **`useSaveAndPush.ts`** — `saveAndPush` (salva in locale poi fa un push completo, oggi spento: usato solo dal percorso storico di `SheetsModal.tsx`) e `appendAndPush` (salva in locale poi chiama `appendRowToSheet` una volta per ogni `{tabTitle, record}` passato — il percorso usato da tutti i form "Aggiungi..."). Entrambi salvano sempre in locale per primi, poi propagano l'errore di push senza disfare il salvataggio locale.
 - **`useDatiBase.ts`** — letto/scritto da Impostazioni → Dati Base (Conti, Categorie Entrate/Uscite, Soglie, Preset Uscite/Trasferimenti Ricorrenti) e dai form che leggono i preset. Il push va **sempre** verso il foglio di configurazione (`pushDatiBaseToConfigSheet`), mai verso il foglio principale — altrimenti la sync automatica di `fetchDatiBaseFromConfigSheet` ad ogni refresh sovrascriverebbe la modifica al giro dopo.
 
-## `src/pages/` — una per voce di menu
+## `frontend/src/pages/` — una per voce di menu
 
 - **`Panoramica.tsx`** — home page con la situazione economica d'insieme (bilancio storico mensile, KPI principali).
 - **`Entrate.tsx`** / **`Uscite.tsx`** — elenco e gestione (aggiungi/modifica/elimina) di entrate/spese, con filtri per anno/mese.
 - **`Patrimonio.tsx`** — conti e capitale (disponibile, investito, impegnato) per categoria.
-- **`Investimenti.tsx`** — guscio sottile che monta le 4 `src/subviews/*` in base al tab selezionato; la logica vera è in `useInvestimentiData`.
+- **`Investimenti.tsx`** — guscio sottile che monta le 4 `frontend/src/subviews/*` in base al tab selezionato; la logica vera è in `useInvestimentiData`.
 - **`AnalisiConsumi.tsx`** — tracking consumi carburante dell'auto (km/litro, costo, efficienza settimanale).
 - **`Impostazioni.tsx`** — tema, ID del foglio Google collegato, sincronizzazione manuale, logout.
 - **`Login.tsx`** — schermata di accesso con Google.
 
-## `src/subviews/` — le 4 schede dentro "Investimenti"
+## `frontend/src/subviews/` — le 4 schede dentro "Investimenti"
 
 - **`CruscottoGenerale.tsx`** — vista aggregata investito/rendimento per anno.
 - **`Conti.tsx`** — dettaglio dei due broker (Scalable, Trade Republic): strumenti posseduti, saldo, rendimento.
 - **`Rendimenti.tsx`** — andamento mensile/cumulativo dei rendimenti nel tempo.
 - **`FondoPensione.tsx`** — versamenti e accumulo del fondo pensione.
 
-## `src/components/` — pezzi riusabili di UI
+## `frontend/src/components/` — pezzi riusabili di UI
 
 - **`Sidebar.tsx`** — menu di navigazione laterale (desktop) / a scomparsa.
 - **`Header.tsx`** — barra in alto: selettore anno/mese, toggle incognito, refresh.
@@ -117,18 +160,18 @@ Sotto `impostazioni/`, editor per i dati che alimentano i form sopra — letti/s
 - **`UsciteRicorrentiEditor.tsx`** / **`TrasferimentiRicorrentiEditor.tsx`** — preset usati da `AggiungiUscitaForm`/`AggiungiUsciteRicorrentiForm`. Il preset uscita include `giornoDelMese`; un trasferimento si "aggancia" a un'uscita quando la sua `categoria` combacia col `nome` del preset uscita.
 - **`PresetRicorrentiSettings.tsx`** — wrapper che monta i due editor sopra dentro Impostazioni.
 
-## `src/utils/` — funzioni pure di supporto
+## `frontend/src/utils/` — funzioni pure di supporto
 
 - **`date.ts`** — costanti e helper sulle date (es. `MESI_ITALIANI`, l'elenco dei mesi in italiano usato per ordinare/confrontare).
 - **`format.ts`** — formattazione di numeri/valute per la visualizzazione.
 - **`kpiColorScale.ts`** — calcola un colore interpolato (rosso→verde) per un KPI in base a dove si posiziona tra il minimo, la mediana e il massimo storico.
 - **`thresholds.ts`** — soglie/percentuali obiettivo (basate su `config/targets.ts`) usate per giudicare se un valore è "in target".
-- **`sheetsUtils.ts`** — helper di supporto a `sheetsConfig.ts` (es. `toValidFieldName`, `parseSheetColumns`).
+- **`sheetsUtils.ts`** — `toValidFieldName`: nome di campo da un'intestazione strumento, uguale a `nome_campo` del backend.
+- **`numeri.ts`** — `parseLocalizedNumber`: numeri in formato italiano o americano, per i valori che il frontend rielabora.
 - **`esitoSettimanale.ts`** — calcola il giudizio (Ottima/Buona/Nella media/...) di una settimana di consumi auto.
 - **`cruscottoInvestimenti.ts`** — combina i dati di Scalable, Trade Republic e Rendimenti per calcolare le metriche aggregate del Cruscotto Investimenti, anno per anno.
-- **`formulaShift.ts`** — `shiftFormulaRows`: sposta di N righe i riferimenti relativi (non ancorati con `$`) in una stringa-formula di Google Sheets. Usata da `appendRowToSheet` per copiare la formula della riga sopra su una nuova riga inserita, invece di scrivere un valore statico nelle colonne-formula (`formulaFields`).
 
-## File di configurazione a livello di progetto (fuori da `src/`)
+## File di configurazione a livello di progetto (fuori da `frontend/src/`)
 
 - **`vite.config.ts`** — configurazione del bundler Vite.
 - **`tsconfig*.json`** — configurazione TypeScript.

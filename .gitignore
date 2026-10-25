@@ -12,4 +12,9 @@ coverage/
 *.pem
 
 # Cache locale del controllo di design di Impeccable
-.impeccable/hook.cache.json
+.impeccable/
+
+# Python
+__pycache__/
+.pytest_cache/
+.venv/

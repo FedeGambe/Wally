@@ -1,0 +1,29 @@
+/**
+ * Re-export di comodo: Conti/Categorie/Preset vivono ora nel ciclo standard
+ * di mockData.ts (pull/push su Google Sheet come Uscite/Entrate, vedi tab
+ * "Conti"/"Categorie Entrate"/"Categorie Uscite"/"Preset Uscite Ricorrenti"
+ * in backend/models/foglio.py). Questo file esiste solo per non dover
+ * aggiornare gli import esistenti (`from '../../data/datiBase'`) nei
+ * componenti di Impostazioni — la fonte vera è src/data/mockData.ts.
+ */
+export type { MacroCategoriaUscita, PresetUscita, PresetTrasferimento, PresetInvestimento, Soglia } from './mockData';
+export {
+  CONTI,
+  CATEGORIE_ENTRATE,
+  MACRO_CATEGORIE_USCITE,
+  PRESET_USCITE,
+  PRESET_TRASFERIMENTI,
+  PRESET_INVESTIMENTI,
+  SOGLIE,
+  iconPerMacroCategoria
+} from './mockData';
+export {
+  MACRO_CATEGORIE_USCITE_SEED,
+  CATEGORIE_ENTRATE_SEED,
+  CONTI_SEED,
+  PRESET_USCITE_SEED,
+  PRESET_TRASFERIMENTI_SEED,
+  PRESET_INVESTIMENTI_SEED,
+  QUOTA_FONDO_PENSIONE_SEED,
+  SOGLIE_SEED
+} from '../config/datiBaseSeed';

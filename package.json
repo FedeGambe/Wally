@@ -1,40 +1,18 @@
 {
-  "name": "react-example",
+  "name": "wally",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "Comandi di tutto il progetto. Le dipendenze del frontend sono in frontend/package.json, quelle del backend in requirements.txt.",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
-    "build:demo": "vite build --config vite.demo.config.ts",
-    "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit",
-    "test": "vitest run",
-    "banca": "tsx scripts/banca.ts"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.1.14",
-    "@vercel/speed-insights": "^2.0.0",
-    "@vitejs/plugin-react": "^5.0.4",
-    "firebase": "^12.15.0",
-    "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
-    "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "recharts": "^3.8.1",
-    "vite": "^6.2.3"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.3",
-    "vitest": "^4.1.10"
+    "postinstall": "npm --prefix frontend install",
+    "dev": "sh scripts/dev.sh",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "build:demo": "npm --prefix frontend run build:demo",
+    "preview": "npm --prefix frontend run preview",
+    "lint": "npm --prefix frontend run lint",
+    "test": "npm --prefix frontend test",
+    "api": "uv run --with-requirements requirements-dev.txt uvicorn backend.app:app --reload --port 8000 --env-file .env.local",
+    "test:py": "uv run --with-requirements requirements-dev.txt pytest",
+    "banca": "frontend/node_modules/.bin/tsx scripts/banca.ts"
   }
 }

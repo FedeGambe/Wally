@@ -26,11 +26,11 @@ Non è un'app di budgeting generica: è costruita sui conti, i broker e le abitu
 - **Computer, analisi:** Panoramica con andamenti e rendiconto, Entrate/Uscite con grafici e tabelle, Patrimonio per conto, Investimenti (Cruscotto, Rendimenti, Conti, Fondo pensione), Analisi consumi.
 - **Dati:** Google Sheet dell'utente come fonte definitiva, cache in `localStorage`; il salvataggio locale non spinge automaticamente sul foglio. Login Google via Firebase; il token Google dura circa un'ora.
 - **Banca:** sincronizzazione movimenti via Enable Banking (UniCredit, Trade Republic), con un cron notturno e "Sincronizza ora"; i movimenti non riconosciuti dalle regole restano da confermare a mano.
-- **Condivisione schermo:** la modalità incognito sostituisce tutta la dashboard con dati finti (`src/data/demoData.ts`).
+- **Condivisione schermo:** la modalità incognito sostituisce tutta la dashboard con dati finti (`frontend/src/data/demoData.ts`).
 
 ## Capabilities and Constraints
 
-- React 19 + TypeScript + Vite 6, Tailwind CSS 4, Recharts, Motion, lucide-react. Deploy su Vercel da `main`; funzioni serverless in `api/`.
+- React 19 + TypeScript + Vite 6, Tailwind CSS 4, Recharts, Motion, lucide-react. Deploy su Vercel da `main`; backend Python (FastAPI) in `backend/`, servito da `api/index.py`.
 - Lingua dell'interfaccia: solo italiano (`lang="it"`), cifre in euro con formato italiano.
 - Terminologia in uso: Panoramica/Home, Entrate, Uscite, Trasferimenti, Patrimonio, Conti, Investimenti, Cruscotto, Rendimenti, Fondo pensione, Analisi consumi, Dati Base, Movimenti Banca, una tantum / ricorrente.
 - La demo non deve mai poter scrivere sul foglio reale; l'incognito non legge né modifica i dati reali.
@@ -43,7 +43,7 @@ Non è un'app di budgeting generica: è costruita sui conti, i broker e le abitu
 
 ## Evidence on Hand
 
-- Dati demo completi in `src/data/demoData.ts` (stessa forma dei dati reali), usati da incognito e dalla demo vetrina.
+- Dati demo completi in `frontend/src/data/demoData.ts` (stessa forma dei dati reali), usati da incognito e dalla demo vetrina.
 - Copertine e immagini del progetto in `docs/img/`, icona in `public/icon`.
 - Nessun altro utente, testimonianza o metrica d'uso: non vanno inventati. Le cifre reali dell'utente non vanno mai mostrate fuori dall'app.
 
