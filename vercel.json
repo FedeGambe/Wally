@@ -8,11 +8,11 @@
   "rewrites": [
     {
       "source": "/__/auth/:path*",
-      "destination": "https://gemini-python-485506.firebaseapp.com/__/auth/:path*"
+      "destination": "https://wally-fin.firebaseapp.com/__/auth/:path*"
     },
     {
       "source": "/__/firebase/:path*",
-      "destination": "https://gemini-python-485506.firebaseapp.com/__/firebase/:path*"
+      "destination": "https://wally-fin.firebaseapp.com/__/firebase/:path*"
     },
     {
       "source": "/api/:path*",
