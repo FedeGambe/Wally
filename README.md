@@ -10,11 +10,11 @@ Dashboard di finanza personale (single-user), tutta in italiano. Nessun database
 ```
 frontend/   app React (TypeScript + Vite)
 backend/    backend Python (FastAPI): routes/, services/, domain/, models/, security/, tests/
-api/        index.py, l'unica funzione Vercel, che serve il backend
-docs/       documentazione
+api/        index.py, l'unica funzione Vercel, che serve il backend (deve stare in cima al progetto)
+docs/       documentazione e sito del progetto (GitHub Pages)
 ```
 
-Dettagli file per file in [docs/STRUTTURA-PROGETTO.md](./docs/STRUTTURA-PROGETTO.md).
+Guide file per file: [docs/FRONTEND.md](./docs/FRONTEND.md) e [docs/BACKEND.md](./docs/BACKEND.md).
 
 ## Avvio rapido
 
@@ -40,13 +40,12 @@ Serve un file `.env.local` (non committato) con le variabili Firebase — copia 
 
 ## Documentazione
 
-La cartella [`docs/`](./docs/README.md) spiega architettura, struttura del progetto e i concetti base di React/TSX/TypeScript usati qui, pensata per chi non conosce bene questi strumenti:
+La cartella [`docs/`](./docs/README.md) è pensata per chi non conosce bene React, TypeScript o FastAPI:
 
-- [docs/GUIDA-REACT-TS.md](./docs/GUIDA-REACT-TS.md) — concetti React/TSX/TS con esempi dal codice reale
-- [docs/ARCHITETTURA.md](./docs/ARCHITETTURA.md) — come si muovono i dati (Google Sheet ↔ localStorage ↔ React)
-- [docs/STRUTTURA-PROGETTO.md](./docs/STRUTTURA-PROGETTO.md) — mappa file per file
-
-Dettagli operativi aggiuntivi (convenzioni, gotcha noti) sono in [`CLAUDE.md`](./CLAUDE.md).
+- [docs/ARCHITETTURA.md](./docs/ARCHITETTURA.md) — come si muovono i dati (foglio Google ↔ backend ↔ cache locale ↔ schermo)
+- [docs/FRONTEND.md](./docs/FRONTEND.md) — guida al frontend, file per file
+- [docs/BACKEND.md](./docs/BACKEND.md) — guida al backend, file per file
+- [docs/GUIDA-REACT-TS.md](./docs/GUIDA-REACT-TS.md) — concetti React/TypeScript con esempi dal codice
 
 ## Deploy
 

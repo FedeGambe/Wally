@@ -16,7 +16,7 @@ interface AggiungiTrasferimentoFormProps {
 }
 
 /**
- * Form "Aggiungi Trasferimento" (Fase 5 del piano, docs/archive/PIANO-INSERIMENTO-DATI.md).
+ * Form "Aggiungi Trasferimento".
  * Resta un log puro dei movimenti tra conti: NON aggiorna i saldi mostrati in
  * Patrimonio (che restano uno snapshot letto dal foglio Google) — decisione
  * presa per evitare doppio conteggio finché non si definisce una logica di

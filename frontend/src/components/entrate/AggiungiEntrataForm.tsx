@@ -17,7 +17,7 @@ interface AggiungiEntrataFormProps {
 
 /**
  * Form "Aggiungi Entrata" — niente campi data/descrizione (confermato non
- * servono, vedi docs/archive/PIANO-INSERIMENTO-DATI.md): solo mese (default corrente,
+ * servono): solo mese (default corrente,
  * un flag per sceglierne uno diverso), anno derivato dal mese, categoria,
  * conto, importo. Stipendio e voci variabili restano inserimento manuale.
  * Con categoria "Stipendio" e una quota TFR configurata (Impostazioni →

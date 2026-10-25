@@ -4,8 +4,7 @@ import { useFinanceData } from '../context/FinanceDataContext';
 /**
  * Hook condiviso da tutti i form "Aggiungi ..." (Uscita, Entrata, Consumi,
  * Trasferimento): esegue il salvataggio locale (una funzione che chiama
- * saveToLocalStorage), poi pusha subito su Google Sheet — deciso nel piano
- * (docs/archive/PIANO-INSERIMENTO-DATI.md) per evitare che un pull successivo
+ * saveToLocalStorage), poi pusha subito su Google Sheet, per evitare che un pull successivo
  * cancelli un record aggiunto in locale ma mai sincronizzato.
  */
 export function useSaveAndPush() {

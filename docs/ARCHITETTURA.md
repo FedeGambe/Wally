@@ -1,79 +1,103 @@
 # Architettura: come si muovono i dati
 
-Wally **non ha un database proprio**: i dati stanno nel foglio Google dell'utente. Vivono in tre livelli, e passano dall'uno all'altro così:
+Wally **non ha un database proprio**: i dati stanno nei fogli Google dell'utente. Il browser non parla con Google Sheets: passa sempre dal **backend Python**, che legge e scrive con il token Google dell'utente (quindi vede solo i fogli che l'utente può aprire).
 
 ```
-Google Sheet  <──pull/push──>  localStorage  <──lettura/scrittura──>  Stato React (schermo)
- (frontend/src/lib/            (frontend/src/data/               (frontend/src/context/FinanceDataContext.tsx
- sheetsService.tsx)    mockData.ts)              + pagine/hook)
+Foglio Google  <──>  backend Python  <──/api──>  cache locale     <──>  stato React (schermo)
+                     (backend/)                  (localStorage,         (FinanceDataContext
+                                                 data/mockData.ts)      + pagine e hook)
 ```
 
-## Livello 1 — Google Sheet (`frontend/src/lib/sheetsService.tsx`)
+I file uno per uno sono descritti in [FRONTEND.md](./FRONTEND.md) e [BACKEND.md](./BACKEND.md).
 
-Il foglio Google è la fonte "definitiva" dei dati, di proprietà dell'utente. L'app non ci parla più direttamente: passa sempre dal **backend Python**, mandandogli il token Google dell'utente, e il backend legge e scrive con quel token (quindi vede solo i fogli che l'utente può aprire). Nel frontend `frontend/src/lib/sheetsService.tsx` contiene solo le chiamate:
+## I due fogli Google
 
-- **`fetchSpreadsheetData`** → `GET /api/fogli/dati` (`backend/routes/fogli.py`): legge tutte le schede in un'unica chiamata, le converte in oggetti (`backend/domain/lettura.py`) e calcola il Cruscotto Investimenti. `fetchDatiBaseFromConfigSheet` → `GET /api/fogli/dati-base` fa lo stesso per il foglio di configurazione.
-- **Scritture** (`backend/routes/scritture.py`, logica in `backend/domain/scrittura.py`): `appendRowToSheet` aggiunge una riga cella per cella, copiando le formule della riga sopra nelle colonne-formula; poi portafoglio contanti, investimenti ricorrenti ed extra, nuovo strumento, verifica mensile, Dati Base. Scrivono solo celle precise e rifiutano di scrivere su celle già piene quando non è previsto.
-- **`pushSpreadsheetData`** (riscrittura completa delle schede) è **spento**: aveva corrotto il foglio due volte. Non esiste nel backend.
+- **Foglio principale ("Finanza")**: uscite, entrate, risparmio, patrimonio, investimenti, consumi, fondo pensione, e la scheda "Movimenti Banca". ID in `localStorage['sf_spreadsheet_id']`.
+- **Foglio di configurazione ("finanza_data_config")**: i Dati Base (conti, categorie, soglie, preset ricorrenti) e la scheda "Banca Collegamenti". ID in `localStorage['sf_config_spreadsheet_id']`.
 
-La *mappa* tra colonne del foglio e campi dell'app è **una sola**: `SCHEDE` in **`backend/models/foglio.py`**. Ogni voce dice nome del tab, campi e intestazioni, quali vanno letti come numero o booleano, quali colonne sono date, mesi o formule. Per aggiungere o modificare una colonna o una scheda **si modifica solo lì**.
+## Livello 1 — foglio Google, tramite il backend
 
-Le schede "Scalable" e "Trade Republic" (i due broker di investimento) sono un'eccezione: hanno colonne che cambiano nel tempo (nuovi ETF/azioni), quindi vengono "scoperte" leggendo a runtime le righe 1-2 del foglio, cercando parole chiave come `azioni`, `obbligazioni`, `monetari`.
+Nel frontend `frontend/src/lib/sheetsService.tsx` contiene solo le chiamate al backend.
 
-Due funzioni del backend meritano attenzione perché **un bug qui corrompe silenziosamente le cifre** (ognuna ha i suoi test):
+- **Lettura** → `GET /api/fogli/dati` (`backend/routes/fogli.py`): legge tutte le schede in una sola chiamata, le converte in oggetti (`backend/domain/lettura.py`) e calcola il Cruscotto Investimenti. `GET /api/fogli/dati-base` fa lo stesso per il foglio di configurazione.
+- **Scritture** → `backend/routes/scritture.py`, logica in `backend/domain/scrittura.py`: riga nuova (copiando le formule della riga sopra nelle colonne-formula), banconote, investimenti, nuovo strumento, verifica mensile, Dati Base. Scrivono solo celle precise e rifiutano di scrivere su celle già piene quando non è previsto.
+- **La riscrittura completa del foglio è spenta** (`pushSpreadsheetData` dà sempre errore): aveva corrotto il foglio due volte. Nel backend non esiste.
 
-- `numero_localizzato` (`backend/domain/conversioni.py`) — un numero scritto nel foglio può essere in formato italiano (`1.234,56`) o americano (`1,234.56`). La funzione indovina il formato guardando l'ultima virgola/punto.
-- `data_da_testo` (`backend/domain/scrittura.py`) — le date possono arrivare come testo (`31/12/2026`), come `YYYY-MM-DD`, o come "numero seriale" (il modo interno con cui Google Sheets rappresenta le date).
+La **mappa** tra colonne del foglio e campi dell'app è una sola: `SCHEDE` in `backend/models/foglio.py`. Per aggiungere o modificare una colonna o una scheda si modifica solo lì.
+
+Le schede "Scalable" e "Trade Republic" sono un'eccezione: hanno una colonna per strumento, che cambia nel tempo, quindi vengono "scoperte" leggendo le righe 1-2 del foglio.
+
+Due funzioni del backend vanno toccate con cura, perché **un bug qui corrompe le cifre in silenzio** (hanno i loro test):
+
+- `numero_localizzato` (`backend/domain/conversioni.py`): un numero può essere scritto all'italiana (`1.234,56`) o all'americana (`1,234.56`).
+- `data_da_testo` (`backend/domain/scrittura.py`): le date arrivano come testo (`31/12/2026`), come `AAAA-MM-GG` o come numero seriale di Google Sheets.
 
 ## Livello 2 — cache locale (`frontend/src/data/mockData.ts`)
 
-Questo file è la cache locale + stato in-memory. Non parla mai direttamente con Google: legge/scrive solo `localStorage` (tutte le chiavi iniziano per `sf_`, es. `sf_transactions`, `sf_conti_patrimonio`).
+Copia locale dei dati più stato in memoria. Non parla mai con il backend: legge e scrive solo `localStorage` (chiavi che iniziano per `sf_`, es. `sf_transactions`). Così l'app si apre subito con gli ultimi dati, prima che arrivi la risposta del backend.
 
-Ogni array esportato (`TRANSACTIONS`, `RISPARMIO_DATA`, `CONTI_PATRIMONIO`, ecc.) viene popolato **una sola volta**, al caricamento del modulo, leggendo la chiave localStorage corrispondente.
+Ogni array esportato (`TRANSACTIONS`, `RISPARMIO_DATA`, `CONTI_PATRIMONIO`, ...) viene caricato **una sola volta**, all'avvio, dalla sua chiave di `localStorage`.
 
-**Regola fondamentale: `saveToLocalStorage(data)` è l'UNICO punto di scrittura.** Fa due cose insieme per ogni chiave passata:
+**Regola fondamentale: `saveToLocalStorage(data)` è l'UNICO punto di scrittura.** Per ogni chiave passata:
 
-1. Scrive il valore in `localStorage` (persistenza tra sessioni/riavvii del browser).
-2. Svuota e ripopola l'array in-memory corrispondente sul posto (`arr.length = 0; arr.push(...)`), così i moduli che avevano già importato quell'array vedono i nuovi dati senza dover reimportare nulla.
+1. scrive il valore in `localStorage`;
+2. svuota e riempie l'array in memoria sul posto (`arr.length = 0; arr.push(...)`), così chi l'aveva già importato vede i dati nuovi.
 
-Nessuna pagina deve scrivere su `localStorage` direttamente per i dati finanza: deve sempre passare da qui.
-
-`getExportableData(incognito = false)` è la funzione che assembla l'**unico oggetto dati** che ogni consumatore legge (uscite, entrate, patrimonio, rendimenti, ecc. tutti in un solo oggetto). Il parametro `incognito` di default è **`false`** apposta: `SheetsModal.tsx` chiama `getExportableData()` senza argomenti quando fa il push verso il foglio reale, così i dati demo non possono mai finire per errore su Google Sheets. **Non cambiare questo default e non farlo auto-rilevare la modalità incognito.**
+`getExportableData(incognito = false)` monta l'**unico oggetto dati** che le pagine leggono. Il default `false` è voluto: chi lo chiama senza argomenti (es. `SheetsModal.tsx` quando crea un foglio nuovo) ottiene sempre i dati veri, così i dati della modalità incognito non possono finire sul foglio. **Non cambiare questo default e non farlo dipendere dalla modalità incognito.**
 
 ## Livello 3 — stato React (`frontend/src/context/FinanceDataContext.tsx`)
 
-Questo è l'unico punto di **lettura** per la UI. `FinanceDataProvider` (montato una volta in `App.tsx`, avvolge tutta la dashboard) espone tramite React Context:
+L'unico punto di **lettura** per l'interfaccia. `FinanceDataProvider`, montato una volta in `App.tsx`, espone con `useFinanceData()`:
 
-- `data` — l'oggetto dati completo, ricalcolato con `useMemo(() => getExportableData(isIncognito), [isIncognito, refreshVersion])`
-- `isIncognito` / `toggleIncognito` — stato e switch della modalità incognito
-- `refreshData` / `isRefreshing` / `syncError` — sincronizzazione con Google Sheets
-- `bumpVersion()` — incrementa `refreshVersion`, che è ciò che fa ricalcolare `data`
+- `data`: l'oggetto dati completo, ricalcolato con `useMemo(() => getExportableData(isIncognito), [isIncognito, refreshVersion])`;
+- `refreshData` / `isRefreshing` / `syncError`: rilettura dal foglio (anche automatica appena c'è il token);
+- `bumpVersion()`: incrementa `refreshVersion`, che fa ricalcolare `data`;
+- `isIncognito` / `toggleIncognito`: modalità incognito.
 
-Ogni pagina legge i dati con l'hook `useFinanceData()`. **Le pagine non devono importare direttamente gli array grezzi di `mockData.ts`** (solo i *tipi* come `Transaction`, `ContoPatrimonio` sono importabili ovunque).
+Le pagine **non** importano direttamente gli array di `mockData.ts` (solo i *tipi*, come `Transaction`).
 
 ### Perché serve `bumpVersion()`
 
-Gli array in `mockData.ts` vengono mutati "sul posto" (`arr.push(...)`), non ricreati. React non si accorge da solo che un array è cambiato se il riferimento all'array è lo stesso. Per questo, **dopo ogni `saveToLocalStorage(...)` va sempre chiamato `bumpVersion()`**: è il segnale che dice al `useMemo` di ricalcolare `data`, e quindi a tutta la dashboard di ridisegnarsi con i dati nuovi. Se dimentichi `bumpVersion()`, i dati sono salvati correttamente ma lo schermo resta "vecchio" finché non si ricarica la pagina.
+Gli array di `mockData.ts` vengono modificati sul posto, non ricreati, e React non se ne accorge da solo. Per questo **dopo ogni `saveToLocalStorage(...)` va chiamato `bumpVersion()`**. Se lo dimentichi i dati sono salvati, ma lo schermo resta vecchio fino al ricaricamento della pagina.
 
-## Un giro completo: cosa succede quando l'utente modifica una spesa
+## Un giro completo
 
-1. L'utente modifica/aggiunge una riga nella pagina Uscite → il componente costruisce il nuovo array `Transaction[]`.
-2. Chiama `saveToLocalStorage({ uscite: nuovoArray })` → questo scrive su `localStorage['sf_transactions']` e aggiorna `TRANSACTIONS` in-memory.
-3. Chiama `bumpVersion()` (di solito tramite `useFinanceData()`) → `refreshVersion` cambia.
-4. Il `useMemo` in `FinanceDataContext` rileva la dipendenza cambiata e richiama `getExportableData()` → nuovo oggetto `data`.
-5. Tutte le pagine che leggono `useFinanceData().data` si ridisegnano con i numeri aggiornati.
-6. Se l'utente vuole persistere anche su Google, deve premere "sincronizza/salva" da qualche parte nell'UI (`SheetsModal.tsx` / pulsante refresh), che chiama `pushSpreadsheetData` esplicitamente — **il salvataggio in `localStorage` NON invia automaticamente nulla a Google Sheets**.
+### Apertura dell'app
+
+1. Dopo il login `FinanceDataContext` chiama `refreshData`.
+2. `fetchSpreadsheetData` → `GET /api/fogli/dati`; poi, se c'è il foglio di configurazione, `fetchDatiBaseFromConfigSheet` → `GET /api/fogli/dati-base`.
+3. Le risposte finiscono in `saveToLocalStorage`, poi `bumpVersion()`: tutte le pagine si ridisegnano.
+
+### L'utente aggiunge una spesa
+
+1. Il modulo "Aggiungi Uscita" costruisce il record e chiama `appendAndPush` (`hooks/useSaveAndPush.ts`).
+2. Prima salva in locale (`saveToLocalStorage`) e chiama `bumpVersion()`: la spesa compare subito.
+3. Poi `appendRowToSheet` → `POST /api/fogli/riga` aggiunge **solo quella riga** sul foglio (più l'eventuale trasferimento collegato e le banconote se il conto è Contanti).
+4. Se il foglio fallisce, la spesa resta in locale e compare un avviso. Al prossimo aggiornamento dal foglio, una riga mai arrivata sul foglio sparisce.
+
+Le modifiche ai Dati Base (Impostazioni) vanno **sempre** sul foglio di configurazione (`PUT /api/fogli/dati-base`), mai sul principale: altrimenti la rilettura automatica le sovrascriverebbe.
+
+## Sincronizzazione bancaria
+
+1. **Collegamento**: da Impostazioni → Banche collegate, `POST /api/banca/collega` manda l'utente sulla banca (Enable Banking, PSD2). Al ritorno `GET /api/banca/callback` salva i conti in "Banca Collegamenti".
+2. **Scaricamento**: ogni notte il cron di Vercel (`GET /api/banca/sincronizza`, con il service account `wally-sync`) o il pulsante "Sincronizza ora" accodano i movimenti nuovi in "Movimenti Banca". Non classificano niente.
+3. **Elaborazione**: quando si apre Wally, `useMovimentiBanca` chiama `POST /api/banca/elabora`. Il backend classifica i movimenti con regole e preset, registra da solo quelli sicuri (uscite da preset, giri tra conti, PAC) e restituisce la lista "Da confermare", che compare nella card "Dalla banca" in Panoramica.
+4. Un movimento registrato o scartato viene segnato nella colonna "Stato" (`POST /api/banca/movimenti/stato`).
 
 ## Modalità incognito
 
-Un toggle nell'Header (`toggleIncognito`) sostituisce **tutta** la dashboard con dati interamente fittizi da `frontend/src/data/demoData.ts` (flag persistito in `sf_incognito_mode`). Serve a nascondere le cifre reali durante una condivisione schermo. Non modifica né legge mai i dati reali: è sicuro tenerla attiva anche mentre si lavora sull'app. Quando aggiungi un campo a un tipo di dato reale, aggiungilo anche in `demoData.ts` (deve rispecchiare la stessa forma).
+Un interruttore nell'intestazione (`toggleIncognito`) sostituisce **tutta** la dashboard con dati inventati da `frontend/src/data/demoData.ts` (stato salvato in `sf_incognito_mode`). Serve a nascondere le cifre vere durante una condivisione dello schermo. Non legge né modifica i dati veri. Quando aggiungi un campo a un tipo di dato vero, aggiungilo anche in `demoData.ts`.
+
+La stessa base serve la **demo** pubblicata (`frontend/src/demo/main.tsx` → `docs/demo/`), che non ha né login né backend.
 
 ## Autenticazione (`frontend/src/lib/googleAuth.ts`)
 
-Il login usa Firebase Auth (Google Sign-In) **solo per l'identità**. L'`accessToken` OAuth usato per chiamare l'API di Google Sheets è un dato separato, ottenuto dallo stesso popup di login, tenuto in memoria (si perde al reload) e — se l'utente sceglie "ricorda questo dispositivo" — salvato in `localStorage`. Il token Google scade sempre dopo ~1 ora (limite non aggirabile lato client, senza backend): per questo il codice considera valido un token salvato solo entro una finestra di 50 minuti.
+Firebase Auth (Google) serve **solo per l'identità**. Il token per Google Sheets è un dato separato, ottenuto dallo stesso popup di login. Il browser lo manda al backend a ogni chiamata (`Authorization: Bearer ...`), e il backend lo usa per leggere e scrivere il foglio.
 
-Prima di forzare un nuovo login, si tenta però un **rinnovo silenzioso** via Google Identity Services (`silentTokenRefresh`, script caricato in `index.html`, richiede `VITE_GOOGLE_OAUTH_CLIENT_ID` con `http://localhost:3000`/dominio di produzione registrati come "Authorized JavaScript origins" nel Client ID su Google Cloud Console). Punto verificato dal vivo: questo rinnovo funziona **solo se scatena da un vero click dell'utente** — un tentativo da un timer in background o al solo caricamento della pagina viene sempre bloccato dal popup-blocker del browser. `App.tsx` lo aggancia quindi a un listener sui click (rinnova se sono passati >40 minuti dall'ultimo rinnovo) e lo usa come fallback prima di un logout forzato su 401. Risultato pratico: mentre l'utente usa l'app attivamente la sessione non scade mai; se la scheda resta chiusa/inattiva per più di ~50 minuti, al ritorno serve comunque un click di login (veloce, nessuna password da reinserire). Un vero "resta collegato per giorni anche a tab chiusa" richiederebbe un refresh token, che Google rilascia solo tramite un flusso server-side con `client_secret` — quindi solo aggiungendo una funzione serverless, non fattibile lato client puro.
+Il token scade dopo circa un'ora. Prima di chiedere di nuovo il login, l'app prova un **rinnovo silenzioso** con Google Identity Services (`silentTokenRefresh`, script in `frontend/index.html`, richiede `VITE_GOOGLE_OAUTH_CLIENT_ID`). Funziona **solo dopo un vero clic dell'utente**: un tentativo da un timer viene bloccato dal browser. Per questo `App.tsx` lo aggancia ai clic (se sono passati più di 40 minuti dall'ultimo rinnovo) e lo riprova quando il backend risponde 401.
 
-## Configurazione ambiente
+Risultato: mentre usi l'app la sessione non scade; se la scheda resta chiusa più di circa 50 minuti, al ritorno serve un clic di login (veloce, senza password). Per restare collegati per giorni servirebbe un refresh token, che Google dà solo con un flusso lato server: con il backend si potrebbe fare, ma non è stato fatto.
 
-Le credenziali Firebase arrivano da variabili d'ambiente `VITE_FIREBASE_*`, più `VITE_GOOGLE_OAUTH_CLIENT_ID` (Client ID OAuth Web usato dal rinnovo silenzioso, vedi sopra — vedi `frontend/src/vite-env.d.ts` per i tipi). In locale vanno messe in un file `.env.local` (non committato); su Vercel si impostano come Environment Variables del progetto.
+## Configurazione
+
+Tutte le variabili stanno in `.env.local` nella cartella principale (mai su git), condiviso da frontend e backend. Su Vercel si impostano come Environment Variables. L'elenco completo con spiegazione è in `.env.example`.

@@ -29,7 +29,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
  * delicata dell'app (push/pull verso il foglio Google reale). I commenti qui
  * spiegano COSA fa il codice, ma non ne cambiano il comportamento: ogni
  * push/pull usa sempre `getExportableData()`/`saveToLocalStorage()` come
- * previsto dall'architettura (vedi CLAUDE.md), quindi i dati demo/incognito
+ * previsto dall'architettura (vedi docs/ARCHITETTURA.md), quindi i dati demo/incognito
  * non possono mai finire sul foglio reale.
  */
 interface SheetsModalProps {
@@ -175,7 +175,7 @@ export default function SheetsModal({
       // getExportableData() senza argomenti usa il default incognito=false: qui va
       // sempre bene, perché anche se l'utente sta guardando i dati demo, questo è un
       // push reale verso un foglio Google reale e deve contenere i dati veri (vedi
-      // nota in CLAUDE.md: questo default NON va mai cambiato o reso automatico).
+      // nota in docs/ARCHITETTURA.md: questo default NON va mai cambiato o reso automatico).
       const currentLocalData = getExportableData();
       await pushSpreadsheetData(accessToken, newId, currentLocalData);
 

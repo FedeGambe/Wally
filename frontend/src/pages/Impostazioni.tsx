@@ -3,7 +3,7 @@
  * chiave "sf_spreadsheet_id"), avviare una sincronizzazione manuale e scegliere il tema (chiaro/scuro).
  * Questa pagina NON possiede lo stato di tema/sincronizzazione/logout: li riceve come props da
  * App.tsx (theme, setTheme, onRefreshData, isRefreshing, onLogout), che è il vero "proprietario"
- * di questo stato applicativo (vedi CLAUDE.md: le UI-filter state vivono in App.tsx, non nel
+ * di questo stato applicativo (vedi docs/FRONTEND.md: le UI-filter state vivono in App.tsx, non nel
  * FinanceDataContext). L'ID dello spreadsheet è l'unico dato che questa pagina legge/scrive
  * direttamente su localStorage (non è un dato finanziario, quindi non passa da saveToLocalStorage).
  */

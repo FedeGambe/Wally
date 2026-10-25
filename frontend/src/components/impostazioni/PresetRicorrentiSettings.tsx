@@ -25,8 +25,7 @@ const TITOLI: Record<Exclude<Voce, null>, string> = {
 
 /**
  * Card "Preset Uscite Ricorrenti" di Impostazioni: menu con 4 voci per i
- * valori che si ripetono quasi identici ogni mese (Fase 2 del piano,
- * docs/archive/PIANO-INSERIMENTO-DATI.md). "Uscite Ricorrenti" e "Trasferimenti
+ * valori che si ripetono quasi identici ogni mese. "Uscite Ricorrenti" e "Trasferimenti
  * Ricorrenti" hanno un editor vero (usati anche da AggiungiUscitaForm per il
  * flag "aggiungi anche il trasferimento"), "Investimenti Ricorrenti" scrive i
  * contributi mensili nei tab dei broker, "Quota Fondo Pensione" la quota TFR

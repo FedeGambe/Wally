@@ -30,12 +30,10 @@ const TITOLI: Record<Exclude<TipoDato, null>, string> = {
 };
 
 /**
- * Punto d'ingresso generale (bottone in Panoramica, Fase 1b del piano): prima
- * chiede che tipo di dato inserire, poi mostra lo STESSO form usato dal
- * bottone contestuale della pagina dedicata (AggiungiUscitaForm/
- * AggiungiEntrataForm) — nessuna duplicazione di logica. Consumo e
- * Trasferimento restano disabilitati finché le Fasi 3/5 del piano non
- * esistono (docs/archive/PIANO-INSERIMENTO-DATI.md).
+ * Punto d'ingresso generale (bottone in Panoramica): prima chiede che tipo di
+ * dato inserire, poi mostra lo STESSO form usato dal bottone contestuale della
+ * pagina dedicata (AggiungiUscitaForm, AggiungiEntrataForm, ...) — nessuna
+ * duplicazione di logica.
  */
 export default function AggiungiDatoModal({ isOpen, onClose, tipoIniziale = null }: AggiungiDatoModalProps) {
   const [tipo, setTipo] = useState<TipoDato>(null);

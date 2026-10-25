@@ -26,7 +26,7 @@ interface AggiungiConsumoFormProps {
 }
 
 /**
- * Form "Aggiungi Consumo" (Fase 3 del piano, docs/archive/PIANO-INSERIMENTO-DATI.md).
+ * Form "Aggiungi Consumo".
  * Solo i valori che l'utente legge davvero (costo, litri, km finali, km/lt da
  * cruscotto) sono campi del form; tutti gli altri (Km effettuati, €/100km,
  * Esito settimana, ...) sono colonne-formula del foglio (`formule` della scheda

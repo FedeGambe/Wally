@@ -1,7 +1,7 @@
 """
 Logica pura delle scritture sul foglio: QUALI celle scrivere e con che valore,
 dato quello che c'è già. Niente rete: la lettura del foglio e l'invio delle
-richieste stanno in routes/scritture.py.
+richieste stanno in services/scritture.py.
 
 Regola di fondo, la stessa dello script Python originale: si scrivono solo le
 celle che servono, cella per cella, mai righe o schede intere, e mai sopra una

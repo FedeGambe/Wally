@@ -7,7 +7,7 @@
  * Componente radice dell'app. Contiene due cose distinte:
  *  1) `App`: gestisce login/logout, tema chiaro/scuro, e lo stato di
  *     filtro (anno/mese selezionati) che va passato "a mano" (via props)
- *     alle pagine perché non fa parte di FinanceDataContext (vedi CLAUDE.md).
+ *     alle pagine perché non fa parte di FinanceDataContext (vedi docs/FRONTEND.md).
  *  2) `DashboardShell`: la UI vera e propria una volta loggati (sidebar,
  *     header, pagina attiva). E' un componente separato perché deve stare
  *     DENTRO <FinanceDataProvider> per poter leggere i dati con
