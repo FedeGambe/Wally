@@ -49,7 +49,7 @@ button{font:inherit; color:inherit; cursor:pointer}
 @media (max-width:560px){ .solo-largo{display:none} }
 .firma{display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; font:600 .9rem/1 var(--f-data); letter-spacing:.06em}
 .firma:hover{color:var(--arancio)}
-.intro{color:var(--ink-2); max-width:68ch; margin:12px 0 14px; font-size:1.02rem}
+.descr{color:var(--ink-2); max-width:68ch; margin:12px 0 14px; font-size:1.02rem}
 .dati-modello{display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none}
 .dati-modello li{font-size:.82rem; color:var(--ink-2); background:var(--surface-2); border-radius:999px; padding:4px 12px}
 .dati-modello b{font-family:var(--f-data); font-weight:600; color:var(--ink)}
@@ -72,7 +72,7 @@ button{font:inherit; color:inherit; cursor:pointer}
   .griglia{grid-template-columns:minmax(0,1fr) minmax(0,480px)}
   .esiti{position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; scrollbar-width:thin}
 }
-.scheda{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:22px; box-shadow:var(--ombra)}
+.scheda{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:22px}
 
 /* Form */
 form{display:grid; gap:20px}
@@ -192,49 +192,16 @@ footer .firma{margin-top:14px}
 .solo-lettori{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 /* FONT MOBILE (telefono, fino a 700px): gerarchia titolo > titoli di sezione > testo > etichette > note */
 @media (max-width:700px){
-  h1, .banner h1{font-size:clamp(1.9rem,8.5vw,2.25rem)}
+  h1{font-size:clamp(1.9rem,8.5vw,2.25rem)}
   h2, .sezione > legend, .gtitolo, .risultati h2{font-size:1.25rem}
   h3{font-size:1.05rem}
-  .intro{font-size:1rem}
+  .descr{font-size:1rem}
   .etichetta, .campo > legend{font-size:.9rem}
 }
 /* /FONT MOBILE */
-/* BANNER A DUE LIVELLI: img/banner_sfondo.svg è il fondo del banner (continuo, anche dietro alla barra e al titolo);
-   <img class="soggetto" src="img/banner_soggetto.svg"> è il soggetto. Colore di fondo e del testo: --banner-fondo, --banner-testo (nella pagina).
-   Desktop: titolo e sottotitolo a sinistra, soggetto a destra.
-   Telefono (fino a 700px): solo il titolo prima della grafica, poi il soggetto con il sottotitolo sopra la sua parte bassa, su una sfumatura. */
-.banner{position:relative; overflow:hidden; padding:calc(var(--barra) + env(safe-area-inset-top,0px)) 0 0;
-  background:var(--banner-fondo) url("img/banner_sfondo.svg") 50% 50% / cover no-repeat; border-bottom:3px solid var(--ink)}
-.banner .soggetto{position:absolute; z-index:0; top:calc(var(--barra) + 10px); bottom:18px; right:max(16px, calc(50vw - 600px)); left:auto;
-  width:min(46%, 560px); height:calc(100% - var(--barra) - 28px); max-width:none; opacity:1; -webkit-mask-image:none; mask-image:none; object-fit:contain; object-position:100% 0}
-.banner .dentro{position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:28px 16px 30px}
-.banner picture{display:contents}
-/* strisce a tutta larghezza (classe "largo"): su desktop il soggetto è ruotato di 90° (banner_soggetto_ruotato.svg, base a destra)
-   e occupa tutta l'altezza del banner, largo metà schermo (ritagliato sopra e sotto), allineato al bordo destro; su telefono resta orizzontale sotto il titolo */
-@media (min-width:701px){
-  .banner .soggetto.largo{top:0; bottom:0; right:0; width:50vw; height:100%; object-fit:cover; object-position:100% 50%}  /* largo metà schermo, ritagliato sopra e sotto */
-}
-.banner h1{margin:0; padding:0; border:0; color:var(--banner-testo); font-size:clamp(1.9rem,4.6vw,3.2rem); font-weight:800; line-height:1.05; max-width:16ch; text-wrap:balance}
-.banner p{margin:10px 0 0; color:var(--banner-testo); font:600 .8rem/1.3 var(--f-data); letter-spacing:.08em; text-transform:uppercase; max-width:52ch}
-@media (max-width:700px){
-  .banner{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto}
-  .banner .dentro{display:contents}
-  .banner h1{grid-row:1; grid-column:1; position:relative; z-index:2; padding:22px 16px 16px; max-width:none}
-  .banner .soggetto{grid-row:2; grid-column:1; position:relative; inset:auto; width:100%; height:min(44vw, 240px); box-sizing:border-box;
-    padding:0 16px 18px; object-position:50% 0}
-  .banner p{grid-row:3; grid-column:1; position:relative; z-index:2; margin:-48px 0 0; padding:34px 16px 18px; max-width:none;
-    background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--banner-fondo) 86%, transparent) 34px)}
-  .banner .soggetto.largo{object-fit:cover; object-position:50% 100%; padding:0}  /* strisce a tutta larghezza */
-  .banner::after{display:none}
-}
-/* /BANNER A DUE LIVELLI */
-:root{--banner-fondo:#0a6460; --banner-testo:#efe3c8}  /* colore di fondo di banner_sfondo.svg e colore del titolo sopra */
-.banner h1 em{color:#9df0b8}
 /* barra trasparente sopra il banner, piena quando si scorre */
 .barra{transition:background .35s, box-shadow .35s}
 .barra:not(.compatta){background:transparent; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:none}
-.barra:not(.compatta) .bottone-barra{color:var(--banner-testo); border-color:var(--banner-testo)}
-.barra:not(.compatta) .bottone-barra svg path{fill:var(--banner-testo)}
 .pagina{padding-top:24px}
 
 /* Wally: colori dalla cover (teal = principale, "arancio" = verde del logo) */
@@ -244,7 +211,7 @@ footer .firma{margin-top:14px}
 .scelte{display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin:32px 0 8px}
 @media (min-width:760px){ .scelte{grid-template-columns:1fr 1fr} }
 .scelta{display:flex; flex-direction:column; gap:10px; min-height:44px; padding:24px 24px 22px; border-radius:14px; text-decoration:none; color:var(--ink);
-  background:var(--surface); border:1px solid var(--line); border-top:4px solid var(--teal); box-shadow:var(--ombra); transition:transform .2s, border-color .2s}
+  background:var(--surface); border:1px solid var(--line); border-top:4px solid var(--teal); transition:transform .2s, border-color .2s}
 .scelta.doc{border-top-color:var(--arancio)}
 .scelta:hover{transform:translateY(-2px); border-color:var(--teal)}
 .scelta.doc:hover{border-color:var(--arancio)}
@@ -253,6 +220,24 @@ footer .firma{margin-top:14px}
 .scelta span.testo{color:var(--ink-2)}
 .scelta .vai{margin-top:auto; padding-top:8px; font:600 .85rem/1 var(--f-data); letter-spacing:.06em; text-transform:uppercase; color:var(--teal-ink)}
 .scelta.doc .vai{color:var(--arancio-ink)}
+
+:root{--c2:var(--arancio)}
+
+/* INTRO: niente immagine, niente ombre. Occhiello mono con trattino colorato, titolo su una riga da bordo a bordo
+   (il JS in fondo scala il font sulla larghezza; sotto i 44px torna a capo), sottotitolo, tag, riga da 3px. */
+.intro{max-width:1320px; margin:0 auto; padding:calc(var(--barra) + clamp(32px,6vw,88px)) 20px 0}
+.intro-testo{padding-bottom:48px; border-bottom:3px solid var(--ink)}
+.occhiello{display:flex; gap:12px; align-items:center; margin:0 0 24px; font:600 .72rem/1 var(--f-data); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.occhiello::before{content:""; flex:none; width:32px; height:3px; background:var(--c2)}
+.intro h1{font-size:clamp(2.6rem,8.6vw,7.4rem); line-height:.95; letter-spacing:-.04em; text-wrap:pretty}
+.intro h1.adatta{white-space:nowrap; text-wrap:nowrap}
+.intro h1 em{color:var(--c2); font-style:italic}
+.intro .sottotitolo{font-size:clamp(1.05rem,1.6vw,1.25rem); line-height:1.5; color:var(--ink-2); margin:24px 0 0}
+.intro .sottotitolo p{margin:0} .intro .sottotitolo strong{color:var(--ink)}
+.tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:24px}
+.tags span{font:600 .7rem/1 var(--f-data); border:1px solid var(--line); padding:5px 8px; border-radius:999px; color:var(--ink-2)}
+.intro .intro-testo{padding-bottom:40px}
+.intro{max-width:1200px; padding-inline:16px} .intro h1{border:0; padding:0}  /* allineata a .pagina; senza la riga del titolo della dashboard */
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.theme||"dark"}catch{document.documentElement.dataset.theme="dark"}</script>
 </head>
@@ -262,16 +247,14 @@ footer .firma{margin-top:14px}
   <a class="bottone-barra solo-largo" href="documentazione.html">Documentazione</a><!-- 0-2 link: <a class="bottone-barra solo-largo" href="...">Testo</a> -->
   <button class="bottone-barra" id="tema" type="button" aria-label="Cambia tema chiaro/scuro">Tema</button>
 </header>
-<section class="banner">  
-  <img class="soggetto" src="img/banner_soggetto.svg" alt="">
-  <div class="dentro">
-    <h1>Wally, <em>finanza personale</em> su un Google Sheet</h1>
-    <p>Entrate, spese, patrimonio, investimenti e consumi dell'auto</p>
-  </div>
-</section>
+<section class="intro" id="copertina"><div class="intro-testo">
+  <p class="occhiello">App web · React · 2026</p>
+  <h1>Wally, <em>finanza personale</em> su un Google Sheet</h1>
+  <div class="sottotitolo"><p>Entrate, spese, patrimonio, investimenti e consumi dell'auto.</p></div>
+</div></section>
 <div class="pagina">
   <header>
-    <p class="intro">Wally è una dashboard di finanza personale, per un solo utente e tutta in italiano. Non ha un backend: legge e scrive i dati direttamente su un <strong>foglio Google</strong> dell'utente.</p>
+    <p class="descr">Wally è una dashboard di finanza personale, per un solo utente e tutta in italiano. Non ha un backend: legge e scrive i dati direttamente su un <strong>foglio Google</strong> dell'utente.</p>
     <ul class="dati-modello"><li>Dati <b>Google Sheet</b></li><li>Stack <b>React 19 · TypeScript</b></li><li>Sezioni <b>7</b></li><li>Deploy <b>Vercel</b></li></ul>
   </header>
   <nav class="scelte" aria-label="Dove andare">
@@ -295,6 +278,15 @@ document.getElementById("tema").addEventListener("click", () => {
   try { localStorage.theme = r.dataset.theme } catch {}
 });
 </script>
-<script>(function(){var b=document.querySelector(".barra"),n=document.querySelector(".banner");function a(){b.classList.toggle("compatta",scrollY>n.offsetHeight-b.offsetHeight*2)}addEventListener("scroll",a,{passive:true});addEventListener("resize",a);a()})();</script>
+<script>(function(){var b=document.querySelector(".barra"),n=document.getElementById("copertina");function a(){b.classList.toggle("compatta",scrollY>n.offsetHeight-b.offsetHeight*2)}addEventListener("scroll",a,{passive:true});addEventListener("resize",a);a()})();
+// INTRO: titolo su una riga da bordo a bordo; se il font scende sotto i 44px (telefono) torna a capo normale
+const h1 = document.querySelector(".intro h1");
+function adattaTitolo() {
+  h1.classList.add("adatta"); h1.style.fontSize = "100px";
+  const f = 100 * h1.clientWidth / h1.scrollWidth;
+  if (f < 44) { h1.classList.remove("adatta"); h1.style.fontSize = ""; } else h1.style.fontSize = Math.min(f, 220) + "px";
+}
+adattaTitolo(); addEventListener("resize", adattaTitolo); document.fonts?.ready.then(adattaTitolo);
+</script>
 </body>
 </html>
