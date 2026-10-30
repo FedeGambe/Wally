@@ -9,7 +9,7 @@
 <style>
 /* Identità del sito FedeGambe: teal = effetto positivo/principale, arancio = negativo/accento. Variabili --* , niente colori fissi. */
 :root{
-  --barra:60px; --g1:#fff7e6; --g2:#e6dfcb; --g3:#e9e4d3; --bg:#f4f0e6; --surface:#fbf9f3; --surface-2:#efe9db; --ink:#111111; --ink-2:#45484c; --ink-3:#6b6e72; --line:#e4e0d6; --track:#ece8df;
+  --barra:60px; --g1:#ffffff; --g2:#f6e9d9; --g3:#fbfaf7; --bg:#fbfaf7; --surface:#ffffff; --surface-2:#efe9db; --ink:#111111; --ink-2:#45484c; --ink-3:#6b6e72; --line:#e4e0d6; --track:#ece8df;
   --teal:#3f93aa; --teal-ink:#2a7a90; --teal-soft:#e6f1f4; --arancio:#e2462a; --arancio-ink:#c8361c; --arancio-soft:#fbe8e3; --sabbia:#ddd4c1;
   --scelto-bg:#263a5a; --scelto-ink:#ffffff;
   --ombra:0 1px 2px rgba(17,17,17,.04), 0 8px 24px -12px rgba(17,17,17,.12);
@@ -26,7 +26,7 @@
 *{box-sizing:border-box}
 body{margin:0; color:var(--ink); font:16px/1.55 var(--f-body); min-height:100vh; -webkit-font-smoothing:antialiased;
   background:radial-gradient(900px 600px at 10% 0%,var(--g1),transparent 70%),radial-gradient(900px 700px at 100% 100%,var(--g2),transparent 70%),var(--g3); background-attachment:fixed}
-body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; opacity:.55;
+body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; opacity:.22;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
 .pagina{max-width:1200px; margin:0 auto; padding:calc(var(--barra) + 28px) 16px 96px}
 h1,h2,legend{font-family:var(--f-display); letter-spacing:-.03em}
@@ -239,7 +239,7 @@ footer .firma{margin-top:14px}
 .intro .intro-testo{padding-bottom:40px}
 .intro{max-width:1200px; padding-inline:16px} .intro h1{border:0; padding:0}  /* allineata a .pagina; senza la riga del titolo della dashboard */
 </style>
-<script>try{document.documentElement.dataset.theme=localStorage.theme||"dark"}catch{document.documentElement.dataset.theme="dark"}</script>
+<script>try{document.documentElement.dataset.theme=localStorage.theme||"light"}catch{document.documentElement.dataset.theme="light"}</script>
 </head>
 <body>
 <header class="barra" id="barra">
