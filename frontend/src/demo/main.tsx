@@ -18,8 +18,9 @@ const Uscite = lazy(() => import('../pages/Uscite'));
 const Patrimonio = lazy(() => import('../pages/Patrimonio'));
 const Investimenti = lazy(() => import('../pages/Investimenti'));
 const AnalisiConsumi = lazy(() => import('../pages/AnalisiConsumi'));
+const Previsioni = lazy(() => import('../pages/Previsioni'));
 
-const VISTE = ['panoramica', 'entrate', 'uscite', 'patrimonio', 'investimenti', 'consumi'];
+const VISTE = ['panoramica', 'entrate', 'uscite', 'patrimonio', 'investimenti', 'consumi', 'previsioni'];
 const parametri = new URLSearchParams(location.search);
 const vistaIniziale = VISTE.includes(parametri.get('vista') || '') ? parametri.get('vista')! : 'panoramica';
 
@@ -46,6 +47,7 @@ function Demo() {
       case 'patrimonio': return <Patrimonio />;
       case 'investimenti': return <Investimenti {...mese} theme="dark" />;
       case 'consumi': return <AnalisiConsumi goToTodaySignal={0} />;
+      case 'previsioni': return <Previsioni />;
       default: return <Panoramica {...mese} setActiveView={v => VISTE.includes(v) && setVista(v)} theme="dark" />;
     }
   };

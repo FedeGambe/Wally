@@ -12,7 +12,8 @@ import {
   Wallet2,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 
 /**
@@ -66,6 +67,7 @@ export default function Sidebar({
     { id: 'patrimonio', label: 'Patrimonio', icon: Coins },
     { id: 'investimenti', label: 'Investimenti', icon: TrendingUp },
     { id: 'consumi', label: 'Analisi Consumi', icon: Fuel },
+    { id: 'previsioni', label: 'Previsioni', icon: Sparkles },
     { id: 'impostazioni', label: 'Impostazioni', icon: Settings },
   ];
 
@@ -78,6 +80,7 @@ export default function Sidebar({
     patrimonio: 'bg-yellow-400 text-ink font-bold shadow-xs',
     investimenti: 'bg-sky-500 text-white shadow-xs',
     consumi: 'bg-rose-600 text-white shadow-xs',
+    previsioni: 'bg-violet-600 text-white shadow-xs',
     impostazioni: 'bg-accent text-white shadow-xs'
   };
 

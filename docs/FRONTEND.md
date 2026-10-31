@@ -61,6 +61,7 @@ Anno e mese selezionati **non** stanno nel contesto dei dati: li tiene `App.tsx`
 | `googleAuth.ts` | Login con Google tramite Firebase e gestione del token per Google Sheets. Il token scade dopo circa un'ora: `silentTokenRefresh` lo rinnova senza popup, ma funziona solo dopo un vero clic dell'utente. "Ricorda questo dispositivo" lo salva in `localStorage` |
 | `backend.ts` | `chiamaBackend`: chiama le rotte `/api/*` mandando il token dell'utente. Un 401 diventa un errore `UNAUTHENTICATED` (l'app rinnova il login) |
 | `sheetsService.tsx` | Le funzioni che l'app usa per il foglio, ognuna una chiamata al backend: `fetchSpreadsheetData` (legge tutto), `fetchDatiBaseFromConfigSheet`, `appendRowToSheet` (aggiunge una riga), `updatePortafoglioRawCounts`, `writeInvestimentiRicorrentiToSheet`, `addStrumentoBrokerColumn`, `writeVerificaMensileToSheet`, `pushDatiBaseToConfigSheet`, `createSpreadsheet`. `pushSpreadsheetData` (riscrittura completa) è spenta e dà sempre errore |
+| `previsioniService.ts` | Tipi della risposta di `POST /api/previsioni`, ipotesi predefinite dei cursori e la chiamata |
 | `bancaService.ts` | Lato app della banca: elabora i movimenti, legge le banche collegate, segna i movimenti registrati o scartati, avvia il collegamento e "Sincronizza ora". Contiene anche i tipi dei movimenti |
 
 ## `src/context/` — il ponte tra dati e schermo
@@ -100,6 +101,7 @@ Un hook prende i dati da `useFinanceData()` e prepara i numeri per una pagina: c
 | `usePatrimonioData.ts` | Patrimonio | Totali per conto, capitale disponibile/investito/accantonato, andamento con stime |
 | `useInvestimentiData.ts` | Investimenti | Dati delle 4 schede (Cruscotto, Rendimenti, Conti, Fondo pensione). `parseMeseStringToMonthYear` legge mesi scritti in modi diversi |
 | `useAnalisiConsumiData.ts` | Analisi consumi | Settimane (da martedì a lunedì), km/litro, costi, settimana selezionata |
+| `usePrevisioni.ts` | Previsioni | Manda al backend i dati in memoria e le ipotesi (con un attimo di attesa dopo l'ultimo cursore), ricorda le ipotesi sul dispositivo. Nella demo usa `data/demoPrevisioni.json` |
 | `useMovimentiBanca.ts` | Card "Dalla banca" | Chiede al backend di elaborare i movimenti, tiene la lista "Da confermare", evita due registrazioni automatiche in contemporanea |
 
 **Scrittura dei dati**
@@ -129,6 +131,7 @@ Un hook prende i dati da `useFinanceData()` e prepara i numeri per una pagina: c
 | `Patrimonio.tsx` | Tutti i conti e il capitale, sempre su tutto lo storico (senza filtro mese) |
 | `Investimenti.tsx` | Guscio con 4 schede (le `subviews/`) e il "+" per aggiungere investimenti |
 | `AnalisiConsumi.tsx` | Consumi dell'auto settimana per settimana |
+| `Previsioni.tsx` | Solo computer (su telefono un avviso): chiusura del mese, prossimi 12 mesi, da dove viene la crescita del patrimonio, dove può arrivare con i cursori "E se…" |
 | `Impostazioni.tsx` | Foglio Google collegato, sincronizzazione, tema, Dati Base, preset, banche collegate, logout |
 
 ## `src/subviews/` — le 4 schede di Investimenti
@@ -210,6 +213,11 @@ Un hook prende i dati da `useFinanceData()` e prepara i numeri per una pagina: c
 | | `VerificaMensileForm.tsx` | Valori di fine mese da riportare dai broker |
 | `banca/` | `MovimentiBancaCard.tsx` | Card "Dalla banca" in Panoramica: registrati in automatico, da confermare, consensi in scadenza |
 | | `RegistraMovimentoModal.tsx` | Registra un movimento da confermare con i moduli di "Aggiungi Dato" già compilati |
+| `previsioni/` | `comune.tsx` | Pezzi comuni e la regola della pagina: una stima si arrotonda, ha la fascia, l'etichetta "stima" ed è tratteggiata; le cifre vere restano esatte |
+| | `PrevisioniFineMese.tsx` | Chiusura del mese: stima, soglie con probabilità di superarle, curva giorno per giorno |
+| | `PrevisioniProssimiMesi.tsx` | Avanzo, entrate o spese dei prossimi 12 mesi, con fascia |
+| | `PrevisioniCrescita.tsx` | Crescita cumulata per origine, tasso di risparmio, mesi di autonomia |
+| | `PrevisioniProiezione.tsx` | Proiezione del patrimonio a ventaglio; sotto, le torte liquidità/investimenti (oggi e il momento cliccato sul grafico) e l'obiettivo; a destra i cursori "E se…", il fondo pensione e i rendimenti ipotizzati |
 | `impostazioni/` | `DatiBaseSettings.tsx` | Menu "Dati Base" (Conti, Categorie, Soglie) |
 | | `ContiEditor.tsx` | Modifica dei conti |
 | | `CategorieEntrateEditor.tsx` | Modifica delle categorie entrate |
@@ -246,7 +254,7 @@ Funzioni senza grafica, riusate in più punti.
 
 | File | A cosa serve |
 |---|---|
-| `main.tsx` | Mostra le pagine vere dell'app con i dati di `demoData.ts`, senza login né Firebase. La pagina si sceglie con `?vista=panoramica`, `entrate`, ... La build (`npm run build:demo`) finisce in `docs/demo/` ed è incorporata in `docs/documentazione.html` |
+| `main.tsx` | Mostra le pagine vere dell'app con i dati di `demoData.ts`, senza login né Firebase. La pagina si sceglie con `?vista=panoramica`, `entrate`, ..., `previsioni`. Le previsioni della demo sono già calcolate in `data/demoPrevisioni.json`: dopo aver cambiato i dati demo si rigenerano con `npm run previsioni:demo` (lo script `frontend/scripts/esporta-dati-demo.ts` passa i dati finti al backend) La build (`npm run build:demo`) finisce in `docs/demo/` ed è incorporata in `docs/documentazione.html` |
 
 ---
 

@@ -69,7 +69,7 @@ Il prefisso `VITE_` serve solo a Vite per passarle anche al browser. Su Vercel i
 | File | A cosa serve |
 |---|---|
 | `__init__.py` | Rende `backend` un pacchetto Python. Contiene una mappa delle cartelle |
-| `app.py` | Crea l'app FastAPI e registra i tre gruppi di rotte (`banca`, `fogli`, `scritture`). Imposta la pagina di prova su `/api/docs` |
+| `app.py` | Crea l'app FastAPI e registra i quattro gruppi di rotte (`banca`, `fogli`, `scritture`, `previsioni`). Imposta la pagina di prova su `/api/docs` |
 | `config.py` | `env(nome)`: legge una variabile d'ambiente e si ferma con un errore chiaro se manca. `chiave_pem`: ripristina gli a capo di una chiave incollata su Vercel |
 
 ## `backend/routes/` — gli indirizzi `/api/...`
@@ -114,6 +114,14 @@ Se qualcosa non torna (colonna o mese mancante, cella già piena) la risposta è
 
 La sincronizzazione **scarica e basta**: la classificazione la fa `elabora` quando apri Wally, con i preset aggiornati. Ogni volta si riscaricano gli ultimi 10 giorni (`GIORNI_INDIETRO`), perché le banche contabilizzano in ritardo; i doppioni si scartano con l'ID.
 
+### `previsioni.py` — pagina Previsioni
+
+| Rotta | Cosa fa |
+|---|---|
+| `POST /api/previsioni` | Riceve dall'app i dati che ha già in memoria (`dati`) e le ipotesi dei cursori (`ipotesi`), risponde con fine mese, prossimi 12 mesi e patrimonio. Non legge il foglio |
+
+Il controllo del proprietario (`da_proprietario`) costa una chiamata a Google: un token già controllato vale 10 minuti, così spostare i cursori non consuma la quota. In incognito l'app manda i dati finti, quindi le previsioni sono finte anche loro.
+
 ### `comune.py` — parti in comune
 
 `con_utente(request, cosa, lavoro)` è usata da quasi tutte le rotte: prende il token dell'utente, esegue il lavoro e traduce gli errori in risposte che l'app sa mostrare:
@@ -148,6 +156,25 @@ Niente rete e niente foglio: ricevono dati, restituiscono dati. Sono la parte pi
 | `regole_banca.py` | Regole fisse (stipendio, PAC Scalable, bonifici a sé stessi). Si aggiungono a quelle generate dai preset. L'ordine conta: vince la prima che combacia |
 | `registrazione.py` | Dai movimenti "automatico" ai record da scrivere (uscita da preset con il suo trasferimento, giro tra conti, PAC). Controlla anche se la spesa era già stata inserita a mano, per non duplicarla |
 
+### `backend/domain/previsioni/` — le stime della pagina Previsioni
+
+Ogni stima ha una fascia (8 volte su 10 il valore vero ci cade dentro) e, dove si può, l'errore medio misurato rifacendola sui mesi passati. Con gli stessi dati esce sempre lo stesso risultato (seme casuale fisso).
+
+| File | A cosa serve |
+|---|---|
+| `__init__.py` | `calcola_previsioni(dati, oggi, ipotesi)`: mette insieme le tre analisi |
+| `serie.py` | Dati dell'app → serie mensili pulite. Toglie le righe dei mesi futuri che il foglio ha già pronte (Rendimenti fino al 2045, broker fino al 2028-2031). Nel fondo pensione il mese è solo il nome: l'anno si ricava a ritroso da oggi |
+| `modello_mensile.py` | Il modello delle serie mensili: livello degli ultimi 12 mesi + stagionalità del mese di calendario. La fascia viene dalla variabilità dell'ultimo anno (non degli anni prima: da ottobre 2025 entrate e spese sono più che raddoppiate) |
+| `fine_mese.py` | A. Chiusura del mese: già speso + preset non ancora registrati + quanto si è speso dopo il giorno di oggi negli ultimi 12 mesi (uno scenario per mese). Probabilità di superare le soglie |
+| `flussi.py` | B. Entrate, spese e avanzo (entrate - spese) dei prossimi 12 mesi, dai mesi chiusi della scheda Risparmio. Stima a parte stipendio, altre entrate e spese, tutto senza le voci straordinarie |
+| `stipendio.py` | Lo stipendio del periodo di lavoro attuale (mediana dei mesi dall'ultimo cambio) più tredicesima e quattordicesima, per i mesi lavorati e alla "resa netta" osservata in busta |
+| `straordinarie.py` | Spese ed entrate una tantum (singole voci da 1.000 € in su, più quelle con la stessa descrizione nello stesso mese): escluse dalle stime e restituite in un elenco |
+| `patrimonio.py` | C. Storico della crescita diviso per origine (risparmio sui conti, versamenti, mercato, fondo pensione: cifre del foglio, nessuna stima), situazione di oggi (il conto con "fondo" nel nome è il fondo pensione), e proiezione Monte Carlo con le ipotesi dei cursori. Se i conti si svuotano il PAC si riduce e la risposta lo segnala (`pacNonCoperto`). Il fondo pensione (TFR) resta fuori dalla proiezione, a meno che l'app mandi `includiFondoPensione` |
+
+I fatti che i numeri non dicono (inizio del tirocinio, assunzione, mensilità extra, soglia delle voci straordinarie) stanno in `backend/models/previsioni.py`: per un nuovo lavoro o un aumento si aggiunge una riga a `CAMBI_STIPENDIO`.
+
+`backend/strumenti/previsioni_demo.py` rigenera le previsioni della demo pubblicata (`npm run previsioni:demo`).
+
 ## `backend/models/` — forma dei dati
 
 | File | A cosa serve |
@@ -180,6 +207,7 @@ Un file di test per modulo. Le rotte si provano con Google Sheets ed Enable Bank
 | `test_elabora.py` | `POST /api/banca/elabora` completo |
 | `test_banca.py` | Le altre rotte `/api/banca/*` |
 | `test_accesso.py` | Firma e scadenza dello `state` della banca |
+| `test_previsioni.py` | Serie pulite, modello mensile, fine mese, storico e proiezione del patrimonio (con conti fatti a mano), rotta `/api/previsioni` |
 | `test_allineamento_frontend.py` | Le due cose che esistono sia nel frontend sia nel backend (nome dei campi degli strumenti, intestazioni del Risparmio) restano uguali |
 
 ## Cose da sapere

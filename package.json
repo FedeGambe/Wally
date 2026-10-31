@@ -12,6 +12,7 @@
     "lint": "npm --prefix frontend run lint",
     "test": "npm --prefix frontend test",
     "api": "uv run --with-requirements requirements-dev.txt uvicorn backend.app:app --reload --port 8000 --env-file .env.local",
-    "test:py": "uv run --with-requirements requirements-dev.txt pytest"
+    "test:py": "uv run --with-requirements requirements-dev.txt pytest",
+    "previsioni:demo": "cd frontend && npx tsx scripts/esporta-dati-demo.ts | (cd .. && uv run --with-requirements requirements-dev.txt python -m backend.strumenti.previsioni_demo)"
   }
 }

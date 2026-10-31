@@ -84,6 +84,10 @@ Le modifiche ai Dati Base (Impostazioni) vanno **sempre** sul foglio di configur
 3. **Elaborazione**: quando si apre Wally, `useMovimentiBanca` chiama `POST /api/banca/elabora`. Il backend classifica i movimenti con regole e preset, registra da solo quelli sicuri (uscite da preset, giri tra conti, PAC) e restituisce la lista "Da confermare", che compare nella card "Dalla banca" in Panoramica.
 4. Un movimento registrato o scartato viene segnato nella colonna "Stato" (`POST /api/banca/movimenti/stato`).
 
+## Previsioni
+
+La pagina Previsioni (solo computer) non legge il foglio: `usePrevisioni` manda a `POST /api/previsioni` i dati che l'app ha già in memoria e le ipotesi dei cursori, e il backend (`backend/domain/previsioni/`) risponde con le stime. Così spostare un cursore non rilegge il foglio, e in incognito le stime sono fatte sui dati finti. La demo pubblicata, senza backend, usa le stime già calcolate in `frontend/src/data/demoPrevisioni.json`.
+
 ## Modalità incognito
 
 Un interruttore nell'intestazione (`toggleIncognito`) sostituisce **tutta** la dashboard con dati inventati da `frontend/src/data/demoData.ts` (stato salvato in `sf_incognito_mode`). Serve a nascondere le cifre vere durante una condivisione dello schermo. Non legge né modifica i dati veri. Quando aggiungi un campo a un tipo di dato vero, aggiungilo anche in `demoData.ts`.
