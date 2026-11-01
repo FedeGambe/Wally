@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarClock } from 'lucide-react';
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { FineMese, NonDisponibile as ND } from '../../lib/previsioniService';
@@ -7,13 +7,37 @@ import {
   euroAsse, euroEsatto, euroStima, meseLungo, percentuale,
 } from './comune';
 
-/** A. Come chiude il mese in corso (backend/domain/previsioni/fine_mese.py). */
+type Tipo = 'totale' | 'primarie' | 'secondarie';
+const NOMI: Record<Tipo, string> = { totale: 'Totali', primarie: 'Primarie', secondarie: 'Secondarie' };
+const SOGLIA: Record<Tipo, string> = { totale: 'Spese Totali', primarie: 'Spese Primarie', secondarie: 'Spese Secondarie' };
+
+/** A. Come chiude il mese in corso (backend/domain/previsioni/fine_mese.py).
+ * Di default le spese totali; si possono vedere anche primarie e secondarie. */
 export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | ND }) {
+  const [tipo, setTipo] = useState<Tipo>('totale');
   if (!fineMese.disponibile) {
     return <Riquadro icona={CalendarClock} titolo="Chiusura del mese"><NonDisponibile motivo={fineMese.motivo} /></Riquadro>;
   }
   const f = fineMese;
-  const curva = f.curva.map(p => ({
+  const curvaTipo = f.curve?.[tipo] ?? f.curva;
+  const fissi = f.fissiInArrivo.filter(x => tipo === 'totale' || x.primaria === undefined || x.primaria === (tipo === 'primarie'));
+  const soglia = f.soglie.find(s => s.nome === SOGLIA[tipo]);
+  // Stipendio non ancora registrato: le soglie si misurano su entrate stimate (asterisco).
+  const ast = f.entrateStimate ? '*' : '';
+
+  const scelta = (
+    <div className="flex gap-1.5">
+      {(Object.keys(NOMI) as Tipo[]).map(t => (
+        <button key={t} type="button" onClick={() => setTipo(t)} aria-pressed={tipo === t}
+          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${tipo === t
+            ? 'bg-violet-600 text-white border-violet-600'
+            : 'bg-transparent text-ink-soft border-hairline hover:bg-canvas dark:hover:bg-white/5'}`}>
+          {NOMI[t]}
+        </button>
+      ))}
+    </div>
+  );
+  const curva = curvaTipo.map(p => ({
     ...p,
     fascia: p.basso !== undefined && p.alto !== undefined ? [p.basso, p.alto] : undefined,
   }));
@@ -24,29 +48,30 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
       icona={CalendarClock}
       titolo={`Chiusura di ${meseLungo(f.mese)}`}
       sottotitolo={ultimoGiorno ? 'Ultimo giorno del mese: la cifra è quasi definitiva.' : `Oggi è il ${f.giorno}: restano ${f.giorniMese - f.giorno} giorni.`}
+      destra={scelta}
     >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="space-y-5">
-          <ValoreStimato etichetta="Spese a fine mese" stima={f.stima.totale} grande />
+          <ValoreStimato etichetta={tipo === 'totale' ? 'Spese a fine mese' : `Spese ${NOMI[tipo].toLowerCase()} a fine mese`} stima={f.stima[tipo]} grande />
           <div className="grid grid-cols-2 gap-4">
-            <ValoreEsatto etichetta="Già speso" valore={euroEsatto(f.spesoFinora.totale)} />
+            <ValoreEsatto etichetta="Già speso" valore={euroEsatto(f.spesoFinora[tipo])} />
             <ValoreEsatto
               etichetta="Fisse in arrivo"
-              valore={euroEsatto(f.fissiInArrivo.reduce((s, x) => s + x.importo, 0))}
-              nota={f.fissiInArrivo.length ? `${f.fissiInArrivo.length} dai preset ricorrenti` : 'nessuna'}
+              valore={euroEsatto(fissi.reduce((s, x) => s + x.importo, 0))}
+              nota={fissi.length ? `${fissi.length} dai preset ricorrenti` : 'nessuna'}
             />
           </div>
 
           <div className="space-y-3">
-            {f.soglie.map(s => {
-              const stima = s.nome === 'Spese Primarie' ? f.stima.primarie : f.stima.secondarie;
+            {soglia && [soglia].map(s => {
+              const stima = f.stima[tipo];
               const p = s.probabilitaSforamento;
               const colore = p === null ? 'bg-slate-300' : p >= 0.5 ? 'bg-rose-500' : p >= 0.2 ? 'bg-amber-500' : 'bg-emerald-500';
               return (
                 <div key={s.nome}>
                   <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-ink">{s.nome} <span className="text-ink-soft font-normal">· soglia {s.percentuale}%{s.limite !== null && ` = ${euroEsatto(s.limite)}`}</span></span>
-                    <span className="font-bold text-ink">{p === null ? '—' : `${percentuale(p)} di superarla`}</span>
+                    <span className="font-semibold text-ink">{s.nome} <span className="text-ink-soft font-normal">· soglia {s.percentuale}%{s.limite !== null && ` = ${euroEsatto(s.limite)}${ast}`}</span></span>
+                    <span className="font-bold text-ink">{p === null ? '—' : `${percentuale(p)}${ast} di superarla`}</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-canvas dark:bg-white/10 mt-1.5 overflow-hidden">
                     <div className={`h-full ${colore}`} style={{ width: `${(p ?? 0) * 100}%` }} />
@@ -55,7 +80,12 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
                 </div>
               );
             })}
-            {f.entrateStimate && <p className="text-2xs text-ink-soft">Le entrate del mese non sono ancora registrate: le soglie usano quelle stimate (~ {euroStima(f.entrateMese)}).</p>}
+            {f.entrateStimate && (
+              <p className="text-2xs text-ink-soft">
+                * Stipendio di {meseLungo(f.mese).toLowerCase()} non ancora registrato: la soglia si misura su entrate stimate di {euroEsatto(f.entrateMese)}
+                {f.stipendioMediano ? `, con lo stipendio mediano degli ultimi 6 mesi (${euroEsatto(f.stipendioMediano)})` : ''}.
+              </p>
+            )}
           </div>
         </div>
 

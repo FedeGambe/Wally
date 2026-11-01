@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, LineChart } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { meseLabelBroker, valoreCampoBroker } from '../../utils/investimentiRicorrenti';
 import { MESI_ITALIANI } from '../../utils/date';
@@ -37,7 +37,11 @@ const nomeMese = (d: Date) => `${MESI_ITALIANI[d.getMonth()]} ${d.getFullYear()}
  * "Verifica mensile" della pagina Investimenti: i valori da riportare dai
  * broker a fine mese. Trade Republic: saldo conto del mese, più interessi e
  * saveback (nella riga del mese dopo). Scalable: saldo conto completo e
- * rendimento cumulativo del mese. Le voci già presenti sul foglio sono
+ * rendimento cumulativo del mese. Per il saveback si sceglie anche lo
+ * strumento in cui è stato investito (di default l'ultimo usato, letto dalle
+ * formule del foglio): il backend ci aggiunge il riferimento alla cella
+ * Savebacks, che si somma al contributo del mese ("=52+U24").
+ * Le voci già presenti sul foglio sono
  * mostrate come inserite e non vengono riscritte; il resto (rendimenti,
  * percentuali, saldo conto Scalable) lo calcolano le formule del foglio.
  */
@@ -51,13 +55,33 @@ export default function VerificaMensileForm({ onSaved }: VerificaMensileFormProp
   const [valori, setValori] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Strumenti Trade Republic per il saveback; null finché non arrivano (o se la lettura fallisce).
+  const [prodotti, setProdotti] = useState<string[] | null>(null);
+  const [prodottoSaveback, setProdottoSaveback] = useState('');
+
+  useEffect(() => {
+    if (!accessToken || !spreadsheetId) return;
+    let attivo = true;
+    import('../../lib/sheetsService')
+      .then(({ fetchProdottiSaveback }) => fetchProdottiSaveback(accessToken, spreadsheetId))
+      .then(({ prodotti, ultimo }) => {
+        if (!attivo) return;
+        setProdotti(prodotti);
+        setProdottoSaveback(ultimo && prodotti.includes(ultimo) ? ultimo : '');
+      })
+      .catch(() => { if (attivo) setProdotti(null); });
+    return () => { attivo = false; };
+  }, [accessToken, spreadsheetId]);
 
   const meseDopo = new Date(mese.getFullYear(), mese.getMonth() + 1, 1);
   const meseDiVoce = (v: Voce) => (v.meseSuccessivo ? meseDopo : mese);
   const giaInserito = (v: Voce) => valoreCampoBroker(data, v.broker, v.campo, meseLabelBroker(meseDiVoce(v)));
 
   const daScrivere = VOCI.filter(v => giaInserito(v) === null && valori[v.id] !== undefined && valori[v.id].trim() !== '' && !isNaN(Number(valori[v.id])));
-  const isValid = daScrivere.length > 0 && daScrivere.every(v => v.ammetteNegativi || Number(valori[v.id]) >= 0);
+  const scriveSaveback = daScrivere.some(v => v.id === 'tr-saveback');
+  // Con la lista degli strumenti disponibile, il saveback va assegnato a uno di essi.
+  const mancaProdotto = scriveSaveback && prodotti !== null && !prodottoSaveback;
+  const isValid = daScrivere.length > 0 && !mancaProdotto && daScrivere.every(v => v.ammetteNegativi || Number(valori[v.id]) >= 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +102,12 @@ export default function VerificaMensileForm({ onSaved }: VerificaMensileFormProp
       for (const broker of ['Trade Republic', 'Scalable'] as const) {
         const voci = daScrivere
           .filter(v => v.broker === broker)
-          .map(v => ({ intestazione: v.intestazione, meseLabel: meseLabelBroker(meseDiVoce(v)), valore: Number(valori[v.id]) }));
+          .map(v => ({
+            intestazione: v.intestazione,
+            meseLabel: meseLabelBroker(meseDiVoce(v)),
+            valore: Number(valori[v.id]),
+            ...(v.id === 'tr-saveback' && prodottoSaveback ? { prodotto: prodottoSaveback } : {})
+          }));
         if (voci.length === 0) continue;
         await writeVerificaMensileToSheet(accessToken, spreadsheetId, broker, voci);
         scritti.push(broker);
@@ -119,8 +148,10 @@ export default function VerificaMensileForm({ onSaved }: VerificaMensileFormProp
           <p className="text-2xs text-ink-soft uppercase tracking-wider font-bold">{broker}</p>
           {VOCI.filter(v => v.broker === broker).map(v => {
             const presente = giaInserito(v);
+            const sceltaProdotto = v.id === 'tr-saveback' && presente === null && prodotti !== null && prodotti.length > 0;
             return (
-              <div key={v.id} className="flex items-center gap-3 pl-3.5 pr-2 py-2 rounded-2xl bg-canvas/60 dark:bg-white/5">
+              <React.Fragment key={v.id}>
+              <div className="flex items-center gap-3 pl-3.5 pr-2 py-2 rounded-2xl bg-canvas/60 dark:bg-white/5">
                 <label htmlFor={`verifica-${v.id}`} className="flex-1 min-w-0">
                   <span className="block text-sm font-bold text-ink dark:text-slate-200">{v.label}</span>
                   <span className="block text-2xs text-ink-soft">{nomeMese(meseDiVoce(v)).toLowerCase()}</span>
@@ -140,6 +171,23 @@ export default function VerificaMensileForm({ onSaved }: VerificaMensileFormProp
                   />
                 )}
               </div>
+              {sceltaProdotto && (
+                <div className="pl-3.5">
+                  <p className="text-2xs text-ink-soft mb-1">Saveback investito in (si somma al contributo del mese)</p>
+                  <DropdownMenu
+                    icon={LineChart}
+                    label="Strumento"
+                    accent="blue"
+                    fullWidth
+                    hideLabel
+                    value={prodottoSaveback}
+                    displayValue={prodottoSaveback || 'Scegli lo strumento'}
+                    options={prodotti!}
+                    onSelect={setProdottoSaveback}
+                  />
+                </div>
+              )}
+              </React.Fragment>
             );
           })}
         </div>

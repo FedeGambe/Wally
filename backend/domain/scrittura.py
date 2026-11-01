@@ -273,19 +273,27 @@ def colonne_degli_strumenti(intestazioni: list, strumenti: list[str], scheda: st
 
 
 def celle_investimenti(scheda: str, mese: str, riga: int, voci: list[dict], colonne: list[int],
-                       formule_riga: list, somma: bool) -> list[dict]:
+                       formule_riga: list, somma: bool, colonna_saveback: int | None = None) -> list[dict]:
     """
     Celle mese × strumento. Contributi ricorrenti (somma=False): se una cella
-    ha già una formula o un importo non si scrive niente. Investimento extra
-    (somma=True): l'importo si accoda a quello presente.
+    ha già una formula o un importo non si scrive niente, tranne quando la
+    cella contiene solo il saveback del mese ("=U24"): lì il contributo si
+    aggiunge davanti ("=52+U24"). Investimento extra (somma=True): l'importo
+    si accoda a quello presente.
     """
     def attuale(i):
         return formule_riga[colonne[i]] if colonne[i] < len(formule_riga) else None
+
+    def solo_saveback(a) -> bool:
+        return colonna_saveback is not None and isinstance(a, str) and a.startswith("=") and \
+            re.fullmatch(_riferimento_saveback(colonna_saveback, riga), a[1:].strip()) is not None
 
     if not somma:
         conflitti = []
         for i, v in enumerate(voci):
             a = attuale(i)
+            if solo_saveback(a):
+                continue
             if isinstance(a, str) and a.startswith("="):
                 conflitti.append(f"{v['strumento']} (contiene una formula)")
             elif a not in (None, "") and numero_localizzato(a) != 0:
@@ -294,9 +302,64 @@ def celle_investimenti(scheda: str, mese: str, riga: int, voci: list[dict], colo
             raise ErroreScrittura(
                 f'Nessun dato scritto su "{scheda}": celle di {mese} già valorizzate — {", ".join(conflitti)}.')
 
-    return [{"range": f"{scheda}!{lettera_colonna(colonne[i])}{riga}",
-             "values": [[valore_accodato(attuale(i), v["importo"]) if somma else v["importo"]]]}
+    def valore(i, v):
+        if somma:
+            return valore_accodato(attuale(i), v["importo"])
+        if solo_saveback(attuale(i)):
+            return f"={come_testo_js(v['importo'])}+{attuale(i)[1:].strip()}"
+        return v["importo"]
+
+    return [{"range": f"{scheda}!{lettera_colonna(colonne[i])}{riga}", "values": [[valore(i, v)]]}
             for i, v in enumerate(voci)]
+
+
+# --- Saveback: in quale strumento va investito -------------------------------
+# Sul foglio la cella dello strumento scelto contiene il riferimento alla
+# colonna Savebacks della stessa riga: "=U24" se c'è solo il saveback,
+# "=52+U24" se si somma al contributo del mese.
+
+def _riferimento_saveback(colonna_saveback: int, riga: int) -> str:
+    """Regex del riferimento alla cella Savebacks della riga ("U24", "$U$24")."""
+    return rf"\$?{lettera_colonna(colonna_saveback)}\$?{riga}"
+
+
+def contiene_saveback(formula, colonna_saveback: int, riga: int) -> bool:
+    return isinstance(formula, str) and formula.startswith("=") and \
+        re.search(rf"(?<![A-Z$]){_riferimento_saveback(colonna_saveback, riga)}(?!\d)", formula.upper()) is not None
+
+
+def colonne_prodotti(intestazioni: list, formula_importo: str, scheda: str) -> list[int]:
+    """Colonne degli strumenti: quelle sommate da "Importo investito Mensile"."""
+    intervallo = intervallo_somma(formula_importo or "")
+    if not intervallo:
+        raise ErroreScrittura(f'La formula di "Importo investito Mensile" di "{scheda}" non contiene un intervallo: '
+                              f"strumenti non trovati.")
+    inizio, fine = intervallo
+    return [c for c in range(inizio, fine + 1) if c < len(intestazioni) and str(intestazioni[c] or "").strip()]
+
+
+def ultimo_prodotto_saveback(formule: list[list], colonne: list[int], colonna_saveback: int,
+                             prima_riga: int = 1) -> int | None:
+    """Colonna dello strumento in cui è andato l'ultimo saveback: si cercano, dal
+    basso, le celle che puntano alla cella Savebacks della propria riga."""
+    for i in range(len(formule) - 1, -1, -1):
+        riga = prima_riga + i
+        for c in colonne:
+            if c < len(formule[i]) and contiene_saveback(formule[i][c], colonna_saveback, riga):
+                return c
+    return None
+
+
+def cella_con_saveback(attuale, colonna_saveback: int, riga: int):
+    """Valore della cella strumento dopo aver aggiunto il saveback del mese:
+    vuota → "=U24", 52 → "=52+U24", "=40*2" → "=40*2+U24". None se c'è già."""
+    if contiene_saveback(attuale, colonna_saveback, riga):
+        return None
+    rif = f"{lettera_colonna(colonna_saveback)}{riga}"
+    if isinstance(attuale, str) and attuale.startswith("="):
+        return f"{attuale}+{rif}"
+    numero = 0 if attuale in (None, "") else numero_localizzato(attuale)
+    return f"={come_testo_js(numero)}+{rif}" if numero != 0 else f"={rif}"
 
 
 def controlla_strumento_nuovo(scheda: str, intestazioni: list, nome: str) -> None:

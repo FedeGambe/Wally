@@ -31,18 +31,24 @@ export interface IpotesiPrevisioni {
 
 export type NonDisponibile = { disponibile: false; motivo: string };
 
+export type PuntoCurva = { giorno: number; speso?: number } & Partial<Stima>;
+
 export interface FineMese {
   disponibile: true;
   mese: string;          // "2026-10"
   giorno: number;
   giorniMese: number;
   spesoFinora: { primarie: number; secondarie: number; totale: number };
-  fissiInArrivo: { nome: string; importo: number; giorno: number }[];
+  fissiInArrivo: { nome: string; importo: number; giorno: number; primaria?: boolean }[];
   stima: { totale: Stima; primarie: Stima; secondarie: Stima };
   entrateMese: number;
+  /** true se nelle entrate c'è lo stipendio mediano (quello del mese non è ancora registrato). */
   entrateStimate: boolean;
+  stipendioMediano?: number | null;
+  /** "Spese Totali" (soglia = primarie + secondarie), "Spese Primarie", "Spese Secondarie". */
   soglie: { nome: string; percentuale: number; limite: number | null; probabilitaSforamento: number | null }[];
-  curva: ({ giorno: number; speso?: number } & Partial<Stima>)[];
+  curva: PuntoCurva[];
+  curve?: { totale: PuntoCurva[]; primarie: PuntoCurva[]; secondarie: PuntoCurva[] };
   affidabilita: { erroreMedio: number; mesiProvati: number };
   mesiUsati: number;
 }

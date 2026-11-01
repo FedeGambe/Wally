@@ -23,6 +23,8 @@ interface PanoramicaMeseCorrenteStripProps {
   speseDelta: number | undefined;
   spesePrimDelta: number | undefined;
   speseSecDelta: number | undefined;
+  /** Presente se lo stipendio del mese non è ancora registrato (usePanoramicaData). */
+  stimaStipendio?: { mediana: number; entrate: number; risparmioNetto: number } | null;
   setActiveView?: (view: string) => void;
 }
 
@@ -46,17 +48,24 @@ export default function PanoramicaMeseCorrenteStrip({
   speseDelta,
   spesePrimDelta,
   speseSecDelta,
+  stimaStipendio,
   setActiveView
 }: PanoramicaMeseCorrenteStripProps) {
+  // Senza stipendio registrato entrate e risparmio sono stimati con lo
+  // stipendio mediano: le cifre che ne dipendono hanno l'asterisco.
+  const entrateMese = stimaStipendio ? stimaStipendio.entrate : currentMonthData.entrate;
+  const risparmioMese = stimaStipendio ? stimaStipendio.risparmioNetto : currentMonthData.risparmioNetto;
+  const ast = stimaStipendio ? '*' : '';
+
   // Widget "Risparmio & Investito": somma i due sotto-widget, quota % sulle
   // entrate e soglia combinata (somma delle due soglie dinamiche).
-  const rispInvTotale = (currentMonthData.risparmioNetto || 0) + (currentMonthData.investito || 0);
-  const rispInvPerc = currentMonthData.entrate > 0 ? (rispInvTotale / currentMonthData.entrate) * 100 : undefined;
+  const rispInvTotale = (risparmioMese || 0) + (currentMonthData.investito || 0);
+  const rispInvPerc = entrateMese > 0 ? (rispInvTotale / entrateMese) * 100 : undefined;
   const rispInvSoglia = dynamicThresholds.risparmio + dynamicThresholds.investiti;
 
   // Widget "Spese": somma Primarie + Secondarie, quota % e soglia combinata.
   const speseTotaleWidget = (currentMonthData.spesePrimarie || 0) + (currentMonthData.speseSecondarie || 0);
-  const spesePerc = currentMonthData.entrate > 0 ? (speseTotaleWidget / currentMonthData.entrate) * 100 : undefined;
+  const spesePerc = entrateMese > 0 ? (speseTotaleWidget / entrateMese) * 100 : undefined;
   const speseSoglia = dynamicThresholds.primarie + dynamicThresholds.secondarie;
 
   // Scostamento dalla soglia dei 4 mini-widget, sia in euro (accanto
@@ -65,9 +74,8 @@ export default function PanoramicaMeseCorrenteStrip({
   // quanto"). Positivo = soglia rispettata (margine), negativo = soglia
   // sforata. Per risparmio/investito "di più è meglio" (quota - target); per
   // le spese vale il contrario (target - quota).
-  const entrateMese = currentMonthData.entrate;
-  const rispDeltaEuro = (currentMonthData.risparmioNetto !== undefined && entrateMese)
-    ? currentMonthData.risparmioNetto - (entrateMese * dynamicThresholds.risparmio / 100) : undefined;
+  const rispDeltaEuro = (risparmioMese !== undefined && entrateMese)
+    ? risparmioMese - (entrateMese * dynamicThresholds.risparmio / 100) : undefined;
   const invDeltaEuro = (currentMonthData.investito !== undefined && entrateMese)
     ? currentMonthData.investito - (entrateMese * dynamicThresholds.investiti / 100) : undefined;
   const primDeltaEuro = (currentMonthData.spesePrimarie !== undefined && entrateMese)
@@ -101,9 +109,9 @@ export default function PanoramicaMeseCorrenteStrip({
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm text-slate-300 font-bold">Risparmio & Investito</span>
             <div className="text-right">
-              <span className="font-extrabold font-display text-ink block"><EuroAmount value={rispInvTotale} /></span>
+              <span className="font-extrabold font-display text-ink block"><EuroAmount value={rispInvTotale} />{ast}</span>
               <span className={`text-3xs font-bold ${rispInvPerc !== undefined && rispInvPerc >= rispInvSoglia ? 'text-up' : 'text-down'}`}>
-                {formatPercent(rispInvPerc)} / Soglia {rispInvSoglia}%
+                {formatPercent(rispInvPerc)}{ast} / Soglia {rispInvSoglia}%
               </span>
             </div>
           </div>
@@ -118,7 +126,7 @@ export default function PanoramicaMeseCorrenteStrip({
                 <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Risparmio</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-extrabold font-display text-ink block">
-                    <EuroAmount value={currentMonthData.risparmioNetto} />
+                    <EuroAmount value={risparmioMese} />{ast}
                   </span>
                   {rispDeltaEuro !== undefined && (
                     <span className={`text-xs font-bold ${rispDeltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
@@ -128,7 +136,7 @@ export default function PanoramicaMeseCorrenteStrip({
                 </div>
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(rispPerc)}</strong></span>
+                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(rispPerc)}{ast}</strong></span>
                 <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${rispPercDelta !== undefined && rispPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {rispPercDelta !== undefined && rispPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(rispPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(rispPercDelta, { signed: true })}`}
                 </span>
@@ -155,7 +163,7 @@ export default function PanoramicaMeseCorrenteStrip({
                 </div>
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(invPerc)}</strong></span>
+                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(invPerc)}{ast}</strong></span>
                 <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${invPercDelta !== undefined && invPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {invPercDelta !== undefined && invPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(invPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(invPercDelta, { signed: true })}`}
                 </span>
@@ -171,7 +179,7 @@ export default function PanoramicaMeseCorrenteStrip({
             <div className="text-right">
               <span className="font-extrabold font-display text-ink block"><EuroAmount value={speseTotaleWidget} /></span>
               <span className={`text-3xs font-bold ${spesePerc !== undefined && spesePerc <= speseSoglia ? 'text-up' : 'text-down'}`}>
-                {formatPercent(spesePerc)} / Soglia {speseSoglia}%
+                {formatPercent(spesePerc)}{ast} / Soglia {speseSoglia}%
               </span>
             </div>
           </div>
@@ -196,7 +204,7 @@ export default function PanoramicaMeseCorrenteStrip({
                 </div>
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(primPerc)}</strong></span>
+                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(primPerc)}{ast}</strong></span>
                 <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${primPercDelta !== undefined && primPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {primPercDelta !== undefined && primPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(primPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(primPercDelta, { signed: true })}`}
                 </span>
@@ -223,7 +231,7 @@ export default function PanoramicaMeseCorrenteStrip({
                 </div>
               </div>
               <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(secPerc)}</strong></span>
+                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(secPerc)}{ast}</strong></span>
                 <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${secPercDelta !== undefined && secPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
                   {secPercDelta !== undefined && secPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(secPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(secPercDelta, { signed: true })}`}
                 </span>
@@ -244,7 +252,7 @@ export default function PanoramicaMeseCorrenteStrip({
           <div className="flex items-center gap-2">
             <span className="text-ink-soft dark:text-slate-400 font-semibold">Entrate:</span>
             <span className={`font-black text-xs px-2.5 py-0.5 rounded-md ${entrateDelta !== undefined && entrateDelta >= 0 ? "bg-up/15 text-up" : "bg-down/15 text-down"}`}>
-              {entrateDelta !== undefined && entrateDelta >= 0 ? '+' : ''}{formatPercent(entrateDelta)}
+              {entrateDelta !== undefined && entrateDelta >= 0 ? '+' : ''}{formatPercent(entrateDelta)}{ast}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -267,6 +275,12 @@ export default function PanoramicaMeseCorrenteStrip({
           </div>
         </div>
       </div>
+
+      {stimaStipendio && (
+        <p className="mt-3 text-2xs text-ink-soft">
+          * Stipendio di {currentMonthData.mese.toLowerCase()} non ancora registrato: entrate e risparmio includono quello mediano degli ultimi 6 mesi ({formatEuro(stimaStipendio.mediana)}).
+        </p>
+      )}
     </div>
   );
 }

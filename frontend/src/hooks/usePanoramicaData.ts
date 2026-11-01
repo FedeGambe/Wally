@@ -3,7 +3,8 @@ import { Transaction } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { INTESTAZIONI_RISPARMIO } from '../config/sheetsConfig';
 import { getThresholds } from '../utils/thresholds';
-import { MESI_ITALIANI, isMeseAnnoFuturo } from '../utils/date';
+import { MESI_ITALIANI, getMonthIndex, isMeseAnnoFuturo } from '../utils/date';
+import { spendibileDaFormula, stipendioMediano } from '../utils/stipendioStimato';
 
 const DEFAULT_RISPARMIO_HEADERS = INTESTAZIONI_RISPARMIO;
 
@@ -172,6 +173,29 @@ export function usePanoramicaData(
     };
   }, [chronologicalData, localSelectedMonth, selectedYear]);
 
+  // Stipendio non ancora arrivato (di solito verso metà mese): nel mese in
+  // corso spendibile e soglie si calcolano con lo stipendio mediano degli
+  // ultimi 6 mesi, segnati con un asterisco nella Home. Appena lo stipendio
+  // vero è registrato tornano le cifre del foglio. Il risparmio del foglio è
+  // la variazione del patrimonio: anche lui sale di circa uno stipendio.
+  const stimaStipendio = useMemo(() => {
+    const oggi = new Date();
+    const eMeseInCorso = getMonthIndex(currentMonthData.mese) === oggi.getMonth() && currentMonthData.anno === oggi.getFullYear();
+    if (!eMeseInCorso) return null;
+    const mediana = stipendioMediano(data.entrate, oggi);
+    if (mediana === null) return null;
+    const entrate = (currentMonthData.entrate || 0) + mediana;
+    return {
+      mediana,
+      entrate,
+      spendibile: spendibileDaFormula(entrate, currentMonthData.spesePrimarie || 0),
+      risparmioNetto: (currentMonthData.risparmioNetto || 0) + mediana
+    };
+  }, [currentMonthData, data.entrate]);
+  // Entrate e risparmio su cui si misurano le soglie: stimati se manca lo stipendio.
+  const entrateRif = stimaStipendio ? stimaStipendio.entrate : currentMonthData.entrate;
+  const risparmioRif = stimaStipendio ? stimaStipendio.risparmioNetto : currentMonthData.risparmioNetto;
+
   const prevMonthData = useMemo(() => {
     if (!currentMonthData || currentMonthData.mese === undefined) return undefined;
     const idx = chronologicalData.findIndex(
@@ -240,8 +264,8 @@ export function usePanoramicaData(
   };
 
   // Deltas against previous month (using currentMonthData vs prevMonthData)
-  const entrateDelta = (prevMonthData && prevMonthData.entrate > 0 && currentMonthData && currentMonthData.entrate !== undefined)
-    ? ((currentMonthData.entrate - prevMonthData.entrate) / prevMonthData.entrate) * 100
+  const entrateDelta = (prevMonthData && prevMonthData.entrate > 0 && entrateRif !== undefined)
+    ? ((entrateRif - prevMonthData.entrate) / prevMonthData.entrate) * 100
     : undefined;
   const speseDelta = (prevMonthData && prevMonthData.speseTotali > 0 && currentMonthData && currentMonthData.speseTotali !== undefined)
     ? ((currentMonthData.speseTotali - prevMonthData.speseTotali) / prevMonthData.speseTotali) * 100
@@ -254,17 +278,17 @@ export function usePanoramicaData(
     : undefined;
 
   // Percentage on income for selectedMonth
-  const primPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.spesePrimarie !== undefined)
-    ? (currentMonthData.spesePrimarie / currentMonthData.entrate) * 100
+  const primPerc = (entrateRif > 0 && currentMonthData.spesePrimarie !== undefined)
+    ? (currentMonthData.spesePrimarie / entrateRif) * 100
     : undefined;
-  const secPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.speseSecondarie !== undefined)
-    ? (currentMonthData.speseSecondarie / currentMonthData.entrate) * 100
+  const secPerc = (entrateRif > 0 && currentMonthData.speseSecondarie !== undefined)
+    ? (currentMonthData.speseSecondarie / entrateRif) * 100
     : undefined;
-  const invPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.investito !== undefined)
-    ? (currentMonthData.investito / currentMonthData.entrate) * 100
+  const invPerc = (entrateRif > 0 && currentMonthData.investito !== undefined)
+    ? (currentMonthData.investito / entrateRif) * 100
     : undefined;
-  const rispPerc = (currentMonthData && currentMonthData.entrate > 0 && currentMonthData.risparmioNetto !== undefined)
-    ? (currentMonthData.risparmioNetto / currentMonthData.entrate) * 100
+  const rispPerc = (entrateRif > 0 && risparmioRif !== undefined)
+    ? (risparmioRif / entrateRif) * 100
     : undefined;
 
   // Quanto resta ancora da spendere questo mese: colonna "Spendibile" del
@@ -278,8 +302,9 @@ export function usePanoramicaData(
   const dettaglioPrecedente = idxDettaglio > 0 ? chronologicalData[idxDettaglio - 1] : undefined;
   const dettaglioSuccessivo = idxDettaglio !== -1 && idxDettaglio < chronologicalData.length - 1 ? chronologicalData[idxDettaglio + 1] : undefined;
 
-  const spendibileResiduo = (currentMonthData && currentMonthData.spendibile !== undefined && currentMonthData.speseSecondarie !== undefined)
-    ? currentMonthData.spendibile - currentMonthData.speseSecondarie
+  const spendibileMese = stimaStipendio ? stimaStipendio.spendibile : currentMonthData.spendibile;
+  const spendibileResiduo = (spendibileMese !== undefined && currentMonthData.speseSecondarie !== undefined)
+    ? spendibileMese - currentMonthData.speseSecondarie
     : undefined;
 
   return {
@@ -295,6 +320,7 @@ export function usePanoramicaData(
     handleChartClick, handleOpenMonthDetail,
     dettaglioPrecedente, dettaglioSuccessivo,
     entrateDelta, speseDelta, spesePrimDelta, speseSecDelta,
-    primPerc, secPerc, invPerc, rispPerc, spendibileResiduo
+    primPerc, secPerc, invPerc, rispPerc, spendibileResiduo,
+    stimaStipendio
   };
 }

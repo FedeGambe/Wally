@@ -94,7 +94,7 @@ def test_fine_mese_somma_speso_fissi_e_variabile():
     r = previsione_fine_mese(uscite, preset, entrate, [], OGGI)
     assert r["disponibile"]
     assert r["spesoFinora"]["totale"] == 80
-    assert r["fissiInArrivo"] == [{"nome": "Affitto", "importo": 500, "giorno": 20}]
+    assert r["fissiInArrivo"] == [{"nome": "Affitto", "importo": 500, "giorno": 20, "primaria": True}]
     # 80 già spesi + 500 di affitto + 200 variabili dopo il 15 (sempre uguali)
     assert r["stima"]["totale"] == {"basso": 780, "centrale": 780, "alto": 780}
     primarie = next(s for s in r["soglie"] if s["nome"] == "Spese Primarie")
@@ -103,6 +103,25 @@ def test_fine_mese_somma_speso_fissi_e_variabile():
     assert secondarie["limite"] == 300 and secondarie["probabilitaSforamento"] == 0
     assert r["affidabilita"]["erroreMedio"] == 0
     assert r["curva"][-1]["centrale"] == 780
+    assert r["curve"]["primarie"][-1]["centrale"] == 500
+    assert r["curve"]["secondarie"][-1]["centrale"] == 280
+    totali = next(s for s in r["soglie"] if s["nome"] == "Spese Totali")
+    assert totali["percentuale"] == 50 and totali["limite"] == 1000
+
+
+def test_fine_mese_senza_stipendio_usa_quello_mediano():
+    uscite = []
+    for m in range(4, 10):
+        uscite += [uscita(5, m, 2026, 100), uscita(25, m, 2026, 200)]
+    stipendi = [{"mese": nome, "anno": 2026, "categoria": "Stipendio", "importo": imp} for nome, imp in
+                [("Aprile", 1600), ("Maggio", 1600), ("Giugno", 1620), ("Luglio", 2030), ("Agosto", 1630), ("Settembre", 1630)]]
+    interessi = [{"mese": "Ottobre", "anno": 2026, "categoria": "Interessi", "importo": 4}]
+    r = previsione_fine_mese(uscite, [], stipendi + interessi, [], OGGI)
+    assert r["entrateStimate"] and r["stipendioMediano"] == 1625
+    assert r["entrateMese"] == 1629
+    con_stipendio = stipendi + interessi + [{"mese": "Ottobre", "anno": 2026, "categoria": "Stipendio", "importo": 1650}]
+    r = previsione_fine_mese(uscite, [], con_stipendio, [], OGGI)
+    assert not r["entrateStimate"] and r["stipendioMediano"] is None and r["entrateMese"] == 1654
 
 
 def test_fine_mese_preset_gia_registrato_non_conta_due_volte():

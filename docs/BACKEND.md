@@ -93,7 +93,8 @@ Ogni rotta ha un modello (`Richiesta...`) che descrive i dati attesi. Il lavoro 
 | `POST /api/fogli/portafoglio` | Aggiorna i contatori delle banconote (scheda "Portafoglio Raw") |
 | `POST /api/fogli/investimenti` | Scrive gli importi mese × strumento su Scalable / Trade Republic |
 | `POST /api/fogli/strumento` | Aggiunge la colonna di uno strumento nuovo su un broker |
-| `POST /api/fogli/verifica-mensile` | Saldi, interessi, saveback di fine mese, solo in celle vuote |
+| `POST /api/fogli/verifica-mensile` | Saldi, interessi, saveback di fine mese, solo in celle vuote; col saveback lo strumento scelto prende il riferimento alla cella Savebacks (`=52+U24`) |
+| `GET /api/fogli/saveback` | Strumenti Trade Republic e quello dell'ultimo saveback, letto dalle formule del foglio |
 | `PUT /api/fogli/dati-base` | Riscrive conti, categorie, soglie e preset sul foglio di configurazione |
 | `POST /api/fogli/nuovo` | Crea un foglio Google nuovo con tutte le schede dell'app |
 

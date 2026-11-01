@@ -210,7 +210,7 @@ Un hook prende i dati da `useFinanceData()` e prepara i numeri per una pagina: c
 | | `AggiungiInvestimentoModal.tsx` | Popup del "+" di Investimenti |
 | | `AggiungiInvestimentiRicorrentiForm.tsx` | Scrive i PAC del mese dai preset |
 | | `AggiungiInvestimentoUnaTantumForm.tsx` | Investimento singolo, anche su uno strumento nuovo |
-| | `VerificaMensileForm.tsx` | Valori di fine mese da riportare dai broker |
+| | `VerificaMensileForm.tsx` | Valori di fine mese da riportare dai broker; per il saveback chiede lo strumento in cui è investito (di default l'ultimo usato) |
 | `banca/` | `MovimentiBancaCard.tsx` | Card "Dalla banca" in Panoramica: registrati in automatico, da confermare, consensi in scadenza |
 | | `RegistraMovimentoModal.tsx` | Registra un movimento da confermare con i moduli di "Aggiungi Dato" già compilati |
 | `previsioni/` | `comune.tsx` | Pezzi comuni e la regola della pagina: una stima si arrotonda, ha la fascia, l'etichetta "stima" ed è tratteggiata; le cifre vere restano esatte |
@@ -240,6 +240,7 @@ Funzioni senza grafica, riusate in più punti.
 | `date.ts` | Nomi dei mesi in italiano e funzioni per leggere mesi e anni scritti in modi diversi |
 | `format.ts` | Formattazione di euro e percentuali (`formatEuro`, `formatPercent`) e colori dei rendimenti |
 | `kpiColorScale.ts` | Colore da rosso a verde di un valore rispetto al suo storico (minimo, mediana, massimo) |
+| `stipendioStimato.ts` | Stipendio mediano degli ultimi 6 mesi e formula dello Spendibile: in Home, finché lo stipendio del mese non è registrato, spendibile e soglie usano la stima (con l'asterisco) |
 | `thresholds.ts` | Soglie obiettivo, in ordine di priorità: Dati Base → intestazioni del Risparmio → `config/targets.ts` |
 | `chartScale.ts` | Minimo dell'asse Y dei grafici di Entrate e Uscite, per far leggere meglio le variazioni |
 | `cruscottoInvestimenti.ts` | Cruscotto Investimenti anno per anno (serve anche alla demo, che non ha backend) e ripartizione per asset class e strumenti, ricalcolata a ogni cambio di mese |

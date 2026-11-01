@@ -15,18 +15,22 @@ from backend.domain.scrittura import (
     celle_investimenti,
     celle_portafoglio,
     celle_riga_nuova,
+    cella_con_saveback,
     celle_verifica_mensile,
     colonna_importo_mensile,
     colonna_nuovo_strumento,
     colonne_degli_strumenti,
+    colonne_prodotti,
     controlla_celle_vuote,
     controlla_strumento_nuovo,
     lettera_colonna,
+    normalizza_intestazione,
     matrice_preset_investimenti,
     oggetti_dati_base,
     richieste_preparazione_riga,
     riga_del_mese,
     righe_scheda,
+    ultimo_prodotto_saveback,
 )
 from backend.models.foglio import SCHEDE, SCHEDE_DA_CREARE, TITOLI_DATI_BASE, scheda
 from backend.services.google_sheets import ErroreSheets, GoogleSheets
@@ -90,10 +94,12 @@ def scrivi_investimenti(sheets: GoogleSheets, foglio: str, titolo: str, mese: st
     l'importo si accoda a quello presente)."""
     if not voci:
         return
-    colonne = colonne_degli_strumenti(_prima_riga(sheets, foglio, titolo), [v["strumento"] for v in voci], titolo)
+    intestazioni = _prima_riga(sheets, foglio, titolo)
+    colonne = colonne_degli_strumenti(intestazioni, [v["strumento"] for v in voci], titolo)
     riga = _riga_mese(sheets, foglio, titolo, mese)
     valori = sheets.leggi_valori(foglio, f"{titolo}!A{riga}:{lettera_colonna(max(colonne))}{riga}", "FORMULA")
-    sheets.scrivi_celle(foglio, celle_investimenti(titolo, mese, riga, voci, colonne, valori[0] if valori else [], somma))
+    sheets.scrivi_celle(foglio, celle_investimenti(titolo, mese, riga, voci, colonne, valori[0] if valori else [], somma,
+                                                   _colonna_saveback(intestazioni)))
 
 
 def aggiungi_strumento(sheets: GoogleSheets, foglio: str, titolo: str, nome: str, asset_class: str,
@@ -130,11 +136,54 @@ def verifica_mensile(sheets: GoogleSheets, foglio: str, titolo: str, voci: list[
     non si scrive niente."""
     if not voci:
         return
-    celle = celle_verifica_mensile(titolo, voci, _prima_riga(sheets, foglio, titolo),
-                                   sheets.leggi_valori(foglio, f"{titolo}!A:A"))
+    intestazioni = _prima_riga(sheets, foglio, titolo)
+    celle = celle_verifica_mensile(titolo, voci, intestazioni, sheets.leggi_valori(foglio, f"{titolo}!A:A"))
     attuali = [((vr.get("values") or [[None]])[0] or [None])[0] for vr in sheets.leggi_intervalli(foglio, celle, "FORMULA")]
     controlla_celle_vuote(titolo, voci, attuali)
-    sheets.scrivi_celle(foglio, [{"range": c, "values": [[v["valore"]]]} for c, v in zip(celle, voci)])
+    scritture = [{"range": c, "values": [[v["valore"]]]} for c, v in zip(celle, voci)]
+
+    # Saveback: la cella dello strumento scelto, nella stessa riga, prende il
+    # riferimento alla cella Savebacks (vedi cella_con_saveback).
+    colonna_saveback = _colonna_saveback(intestazioni)
+    for cella, v in zip(celle, voci):
+        prodotto = (v.get("prodotto") or "").strip()
+        if not prodotto or colonna_saveback is None:
+            continue
+        if normalizza_intestazione(v["intestazione"]) != normalizza_intestazione(intestazioni[colonna_saveback]):
+            continue
+        colonna = colonne_degli_strumenti(intestazioni, [prodotto], titolo)[0]
+        riga = int(cella.rsplit("!", 1)[1].lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+        destinazione = f"{titolo}!{lettera_colonna(colonna)}{riga}"
+        valori = sheets.leggi_valori(foglio, destinazione, "FORMULA")
+        nuovo = cella_con_saveback((valori[0][0] if valori and valori[0] else None), colonna_saveback, riga)
+        if nuovo is not None:
+            scritture.append({"range": destinazione, "values": [[nuovo]]})
+    sheets.scrivi_celle(foglio, scritture)
+
+
+def _colonna_saveback(intestazioni: list) -> int | None:
+    normalizzate = [normalizza_intestazione(h) for h in intestazioni]
+    cercata = normalizza_intestazione("Savebacks")
+    return normalizzate.index(cercata) if cercata in normalizzate else None
+
+
+def prodotti_saveback(sheets: GoogleSheets, foglio: str, titolo: str) -> dict:
+    """Strumenti in cui può andare il saveback e quello usato l'ultima volta
+    (ricavato dalle formule del foglio, così vale da ogni dispositivo)."""
+    intestazioni = _prima_riga(sheets, foglio, titolo)
+    colonna_saveback = _colonna_saveback(intestazioni)
+    if colonna_saveback is None:
+        raise ErroreScrittura(f'Colonna "Savebacks" non trovata nella riga 1 di "{titolo}".')
+    formule = sheets.leggi_valori(foglio, f"{titolo}!A:{lettera_colonna(len(intestazioni) - 1)}", "FORMULA")
+    colonna_importo = colonna_importo_mensile(intestazioni, titolo)
+    formula_importo = next((str(r[colonna_importo]) for r in reversed(formule)
+                            if colonna_importo < len(r) and str(r[colonna_importo]).startswith("=")), "")
+    colonne = colonne_prodotti(intestazioni, formula_importo, titolo)
+    ultimo = ultimo_prodotto_saveback(formule, colonne, colonna_saveback)
+    return {
+        "prodotti": [str(intestazioni[c]).strip() for c in colonne],
+        "ultimo": None if ultimo is None else str(intestazioni[ultimo]).strip(),
+    }
 
 
 def salva_dati_base(sheets: GoogleSheets, foglio: str, dati: dict) -> None:

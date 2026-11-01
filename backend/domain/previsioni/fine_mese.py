@@ -11,6 +11,9 @@ A. Come chiude il mese in corso.
    scenario: la fascia va dal 10° al 90° percentile degli scenari.
 
 La probabilità di superare una soglia è la quota di scenari che la superano.
+Le soglie sono in % delle entrate del mese: finché lo stipendio non è
+registrato (arriva verso metà mese) si aggiunge quello mediano degli ultimi 6
+mesi, come fa la Home. Le spese totali hanno per soglia primarie + secondarie.
 Le voci straordinarie dei mesi passati (straordinarie.py, es. il saldo
 dell'auto) non entrano negli scenari: non si ripetono ogni mese. Quelle del
 mese in corso invece contano, perché sono già state spese.
@@ -21,11 +24,23 @@ from datetime import date
 import numpy as np
 
 from backend.domain.previsioni.serie import chiave_mese, data_da_testo, indice_mese, mese_da_testo, numero
+from backend.domain.previsioni.stipendio import serie_stipendio
 from backend.domain.previsioni.straordinarie import uscite_straordinarie
 
 MESI_INDIETRO = 12
 SCENARI_MINIMI = 3
 SOGLIE_PREDEFINITE = {"Spese Primarie": 35.0, "Spese Secondarie": 15.0}
+MESI_STIPENDIO_MEDIANO = 6
+
+
+def stipendio_mediano(entrate: list[dict], corrente: int) -> float | None:
+    """Mediana degli ultimi 6 mesi con uno stipendio, o None se quello del
+    mese in corso è già registrato (stessa regola di stipendioStimato.ts)."""
+    stipendi = serie_stipendio(entrate or [])
+    if stipendi.get(corrente, 0) > 0:
+        return None
+    passati = [v for m, v in sorted(stipendi.items(), reverse=True) if m < corrente and v > 0][:MESI_STIPENDIO_MEDIANO]
+    return float(np.median(passati)) if passati else None
 
 
 def _uscite_per_mese(uscite: list[dict]) -> dict[int, list[dict]]:
@@ -98,13 +113,20 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
     # --- Soglie (in % delle entrate del mese) ---------------------------------
     entrate_mese = sum(numero(e.get("importo")) for e in entrate or []
                        if mese_da_testo(e.get("mese"), e.get("anno")) == corrente)
-    entrate_stimate = False
-    if not entrate_mese and entrate_previste:
+    mediana = stipendio_mediano(entrate, corrente)
+    entrate_stimate = mediana is not None
+    if mediana is not None:
+        entrate_mese += mediana
+    elif not entrate_mese and entrate_previste:  # nessuno stipendio passato: la stima dei flussi
         entrate_mese, entrate_stimate = float(entrate_previste), True
 
+    perc = {nome: _soglia(soglie, nome) for nome in SOGLIE_PREDEFINITE}
     soglie_esito = []
-    for nome, scenari in (("Spese Primarie", finale_prim), ("Spese Secondarie", finale_sec)):
-        percentuale = _soglia(soglie, nome)
+    for nome, scenari, percentuale in (
+        ("Spese Totali", finale, perc["Spese Primarie"] + perc["Spese Secondarie"]),
+        ("Spese Primarie", finale_prim, perc["Spese Primarie"]),
+        ("Spese Secondarie", finale_sec, perc["Spese Secondarie"]),
+    ):
         limite = entrate_mese * percentuale / 100 if entrate_mese else None
         soglie_esito.append({
             "nome": nome, "percentuale": percentuale,
@@ -112,20 +134,26 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
             "probabilitaSforamento": None if limite is None else round(float(np.mean(scenari > limite)), 3),
         })
 
-    # --- Curva giorno per giorno ----------------------------------------------
-    curva = []
-    gia = 0.0
-    for g in range(1, giorni_mese + 1):
-        gia += sum(t["importo"] for t in di_questo_mese if t["giorno"] == g)
-        punto: dict = {"giorno": g}
-        if g <= giorno:
-            punto["speso"] = round(gia, 2)
-        if g >= giorno:
-            totale_registrato = speso["primarie"] + speso["secondarie"]
-            fissi_fino = sum(f["importo"] for f in fissi if f["giorno"] <= g)
-            var_fino = np.array([variabile_dopo(m, giorno) - variabile_dopo(m, g) for m in passati])
-            punto.update(_quantili(totale_registrato + fissi_fino + var_fino))
-        curva.append(punto)
+    # --- Curva giorno per giorno (totale, primarie, secondarie) ---------------
+    def curva_di(primaria: bool | None) -> list[dict]:
+        def del_tipo(x) -> bool:
+            return primaria is None or x["primaria"] == primaria
+        curva = []
+        gia = 0.0
+        registrato = sum(t["importo"] for t in di_questo_mese if del_tipo(t))
+        for g in range(1, giorni_mese + 1):
+            gia += sum(t["importo"] for t in di_questo_mese if t["giorno"] == g and del_tipo(t))
+            punto: dict = {"giorno": g}
+            if g <= giorno:
+                punto["speso"] = round(gia, 2)
+            if g >= giorno:
+                fissi_fino = sum(f["importo"] for f in fissi if f["giorno"] <= g and del_tipo(f))
+                var_fino = np.array([variabile_dopo(m, giorno, primaria) - variabile_dopo(m, g, primaria) for m in passati])
+                punto.update(_quantili(registrato + fissi_fino + var_fino))
+            curva.append(punto)
+        return curva
+
+    curve = {"totale": curva_di(None), "primarie": curva_di(True), "secondarie": curva_di(False)}
 
     # --- Prova sul passato: per ogni mese passato, stima fatta con gli altri --
     errori = []
@@ -143,12 +171,15 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
         "giorno": giorno,
         "giorniMese": giorni_mese,
         "spesoFinora": {k: round(v, 2) for k, v in {**speso, "totale": speso["primarie"] + speso["secondarie"]}.items()},
-        "fissiInArrivo": [{"nome": f["nome"], "importo": f["importo"], "giorno": f["giorno"]} for f in fissi],
+        "fissiInArrivo": [{"nome": f["nome"], "importo": f["importo"], "giorno": f["giorno"], "primaria": f["primaria"]}
+                          for f in fissi],
         "stima": {"totale": _quantili(finale), "primarie": _quantili(finale_prim), "secondarie": _quantili(finale_sec)},
         "entrateMese": round(entrate_mese, 2),
         "entrateStimate": entrate_stimate,
+        "stipendioMediano": None if mediana is None else round(mediana, 2),
         "soglie": soglie_esito,
-        "curva": curva,
+        "curva": curve["totale"],
+        "curve": curve,
         "affidabilita": {"erroreMedio": round(float(np.mean(errori)), 2), "mesiProvati": len(errori)},
         "mesiUsati": len(passati),
     }
