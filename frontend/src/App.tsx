@@ -53,6 +53,7 @@ const Uscite = lazy(() => import('./pages/Uscite'));
 const Patrimonio = lazy(() => import('./pages/Patrimonio'));
 const Investimenti = lazy(() => import('./pages/Investimenti'));
 const AnalisiConsumi = lazy(() => import('./pages/AnalisiConsumi'));
+const Previsioni = lazy(() => import('./pages/Previsioni'));
 const Impostazioni = lazy(() => import('./pages/Impostazioni'));
 
 import { initAuth, logout, silentTokenRefresh } from './lib/googleAuth';
@@ -562,6 +563,8 @@ function DashboardShell({
         );
       case 'consumi':
         return <AnalisiConsumi goToTodaySignal={goToTodaySignal} />;
+      case 'previsioni':
+        return <Previsioni />;
       case 'impostazioni':
         return (
           <Impostazioni

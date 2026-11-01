@@ -197,8 +197,9 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Input boxes & form fields styling */
-.glass-theme input,
+/* Input boxes & form fields styling. Slider, caselle e pulsanti di scelta
+   restano fuori: con lo sfondo sfocato mostravano un rettangolo intorno. */
+.glass-theme input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
 .glass-theme select,
 .glass-theme textarea {
   background-color: rgba(255, 255, 255, 0.05) !important;
@@ -207,7 +208,7 @@ body {
   backdrop-filter: blur(10px) !important;
 }
 
-.glass-theme input:focus,
+.glass-theme input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,
 .glass-theme select:focus,
 .glass-theme textarea:focus {
   border-color: rgba(99, 102, 241, 0.45) !important;

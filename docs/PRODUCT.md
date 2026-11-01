@@ -23,7 +23,7 @@ Non è un'app di budgeting generica: è costruita sui conti, i broker e le abitu
 ## Operating Context
 
 - **Telefono, quotidiano:** barra in basso (Home, Transazioni, Patrimonio, Investimenti, Impostazioni), "+" della Home per aggiungere un dato manuale (Entrate, Uscite una tantum/ricorrenti, Trasferimenti, Investimenti, Consumi), form a tutto schermo; conferma dei movimenti arrivati dalla banca.
-- **Computer, analisi:** Panoramica con andamenti e rendiconto, Entrate/Uscite con grafici e tabelle, Patrimonio per conto, Investimenti (Cruscotto, Rendimenti, Conti, Fondo pensione), Analisi consumi.
+- **Computer, analisi:** Panoramica con andamenti e rendiconto, Entrate/Uscite con grafici e tabelle, Patrimonio per conto, Investimenti (Cruscotto, Rendimenti, Conti, Fondo pensione), Analisi consumi, Previsioni (solo computer: chiusura del mese, prossimi 12 mesi, crescita e proiezione del patrimonio).
 - **Dati:** Google Sheet dell'utente come fonte definitiva, cache in `localStorage`; il salvataggio locale non spinge automaticamente sul foglio. Login Google via Firebase; il token Google dura circa un'ora.
 - **Banca:** sincronizzazione movimenti via Enable Banking (UniCredit, Trade Republic), con un cron notturno e "Sincronizza ora"; i movimenti non riconosciuti dalle regole restano da confermare a mano.
 - **Condivisione schermo:** la modalità incognito sostituisce tutta la dashboard con dati finti (`frontend/src/data/demoData.ts`).
@@ -49,7 +49,7 @@ Non è un'app di budgeting generica: è costruita sui conti, i broker e le abitu
 
 ## Product Principles
 
-1. **Cifre sempre esatte.** La precisione dei numeri viene prima di tutto: niente arrotondamenti, stime o visualizzazioni che possano far leggere un valore diverso da quello vero. Nel dubbio si mostra la cifra, non l'impressione.
+1. **Cifre sempre esatte.** La precisione dei numeri viene prima di tutto: niente arrotondamenti, stime o visualizzazioni che possano far leggere un valore diverso da quello vero. Nel dubbio si mostra la cifra, non l'impressione. Unica eccezione, la pagina Previsioni: lì una stima non si presenta mai come una cifra esatta (arrotondata, sempre con la sua fascia, etichetta "stima", linea tratteggiata), e le cifre vere accanto restano esatte.
 2. **Privacy in pubblico.** In ogni schermata nuova l'incognito deve poter nascondere tutti i dati reali; nessuna cifra vera può sfuggire durante una condivisione schermo o nella demo.
 3. **Telefono per il giorno, computer per l'analisi.** Le azioni quotidiane vanno pensate prima per il telefono; le viste di analisi possono essere dense sul computer purché restino leggibili su telefono.
 4. **Un solo utente, nessuna generalizzazione prematura.** Le scelte seguono i conti e le abitudini reali del proprietario; la demo mostra lo stesso prodotto con dati finti, non una versione diversa.

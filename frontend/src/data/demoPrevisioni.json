@@ -1,0 +1,2816 @@
+{
+ "oggi": "2026-06-18",
+ "fineMese": {
+  "disponibile": true,
+  "mese": "2026-06",
+  "giorno": 18,
+  "giorniMese": 30,
+  "spesoFinora": {
+   "primarie": 289.3,
+   "secondarie": 68.4,
+   "totale": 357.7
+  },
+  "fissiInArrivo": [],
+  "stima": {
+   "totale": {
+    "basso": 394.34,
+    "centrale": 435.7,
+    "alto": 555.7
+   },
+   "primarie": {
+    "basso": 289.3,
+    "centrale": 311.7,
+    "alto": 354.1
+   },
+   "secondarie": {
+    "basso": 68.4,
+    "centrale": 81.39,
+    "alto": 266.4
+   }
+  },
+  "entrateMese": 2100.0,
+  "entrateStimate": false,
+  "soglie": [
+   {
+    "nome": "Spese Primarie",
+    "percentuale": 35.0,
+    "limite": 735.0,
+    "probabilitaSforamento": 0.0
+   },
+   {
+    "nome": "Spese Secondarie",
+    "percentuale": 15.0,
+    "limite": 315.0,
+    "probabilitaSforamento": 0.2
+   }
+  ],
+  "curva": [
+   {
+    "giorno": 1,
+    "speso": 0.0
+   },
+   {
+    "giorno": 2,
+    "speso": 0.0
+   },
+   {
+    "giorno": 3,
+    "speso": 180.0
+   },
+   {
+    "giorno": 4,
+    "speso": 180.0
+   },
+   {
+    "giorno": 5,
+    "speso": 180.0
+   },
+   {
+    "giorno": 6,
+    "speso": 180.0
+   },
+   {
+    "giorno": 7,
+    "speso": 219.9
+   },
+   {
+    "giorno": 8,
+    "speso": 219.9
+   },
+   {
+    "giorno": 9,
+    "speso": 219.9
+   },
+   {
+    "giorno": 10,
+    "speso": 248.4
+   },
+   {
+    "giorno": 11,
+    "speso": 248.4
+   },
+   {
+    "giorno": 12,
+    "speso": 248.4
+   },
+   {
+    "giorno": 13,
+    "speso": 248.4
+   },
+   {
+    "giorno": 14,
+    "speso": 293.4
+   },
+   {
+    "giorno": 15,
+    "speso": 293.4
+   },
+   {
+    "giorno": 16,
+    "speso": 293.4
+   },
+   {
+    "giorno": 17,
+    "speso": 293.4
+   },
+   {
+    "giorno": 18,
+    "speso": 357.7,
+    "basso": 357.7,
+    "centrale": 357.7,
+    "alto": 357.7
+   },
+   {
+    "giorno": 19,
+    "basso": 357.7,
+    "centrale": 357.7,
+    "alto": 404.5
+   },
+   {
+    "giorno": 20,
+    "basso": 357.7,
+    "centrale": 357.7,
+    "alto": 409.7
+   },
+   {
+    "giorno": 21,
+    "basso": 357.7,
+    "centrale": 357.7,
+    "alto": 409.7
+   },
+   {
+    "giorno": 22,
+    "basso": 357.7,
+    "centrale": 370.69,
+    "alto": 413.46
+   },
+   {
+    "giorno": 23,
+    "basso": 357.7,
+    "centrale": 370.69,
+    "alto": 413.46
+   },
+   {
+    "giorno": 24,
+    "basso": 362.9,
+    "centrale": 380.1,
+    "alto": 538.9
+   },
+   {
+    "giorno": 25,
+    "basso": 362.9,
+    "centrale": 380.1,
+    "alto": 538.9
+   },
+   {
+    "giorno": 26,
+    "basso": 362.9,
+    "centrale": 380.1,
+    "alto": 538.9
+   },
+   {
+    "giorno": 27,
+    "basso": 366.66,
+    "centrale": 415.69,
+    "alto": 538.9
+   },
+   {
+    "giorno": 28,
+    "basso": 394.34,
+    "centrale": 435.7,
+    "alto": 555.7
+   },
+   {
+    "giorno": 29,
+    "basso": 394.34,
+    "centrale": 435.7,
+    "alto": 555.7
+   },
+   {
+    "giorno": 30,
+    "basso": 394.34,
+    "centrale": 435.7,
+    "alto": 555.7
+   }
+  ],
+  "affidabilita": {
+   "erroreMedio": 72.52,
+   "mesiProvati": 5
+  },
+  "mesiUsati": 5
+ },
+ "flussi": {
+  "disponibile": true,
+  "storico": [
+   {
+    "mese": "2025-07",
+    "entrate": 1900.0,
+    "spese": 780.0,
+    "avanzo": 1120.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2025-08",
+    "entrate": 1900.0,
+    "spese": 810.0,
+    "avanzo": 1090.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2025-09",
+    "entrate": 1950.0,
+    "spese": 850.0,
+    "avanzo": 1100.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2025-10",
+    "entrate": 1950.0,
+    "spese": 800.0,
+    "avanzo": 1150.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2025-11",
+    "entrate": 1950.0,
+    "spese": 870.0,
+    "avanzo": 1080.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2025-12",
+    "entrate": 2200.0,
+    "spese": 980.0,
+    "avanzo": 1220.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2026-01",
+    "entrate": 2000.0,
+    "spese": 850.0,
+    "avanzo": 1150.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2026-02",
+    "entrate": 2000.0,
+    "spese": 920.0,
+    "avanzo": 1080.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2026-03",
+    "entrate": 2050.0,
+    "spese": 780.0,
+    "avanzo": 1270.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2026-04",
+    "entrate": 2050.0,
+    "spese": 830.0,
+    "avanzo": 1220.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   },
+   {
+    "mese": "2026-05",
+    "entrate": 2100.0,
+    "spese": 900.0,
+    "avanzo": 1200.0,
+    "straordinarieEntrate": 0.0,
+    "straordinarieUscite": 0.0
+   }
+  ],
+  "previsti": [
+   {
+    "mese": "2026-06",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    }
+   },
+   {
+    "mese": "2026-07",
+    "entrate": {
+     "centrale": 2766.67,
+     "basso": 2686.89,
+     "alto": 2846.45
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1914.85,
+     "basso": 1801.87,
+     "alto": 2027.83
+    },
+    "avanzoCumulato": {
+     "centrale": 3138.03,
+     "basso": 2978.25,
+     "alto": 3297.81
+    }
+   },
+   {
+    "mese": "2026-08",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 4361.21,
+     "basso": 4165.52,
+     "alto": 4556.9
+    }
+   },
+   {
+    "mese": "2026-09",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 5584.39,
+     "basso": 5358.43,
+     "alto": 5810.35
+    }
+   },
+   {
+    "mese": "2026-10",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 6807.58,
+     "basso": 6554.94,
+     "alto": 7060.21
+    }
+   },
+   {
+    "mese": "2026-11",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 8030.76,
+     "basso": 7754.01,
+     "alto": 8307.5
+    }
+   },
+   {
+    "mese": "2026-12",
+    "entrate": {
+     "centrale": 3804.17,
+     "basso": 3724.39,
+     "alto": 3883.95
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 2952.35,
+     "basso": 2839.37,
+     "alto": 3065.33
+    },
+    "avanzoCumulato": {
+     "centrale": 10983.11,
+     "basso": 10684.19,
+     "alto": 11282.02
+    }
+   },
+   {
+    "mese": "2027-01",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 12206.29,
+     "basso": 11886.73,
+     "alto": 12525.84
+    }
+   },
+   {
+    "mese": "2027-02",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 13429.47,
+     "basso": 13090.53,
+     "alto": 13768.41
+    }
+   },
+   {
+    "mese": "2027-03",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 14652.65,
+     "basso": 14295.38,
+     "alto": 15009.93
+    }
+   },
+   {
+    "mese": "2027-04",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 15875.83,
+     "basso": 15501.12,
+     "alto": 16250.55
+    }
+   },
+   {
+    "mese": "2027-05",
+    "entrate": {
+     "centrale": 2075.0,
+     "basso": 1995.22,
+     "alto": 2154.78
+    },
+    "spese": {
+     "centrale": 851.82,
+     "basso": 771.82,
+     "alto": 931.82
+    },
+    "avanzo": {
+     "centrale": 1223.18,
+     "basso": 1110.2,
+     "alto": 1336.16
+    },
+    "avanzoCumulato": {
+     "centrale": 17099.02,
+     "basso": 16707.64,
+     "alto": 17490.39
+    }
+   }
+  ],
+  "stipendio": {
+   "periodo": {
+    "nome": "Assunzione",
+    "dal": "2026-04",
+    "mesi": 2
+   },
+   "tipico": 2075.0,
+   "resaExtra": 1.0,
+   "mensilitaExtra": [
+    {
+     "mese": "2026-07",
+     "nome": "Quattordicesima",
+     "importo": 691.67,
+     "frazione": 0.333
+    },
+    {
+     "mese": "2026-12",
+     "nome": "Tredicesima",
+     "importo": 1729.17,
+     "frazione": 0.833
+    }
+   ]
+  },
+  "straordinarie": [],
+  "affidabilita": {
+   "entrate": {
+    "erroreMedio": 56.0,
+    "mesiProvati": 5
+   },
+   "spese": {
+    "erroreMedio": 44.5,
+    "mesiProvati": 5
+   },
+   "avanzo": {
+    "erroreMedio": 68.63,
+    "mesiProvati": 5
+   }
+  },
+  "mesiUsati": 11
+ },
+ "patrimonio": {
+  "disponibile": true,
+  "storico": {
+   "mesi": [
+    {
+     "mese": "2025-07",
+     "inCorso": false,
+     "risparmio": 870.0,
+     "versamenti": 250.0,
+     "mercato": 150.0,
+     "fondoPensione": 0.0,
+     "cumulato": {
+      "risparmio": 870.0,
+      "versamenti": 250.0,
+      "mercato": 150.0,
+      "fondoPensione": 0.0
+     },
+     "tassoRisparmio": 0.5895,
+     "tassoRisparmio12": null
+    },
+    {
+     "mese": "2025-08",
+     "inCorso": false,
+     "risparmio": 840.0,
+     "versamenti": 250.0,
+     "mercato": -90.0,
+     "fondoPensione": 0.0,
+     "cumulato": {
+      "risparmio": 1710.0,
+      "versamenti": 500.0,
+      "mercato": 60.0,
+      "fondoPensione": 0.0
+     },
+     "tassoRisparmio": 0.5737,
+     "tassoRisparmio12": null
+    },
+    {
+     "mese": "2025-09",
+     "inCorso": false,
+     "risparmio": 840.0,
+     "versamenti": 260.0,
+     "mercato": 200.0,
+     "fondoPensione": 0.0,
+     "cumulato": {
+      "risparmio": 2550.0,
+      "versamenti": 760.0,
+      "mercato": 260.0,
+      "fondoPensione": 0.0
+     },
+     "tassoRisparmio": 0.5641,
+     "tassoRisparmio12": null
+    },
+    {
+     "mese": "2025-10",
+     "inCorso": false,
+     "risparmio": 880.0,
+     "versamenti": 270.0,
+     "mercato": 120.0,
+     "fondoPensione": 0.0,
+     "cumulato": {
+      "risparmio": 3430.0,
+      "versamenti": 1030.0,
+      "mercato": 380.0,
+      "fondoPensione": 0.0
+     },
+     "tassoRisparmio": 0.5897,
+     "tassoRisparmio12": null
+    },
+    {
+     "mese": "2025-11",
+     "inCorso": false,
+     "risparmio": 800.0,
+     "versamenti": 280.0,
+     "mercato": 180.0,
+     "fondoPensione": 0.0,
+     "cumulato": {
+      "risparmio": 4230.0,
+      "versamenti": 1310.0,
+      "mercato": 560.0,
+      "fondoPensione": 0.0
+     },
+     "tassoRisparmio": 0.5538,
+     "tassoRisparmio12": null
+    },
+    {
+     "mese": "2025-12",
+     "inCorso": false,
+     "risparmio": 920.0,
+     "versamenti": 300.0,
+     "mercato": 260.0,
+     "fondoPensione": 0.0,
+     "cumulato": {
+      "risparmio": 5150.0,
+      "versamenti": 1610.0,
+      "mercato": 820.0,
+      "fondoPensione": 0.0
+     },
+     "tassoRisparmio": 0.5545,
+     "tassoRisparmio12": 0.5705
+    },
+    {
+     "mese": "2026-01",
+     "inCorso": false,
+     "risparmio": 850.0,
+     "versamenti": 300.0,
+     "mercato": -60.0,
+     "fondoPensione": 195.0,
+     "cumulato": {
+      "risparmio": 6000.0,
+      "versamenti": 1910.0,
+      "mercato": 760.0,
+      "fondoPensione": 195.0
+     },
+     "tassoRisparmio": 0.575,
+     "tassoRisparmio12": 0.5711
+    },
+    {
+     "mese": "2026-02",
+     "inCorso": false,
+     "risparmio": 800.0,
+     "versamenti": 280.0,
+     "mercato": 140.0,
+     "fondoPensione": 195.0,
+     "cumulato": {
+      "risparmio": 6800.0,
+      "versamenti": 2190.0,
+      "mercato": 900.0,
+      "fondoPensione": 390.0
+     },
+     "tassoRisparmio": 0.54,
+     "tassoRisparmio12": 0.5672
+    },
+    {
+     "mese": "2026-03",
+     "inCorso": false,
+     "risparmio": 920.0,
+     "versamenti": 350.0,
+     "mercato": 230.0,
+     "fondoPensione": 195.0,
+     "cumulato": {
+      "risparmio": 7720.0,
+      "versamenti": 2540.0,
+      "mercato": 1130.0,
+      "fondoPensione": 585.0
+     },
+     "tassoRisparmio": 0.6195,
+     "tassoRisparmio12": 0.5732
+    },
+    {
+     "mese": "2026-04",
+     "inCorso": false,
+     "risparmio": 890.0,
+     "versamenti": 330.0,
+     "mercato": 270.0,
+     "fondoPensione": 201.0,
+     "cumulato": {
+      "risparmio": 8610.0,
+      "versamenti": 2870.0,
+      "mercato": 1400.0,
+      "fondoPensione": 786.0
+     },
+     "tassoRisparmio": 0.5951,
+     "tassoRisparmio12": 0.5754
+    },
+    {
+     "mese": "2026-05",
+     "inCorso": false,
+     "risparmio": 850.0,
+     "versamenti": 350.0,
+     "mercato": -80.0,
+     "fondoPensione": 201.0,
+     "cumulato": {
+      "risparmio": 9460.0,
+      "versamenti": 3220.0,
+      "mercato": 1320.0,
+      "fondoPensione": 987.0
+     },
+     "tassoRisparmio": 0.5714,
+     "tassoRisparmio12": 0.5751
+    },
+    {
+     "mese": "2026-06",
+     "inCorso": true,
+     "risparmio": 920.0,
+     "versamenti": 320.0,
+     "mercato": 300.0,
+     "fondoPensione": 202.0,
+     "cumulato": {
+      "risparmio": 10380.0,
+      "versamenti": 3540.0,
+      "mercato": 1620.0,
+      "fondoPensione": 1189.0
+     },
+     "tassoRisparmio": 0.5905,
+     "tassoRisparmio12": 0.5751
+    }
+   ],
+   "ultimi12": {
+    "risparmio": 9460.0,
+    "versamenti": 3220.0,
+    "mercato": 1320.0,
+    "fondoPensione": 987.0,
+    "totale": 14987.0
+   }
+  },
+  "oggi": {
+   "totale": 38500.0,
+   "liquidita": 20300.0,
+   "investimenti": 18200.0,
+   "fondoPensione": 0.0,
+   "impegnato": 3000.0,
+   "liquiditaLibera": 17300.0,
+   "speseMedieMensili": 851.82,
+   "mesiAutonomia": 20.3,
+   "anniDiSpese": 3.8
+  },
+  "allocazione": {
+   "azioni": 0.5032,
+   "obbligazioni": 0.2575,
+   "monetari": 0.2393
+  },
+  "proiezione": {
+   "punti": [
+    {
+     "mese": "2026-09",
+     "p10": 42152.57,
+     "p25": 42589.53,
+     "p50": 43074.29,
+     "p75": 43599.41,
+     "p90": 44021.41,
+     "soloVersamenti": 43185.33,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.5519,
+       "importo": 23774.01
+      },
+      "investimenti": {
+       "quota": 0.4481,
+       "importo": 19300.28
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2026-12",
+     "p10": 47393.94,
+     "p25": 48001.18,
+     "p50": 48671.35,
+     "p75": 49387.52,
+     "p90": 50009.02,
+     "soloVersamenti": 47870.67,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.5812,
+       "importo": 28289.11
+      },
+      "investimenti": {
+       "quota": 0.4188,
+       "importo": 20382.25
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2027-03",
+     "p10": 50938.27,
+     "p25": 51685.1,
+     "p50": 52549.13,
+     "p75": 53474.47,
+     "p90": 54321.13,
+     "soloVersamenti": 52556.0,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.5912,
+       "importo": 31066.32
+      },
+      "investimenti": {
+       "quota": 0.4088,
+       "importo": 21482.81
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2027-06",
+     "p10": 54522.09,
+     "p25": 55402.49,
+     "p50": 56426.49,
+     "p75": 57517.32,
+     "p90": 58513.99,
+     "soloVersamenti": 57241.34,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.5997,
+       "importo": 33841.77
+      },
+      "investimenti": {
+       "quota": 0.4003,
+       "importo": 22584.72
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2027-09",
+     "p10": 60249.91,
+     "p25": 61203.5,
+     "p50": 62427.58,
+     "p75": 63674.78,
+     "p90": 64798.92,
+     "soloVersamenti": 61926.67,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6202,
+       "importo": 38717.57
+      },
+      "investimenti": {
+       "quota": 0.3798,
+       "importo": 23710.0
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2027-12",
+     "p10": 66003.45,
+     "p25": 67119.04,
+     "p50": 68371.2,
+     "p75": 69805.47,
+     "p90": 71177.53,
+     "soloVersamenti": 66612.01,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6369,
+       "importo": 43547.54
+      },
+      "investimenti": {
+       "quota": 0.3631,
+       "importo": 24823.66
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2028-03",
+     "p10": 69628.19,
+     "p25": 70875.83,
+     "p50": 72356.28,
+     "p75": 73887.92,
+     "p90": 75407.72,
+     "soloVersamenti": 71297.34,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6406,
+       "importo": 46350.73
+      },
+      "investimenti": {
+       "quota": 0.3594,
+       "importo": 26005.55
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2028-06",
+     "p10": 73354.08,
+     "p25": 74718.71,
+     "p50": 76349.57,
+     "p75": 78024.64,
+     "p90": 79718.06,
+     "soloVersamenti": 75982.67,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6437,
+       "importo": 49148.04
+      },
+      "investimenti": {
+       "quota": 0.3563,
+       "importo": 27201.53
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2028-09",
+     "p10": 79080.44,
+     "p25": 80577.83,
+     "p50": 82306.67,
+     "p75": 84204.88,
+     "p90": 86073.65,
+     "soloVersamenti": 80668.01,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6559,
+       "importo": 53985.21
+      },
+      "investimenti": {
+       "quota": 0.3441,
+       "importo": 28321.45
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2028-12",
+     "p10": 84734.56,
+     "p25": 86349.33,
+     "p50": 88376.33,
+     "p75": 90320.5,
+     "p90": 92514.11,
+     "soloVersamenti": 85353.34,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6661,
+       "importo": 58866.3
+      },
+      "investimenti": {
+       "quota": 0.3339,
+       "importo": 29510.02
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2029-03",
+     "p10": 88318.49,
+     "p25": 90221.41,
+     "p50": 92295.78,
+     "p75": 94482.24,
+     "p90": 96759.71,
+     "soloVersamenti": 90038.68,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6675,
+       "importo": 61609.47
+      },
+      "investimenti": {
+       "quota": 0.3325,
+       "importo": 30686.31
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2029-06",
+     "p10": 92078.66,
+     "p25": 94035.6,
+     "p50": 96365.24,
+     "p75": 98675.63,
+     "p90": 100937.55,
+     "soloVersamenti": 94724.01,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6687,
+       "importo": 64438.41
+      },
+      "investimenti": {
+       "quota": 0.3313,
+       "importo": 31926.83
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2029-09",
+     "p10": 97771.13,
+     "p25": 99956.13,
+     "p50": 102388.05,
+     "p75": 104981.46,
+     "p90": 107240.36,
+     "soloVersamenti": 99409.35,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6766,
+       "importo": 69270.89
+      },
+      "investimenti": {
+       "quota": 0.3234,
+       "importo": 33117.16
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2029-12",
+     "p10": 103664.32,
+     "p25": 105955.44,
+     "p50": 108385.08,
+     "p75": 111332.83,
+     "p90": 113827.96,
+     "soloVersamenti": 104094.68,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6833,
+       "importo": 74056.9
+      },
+      "investimenti": {
+       "quota": 0.3167,
+       "importo": 34328.18
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2030-03",
+     "p10": 107305.66,
+     "p25": 109716.72,
+     "p50": 112470.6,
+     "p75": 115363.47,
+     "p90": 118326.27,
+     "soloVersamenti": 108780.01,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6835,
+       "importo": 76868.77
+      },
+      "investimenti": {
+       "quota": 0.3165,
+       "importo": 35601.83
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2030-06",
+     "p10": 111079.67,
+     "p25": 113643.96,
+     "p50": 116515.12,
+     "p75": 119628.75,
+     "p90": 122526.56,
+     "soloVersamenti": 113465.35,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6837,
+       "importo": 79665.09
+      },
+      "investimenti": {
+       "quota": 0.3163,
+       "importo": 36850.03
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2030-09",
+     "p10": 116937.66,
+     "p25": 119643.57,
+     "p50": 122618.72,
+     "p75": 125863.75,
+     "p90": 129101.58,
+     "soloVersamenti": 118150.68,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6892,
+       "importo": 84512.7
+      },
+      "investimenti": {
+       "quota": 0.3108,
+       "importo": 38106.02
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2030-12",
+     "p10": 122896.4,
+     "p25": 125640.87,
+     "p50": 128736.29,
+     "p75": 132347.13,
+     "p90": 135480.45,
+     "soloVersamenti": 122836.02,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6941,
+       "importo": 89355.05
+      },
+      "investimenti": {
+       "quota": 0.3059,
+       "importo": 39381.24
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2031-03",
+     "p10": 126728.99,
+     "p25": 129440.82,
+     "p50": 132825.67,
+     "p75": 136488.44,
+     "p90": 140183.25,
+     "soloVersamenti": 127521.35,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6934,
+       "importo": 92104.8
+      },
+      "investimenti": {
+       "quota": 0.3066,
+       "importo": 40720.86
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2031-06",
+     "p10": 130469.43,
+     "p25": 133295.9,
+     "p50": 136943.82,
+     "p75": 140725.19,
+     "p90": 144417.95,
+     "soloVersamenti": 132206.68,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6929,
+       "importo": 94892.35
+      },
+      "investimenti": {
+       "quota": 0.3071,
+       "importo": 42051.47
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2031-09",
+     "p10": 136314.27,
+     "p25": 139373.47,
+     "p50": 143212.69,
+     "p75": 147284.6,
+     "p90": 151102.01,
+     "soloVersamenti": 136892.02,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6968,
+       "importo": 99790.83
+      },
+      "investimenti": {
+       "quota": 0.3032,
+       "importo": 43421.86
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2031-12",
+     "p10": 142179.23,
+     "p25": 145450.64,
+     "p50": 149295.48,
+     "p75": 153663.95,
+     "p90": 157845.41,
+     "soloVersamenti": 141577.35,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7002,
+       "importo": 104543.82
+      },
+      "investimenti": {
+       "quota": 0.2998,
+       "importo": 44751.66
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2032-03",
+     "p10": 146011.83,
+     "p25": 149528.27,
+     "p50": 153396.35,
+     "p75": 158156.3,
+     "p90": 162596.91,
+     "soloVersamenti": 146262.69,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6991,
+       "importo": 107232.96
+      },
+      "investimenti": {
+       "quota": 0.3009,
+       "importo": 46163.39
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2032-06",
+     "p10": 149788.61,
+     "p25": 153414.75,
+     "p50": 157867.29,
+     "p75": 162415.17,
+     "p90": 167298.35,
+     "soloVersamenti": 150948.02,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6982,
+       "importo": 110217.4
+      },
+      "investimenti": {
+       "quota": 0.3018,
+       "importo": 47649.89
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2032-09",
+     "p10": 155946.89,
+     "p25": 159506.65,
+     "p50": 164039.63,
+     "p75": 168929.6,
+     "p90": 173910.23,
+     "soloVersamenti": 155633.36,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7011,
+       "importo": 115007.86
+      },
+      "investimenti": {
+       "quota": 0.2989,
+       "importo": 49031.77
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2032-12",
+     "p10": 161774.18,
+     "p25": 165559.62,
+     "p50": 170188.0,
+     "p75": 175108.28,
+     "p90": 180442.35,
+     "soloVersamenti": 160318.69,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7039,
+       "importo": 119798.8
+      },
+      "investimenti": {
+       "quota": 0.2961,
+       "importo": 50389.2
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2033-03",
+     "p10": 165300.66,
+     "p25": 169393.86,
+     "p50": 174362.25,
+     "p75": 179609.86,
+     "p90": 185025.53,
+     "soloVersamenti": 165004.02,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7033,
+       "importo": 122621.03
+      },
+      "investimenti": {
+       "quota": 0.2967,
+       "importo": 51741.22
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2033-06",
+     "p10": 169303.58,
+     "p25": 173452.0,
+     "p50": 178468.01,
+     "p75": 184098.14,
+     "p90": 189686.49,
+     "soloVersamenti": 169689.36,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7021,
+       "importo": 125307.69
+      },
+      "investimenti": {
+       "quota": 0.2979,
+       "importo": 53160.31
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2033-09",
+     "p10": 175103.89,
+     "p25": 179633.67,
+     "p50": 184783.39,
+     "p75": 190424.64,
+     "p90": 196318.47,
+     "soloVersamenti": 174374.69,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7045,
+       "importo": 130180.92
+      },
+      "investimenti": {
+       "quota": 0.2955,
+       "importo": 54602.47
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2033-12",
+     "p10": 181227.01,
+     "p25": 185643.88,
+     "p50": 191090.69,
+     "p75": 196686.78,
+     "p90": 202900.89,
+     "soloVersamenti": 179060.03,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7067,
+       "importo": 135052.45
+      },
+      "investimenti": {
+       "quota": 0.2933,
+       "importo": 56038.24
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2034-03",
+     "p10": 185069.55,
+     "p25": 189387.78,
+     "p50": 195434.58,
+     "p75": 200997.35,
+     "p90": 207506.5,
+     "soloVersamenti": 183745.36,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7058,
+       "importo": 137942.77
+      },
+      "investimenti": {
+       "quota": 0.2942,
+       "importo": 57491.81
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2034-06",
+     "p10": 188856.62,
+     "p25": 193687.04,
+     "p50": 199511.2,
+     "p75": 205742.52,
+     "p90": 212369.43,
+     "soloVersamenti": 188430.7,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7047,
+       "importo": 140589.1
+      },
+      "investimenti": {
+       "quota": 0.2953,
+       "importo": 58922.1
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2034-09",
+     "p10": 194898.81,
+     "p25": 199645.3,
+     "p50": 205877.17,
+     "p75": 212372.92,
+     "p90": 219099.94,
+     "soloVersamenti": 193116.03,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7064,
+       "importo": 145437.84
+      },
+      "investimenti": {
+       "quota": 0.2936,
+       "importo": 60439.33
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2034-12",
+     "p10": 200912.33,
+     "p25": 206010.14,
+     "p50": 212318.27,
+     "p75": 219109.6,
+     "p90": 226169.02,
+     "soloVersamenti": 197801.36,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7077,
+       "importo": 150262.17
+      },
+      "investimenti": {
+       "quota": 0.2923,
+       "importo": 62056.1
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2035-03",
+     "p10": 204932.24,
+     "p25": 210110.85,
+     "p50": 216413.37,
+     "p75": 223507.25,
+     "p90": 231047.46,
+     "soloVersamenti": 202486.7,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7064,
+       "importo": 152873.24
+      },
+      "investimenti": {
+       "quota": 0.2936,
+       "importo": 63540.12
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2035-06",
+     "p10": 208792.52,
+     "p25": 214533.1,
+     "p50": 220680.0,
+     "p75": 227983.51,
+     "p90": 235891.46,
+     "soloVersamenti": 207172.03,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7051,
+       "importo": 155611.65
+      },
+      "investimenti": {
+       "quota": 0.2949,
+       "importo": 65068.35
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2035-09",
+     "p10": 214599.64,
+     "p25": 220491.26,
+     "p50": 227018.67,
+     "p75": 234654.02,
+     "p90": 243242.27,
+     "soloVersamenti": 211857.37,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7065,
+       "importo": 160389.03
+      },
+      "investimenti": {
+       "quota": 0.2935,
+       "importo": 66629.64
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2035-12",
+     "p10": 220828.49,
+     "p25": 226576.36,
+     "p50": 233701.06,
+     "p75": 241518.4,
+     "p90": 250104.99,
+     "soloVersamenti": 216542.7,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7076,
+       "importo": 165358.43
+      },
+      "investimenti": {
+       "quota": 0.2924,
+       "importo": 68342.63
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2036-03",
+     "p10": 224581.69,
+     "p25": 230942.89,
+     "p50": 237897.67,
+     "p75": 246112.99,
+     "p90": 255198.45,
+     "soloVersamenti": 221228.04,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7059,
+       "importo": 167934.26
+      },
+      "investimenti": {
+       "quota": 0.2941,
+       "importo": 69963.41
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2036-06",
+     "p10": 228519.33,
+     "p25": 235243.84,
+     "p50": 242481.08,
+     "p75": 251052.5,
+     "p90": 259627.68,
+     "soloVersamenti": 225913.37,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7044,
+       "importo": 170804.85
+      },
+      "investimenti": {
+       "quota": 0.2956,
+       "importo": 71676.23
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2036-09",
+     "p10": 234452.98,
+     "p25": 241180.48,
+     "p50": 248813.69,
+     "p75": 257883.25,
+     "p90": 267250.44,
+     "soloVersamenti": 230598.7,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7056,
+       "importo": 175563.01
+      },
+      "investimenti": {
+       "quota": 0.2944,
+       "importo": 73250.68
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2036-12",
+     "p10": 240354.78,
+     "p25": 247238.3,
+     "p50": 255609.49,
+     "p75": 264809.1,
+     "p90": 274858.37,
+     "soloVersamenti": 235284.04,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7067,
+       "importo": 180629.38
+      },
+      "investimenti": {
+       "quota": 0.2933,
+       "importo": 74980.11
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2037-03",
+     "p10": 244029.43,
+     "p25": 251498.37,
+     "p50": 259697.61,
+     "p75": 269463.79,
+     "p90": 279963.76,
+     "soloVersamenti": 239969.37,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7053,
+       "importo": 183169.19
+      },
+      "investimenti": {
+       "quota": 0.2947,
+       "importo": 76528.42
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2037-06",
+     "p10": 248645.36,
+     "p25": 255312.6,
+     "p50": 264140.7,
+     "p75": 274451.0,
+     "p90": 284894.75,
+     "soloVersamenti": 244654.71,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7041,
+       "importo": 185985.08
+      },
+      "investimenti": {
+       "quota": 0.2959,
+       "importo": 78155.63
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2037-09",
+     "p10": 254260.96,
+     "p25": 261691.07,
+     "p50": 270674.49,
+     "p75": 281047.61,
+     "p90": 291532.49,
+     "soloVersamenti": 249340.04,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7051,
+       "importo": 190841.02
+      },
+      "investimenti": {
+       "quota": 0.2949,
+       "importo": 79833.48
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2037-12",
+     "p10": 260805.42,
+     "p25": 267809.85,
+     "p50": 277146.39,
+     "p75": 288054.95,
+     "p90": 299003.05,
+     "soloVersamenti": 254025.38,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7057,
+       "importo": 195583.36
+      },
+      "investimenti": {
+       "quota": 0.2943,
+       "importo": 81563.03
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2038-03",
+     "p10": 264847.59,
+     "p25": 271913.42,
+     "p50": 281431.04,
+     "p75": 292837.06,
+     "p90": 304143.7,
+     "soloVersamenti": 258710.71,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7045,
+       "importo": 198254.42
+      },
+      "investimenti": {
+       "quota": 0.2955,
+       "importo": 83176.62
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2038-06",
+     "p10": 268677.85,
+     "p25": 276259.09,
+     "p50": 285922.48,
+     "p75": 297721.82,
+     "p90": 309490.16,
+     "soloVersamenti": 263396.04,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7033,
+       "importo": 201089.18
+      },
+      "investimenti": {
+       "quota": 0.2967,
+       "importo": 84833.3
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2038-09",
+     "p10": 274611.25,
+     "p25": 282150.27,
+     "p50": 292751.46,
+     "p75": 304068.93,
+     "p90": 316558.89,
+     "soloVersamenti": 268081.38,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.704,
+       "importo": 206104.5
+      },
+      "investimenti": {
+       "quota": 0.296,
+       "importo": 86646.96
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2038-12",
+     "p10": 280670.28,
+     "p25": 288899.71,
+     "p50": 298986.82,
+     "p75": 310929.96,
+     "p90": 324475.96,
+     "soloVersamenti": 272766.71,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7045,
+       "importo": 210641.96
+      },
+      "investimenti": {
+       "quota": 0.2955,
+       "importo": 88344.85
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2039-03",
+     "p10": 284409.56,
+     "p25": 292990.04,
+     "p50": 304163.69,
+     "p75": 316405.37,
+     "p90": 329623.25,
+     "soloVersamenti": 277452.05,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7026,
+       "importo": 213705.45
+      },
+      "investimenti": {
+       "quota": 0.2974,
+       "importo": 90458.24
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2039-06",
+     "p10": 288790.3,
+     "p25": 297062.02,
+     "p50": 308689.36,
+     "p75": 321361.44,
+     "p90": 334879.65,
+     "soloVersamenti": 282137.38,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.701,
+       "importo": 216383.87
+      },
+      "investimenti": {
+       "quota": 0.299,
+       "importo": 92305.49
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2039-09",
+     "p10": 294769.34,
+     "p25": 303705.81,
+     "p50": 314860.91,
+     "p75": 328300.39,
+     "p90": 342630.7,
+     "soloVersamenti": 286822.71,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7015,
+       "importo": 220881.61
+      },
+      "investimenti": {
+       "quota": 0.2985,
+       "importo": 93979.29
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2039-12",
+     "p10": 300859.46,
+     "p25": 310114.18,
+     "p50": 321697.39,
+     "p75": 334942.07,
+     "p90": 350413.55,
+     "soloVersamenti": 291508.05,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7018,
+       "importo": 225772.53
+      },
+      "investimenti": {
+       "quota": 0.2982,
+       "importo": 95924.86
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2040-03",
+     "p10": 304708.77,
+     "p25": 314209.35,
+     "p50": 326252.88,
+     "p75": 340454.27,
+     "p90": 355809.87,
+     "soloVersamenti": 296193.38,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.7002,
+       "importo": 228454.08
+      },
+      "investimenti": {
+       "quota": 0.2998,
+       "importo": 97798.8
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2040-06",
+     "p10": 309136.79,
+     "p25": 318635.02,
+     "p50": 331420.64,
+     "p75": 345929.75,
+     "p90": 359720.63,
+     "soloVersamenti": 300878.72,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6987,
+       "importo": 231550.2
+      },
+      "investimenti": {
+       "quota": 0.3013,
+       "importo": 99870.45
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2040-09",
+     "p10": 314813.21,
+     "p25": 324700.81,
+     "p50": 337736.84,
+     "p75": 352622.25,
+     "p90": 368058.95,
+     "soloVersamenti": 305564.05,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6991,
+       "importo": 236126.95
+      },
+      "investimenti": {
+       "quota": 0.3009,
+       "importo": 101609.89
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2040-12",
+     "p10": 320958.02,
+     "p25": 330994.24,
+     "p50": 344411.99,
+     "p75": 359766.39,
+     "p90": 375004.29,
+     "soloVersamenti": 310249.39,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6997,
+       "importo": 240998.03
+      },
+      "investimenti": {
+       "quota": 0.3003,
+       "importo": 103413.96
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2041-03",
+     "p10": 325316.18,
+     "p25": 335152.34,
+     "p50": 348972.33,
+     "p75": 365381.69,
+     "p90": 381104.59,
+     "soloVersamenti": 314934.72,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.698,
+       "importo": 243593.18
+      },
+      "investimenti": {
+       "quota": 0.302,
+       "importo": 105379.16
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2041-06",
+     "p10": 329170.68,
+     "p25": 339393.95,
+     "p50": 353433.63,
+     "p75": 370188.5,
+     "p90": 387617.24,
+     "soloVersamenti": 319620.05,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6965,
+       "importo": 246150.48
+      },
+      "investimenti": {
+       "quota": 0.3035,
+       "importo": 107283.15
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2041-09",
+     "p10": 335695.18,
+     "p25": 346179.22,
+     "p50": 360263.56,
+     "p75": 377336.88,
+     "p90": 395229.51,
+     "soloVersamenti": 324305.39,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6966,
+       "importo": 250953.8
+      },
+      "investimenti": {
+       "quota": 0.3034,
+       "importo": 109309.76
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2041-12",
+     "p10": 341774.7,
+     "p25": 352587.81,
+     "p50": 367216.54,
+     "p75": 384159.93,
+     "p90": 403708.49,
+     "soloVersamenti": 328990.72,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6968,
+       "importo": 255860.33
+      },
+      "investimenti": {
+       "quota": 0.3032,
+       "importo": 111356.21
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2042-03",
+     "p10": 345894.18,
+     "p25": 356652.14,
+     "p50": 372090.11,
+     "p75": 390005.45,
+     "p90": 409740.34,
+     "soloVersamenti": 333676.06,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6949,
+       "importo": 258565.95
+      },
+      "investimenti": {
+       "quota": 0.3051,
+       "importo": 113524.16
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2042-06",
+     "p10": 349830.83,
+     "p25": 361385.76,
+     "p50": 376927.74,
+     "p75": 395368.4,
+     "p90": 415217.03,
+     "soloVersamenti": 338361.39,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6934,
+       "importo": 261362.21
+      },
+      "investimenti": {
+       "quota": 0.3066,
+       "importo": 115565.54
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2042-09",
+     "p10": 355916.08,
+     "p25": 367954.08,
+     "p50": 384059.63,
+     "p75": 402804.78,
+     "p90": 422003.8,
+     "soloVersamenti": 343046.73,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6932,
+       "importo": 266247.88
+      },
+      "investimenti": {
+       "quota": 0.3068,
+       "importo": 117811.75
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2042-12",
+     "p10": 361958.16,
+     "p25": 374914.33,
+     "p50": 391361.41,
+     "p75": 410166.77,
+     "p90": 430083.79,
+     "soloVersamenti": 347732.06,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6933,
+       "importo": 271311.92
+      },
+      "investimenti": {
+       "quota": 0.3067,
+       "importo": 120049.49
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2043-03",
+     "p10": 365948.14,
+     "p25": 379036.0,
+     "p50": 395814.44,
+     "p75": 415659.51,
+     "p90": 437295.51,
+     "soloVersamenti": 352417.39,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6916,
+       "importo": 273761.74
+      },
+      "investimenti": {
+       "quota": 0.3084,
+       "importo": 122052.7
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2043-06",
+     "p10": 369983.81,
+     "p25": 383135.22,
+     "p50": 400212.1,
+     "p75": 420471.33,
+     "p90": 442339.94,
+     "soloVersamenti": 357102.73,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6903,
+       "importo": 276253.47
+      },
+      "investimenti": {
+       "quota": 0.3097,
+       "importo": 123958.63
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2043-09",
+     "p10": 377221.05,
+     "p25": 389394.22,
+     "p50": 407872.53,
+     "p75": 428284.62,
+     "p90": 449922.21,
+     "soloVersamenti": 361788.06,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6904,
+       "importo": 281609.13
+      },
+      "investimenti": {
+       "quota": 0.3096,
+       "importo": 126263.39
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2043-12",
+     "p10": 383400.33,
+     "p25": 396207.79,
+     "p50": 414599.93,
+     "p75": 435720.97,
+     "p90": 458569.4,
+     "soloVersamenti": 366473.4,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6902,
+       "importo": 286164.0
+      },
+      "investimenti": {
+       "quota": 0.3098,
+       "importo": 128435.93
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2044-03",
+     "p10": 387929.04,
+     "p25": 400404.54,
+     "p50": 418853.45,
+     "p75": 441883.74,
+     "p90": 464345.85,
+     "soloVersamenti": 371158.73,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6885,
+       "importo": 288379.78
+      },
+      "investimenti": {
+       "quota": 0.3115,
+       "importo": 130473.68
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2044-06",
+     "p10": 392117.95,
+     "p25": 404816.62,
+     "p50": 423906.25,
+     "p75": 447646.93,
+     "p90": 471074.81,
+     "soloVersamenti": 375844.07,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6871,
+       "importo": 291254.23
+      },
+      "investimenti": {
+       "quota": 0.3129,
+       "importo": 132652.02
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2044-09",
+     "p10": 397464.62,
+     "p25": 411498.72,
+     "p50": 431597.9,
+     "p75": 454921.25,
+     "p90": 477922.11,
+     "soloVersamenti": 380529.4,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6869,
+       "importo": 296466.57
+      },
+      "investimenti": {
+       "quota": 0.3131,
+       "importo": 135131.33
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2044-12",
+     "p10": 403493.9,
+     "p25": 417892.57,
+     "p50": 438170.27,
+     "p75": 462238.92,
+     "p90": 485687.3,
+     "soloVersamenti": 385214.73,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6869,
+       "importo": 300977.34
+      },
+      "investimenti": {
+       "quota": 0.3131,
+       "importo": 137192.93
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2045-03",
+     "p10": 407719.32,
+     "p25": 422259.91,
+     "p50": 442883.88,
+     "p75": 468056.06,
+     "p90": 491889.51,
+     "soloVersamenti": 389900.07,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6852,
+       "importo": 303481.81
+      },
+      "investimenti": {
+       "quota": 0.3148,
+       "importo": 139402.07
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2045-06",
+     "p10": 412876.23,
+     "p25": 427310.63,
+     "p50": 448056.1,
+     "p75": 473681.49,
+     "p90": 497983.89,
+     "soloVersamenti": 394585.4,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6832,
+       "importo": 306128.83
+      },
+      "investimenti": {
+       "quota": 0.3168,
+       "importo": 141927.26
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2045-09",
+     "p10": 419115.31,
+     "p25": 433449.96,
+     "p50": 455530.92,
+     "p75": 482526.04,
+     "p90": 507226.14,
+     "soloVersamenti": 399270.74,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.683,
+       "importo": 311147.73
+      },
+      "investimenti": {
+       "quota": 0.317,
+       "importo": 144383.19
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2045-12",
+     "p10": 425456.61,
+     "p25": 440243.25,
+     "p50": 462376.46,
+     "p75": 489812.7,
+     "p90": 516680.23,
+     "soloVersamenti": 403956.07,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6826,
+       "importo": 315639.39
+      },
+      "investimenti": {
+       "quota": 0.3174,
+       "importo": 146737.07
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2046-03",
+     "p10": 430069.02,
+     "p25": 445256.03,
+     "p50": 467905.27,
+     "p75": 493859.23,
+     "p90": 521282.35,
+     "soloVersamenti": 408641.4,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6809,
+       "importo": 318604.25
+      },
+      "investimenti": {
+       "quota": 0.3191,
+       "importo": 149301.03
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    },
+    {
+     "mese": "2046-06",
+     "p10": 434066.93,
+     "p25": 450195.79,
+     "p50": 472655.69,
+     "p75": 500162.14,
+     "p90": 529890.45,
+     "soloVersamenti": 413326.74,
+     "ripartizione": {
+      "liquidita": {
+       "quota": 0.6787,
+       "importo": 320802.23
+      },
+      "investimenti": {
+       "quota": 0.3213,
+       "importo": 151853.45
+      },
+      "fondoPensione": {
+       "quota": 0.0,
+       "importo": 0.0
+      }
+     }
+    }
+   ],
+   "scenari": 2000,
+   "pacMensile": 292.73,
+   "ripartizioneOggi": {
+    "liquidita": {
+     "quota": 0.5273,
+     "importo": 20300.0
+    },
+    "investimenti": {
+     "quota": 0.4727,
+     "importo": 18200.0
+    },
+    "fondoPensione": {
+     "quota": 0.0,
+     "importo": 0.0
+    }
+   },
+   "partenza": 38500.0,
+   "fondoIncluso": false,
+   "pacNonCoperto": {
+    "probabilita": 0.0,
+    "meseProbabile": null
+   },
+   "fondoMensile": 198.17,
+   "avanzoMedioMensile": 1561.78,
+   "obiettivo": {
+    "importo": 50000.0,
+    "perAnno": [
+     {
+      "anno": 2027,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2028,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2029,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2030,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2031,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2032,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2033,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2034,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2035,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2036,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2037,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2038,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2039,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2040,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2041,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2042,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2043,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2044,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2045,
+      "probabilita": 1.0
+     },
+     {
+      "anno": 2046,
+      "probabilita": 1.0
+     }
+    ],
+    "meseProbabile": "2027-02",
+    "giaRaggiunto": false
+   }
+  },
+  "ipotesi": {
+   "anni": 20,
+   "risparmioExtra": 0.0,
+   "pacExtra": 0.0,
+   "crescitaEntrate": 0.0,
+   "inflazione": 0.0,
+   "obiettivo": 50000.0,
+   "includiFondoPensione": false,
+   "rendimenti": {
+    "azioni": {
+     "medio": 6.5,
+     "volatilita": 15.0
+    },
+    "obbligazioni": {
+     "medio": 2.5,
+     "volatilita": 5.0
+    },
+    "monetari": {
+     "medio": 2.0,
+     "volatilita": 0.5
+    },
+    "fondoPensione": {
+     "medio": 3.5,
+     "volatilita": 6.0
+    }
+   }
+  }
+ }
+}

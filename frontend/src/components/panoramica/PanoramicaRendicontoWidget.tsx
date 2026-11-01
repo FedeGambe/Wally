@@ -11,6 +11,8 @@ interface PanoramicaRendicontoWidgetProps {
   sogliaRisparmio: number;
   /** Spendibile del mese meno le spese secondarie già fatte (usePanoramicaData). */
   spendibileResiduo?: number;
+  /** Presente se lo stipendio del mese non è ancora registrato (usePanoramicaData). */
+  stimaStipendio?: { mediana: number; spendibile: number } | null;
   onOpenDetail: () => void;
 }
 
@@ -19,13 +21,16 @@ interface PanoramicaRendicontoWidgetProps {
  * spendibile come cifra principale, sotto le voci del mese dal foglio Risparmio
  * e la soglia di risparmio. Al tocco/clic apre il dettaglio del mese.
  */
-export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRisparmio, spendibileResiduo, onOpenDetail }: PanoramicaRendicontoWidgetProps) {
+export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRisparmio, spendibileResiduo, stimaStipendio, onOpenDetail }: PanoramicaRendicontoWidgetProps) {
   const oggi = new Date();
   const eMeseInCorso = getMonthIndex(currentMonthData.mese) === oggi.getMonth() && currentMonthData.anno === oggi.getFullYear();
   const titolo = eMeseInCorso ? 'Questo mese' : `${currentMonthData.mese} ${currentMonthData.anno}`;
   // La colonna Spendibile arriva come 0 quando nel foglio è vuota: in quel caso
   // il residuo non ha senso e si mostra "—" invece di una cifra inventata.
-  const spendibileMancante = !currentMonthData.spendibile || spendibileResiduo === undefined;
+  // Senza stipendio lo spendibile è stimato con quello mediano: l'asterisco lo segnala.
+  const spendibileMese = stimaStipendio ? stimaStipendio.spendibile : currentMonthData.spendibile;
+  const spendibileMancante = !spendibileMese || spendibileResiduo === undefined;
+  const asterisco = stimaStipendio ? '*' : '';
   const sforato = !spendibileMancante && spendibileResiduo! < 0;
 
   // Da quando sono queste cifre: l'ultima lettura riuscita dal foglio in questa
@@ -59,13 +64,18 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
           {sforato ? 'Oltre lo spendibile di' : 'Ancora spendibile'}
         </span>
         <span className={`block mt-1.5 text-4xl font-black font-display leading-none tabular-nums ${sforato ? 'text-rose-400' : 'text-white'}`}>
-          {spendibileMancante ? '—' : <EuroAmount value={Math.abs(spendibileResiduo!)} />}
+          {spendibileMancante ? '—' : <><EuroAmount value={Math.abs(spendibileResiduo!)} />{asterisco}</>}
         </span>
         <span className="block mt-2 text-xs text-slate-400">
           {spendibileMancante
             ? 'Spendibile del mese non impostato nel foglio Risparmio.'
-            : `su ${formatEuro(currentMonthData.spendibile)} del mese, tolte le spese secondarie`}
+            : `su ${formatEuro(spendibileMese)}${asterisco} del mese, tolte le spese secondarie`}
         </span>
+        {stimaStipendio && !spendibileMancante && (
+          <span className="block mt-1 text-2xs text-slate-400">
+            * Stipendio non ancora registrato: stimato con quello mediano degli ultimi 6 mesi ({formatEuro(stimaStipendio.mediana)}).
+          </span>
+        )}
       </span>
 
       <span className="block my-5 space-y-3 border-t border-b border-slate-800 py-4">

@@ -6,7 +6,10 @@ import pytest
 
 from backend.domain.scrittura import (
     ErroreScrittura,
+    cella_con_saveback,
     celle_investimenti,
+    colonne_prodotti,
+    contiene_saveback,
     celle_portafoglio,
     celle_riga_nuova,
     colonna_nuovo_strumento,
@@ -21,6 +24,7 @@ from backend.domain.scrittura import (
     richieste_preparazione_riga,
     righe_scheda,
     sposta_formula,
+    ultimo_prodotto_saveback,
     valore_accodato,
 )
 from backend.models.foglio import scheda
@@ -195,3 +199,55 @@ def test_dati_base_in_righe_piatte():
     assert oggetti["presetFondoPensioneRows"] == []           # quota non inviata: scheda non toccata
     assert righe_scheda(scheda("Preset Uscite Ricorrenti"), oggetti["presetUsciteRows"])[1] == \
         [1, "Affitto", "", "", "", 700, "Si"]
+
+
+# --- Saveback -----------------------------------------------------------------
+# Trade Republic: strumenti da B a L, Savebacks in colonna U (indice 20).
+SAVEBACK = 20
+
+
+def test_contiene_saveback_solo_della_propria_riga():
+    assert contiene_saveback("=U24", SAVEBACK, 24)
+    assert contiene_saveback("=52+U24", SAVEBACK, 24)
+    assert contiene_saveback("=52+$U$24", SAVEBACK, 24)
+    assert not contiene_saveback("=U23", SAVEBACK, 24)
+    assert not contiene_saveback("=U240", SAVEBACK, 24)
+    assert not contiene_saveback("=AU24", SAVEBACK, 24)
+    assert not contiene_saveback(52, SAVEBACK, 24)
+
+
+def test_cella_con_saveback():
+    assert cella_con_saveback(None, SAVEBACK, 24) == "=U24"
+    assert cella_con_saveback(0, SAVEBACK, 24) == "=U24"
+    assert cella_con_saveback(52, SAVEBACK, 24) == "=52+U24"
+    assert cella_con_saveback("=40*2", SAVEBACK, 24) == "=40*2+U24"
+    assert cella_con_saveback("=52+U24", SAVEBACK, 24) is None
+
+
+def test_ultimo_prodotto_saveback_dal_basso():
+    formule = [
+        ["Mese", "SP 500", "2028"],
+        ["settembre 2026", "=U2", 52],
+        ["ottobre 2026", 0, "=52+U3"],
+        ["novembre 2026", 0, 52],
+    ]
+    assert ultimo_prodotto_saveback(formule, [1, 2], SAVEBACK) == 2
+    assert ultimo_prodotto_saveback(formule[:2], [1, 2], SAVEBACK) == 1
+    assert ultimo_prodotto_saveback([["Mese", 1, 2]], [1, 2], SAVEBACK) is None
+
+
+def test_colonne_prodotti_dalla_somma_mensile():
+    intestazioni = ["Mese", "SP 500", "Asia", "", "Bond"]
+    assert colonne_prodotti(intestazioni, "=IF(COUNTA(B5:E5)>0;SUM(B5:E5)+V5;\"\")", "TR") == [1, 2, 4]
+
+
+def test_contributo_ricorrente_su_cella_con_solo_saveback():
+    celle = celle_investimenti("TR", "novembre 2026", 24, [{"strumento": "2028", "importo": 52}], [11],
+                               ["novembre 2026"] + [0] * 10 + ["=U24"], somma=False, colonna_saveback=SAVEBACK)
+    assert celle == [{"range": "TR!L24", "values": [["=52+U24"]]}]
+
+
+def test_contributo_ricorrente_su_altra_formula_resta_rifiutato():
+    with pytest.raises(ErroreScrittura):
+        celle_investimenti("TR", "novembre 2026", 24, [{"strumento": "2028", "importo": 52}], [11],
+                           ["novembre 2026"] + [0] * 10 + ["=40*2"], somma=False, colonna_saveback=SAVEBACK)

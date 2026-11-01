@@ -151,11 +151,22 @@ export const writeVerificaMensileToSheet = async (
   accessToken: string,
   spreadsheetId: string,
   tabTitle: string,
-  voci: { intestazione: string; meseLabel: string; valore: number }[]
+  voci: { intestazione: string; meseLabel: string; valore: number; prodotto?: string }[]
 ): Promise<void> => {
   if (voci.length === 0) return;
   await chiamaBackend('fogli/verifica-mensile', accessToken, { metodo: 'POST', corpo: { foglio: spreadsheetId, scheda: tabTitle, voci } });
 };
+
+/**
+ * Strumenti di un broker in cui può andare il saveback e quello usato l'ultima
+ * volta, che il backend ricava dalle formule del foglio ("=52+U24").
+ */
+export const fetchProdottiSaveback = async (
+  accessToken: string,
+  spreadsheetId: string,
+  tabTitle = 'Trade Republic'
+): Promise<{ prodotti: string[]; ultimo: string | null }> =>
+  chiamaBackend(`fogli/saveback?foglio=${encodeURIComponent(spreadsheetId)}&scheda=${encodeURIComponent(tabTitle)}`, accessToken);
 
 /**
  * Riscrive Conti, Categorie, Soglie e Preset sul foglio di configurazione

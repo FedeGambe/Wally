@@ -70,7 +70,7 @@ export default function Panoramica({
     handleChartClick, handleOpenMonthDetail,
     dettaglioPrecedente, dettaglioSuccessivo,
     entrateDelta, speseDelta, spesePrimDelta, speseSecDelta,
-    primPerc, secPerc, invPerc, rispPerc, spendibileResiduo
+    primPerc, secPerc, invPerc, rispPerc, spendibileResiduo, stimaStipendio
   } = usePanoramicaData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
   const [showAddDataModal, setShowAddDataModal] = useState(false);
@@ -93,6 +93,7 @@ export default function Panoramica({
           currentMonthData={currentMonthData}
           sogliaRisparmio={dynamicThresholds.risparmio}
           spendibileResiduo={spendibileResiduo}
+          stimaStipendio={stimaStipendio}
           onOpenDetail={() => handleOpenMonthDetail(currentMonthData.mese, currentMonthData.anno)}
         />
       </div>
@@ -142,6 +143,7 @@ export default function Panoramica({
         speseDelta={speseDelta}
         spesePrimDelta={spesePrimDelta}
         speseSecDelta={speseSecDelta}
+        stimaStipendio={stimaStipendio}
         setActiveView={setActiveView}
       />
       </div>

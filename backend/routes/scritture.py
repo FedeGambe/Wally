@@ -7,6 +7,7 @@ lo fanno le procedure di services/scritture.py.
   POST /api/fogli/investimenti       importi mese × strumento su Scalable / Trade Republic
   POST /api/fogli/strumento          nuova colonna strumento su un broker
   POST /api/fogli/verifica-mensile   saldi, interessi, saveback… in celle vuote dei broker
+  GET  /api/fogli/saveback           strumenti in cui investire il saveback e l'ultimo usato
   PUT  /api/fogli/dati-base          conti, categorie, soglie e preset sul foglio di configurazione
   POST /api/fogli/nuovo              crea un foglio nuovo con le schede dell'app
 
@@ -85,6 +86,7 @@ class VoceVerifica(BaseModel):
     intestazione: str
     meseLabel: str
     valore: float | int
+    prodotto: str | None = None   # solo per Savebacks: lo strumento in cui va investito
 
 
 class RichiestaVerifica(BaseModel):
@@ -98,6 +100,12 @@ def verifica_mensile(request: Request, r: RichiestaVerifica):
     voci = [v.model_dump() for v in r.voci]
     return con_utente(request, f'Impossibile scrivere su "{r.scheda}"',
                       lambda sheets: scritture.verifica_mensile(sheets, r.foglio, r.scheda, voci))
+
+
+@router.get("/saveback")
+def prodotti_saveback(request: Request, foglio: str, scheda: str = "Trade Republic"):
+    return con_utente(request, f'Impossibile leggere gli strumenti di "{scheda}"',
+                      lambda sheets: scritture.prodotti_saveback(sheets, foglio, scheda))
 
 
 class RichiestaDatiBase(BaseModel):
