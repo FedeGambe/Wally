@@ -8,6 +8,7 @@ Se qualcosa non torna (colonna o mese mancante, cella già piena) sollevano
 ErroreScrittura senza aver scritto niente.
 """
 from backend.domain.lettura import schede_presenti
+from backend.domain.soglie import matrice_soglie
 from backend.domain.scrittura import (
     PORTAFOGLIO_COLONNE,
     PORTAFOGLIO_INTERVALLO,
@@ -36,6 +37,7 @@ from backend.models.foglio import SCHEDE, SCHEDE_DA_CREARE, TITOLI_DATI_BASE, sc
 from backend.services.google_sheets import ErroreSheets, GoogleSheets
 
 SCHEDA_PRESET_INVESTIMENTI = "Preset Investimenti Ricorrenti"
+SCHEDA_SOGLIE = "Soglie"
 
 
 def _proprieta(sheets: GoogleSheets, foglio: str, titolo: str) -> dict:
@@ -189,22 +191,25 @@ def prodotti_saveback(sheets: GoogleSheets, foglio: str, titolo: str) -> dict:
 def salva_dati_base(sheets: GoogleSheets, foglio: str, dati: dict) -> None:
     """
     Riscrive dalla cella A1 le schede dei Dati Base che esistono sul foglio di
-    configurazione. La matrice dei preset investimenti, che può restringersi, si
-    svuota prima, ma solo se i preset investimenti sono tra i dati inviati.
+    configurazione. Le schede a matrice (preset investimenti, soglie), che
+    possono restringersi, si svuotano prima, ma solo se i loro dati sono tra
+    quelli inviati.
     """
     presenti = schede_presenti((s for s in SCHEDE if s.titolo in TITOLI_DATI_BASE), sheets.titoli_schede(foglio))
     if not presenti:
         return
     oggetti = oggetti_dati_base(dati)
-    con_investimenti = "presetInvestimenti" in dati and any(s.titolo == SCHEDA_PRESET_INVESTIMENTI for s in presenti)
-    presenti = [s for s in presenti if s.titolo != SCHEDA_PRESET_INVESTIMENTI]
-    if con_investimenti:
-        sheets.svuota(foglio, f"{SCHEDA_PRESET_INVESTIMENTI}!A:ZZ")
-
-    celle = [{"range": f"{s.titolo}!A1", "values": righe_scheda(s, oggetti.get(s.chiave, []))} for s in presenti]
-    if con_investimenti:
-        celle.append({"range": f"{SCHEDA_PRESET_INVESTIMENTI}!A1",
-                      "values": matrice_preset_investimenti(dati.get("presetInvestimenti") or [])})
+    titoli = {s.titolo for s in presenti}
+    matrici = {
+        SCHEDA_PRESET_INVESTIMENTI: ("presetInvestimenti", matrice_preset_investimenti),
+        SCHEDA_SOGLIE: ("soglie", matrice_soglie),
+    }
+    celle = [{"range": f"{s.titolo}!A1", "values": righe_scheda(s, oggetti.get(s.chiave, []))}
+             for s in presenti if s.titolo not in matrici]
+    for titolo, (chiave, matrice) in matrici.items():
+        if chiave in dati and titolo in titoli:
+            sheets.svuota(foglio, f"{titolo}!A:ZZ")
+            celle.append({"range": f"{titolo}!A1", "values": matrice(dati.get(chiave) or [])})
     sheets.scrivi_celle(foglio, celle)
 
 

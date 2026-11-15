@@ -112,6 +112,9 @@ export const QUOTA_FONDO_PENSIONE_SEED = 0;
 export interface Soglia {
   categoria: string;
   percentuale: number; // 0-100
+  /** Mese da cui vale ("2026-11"). Assente = da sempre. Una categoria può
+   * avere più versioni: ogni mese usa quella valida allora (utils/thresholds.ts). */
+  dal?: string;
 }
 
 export const SOGLIE_SEED: Soglia[] = [

@@ -335,3 +335,16 @@ def test_fine_mese_non_ripete_l_auto_dei_mesi_passati():
     uscite = [uscita(20, m, 2026, 100) for m in range(4, 10)] + [uscita(25, 9, 2026, 4500, descrizione="Restante auto")]
     r = previsione_fine_mese(uscite, [], [], [], OGGI)
     assert r["stima"]["totale"]["alto"] == 100
+
+
+def test_fine_mese_usa_le_soglie_valide_nel_mese():
+    uscite = []
+    for m in range(4, 10):
+        uscite += [uscita(5, m, 2026, 100), uscita(25, m, 2026, 200)]
+    entrate = [{"mese": "Ottobre", "anno": 2026, "importo": 2000}]
+    soglie = [{"categoria": "Spese Primarie", "percentuale": 30},
+              {"categoria": "Spese Primarie", "percentuale": 40, "dal": f"{OGGI.year}-{OGGI.month:02d}"},
+              {"categoria": "Spese Primarie", "percentuale": 50, "dal": "2099-01"}]
+    r = previsione_fine_mese(uscite, [], entrate, soglie, OGGI)
+    primarie = next(s for s in r["soglie"] if s["nome"] == "Spese Primarie")
+    assert primarie["percentuale"] == 40

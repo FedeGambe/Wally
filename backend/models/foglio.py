@@ -63,10 +63,12 @@ SCHEDE: list[SchedaFoglio] = [
         intestazioni=["Macro Categoria", "Icona", "Categoria"],
         chiave="categorieUsciteRows",
     ),
+    # Una riga per periodo: "Dal" + una colonna per categoria (domain/soglie.py).
+    # Si legge e si scrive come matrice, i campi qui servono solo a creare la scheda.
     SchedaFoglio(
-        titolo="Soglie", intervallo="Soglie!A:B",
-        campi=["categoria", "percentuale"], intestazioni=["Categoria", "Percentuale"],
-        numerici=["percentuale"],
+        titolo="Soglie", intervallo="Soglie!A:Z",
+        campi=["dal", "spesePrimarie", "speseSecondarie", "risparmio", "investimenti"],
+        intestazioni=["Dal", "Spese Primarie", "Spese Secondarie", "Risparmio", "Investimenti"],
         chiave="soglieRows",
     ),
     SchedaFoglio(

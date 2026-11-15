@@ -4,7 +4,7 @@ import { useFinanceData } from '../context/FinanceDataContext';
 import { INTESTAZIONI_RISPARMIO } from '../config/sheetsConfig';
 import { formatEuro } from '../utils/format';
 import { getMonthIndex, getTransactionYear, isMeseAnnoFuturo } from '../utils/date';
-import { getThresholds } from '../utils/thresholds';
+import { getThresholdsDelMese } from '../utils/thresholds';
 
 const DEFAULT_RISPARMIO_HEADERS = INTESTAZIONI_RISPARMIO;
 
@@ -109,12 +109,13 @@ export function useUsciteData(
     const headers = data.risparmioHeaders?.length
       ? data.risparmioHeaders
       : DEFAULT_RISPARMIO_HEADERS;
-    const base = getThresholds(headers, data.soglie);
+    // Le soglie valide nel mese scelto (cambiano nel tempo).
+    const base = getThresholdsDelMese(headers, data.soglie, selectedRecord.anno, getMonthIndex(selectedRecord.mese));
     // getThresholds().totali è pensato per "Netto" in Panoramica (investimenti+risparmio,
     // vedi commento in thresholds.ts), ma qui la card "Spese Totali" vuole la soglia di
     // spesa totale = primarie + secondarie: stesso nome di campo, significato diverso.
     return { ...base, totali: base.primarie + base.secondarie };
-  }, [data.risparmioHeaders, data.soglie]);
+  }, [data.risparmioHeaders, data.soglie, selectedRecord.anno, selectedRecord.mese]);
 
   // Rolling last 12 months data for trend chart (dynamic detail based on selection)
   // Utilizza una finestra mobile dinamica: 9 mesi indietro e 2 mesi in avanti in base alla selezione.

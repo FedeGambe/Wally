@@ -195,7 +195,7 @@ def test_dati_base_in_righe_piatte():
         {"macro": "Casa", "icon": "🏠", "categoria": "Bollette"},
         {"macro": "Svago", "icon": "💸", "categoria": ""},
     ]
-    assert oggetti["soglieRows"] == [{"categoria": "Primarie", "percentuale": 0.35}]
+    assert "soglieRows" not in oggetti  # le soglie si scrivono come matrice (domain/soglie.py)
     assert oggetti["presetFondoPensioneRows"] == []           # quota non inviata: scheda non toccata
     assert righe_scheda(scheda("Preset Uscite Ricorrenti"), oggetti["presetUsciteRows"])[1] == \
         [1, "Affitto", "", "", "", 700, "Si"]
@@ -251,3 +251,4 @@ def test_contributo_ricorrente_su_altra_formula_resta_rifiutato():
     with pytest.raises(ErroreScrittura):
         celle_investimenti("TR", "novembre 2026", 24, [{"strumento": "2028", "importo": 52}], [11],
                            ["novembre 2026"] + [0] * 10 + ["=40*2"], somma=False, colonna_saveback=SAVEBACK)
+

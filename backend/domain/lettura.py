@@ -10,6 +10,7 @@ from collections.abc import Iterable
 from backend.domain.conversioni import intero_iniziale, numero_localizzato
 from backend.domain.cruscotto import calcola_cruscotto
 from backend.domain.righe import nome_campo, righe_in_oggetti
+from backend.domain.soglie import soglie_da_righe
 from backend.models.foglio import BROKER, SCHEDE, TITOLI_DATI_BASE, SchedaFoglio
 
 
@@ -130,17 +131,6 @@ def _macro_categorie(righe: list[dict]) -> list[dict]:
     return list(macro.values())
 
 
-def _soglie(righe: list[dict]) -> list[dict]:
-    """Il foglio scrive le soglie come frazione (0,35 = 35%), l'app come 0-100."""
-    soglie = []
-    for r in righe:
-        grezza = float(r.get("percentuale") or 0)
-        categoria = str(r.get("categoria") or "").strip()
-        if categoria:
-            soglie.append({"categoria": categoria, "percentuale": grezza * 100 if 0 < grezza <= 1 else grezza})
-    return soglie
-
-
 def preset_investimenti_da_matrice(righe: list[list]) -> list[dict]:
     """Scheda "Preset Investimenti Ricorrenti": riga 1 = "Conto" + strumenti, una
     riga per broker, importo nella cella broker × strumento (vuota = niente)."""
@@ -200,6 +190,9 @@ def dati_base(value_ranges: list[dict], titoli_foglio: list[str]) -> dict:
         if scheda.titolo == "Preset Investimenti Ricorrenti":
             dati["presetInvestimenti"] = preset_investimenti_da_matrice(righe)
             continue
+        if scheda.titolo == "Soglie":
+            dati["soglie"] = soglie_da_righe(righe)
+            continue
         oggetti = _oggetti(scheda, righe)
         match scheda.titolo:
             case "Preset Uscite Ricorrenti":
@@ -216,8 +209,6 @@ def dati_base(value_ranges: list[dict], titoli_foglio: list[str]) -> dict:
                 dati["categorieEntrate"] = _nomi(oggetti)
             case "Categorie Uscite":
                 dati["macroCategorieUscite"] = _macro_categorie(oggetti)
-            case "Soglie":
-                dati["soglie"] = _soglie(oggetti)
     return dati
 
 
@@ -291,7 +282,8 @@ def dati_principali(value_ranges: list[dict], titoli_foglio: list[str], anno_cor
     macro = _macro_categorie(dati.pop("categorieUsciteRows"))
     if macro:
         dati["macroCategorieUscite"] = macro
-    soglie = _soglie(dati.pop("soglieRows"))
+    dati.pop("soglieRows")
+    soglie = soglie_da_righe(valori("Soglie"))
     if soglie:
         dati["soglie"] = soglie
     # I preset arrivano solo dal foglio di configurazione (dati_base).

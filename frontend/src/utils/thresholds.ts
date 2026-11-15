@@ -7,6 +7,10 @@
  *  2. Gli header del foglio "Risparmio" (vecchio meccanismo: es. "35%" scritto
  *     nell'intestazione), per compatibilità con fogli non ancora migrati a un tab Soglie.
  *  3. I valori di default in src/config/targets.ts.
+ *
+ * Le soglie hanno uno storico: ogni versione vale dal mese in `dal` in poi, così
+ * cambiandone una i mesi passati restano misurati con quella di allora. Per un
+ * mese si usa `getThresholdsDelMese` (o `sogliePerMese` + `getThresholds`).
  */
 import {
   TARGET_PRIMARIE,
@@ -82,6 +86,37 @@ const parseThreshold = (headerString: string, fallback: number): number => {
   return fallback;
 };
 
+/** "2026-11" dal mese (0-11) e dall'anno: lo stesso formato di `Soglia.dal`. */
+export const chiaveMese = (anno: number, meseIdx: number) => `${anno}-${String(meseIdx + 1).padStart(2, '0')}`;
+
+/**
+ * Una soglia per categoria, quella valida nel mese (meseIdx 0-11): la versione
+ * più recente con `dal` uguale o precedente. Se il mese viene prima di tutte le
+ * versioni, vale la più vecchia. Senza `dal` una versione vale da sempre.
+ * Stessa regola di backend/domain/soglie.py.
+ */
+export const sogliePerMese = (soglie: Soglia[] | undefined, anno: number, meseIdx: number): Soglia[] => {
+  const mese = chiaveMese(anno, meseIdx);
+  const valide = new Map<string, Soglia>();
+  const piuVecchie = new Map<string, Soglia>();
+  for (const s of soglie ?? []) {
+    const nome = normalize(s.categoria || '');
+    if (!nome) continue;
+    const dal = s.dal || '';
+    const vecchia = piuVecchie.get(nome);
+    if (!vecchia || dal < (vecchia.dal || '')) piuVecchie.set(nome, s);
+    const valida = valide.get(nome);
+    if (dal <= mese && (!valida || dal >= (valida.dal || ''))) valide.set(nome, s);
+  }
+  return [...piuVecchie.entries()].map(([nome, s]) => valide.get(nome) ?? s);
+};
+
+/** Soglie valide oggi: quelle da mostrare come "attuali" in Impostazioni. */
+export const soglieAttuali = (soglie: Soglia[] | undefined, oggi: Date = new Date()) =>
+  sogliePerMese(soglie, oggi.getFullYear(), oggi.getMonth());
+
+export type Thresholds = ReturnType<typeof getThresholds>;
+
 export const getThresholds = (headers: string[], soglie?: Soglia[]) => {
   // I numeri di fallback (4, 6, 9, 10/11, 12/13) sono le posizioni di colonna attese nel
   // layout standard del foglio "Panoramica", usate solo se le due ricerche sopra falliscono.
@@ -137,4 +172,13 @@ export const getThresholds = (headers: string[], soglie?: Soglia[]) => {
       ? investiti + risparmio
       : parseThreshold(headers[nettoIndex], TARGET_NETTO),
   };
+};
+
+/** Le soglie di un mese (meseIdx 0-11). Mese non valido: quelle di oggi. */
+export const getThresholdsDelMese = (headers: string[], soglie: Soglia[] | undefined, anno: number, meseIdx: number) => {
+  if (!(meseIdx >= 0 && meseIdx <= 11) || !anno) {
+    const oggi = new Date();
+    return getThresholds(headers, sogliePerMese(soglie, oggi.getFullYear(), oggi.getMonth()));
+  }
+  return getThresholds(headers, sogliePerMese(soglie, anno, meseIdx));
 };

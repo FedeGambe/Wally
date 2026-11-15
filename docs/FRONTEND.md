@@ -222,7 +222,7 @@ Un hook prende i dati da `useFinanceData()` e prepara i numeri per una pagina: c
 | | `ContiEditor.tsx` | Modifica dei conti |
 | | `CategorieEntrateEditor.tsx` | Modifica delle categorie entrate |
 | | `CategorieUsciteEditor.tsx` | Modifica delle macro categorie uscite e delle loro sotto-categorie |
-| | `SoglieEditor.tsx` | Modifica delle percentuali obiettivo |
+| | `SoglieEditor.tsx` | Modifica delle percentuali obiettivo: si sceglie da che mese vale la modifica (o tutti i mesi), con lo storico delle versioni |
 | | `PresetRicorrentiSettings.tsx` | Menu "Preset Ricorrenti" |
 | | `UsciteRicorrentiEditor.tsx` | Preset delle uscite che si ripetono ogni mese |
 | | `TrasferimentiRicorrentiEditor.tsx` | Preset dei trasferimenti, collegati per nome a un'uscita ricorrente |
@@ -240,8 +240,8 @@ Funzioni senza grafica, riusate in più punti.
 | `date.ts` | Nomi dei mesi in italiano e funzioni per leggere mesi e anni scritti in modi diversi |
 | `format.ts` | Formattazione di euro e percentuali (`formatEuro`, `formatPercent`) e colori dei rendimenti |
 | `kpiColorScale.ts` | Colore da rosso a verde di un valore rispetto al suo storico (minimo, mediana, massimo) |
-| `stipendioStimato.ts` | Stipendio mediano degli ultimi 6 mesi e formula dello Spendibile: in Home, finché lo stipendio del mese non è registrato, spendibile e soglie usano la stima (con l'asterisco) |
-| `thresholds.ts` | Soglie obiettivo, in ordine di priorità: Dati Base → intestazioni del Risparmio → `config/targets.ts` |
+| `stipendioStimato.ts` | Stipendio mediano degli ultimi 6 mesi e formula dello Spendibile, calcolata con le soglie del mese (primarie e secondarie) invece di leggere la colonna del foglio: in Home, finché lo stipendio del mese non è registrato, spendibile e soglie usano la stima (con l'asterisco) |
+| `thresholds.ts` | Soglie obiettivo, in ordine di priorità: Dati Base → intestazioni del Risparmio → `config/targets.ts`. Hanno uno storico (colonna "Dal"): ogni mese usa quelle valide allora (`getThresholdsDelMese`) |
 | `chartScale.ts` | Minimo dell'asse Y dei grafici di Entrate e Uscite, per far leggere meglio le variazioni |
 | `cruscottoInvestimenti.ts` | Cruscotto Investimenti anno per anno (serve anche alla demo, che non ha backend) e ripartizione per asset class e strumenti, ricalcolata a ogni cambio di mese |
 | `investimentiRicorrenti.ts` | Funzioni comuni a editor e modulo dei PAC (strumenti dei broker, etichetta del mese, importo già inserito) |

@@ -38,14 +38,18 @@ export function stipendioMediano(entrate: EntrataRecord[] | undefined, oggi: Dat
 }
 
 /**
- * La formula "Spendibile" del foglio Risparmio, rifatta su entrate stimate.
- * Sul foglio: =SE(E<0,35; B*0,15; B-D-(B*0,15)-(B*0,35)), con B le entrate,
- * D le primarie ed E la quota delle primarie. Le cifre sono quelle scritte
- * nella formula, non le soglie di Impostazioni: così la stima coincide con
- * quello che il foglio calcolerà quando arriva lo stipendio.
+ * La formula "Spendibile" del foglio Risparmio, con le soglie del mese (in %):
+ * =SE(E<P; B*S; B*(P+S)-D), con B le entrate, D le primarie, E la quota delle
+ * primarie, P e S le soglie di primarie e secondarie. Cioè: il budget delle
+ * secondarie (S delle entrate), ridotto di quanto le primarie sforano la loro.
+ * Sul foglio P e S sono scritte nella formula di ogni riga (50/20 fino a marzo
+ * 2026, 35/15 da aprile, 23/22 da ottobre); l'app usa le Soglie del mese, così
+ * le due cifre coincidono.
  */
-export function spendibileDaFormula(entrate: number, spesePrimarie: number): number {
+export function spendibileDaFormula(entrate: number, spesePrimarie: number, primarie = 35, secondarie = 15): number {
   if (entrate <= 0) return 0;
-  if (spesePrimarie / entrate < 0.35) return entrate * 0.15;
-  return entrate - spesePrimarie - entrate * 0.15 - entrate * 0.35;
+  const p = primarie / 100;
+  const s = secondarie / 100;
+  if (spesePrimarie / entrate < p) return entrate * s;
+  return entrate * (p + s) - spesePrimarie;
 }

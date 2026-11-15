@@ -31,4 +31,11 @@ describe('spendibileDaFormula', () => {
   it('primarie dal 35% in su: entrate meno primarie meno il 50%', () => {
     expect(spendibileDaFormula(1000, 400)).toBeCloseTo(100, 2);
   });
+  it('usa le soglie del mese (23% primarie, 22% secondarie)', () => {
+    expect(spendibileDaFormula(1833.53, 250.86, 23, 22)).toBeCloseTo(403.38, 2);
+    expect(spendibileDaFormula(1000, 300, 23, 22)).toBeCloseTo(150, 2);
+  });
+  it('soglie 50/20, come nelle righe del foglio fino a marzo 2026', () => {
+    expect(spendibileDaFormula(1027.77, 506.78, 50, 20)).toBeCloseTo(205.55, 2);
+  });
 });

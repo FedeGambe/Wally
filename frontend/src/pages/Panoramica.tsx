@@ -64,7 +64,7 @@ export default function Panoramica({
     filteredRisparmio,
     chartData,
     cumulativeChartData,
-    dynamicThresholds,
+    dynamicThresholds, soglieDelMese, sogliePannello,
     currentMonthData, prevMonthData,
     patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
     handleChartClick, handleOpenMonthDetail,
@@ -177,7 +177,7 @@ export default function Panoramica({
       <div className="hidden md:block lg:col-span-3">
         <PanoramicaBilancioStorico
           filteredRisparmio={filteredRisparmio}
-          dynamicThresholds={dynamicThresholds}
+          soglieDelMese={soglieDelMese}
           handleOpenMonthDetail={handleOpenMonthDetail}
         />
       </div>
@@ -188,7 +188,7 @@ export default function Panoramica({
         <div className={theme === 'dark' ? 'glass-theme' : undefined}>
           <PanoramicaBilancioStorico
             filteredRisparmio={filteredRisparmio}
-            dynamicThresholds={dynamicThresholds}
+            soglieDelMese={soglieDelMese}
             handleOpenMonthDetail={(mese, anno) => { setStoricoAperto(false); handleOpenMonthDetail(mese, anno); }}
             inPopup
           />
@@ -203,7 +203,7 @@ export default function Panoramica({
         subtitle={drawerSubtitle}
         transactions={drawerTransactions}
         stats={drawerStats}
-        dynamicThresholds={dynamicThresholds}
+        dynamicThresholds={sogliePannello}
         navigazioneMese={{
           precedente: dettaglioPrecedente && {
             etichetta: `${dettaglioPrecedente.mese} ${dettaglioPrecedente.anno}`,

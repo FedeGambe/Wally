@@ -26,6 +26,7 @@ import numpy as np
 from backend.domain.previsioni.serie import chiave_mese, data_da_testo, indice_mese, mese_da_testo, numero
 from backend.domain.previsioni.stipendio import serie_stipendio
 from backend.domain.previsioni.straordinarie import uscite_straordinarie
+from backend.domain.soglie import soglie_del_mese
 
 MESI_INDIETRO = 12
 SCENARI_MINIMI = 3
@@ -120,6 +121,8 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
     elif not entrate_mese and entrate_previste:  # nessuno stipendio passato: la stima dei flussi
         entrate_mese, entrate_stimate = float(entrate_previste), True
 
+    # Le soglie valide nel mese in corso (possono cambiare nel tempo).
+    soglie = soglie_del_mese(soglie, oggi.year, oggi.month)
     perc = {nome: _soglia(soglie, nome) for nome in SOGLIE_PREDEFINITE}
     soglie_esito = []
     for nome, scenari, percentuale in (
