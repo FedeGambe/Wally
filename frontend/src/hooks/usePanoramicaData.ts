@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Transaction } from '../data/mockData';
 import { useFinanceData } from '../context/FinanceDataContext';
 import { INTESTAZIONI_RISPARMIO } from '../config/sheetsConfig';
-import { getThresholds } from '../utils/thresholds';
+import { getThresholdsDelMese } from '../utils/thresholds';
 import { MESI_ITALIANI, getMonthIndex, isMeseAnnoFuturo } from '../utils/date';
 import { spendibileDaFormula, stipendioMediano } from '../utils/stipendioStimato';
 
@@ -41,6 +41,14 @@ export function usePanoramicaData(
   // Mese mostrato nel dettaglio, per le frecce mese precedente/successivo.
   const [meseDettaglio, setMeseDettaglio] = useState<{ mese: string; anno: number } | null>(null);
 
+  // Le soglie cambiano nel tempo: ogni mese si misura con quelle valide allora.
+  const soglieDelMese = useCallback((mese: string, anno: number) => {
+    const headers = data.risparmioHeaders?.length
+      ? data.risparmioHeaders
+      : DEFAULT_RISPARMIO_HEADERS;
+    return getThresholdsDelMese(headers, data.soglie, anno, getMonthIndex(mese));
+  }, [data.risparmioHeaders, data.soglie]);
+
   // Filter data based on selected year
   const chronologicalData = useMemo(() => {
     const localRisparmio = data.risparmio;
@@ -62,7 +70,10 @@ export function usePanoramicaData(
 
       const investito = Number(r.investiti !== undefined ? r.investiti : (r.investito !== undefined ? r.investito : 0));
       const risparmioNetto = Number(r.risparmio !== undefined ? r.risparmio : (r.risparmioNetto !== undefined ? r.risparmioNetto : 0));
-      const spendibile = Number(r.spendibile || 0);
+      // Spendibile con la formula del foglio e le soglie di quel mese (sul
+      // foglio le percentuali sono scritte a mano in ogni riga e possono restare indietro).
+      const soglie = soglieDelMese(r.mese, r.anno);
+      const spendibile = spendibileDaFormula(entrate, spesePrimarie, soglie.primarie, soglie.secondarie);
 
       return {
         ...r,
@@ -76,7 +87,7 @@ export function usePanoramicaData(
         spendibile
       };
     });
-  }, [data]);
+  }, [data, soglieDelMese]);
 
   const filteredRisparmio = useMemo(() => {
     return chronologicalData.filter(
@@ -132,12 +143,6 @@ export function usePanoramicaData(
     }));
   }, [chronologicalData, chartData]);
 
-  const dynamicThresholds = useMemo(() => {
-    const headers = data.risparmioHeaders?.length
-      ? data.risparmioHeaders
-      : DEFAULT_RISPARMIO_HEADERS;
-    return getThresholds(headers, data.soglie);
-  }, [data.risparmioHeaders, data.soglie]);
 
   // Retrieve current month record and previous month record for delta calculations (year-aware)
   // Ricerca "a cascata": prova prima mese+anno esatti, poi solo il mese (in
@@ -173,6 +178,12 @@ export function usePanoramicaData(
     };
   }, [chronologicalData, localSelectedMonth, selectedYear]);
 
+  // Soglie del mese mostrato in Home.
+  const dynamicThresholds = useMemo(
+    () => soglieDelMese(currentMonthData.mese, currentMonthData.anno),
+    [soglieDelMese, currentMonthData.mese, currentMonthData.anno]
+  );
+
   // Stipendio non ancora arrivato (di solito verso metà mese): nel mese in
   // corso spendibile e soglie si calcolano con lo stipendio mediano degli
   // ultimi 6 mesi, segnati con un asterisco nella Home. Appena lo stipendio
@@ -188,10 +199,10 @@ export function usePanoramicaData(
     return {
       mediana,
       entrate,
-      spendibile: spendibileDaFormula(entrate, currentMonthData.spesePrimarie || 0),
+      spendibile: spendibileDaFormula(entrate, currentMonthData.spesePrimarie || 0, dynamicThresholds.primarie, dynamicThresholds.secondarie),
       risparmioNetto: (currentMonthData.risparmioNetto || 0) + mediana
     };
-  }, [currentMonthData, data.entrate]);
+  }, [currentMonthData, data.entrate, dynamicThresholds]);
   // Entrate e risparmio su cui si misurano le soglie: stimati se manca lo stipendio.
   const entrateRif = stimaStipendio ? stimaStipendio.entrate : currentMonthData.entrate;
   const risparmioRif = stimaStipendio ? stimaStipendio.risparmioNetto : currentMonthData.risparmioNetto;
@@ -291,14 +302,16 @@ export function usePanoramicaData(
     ? (risparmioRif / entrateRif) * 100
     : undefined;
 
-  // Quanto resta ancora da spendere questo mese: colonna "Spendibile" del
-  // foglio Risparmio (budget mensile per le spese secondarie) meno quanto
-  // già speso in secondarie.
+  // Quanto resta ancora da spendere questo mese: lo Spendibile (budget mensile
+  // per le spese secondarie, con le soglie del mese) meno quanto già speso in
+  // secondarie.
   // Mesi accanto a quello aperto nel dettaglio (fra tutti i mesi del foglio,
   // non solo l'anno scelto: da Gennaio si torna a Dicembre dell'anno prima).
   const idxDettaglio = meseDettaglio
     ? chronologicalData.findIndex(r => r.mese.toLowerCase() === meseDettaglio.mese.toLowerCase() && r.anno === meseDettaglio.anno)
     : -1;
+  // Soglie del mese aperto nel pannello di dettaglio.
+  const sogliePannello = meseDettaglio ? soglieDelMese(meseDettaglio.mese, meseDettaglio.anno) : dynamicThresholds;
   const dettaglioPrecedente = idxDettaglio > 0 ? chronologicalData[idxDettaglio - 1] : undefined;
   const dettaglioSuccessivo = idxDettaglio !== -1 && idxDettaglio < chronologicalData.length - 1 ? chronologicalData[idxDettaglio + 1] : undefined;
 
@@ -314,7 +327,7 @@ export function usePanoramicaData(
     filteredRisparmio,
     chartData,
     cumulativeChartData,
-    dynamicThresholds,
+    dynamicThresholds, soglieDelMese, sogliePannello,
     currentMonthData, prevMonthData,
     patrimonioTotale, capitaleDisponibile, capitaleInvestito, capitaleImpegnato,
     handleChartClick, handleOpenMonthDetail,

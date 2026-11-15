@@ -435,8 +435,9 @@ def righe_scheda(scheda: SchedaFoglio, oggetti: list[dict]) -> list[list]:
 
 
 def oggetti_dati_base(dati: dict) -> dict[str, list[dict]]:
-    """I Dati Base dell'app (liste, macro con categorie, soglie 0-100) come righe
-    piatte delle schede del foglio di configurazione."""
+    """I Dati Base dell'app (liste, macro con categorie) come righe piatte delle
+    schede del foglio di configurazione. Soglie e preset investimenti sono
+    matrici: domain/soglie.py e matrice_preset_investimenti."""
     categorie_uscite = []
     for m in dati.get("macroCategorieUscite") or []:
         if m.get("categorie"):
@@ -447,9 +448,6 @@ def oggetti_dati_base(dati: dict) -> dict[str, list[dict]]:
         "contiRows": [{"nome": n} for n in dati.get("conti") or []],
         "categorieEntrateRows": [{"nome": n} for n in dati.get("categorieEntrate") or []],
         "categorieUsciteRows": categorie_uscite,
-        # Il foglio vuole le soglie come frazione (35 → 0,35).
-        "soglieRows": [{"categoria": s.get("categoria"), "percentuale": float(s.get("percentuale") or 0) / 100}
-                       for s in dati.get("soglie") or []],
         "presetUsciteRows": [{k: p.get(k) for k in ("giornoDelMese", "nome", "macroCategoria", "categoria", "conto",
                                                     "importo", "primaria")} for p in dati.get("presetUscite") or []],
         "presetTrasferimentiRows": [{k: p.get(k) for k in ("categoria", "contoOrdinante", "contoBeneficiario", "importo")}

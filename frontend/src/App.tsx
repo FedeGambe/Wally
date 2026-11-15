@@ -60,7 +60,7 @@ import { initAuth, logout, silentTokenRefresh } from './lib/googleAuth';
 import { getExportableData, isIncognitoModeEnabled } from './data/mockData';
 import { FinanceDataProvider, useFinanceData } from './context/FinanceDataContext';
 import { MESI_ITALIANI, getMonthIndex } from './utils/date';
-import { getThresholds } from './utils/thresholds';
+import { getThresholdsDelMese } from './utils/thresholds';
 
 // Punti percentuali di scarto (soglia target - quota reale spese totali) oltre i quali,
 // nel popup di riepilogo mese, si propone una redistribuzione del margine risparmiato.
@@ -100,8 +100,9 @@ function computeRiepilogoPrecedente(data: ReturnType<typeof getExportableData>) 
   if (!record) return null;
 
   // Soglia "spese totali" = primarie + secondarie (stessa fonte usata da Panoramica/Uscite:
-  // Soglie utente se presenti, altrimenti default di src/config/targets.ts).
-  const thresholds = getThresholds([], data.soglie);
+  // Soglie utente valide nel mese se presenti, altrimenti default di src/config/targets.ts).
+  // Soglie valide nel mese del riepilogo (cambiano nel tempo).
+  const thresholds = getThresholdsDelMese([], data.soglie, anno, meseIdx);
   const targetSpeseTotali = thresholds.primarie + thresholds.secondarie;
   // Coercizione a numero di tutti i campi usati, una volta sola qui: un campo mancante/non
   // numerico nella riga del foglio (cella vuota, "N/D"...) altrimenti arriva come NaN/undefined

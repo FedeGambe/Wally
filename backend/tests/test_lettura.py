@@ -122,3 +122,30 @@ def test_dati_principali_broker_con_colonne_strumenti():
     assert dati["tradeRepublic"][1]["ftseAllWorld"] == 100
     assert dati["tradeRepublicInstruments"][0]["nome"] == "FTSE All-World"
     assert dati["cruscottoInvestimenti"][0]["obbligazioniInvestitoAnno"] == 50
+
+
+def test_soglie_vecchio_formato_con_colonna_dal():
+    righe = [["Categoria", "Percentuale", "Dal"], ["Spese Primarie", "0,35", ""],
+             ["Spese Primarie", "0,40", "01/11/2026"], ["Risparmio", "25%", "2026-03"]]
+    dati = dati_base([vr("Soglie", righe)], ["Soglie"])
+    assert dati["soglie"] == [
+        {"categoria": "Spese Primarie", "percentuale": 35},
+        {"categoria": "Spese Primarie", "percentuale": 40, "dal": "2026-11"},
+        {"categoria": "Risparmio", "percentuale": 25, "dal": "2026-03"},
+    ]
+
+
+def test_soglie_una_riga_per_periodo():
+    righe = [["Dal", "Spese Primarie", "Risparmio"],
+             ["aprile 2026", "35%", "25%"],
+             ["settembre 2025", "50%", "15%"],
+             ["ottobre 2026", "23%", "25%"]]
+    dati = dati_base([vr("Soglie", righe)], ["Soglie"])
+    # In ordine di data; Risparmio non cambia a ottobre: nessuna versione nuova.
+    assert dati["soglie"] == [
+        {"categoria": "Spese Primarie", "percentuale": 50, "dal": "2025-09"},
+        {"categoria": "Risparmio", "percentuale": 15, "dal": "2025-09"},
+        {"categoria": "Spese Primarie", "percentuale": 35, "dal": "2026-04"},
+        {"categoria": "Risparmio", "percentuale": 25, "dal": "2026-04"},
+        {"categoria": "Spese Primarie", "percentuale": 23, "dal": "2026-10"},
+    ]
