@@ -3,7 +3,7 @@ import { AlertTriangle, RotateCcw, Target, TrendingUp } from 'lucide-react';
 import { Area, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { IpotesiPrevisioni, Patrimonio, Ripartizione } from '../../lib/previsioniService';
 import {
-  COLORI, EtichettaStima, Nota, Riquadro, Suggerimento, ValoreEsatto,
+  ASSE, COLORI, EtichettaStima, GRIGLIA, Legenda, Nota, Riquadro, Suggerimento, ValoreEsatto,
   euroAsse, euroEsatto, euroStima, meseLungo, percentuale,
 } from './comune';
 
@@ -58,13 +58,20 @@ export default function PrevisioniProiezione({ patrimonio, ipotesi, setIpotesi, 
                 nota={`senza rendimenti: ~ ${euroStima(fine.soloVersamenti)}`} />
             )}
           </div>
+          <Legenda className="mb-3" voci={[
+            { nome: 'Più probabile', colore: COLORI.stima, forma: 'tratteggio' },
+            { nome: '1 volta su 2', colore: COLORI.fascia, forma: 'fascia', opacita: 0.45 },
+            { nome: '8 volte su 10', colore: COLORI.fascia, forma: 'fascia', opacita: 0.2 },
+            { nome: 'Senza rendimenti', colore: COLORI.neutro, forma: 'puntini' },
+            ...(ipotesi.obiettivo ? [{ nome: 'Obiettivo', colore: COLORI.fondoPensione, forma: 'tratteggio' as const }] : []),
+          ]} />
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={punti} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} className="cursor-pointer"
+              <ComposedChart data={punti} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} className="cursor-pointer"
                 onClick={(e: any) => { if (e?.activeLabel && e.activeLabel !== 'oggi') setMeseScelto(String(e.activeLabel)); }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={COLORI.griglia} strokeOpacity={0.25} vertical={false} />
-                <XAxis dataKey="mese" tickFormatter={m => (m === 'oggi' ? 'oggi' : m.slice(0, 4))} stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} minTickGap={28} />
-                <YAxis stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} width={48} tickFormatter={euroAsse} />
+                <CartesianGrid {...GRIGLIA} />
+                <XAxis dataKey="mese" tickFormatter={m => (m === 'oggi' ? 'Oggi' : m.slice(0, 4))} {...ASSE} minTickGap={28} />
+                <YAxis {...ASSE} width={60} tickFormatter={euroAsse} />
                 {ipotesi.obiettivo && <ReferenceLine y={ipotesi.obiettivo} stroke={COLORI.fondoPensione} strokeDasharray="4 4"
                   label={{ value: `obiettivo ${euroStima(ipotesi.obiettivo)}`, position: 'insideTopLeft', fontSize: 11, fill: COLORI.fondoPensione }} />}
                 {puntoScelto && <ReferenceLine x={puntoScelto.mese} stroke={COLORI.stima} strokeOpacity={0.6} />}
@@ -76,21 +83,16 @@ export default function PrevisioniProiezione({ patrimonio, ipotesi, setIpotesi, 
                     { nome: 'Più probabile', valore: `~ ${euroStima(p.p50)}`, colore: COLORI.stima },
                     { nome: '1 volta su 2 tra', valore: `${euroStima(p.p25)} e ${euroStima(p.p75)}` },
                     { nome: '8 volte su 10 tra', valore: `${euroStima(p.p10)} e ${euroStima(p.p90)}` },
-                    { nome: 'Senza rendimenti', valore: `~ ${euroStima(p.soloVersamenti)}`, colore: COLORI.griglia },
+                    { nome: 'Senza rendimenti', valore: `~ ${euroStima(p.soloVersamenti)}`, colore: COLORI.neutro },
                   ]} />;
                 }} />
-                <Area dataKey="esterna" stroke="none" fill={COLORI.fascia} fillOpacity={0.12} isAnimationActive={false} />
-                <Area dataKey="interna" stroke="none" fill={COLORI.fascia} fillOpacity={0.22} isAnimationActive={false} />
-                <Line dataKey="soloVersamenti" stroke={COLORI.griglia} strokeWidth={1.5} strokeDasharray="2 4" dot={false} isAnimationActive={false} />
-                <Line dataKey="p50" stroke={COLORI.stima} strokeWidth={2.5} strokeDasharray="6 4" dot={false} isAnimationActive={false} />
+                {/* Animazioni spente: i cursori rifanno la simulazione e le fasce ripartirebbero da zero a ogni passo */}
+                <Area type="monotone" dataKey="esterna" stroke="none" fill={COLORI.fascia} fillOpacity={0.12} activeDot={false} isAnimationActive={false} />
+                <Area type="monotone" dataKey="interna" stroke="none" fill={COLORI.fascia} fillOpacity={0.22} activeDot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="soloVersamenti" stroke={COLORI.neutro} strokeWidth={1.5} strokeDasharray="2 4" dot={false} activeDot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="p50" stroke={COLORI.stima} strokeWidth={2.5} strokeDasharray="6 4" dot={false} activeDot={{ r: 5 }} isAnimationActive={false} />
               </ComposedChart>
             </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap gap-4 text-2xs text-ink-soft mt-2">
-            <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: COLORI.stima }} />Più probabile</span>
-            <span className="flex items-center gap-1.5"><span className="w-4 h-2 rounded-sm" style={{ background: COLORI.fascia, opacity: 0.4 }} />1 volta su 2</span>
-            <span className="flex items-center gap-1.5"><span className="w-4 h-2 rounded-sm" style={{ background: COLORI.fascia, opacity: 0.2 }} />8 volte su 10</span>
-            <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 border-t-2 border-dotted" style={{ borderColor: COLORI.griglia }} />Senza rendimenti</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
@@ -230,7 +232,7 @@ function Torta({ titolo, ripartizione, totale, esatta = false }: { titolo: strin
         </div>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={dati} dataKey="valore" nameKey="nome" innerRadius="72%" outerRadius="95%" paddingAngle={dati.length > 1 ? 2 : 0}
+            <Pie data={dati} dataKey="valore" nameKey="nome" innerRadius="72%" outerRadius="95%" paddingAngle={0}
               stroke="none" isAnimationActive={false}
               onMouseEnter={(_: unknown, i: number) => setAttiva(i)} onMouseLeave={() => setAttiva(null)}>
               {dati.map((p, i) => (
@@ -255,8 +257,8 @@ function Scenario({ etichetta, p }: { etichetta: string; p: { p10: number; p50: 
   return (
     <div>
       <div className="text-2xs font-bold uppercase tracking-wider text-ink-soft">{etichetta}<EtichettaStima /></div>
-      <div className="font-display font-black text-ink text-xl mt-1">~ {euroStima(p.p50)}</div>
-      <div className="text-xs text-ink-soft mt-0.5">8 volte su 10 tra {euroStima(p.p10)} e {euroStima(p.p90)}</div>
+      <div className="font-display font-black text-ink text-2xl leading-none mt-2">~ {euroStima(p.p50)}</div>
+      <div className="text-xs text-ink-soft mt-1.5">8 volte su 10 tra {euroStima(p.p10)} e {euroStima(p.p90)}</div>
     </div>
   );
 }

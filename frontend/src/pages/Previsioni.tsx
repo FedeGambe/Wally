@@ -1,25 +1,36 @@
 /**
  * Pagina "Previsioni" (solo computer): stime fatte dal backend Python
  * (backend/domain/previsioni/) sui dati già in memoria.
- *  - PrevisioniFineMese: come chiude il mese in corso
- *  - PrevisioniProssimiMesi: entrate, spese e avanzo dei prossimi 12 mesi
- *  - PrevisioniCrescita: da dove viene la crescita del patrimonio (cifre vere)
- *  - PrevisioniProiezione: dove può arrivare, con i cursori "E se…"
+ *
+ * Come le altre pagine: in alto la barra delle schede (nel viola della
+ * pagina) e quattro card KPI col riassunto (PrevisioniKpiCards), ognuna
+ * nel colore del suo dato, che portano alla loro scheda.
+ * Le schede:
+ *  - Questo mese: PrevisioniFineMese, come chiude il mese in corso
+ *  - Prossimi 12 mesi: PrevisioniProssimiMesi, entrate, spese e avanzo
+ *  - Patrimonio: PrevisioniCrescita (da dove viene la crescita, cifre vere) e
+ *    PrevisioniProiezione (dove può arrivare, con i cursori "E se…")
  * Su telefono mostra solo un avviso: i grafici sono pensati per lo schermo largo.
  */
-import React from 'react';
-import { Monitor, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { CalendarClock, CalendarRange, Monitor, Sparkles, TrendingUp } from 'lucide-react';
 import { usePrevisioni } from '../hooks/usePrevisioni';
 import { useIsMobile } from '../hooks/useIsMobile';
+import BarraSchede from '../components/BarraSchede';
 import PrevisioniFineMese from '../components/previsioni/PrevisioniFineMese';
 import PrevisioniProssimiMesi from '../components/previsioni/PrevisioniProssimiMesi';
 import PrevisioniCrescita from '../components/previsioni/PrevisioniCrescita';
 import PrevisioniProiezione from '../components/previsioni/PrevisioniProiezione';
+import PrevisioniKpiCards, { type SchedaPrevisioni } from '../components/previsioni/PrevisioniKpiCards';
 import { NonDisponibile, Riquadro } from '../components/previsioni/comune';
+
+/** Colore della pagina (voce attiva della barra laterale: violet-600). */
+const VIOLA = '#8b5cf6';
 
 export default function Previsioni() {
   const solotelefono = useIsMobile(768);
   const { risposta, errore, inCaricamento, ipotesi, setIpotesi, ripristinaIpotesi, cursoriBloccati, isIncognito } = usePrevisioni();
+  const [scheda, setScheda] = useState<SchedaPrevisioni>('mese');
 
   if (solotelefono) {
     return (
@@ -32,23 +43,26 @@ export default function Previsioni() {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display font-black text-ink text-2xl flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-violet-500" /> Previsioni
-          </h1>
-          <p className="text-sm text-ink-soft mt-1">
-            Le stime sono sempre una fascia, non una cifra: la linea tratteggiata è la più probabile, l'area colorata è dove il valore cade 8 volte su 10.
-            {isIncognito && ' Modalità incognito: stime fatte sui dati finti.'}
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <h1 className="sr-only">Previsioni</h1>
+
+      <BarraSchede
+        ariaLabel="Sezioni di Previsioni"
+        compatta={false}
+        accento={VIOLA}
+        fissa
+        attiva={scheda}
+        onChange={setScheda}
+        schede={[
+          { id: 'mese', etichetta: 'Questo mese', icona: <CalendarClock className="w-[18px] h-[18px]" /> },
+          { id: 'prossimi', etichetta: 'Prossimi 12 mesi', icona: <CalendarRange className="w-[18px] h-[18px]" /> },
+          { id: 'patrimonio', etichetta: 'Patrimonio', icona: <TrendingUp className="w-[18px] h-[18px]" /> },
+        ]}
+      />
 
       {errore && !risposta && (
         <Riquadro icona={Sparkles} titolo="Previsioni non disponibili"><NonDisponibile motivo={errore} /></Riquadro>
       )}
-      {errore && risposta && <p className="text-xs text-down">Ultimo ricalcolo non riuscito: {errore}</p>}
 
       {!risposta && !errore && (
         <div className="flex items-center justify-center py-24">
@@ -58,9 +72,17 @@ export default function Previsioni() {
 
       {risposta && (
         <>
-          <PrevisioniFineMese fineMese={risposta.fineMese} />
-          <PrevisioniProssimiMesi flussi={risposta.flussi} />
-          {risposta.patrimonio.disponibile ? (
+          <PrevisioniKpiCards risposta={risposta} anni={ipotesi.anni} scheda={scheda} setScheda={setScheda} />
+
+          <p className="text-xs text-ink-soft">
+            Le stime sono sempre una fascia, non una cifra: nei grafici la linea tratteggiata viola è la più probabile, l'area viola è dove il valore cade 8 volte su 10.
+            {isIncognito && ' Modalità incognito: stime fatte sui dati finti.'}
+            {errore && <span className="text-down"> Ultimo ricalcolo non riuscito: {errore}</span>}
+          </p>
+
+          {scheda === 'mese' && <PrevisioniFineMese fineMese={risposta.fineMese} />}
+          {scheda === 'prossimi' && <PrevisioniProssimiMesi flussi={risposta.flussi} />}
+          {scheda === 'patrimonio' && (risposta.patrimonio.disponibile ? (
             <>
               <PrevisioniCrescita patrimonio={risposta.patrimonio} />
               <PrevisioniProiezione patrimonio={risposta.patrimonio} ipotesi={ipotesi} setIpotesi={setIpotesi}
@@ -68,7 +90,7 @@ export default function Previsioni() {
             </>
           ) : (
             <Riquadro icona={Sparkles} titolo="Patrimonio"><NonDisponibile motivo={risposta.patrimonio.motivo} /></Riquadro>
-          )}
+          ))}
         </>
       )}
     </div>

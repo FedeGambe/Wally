@@ -3,7 +3,7 @@ import { CalendarClock } from 'lucide-react';
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { FineMese, NonDisponibile as ND } from '../../lib/previsioniService';
 import {
-  COLORI, NonDisponibile, Nota, Riquadro, Suggerimento, ValoreEsatto, ValoreStimato,
+  ASSE, COLORI, GRIGLIA, Legenda, NonDisponibile, Nota, Riquadro, Segmenti, Suggerimento, ValoreEsatto, ValoreStimato,
   euroAsse, euroEsatto, euroStima, meseLungo, percentuale,
 } from './comune';
 
@@ -25,18 +25,7 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
   // Stipendio non ancora registrato: le soglie si misurano su entrate stimate (asterisco).
   const ast = f.entrateStimate ? '*' : '';
 
-  const scelta = (
-    <div className="flex gap-1.5">
-      {(Object.keys(NOMI) as Tipo[]).map(t => (
-        <button key={t} type="button" onClick={() => setTipo(t)} aria-pressed={tipo === t}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${tipo === t
-            ? 'bg-violet-600 text-white border-violet-600'
-            : 'bg-transparent text-ink-soft border-hairline hover:bg-canvas dark:hover:bg-white/5'}`}>
-          {NOMI[t]}
-        </button>
-      ))}
-    </div>
-  );
+  const scelta = <Segmenti voci={NOMI} attiva={tipo} onChange={setTipo} etichetta="Spese da mostrare" />;
   const curva = curvaTipo.map(p => ({
     ...p,
     fascia: p.basso !== undefined && p.alto !== undefined ? [p.basso, p.alto] : undefined,
@@ -54,10 +43,10 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
         <div className="space-y-5">
           <ValoreStimato etichetta={tipo === 'totale' ? 'Spese a fine mese' : `Spese ${NOMI[tipo].toLowerCase()} a fine mese`} stima={f.stima[tipo]} grande />
           <div className="grid grid-cols-2 gap-4">
-            <ValoreEsatto etichetta="Già speso" valore={euroEsatto(f.spesoFinora[tipo])} />
+            <ValoreEsatto etichetta="Già speso" valore={f.spesoFinora[tipo]} />
             <ValoreEsatto
               etichetta="Fisse in arrivo"
-              valore={euroEsatto(fissi.reduce((s, x) => s + x.importo, 0))}
+              valore={fissi.reduce((s, x) => s + x.importo, 0)}
               nota={fissi.length ? `${fissi.length} dai preset ricorrenti` : 'nessuna'}
             />
           </div>
@@ -90,30 +79,39 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
         </div>
 
         <div className="xl:col-span-2">
+          <Legenda className="mb-3" voci={[
+            { nome: 'Speso', colore: COLORI.spese },
+            { nome: 'Stima', colore: COLORI.stima, forma: 'tratteggio' },
+            { nome: '8 volte su 10 qui dentro', colore: COLORI.fascia, forma: 'fascia' },
+          ]} />
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={curva} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={COLORI.griglia} strokeOpacity={0.25} vertical={false} />
-                <XAxis dataKey="giorno" stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} width={44} tickFormatter={euroAsse} />
+              <ComposedChart data={curva} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="prevSpeso" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORI.spese} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={COLORI.spese} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid {...GRIGLIA} />
+                <XAxis dataKey="giorno" {...ASSE} interval="preserveStartEnd" minTickGap={12} />
+                <YAxis {...ASSE} width={60} tickFormatter={euroAsse} />
                 <Tooltip content={({ active, payload }: any) => {
                   if (!active || !payload?.length) return null;
                   const p = payload[0].payload;
                   const righe = [];
-                  if (p.speso !== undefined) righe.push({ nome: 'Speso', valore: euroEsatto(p.speso), colore: COLORI.vero });
-                  if (p.centrale !== undefined && p.giorno > f.giorno) righe.push({ nome: 'Stima', valore: `~ ${euroStima(p.centrale)} (${euroStima(p.basso)} – ${euroStima(p.alto)})`, colore: COLORI.stima });
+                  if (p.speso !== undefined) righe.push({ nome: 'Speso', valore: euroEsatto(p.speso), colore: COLORI.spese });
+                  if (p.centrale !== undefined && p.giorno > f.giorno) {
+                    righe.push({ nome: 'Stima', valore: `~ ${euroStima(p.centrale)}`, colore: COLORI.stima });
+                    righe.push({ nome: '8 volte su 10 tra', valore: `${euroStima(p.basso)} e ${euroStima(p.alto)}` });
+                  }
                   return <Suggerimento titolo={`Giorno ${p.giorno}`} righe={righe} />;
                 }} />
-                <Area dataKey="fascia" stroke="none" fill={COLORI.fascia} fillOpacity={0.15} isAnimationActive={false} connectNulls={false} />
-                <Line dataKey="centrale" stroke={COLORI.stima} strokeWidth={2} strokeDasharray="6 4" dot={false} isAnimationActive={false} />
-                <Line dataKey="speso" stroke={COLORI.vero} strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                <Area type="monotone" dataKey="fascia" stroke="none" fill={COLORI.fascia} fillOpacity={0.15} connectNulls={false} activeDot={false} />
+                <Area type="monotone" dataKey="speso" stroke={COLORI.spese} strokeWidth={2.5} fill="url(#prevSpeso)" fillOpacity={1} dot={false} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="centrale" stroke={COLORI.stima} strokeWidth={2.5} strokeDasharray="6 4" dot={false} activeDot={{ r: 5 }} />
               </ComposedChart>
             </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap gap-4 text-2xs text-ink-soft mt-2">
-            <span className="flex items-center gap-1.5"><span className="w-4 h-0.5" style={{ background: COLORI.vero }} />Speso (vero)</span>
-            <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: COLORI.stima }} />Stima</span>
-            <span className="flex items-center gap-1.5"><span className="w-4 h-2 rounded-sm" style={{ background: COLORI.fascia, opacity: 0.25 }} />8 volte su 10 qui dentro</span>
           </div>
         </div>
       </div>

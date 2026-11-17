@@ -8,6 +8,7 @@ colors:
   sezione-patrimonio: "#facc15"
   sezione-investimenti: "#0ea5e9"
   sezione-consumi: "#e11d48"
+  sezione-previsioni: "#8b5cf6"
   accent: "#00A19A"
   accent-dark: "#15B4B7"
   accent-strong: "#00796F"
@@ -145,6 +146,7 @@ Una tavolozza a mappa: sei colori di sezione saturi più un teal di marca, tre c
 - **Giallo Patrimonio** (sezione-patrimonio): voce attiva di Patrimonio, l'unica con testo scuro (ink) invece che bianco.
 - **Azzurro Investimenti** (sezione-investimenti): tutti i pallini e gli accenti di Cruscotto, Rendimenti, Conti, Fondo pensione.
 - **Rosa Consumi** (sezione-consumi): Analisi consumi e i suoi form.
+- **Viola Previsioni** (sezione-previsioni): voce attiva (`violet-600`), barra delle schede e card KPI di Previsioni; nei grafici è il colore delle stime (linea tratteggiata e fascia), mentre le cifre vere tengono il colore del loro dato.
 
 ### Secondary
 - **Teal Wally** (accent / accent-dark): il colore del logo. Impostazioni, azioni di marca e CTA non legate a una sezione. In scuro si schiarisce.
