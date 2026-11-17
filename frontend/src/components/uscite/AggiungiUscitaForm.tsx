@@ -1,5 +1,5 @@
-import React, { useEffect, useId, useState } from 'react';
-import { Grid, Tag, CreditCard, Repeat } from 'lucide-react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Grid, Tag, CreditCard, Repeat, Sparkles } from 'lucide-react';
 import { useFinanceData } from '../../context/FinanceDataContext';
 import { useDatiBase } from '../../hooks/useDatiBase';
 import { useSaveAndPush } from '../../hooks/useSaveAndPush';
@@ -7,6 +7,7 @@ import { saveToLocalStorage, Transaction, Trasferimento } from '../../data/mockD
 import { iconPerMacroCategoria } from '../../data/datiBase';
 import { MESI_ITALIANI } from '../../utils/date';
 import { formatEuro } from '../../utils/format';
+import { creaSuggeritore } from '../../utils/suggerisciCategoria';
 import DropdownMenu from '../DropdownMenu';
 import AmountHero from '../AmountHero';
 import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
@@ -32,6 +33,12 @@ interface AggiungiUscitaFormProps {
  * componente dei filtri della pagina) invece del <select> nativo del browser,
  * il cui popup non è stilizzabile e in tema scuro risultava testo bianco su
  * sfondo bianco.
+ *
+ * Sotto la descrizione propone fino a 3 categorie imparate dalle uscite già
+ * registrate (utils/suggerisciCategoria.ts): dalla descrizione se c'è,
+ * altrimenti da importo, conto e giorno (i movimenti Trade Republic arrivano
+ * senza causale). Aperto da un movimento bancario, la prima proposta è già
+ * selezionata; inserendo a mano si sceglie toccandola.
  */
 export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscitaFormProps) {
   const dataId = useId();
@@ -79,6 +86,32 @@ export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscita
     setPresetSelezionatoId(presetId);
     setAncheTrasferimento(false);
   };
+
+  // Suggerimenti di categoria. Il modello si prepara una volta per elenco di
+  // uscite; le proposte si aggiornano mentre si scrive la descrizione.
+  const suggeritore = useMemo(() => creaSuggeritore(data.uscite), [data.uscite]);
+  const suggerimenti = useMemo(() => {
+    const d = new Date(`${dataStr}T12:00:00`);
+    const valida = (macro: string, cat: string) => {
+      const m = macroCategorieUscite.find(x => x.nome === macro);
+      return Boolean(m) && (m!.categorie.length === 0 || m!.categorie.includes(cat));
+    };
+    return suggeritore({ descrizione, importo: Number(importo) || 0, conto, data: isNaN(d.getTime()) ? new Date() : d }, 3, valida);
+  }, [suggeritore, descrizione, importo, conto, dataStr, macroCategorieUscite]);
+
+  const scegliSuggerimento = (macro: string, cat: string) => {
+    setMacroCategoria(macro);
+    setCategoria(cat);
+  };
+
+  // Da un movimento bancario: la proposta migliore è già selezionata (una volta
+  // sola, all'apertura; poi decide l'utente).
+  const propostaApplicata = useRef(false);
+  useEffect(() => {
+    if (propostaApplicata.current || !iniziale || !suggerimenti.length) return;
+    propostaApplicata.current = true;
+    scegliSuggerimento(suggerimenti[0].macroCategoria, suggerimenti[0].categoria);
+  }, [iniziale, suggerimenti]);
 
   const macroSelezionata = macroCategorieUscite.find(m => m.nome === macroCategoria);
   const categorieDisponibili = macroSelezionata?.categorie || [];
@@ -229,6 +262,28 @@ export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscita
           required
         />
       </div>
+
+      {suggerimenti.length > 0 && !presetSelezionatoId && (
+        <div role="group" aria-label="Categorie suggerite" className="-mt-1 flex flex-wrap items-center gap-1.5">
+          <span className="flex items-center gap-1 text-2xs font-bold text-ink-soft uppercase tracking-wider mr-0.5">
+            <Sparkles className="w-3.5 h-3.5" /> Suggerite
+          </span>
+          {suggerimenti.map(sg => {
+            const scelta = sg.macroCategoria === macroCategoria && sg.categoria === categoria;
+            return (
+              <button key={`${sg.macroCategoria}-${sg.categoria}`} type="button" aria-pressed={scelta}
+                onClick={() => scegliSuggerimento(sg.macroCategoria, sg.categoria)}
+                title={`${sg.macroCategoria} · ${sg.categoria}`}
+                className={`min-h-9 sm:min-h-0 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${scelta
+                  ? 'bg-orange-700 text-white border-orange-700'
+                  : 'border-hairline text-ink dark:text-slate-200 hover:bg-canvas dark:hover:bg-white/5'}`}>
+                <span className="mr-1">{macroIconByNome[sg.macroCategoria] || ''}</span>{sg.categoria}
+                {sg.categoria !== sg.macroCategoria && <span className={`ml-1 font-normal ${scelta ? 'text-orange-100' : 'text-ink-soft'}`}>· {sg.macroCategoria}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
