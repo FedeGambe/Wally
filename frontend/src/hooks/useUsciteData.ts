@@ -40,8 +40,6 @@ export function useUsciteData(
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMacroCat, setSelectedMacroCat] = useState('Tutte');
   const [selectedMicroCat, setSelectedMicroCat] = useState('Tutte');
-  const [selectedConto, setSelectedConto] = useState('Tutti');
-  const [selectedType, setSelectedType] = useState('Tutte'); // Tutte, Primarie, Secondarie
   const [activeChartFilter, setActiveChartFilter] = useState<'all' | 'primarie' | 'secondarie'>('all');
 
   // Drawer details state
@@ -201,51 +199,8 @@ export function useUsciteData(
     });
   }, [localTransactions, selectedRecord]);
 
-  // Dynamic Macro categories extracted right from localTransactions
-  const macroCategoriesList = useMemo(() => {
-    const list = new Set(localTransactions.map(t => t.macroCategoria).filter(Boolean));
-    return ['Tutte', ...Array.from(list)];
-  }, [localTransactions]);
-
-  // Dynamic Payment accounts listings
-  const accountsList = useMemo(() => {
-    const list = new Set(localTransactions.map(t => t.conto).filter(Boolean));
-    return ['Tutti', ...Array.from(list)];
-  }, [localTransactions]);
-
-  // Filter uscite table based on multi criteria
-  const finalFilteredTransactions = useMemo(() => {
-    return activeMonthAllTransactions.filter((t) => {
-      // Text search match
-      const textMatches =
-        searchTerm === '' ||
-        t.descrizione.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.macroCategoria.toLowerCase().includes(searchTerm.toLowerCase());
-      if (!textMatches) return false;
-
-      // Macro category selection
-      if (selectedMacroCat !== 'Tutte') {
-        const transMacro = t.macroCategoria || 'Altro';
-        if (transMacro !== selectedMacroCat) return false;
-      }
-
-      // Micro category selection
-      if (selectedMicroCat !== 'Tutte') {
-        const transMicro = t.categoria || 'Altro';
-        if (transMicro !== selectedMicroCat) return false;
-      }
-
-      // Conto utilized selection
-      if (selectedConto !== 'Tutti' && t.conto !== selectedConto) return false;
-
-      // Primary vs Secondary selection
-      if (selectedType === 'Primarie' && !t.primaria) return false;
-      if (selectedType === 'Secondarie' && t.primaria) return false;
-
-      return true;
-    });
-  }, [activeMonthAllTransactions, searchTerm, selectedMacroCat, selectedMicroCat, selectedConto, selectedType]);
+  // L'elenco dell'archivio (con ordinamento e filtri di colonna) lo fa
+  // UsciteTransazioniTable a partire da activeMonthAllTransactions.
 
   // Breakdown expenditure per Macro Category matching selected month and year
   const macroCategoryDistribution = useMemo(() => {
@@ -324,8 +279,6 @@ export function useUsciteData(
     searchTerm, setSearchTerm,
     selectedMacroCat, setSelectedMacroCat,
     selectedMicroCat, setSelectedMicroCat,
-    selectedConto, setSelectedConto,
-    selectedType, setSelectedType,
     activeChartFilter, setActiveChartFilter,
     drawerOpen, setDrawerOpen,
     drawerTitle, drawerSubtitle, drawerTransactions, drawerStats,
@@ -334,8 +287,7 @@ export function useUsciteData(
     totalPctOfIncome, primaryPctOfIncome, secondaryPctOfIncome,
     dynamicThresholds,
     rolling12MonthsData,
-    macroCategoriesList, accountsList,
-    finalFilteredTransactions,
+    activeMonthAllTransactions,
     macroCategoryDistribution, microCategoryDistribution,
     handleChartClick, handleOpenMonthDetail
   };

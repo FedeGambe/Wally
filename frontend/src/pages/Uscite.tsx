@@ -15,25 +15,29 @@
 //  2. UsciteTrendChart: grafico ad area con lo storico spese ultimi 12 mesi
 //  3. CategoryPieCard x2: distribuzione per Macro Categoria e Micro Categoria
 //     (cliccare una fetta della Macro filtra la Micro, vedi useEffect sotto)
-//  4. Tabella/archivio transazioni con ricerca e filtri (macro, conto, tipo)
+//  4. UsciteTransazioniTable: archivio del mese, dal più recente, con
+//     ordinamento per colonna e un filtro per ogni colonna
 //  5. Drawer laterale con il dettaglio movimenti quando si apre un mese
+// La scheda "Analisi periodo" (subviews/AnalisiUscite.tsx) mostra invece le
+// uscite su un periodo intero (anno, ultimi 12 mesi, tutto, da/a).
 // ============================================================================
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Filter,
-  Search,
-  Grid,
-  CreditCard, Receipt, ZoomIn, ZoomOut } from 'lucide-react';
+import { Search, Grid, CreditCard, ZoomIn, ZoomOut, CalendarDays, ChartColumn } from 'lucide-react';
 import Drawer from '../components/Drawer';
-import DropdownMenu from '../components/DropdownMenu';
+import BarraSchede from '../components/BarraSchede';
 import Modal from '../components/Modal';
 import FloatingAddButton from '../components/FloatingAddButton';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
 import UsciteTrendChart, { scalaAsseUscite } from '../components/uscite/UsciteTrendChart';
 import AggiungiUscitaForm from '../components/uscite/AggiungiUscitaForm';
-import { formatEuro } from '../utils/format';
+import UsciteTransazioniTable from '../components/uscite/UsciteTransazioniTable';
+import AnalisiUscite from '../subviews/AnalisiUscite';
 import { useUsciteData } from '../hooks/useUsciteData';
+import { FILTRI_USCITE_VUOTI, FiltriUscite } from '../utils/filtriUscite';
+
+/** Scheda di Uscite: il mese scelto nell'header, o l'analisi su un periodo intero. */
+export type UsciteScheda = 'mese' | 'analisi';
 
 interface UsciteProps {
   selectedYear: string;
@@ -53,8 +57,6 @@ export default function Uscite({
     searchTerm, setSearchTerm,
     selectedMacroCat, setSelectedMacroCat,
     selectedMicroCat, setSelectedMicroCat,
-    selectedConto, setSelectedConto,
-    selectedType, setSelectedType,
     activeChartFilter, setActiveChartFilter,
     drawerOpen, setDrawerOpen,
     drawerTitle, drawerSubtitle, drawerTransactions, drawerStats,
@@ -63,8 +65,7 @@ export default function Uscite({
     totalPctOfIncome, primaryPctOfIncome, secondaryPctOfIncome,
     dynamicThresholds,
     rolling12MonthsData,
-    macroCategoriesList, accountsList,
-    finalFilteredTransactions,
+    activeMonthAllTransactions,
     macroCategoryDistribution, microCategoryDistribution,
     handleChartClick, handleOpenMonthDetail
   } = useUsciteData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
@@ -76,6 +77,17 @@ export default function Uscite({
   const [showAddModal, setShowAddModal] = useState(false);
   const [zoomedOut, setZoomedOut] = useState(false);
   const { hasOutliers } = scalaAsseUscite(rolling12MonthsData, activeChartFilter);
+  const [scheda, setScheda] = useState<UsciteScheda>('mese');
+
+  // Filtri di colonna dell'archivio: macro, categoria e testo vivono nell'hook
+  // (li usano anche grafico e torte), gli altri solo qui.
+  const [filtriColonne, setFiltriColonne] = useState<FiltriUscite>(FILTRI_USCITE_VUOTI);
+  const filtriTabella: FiltriUscite = {
+    ...filtriColonne,
+    macro: selectedMacroCat === 'Tutte' ? '' : selectedMacroCat,
+    categoria: selectedMicroCat === 'Tutte' ? '' : selectedMicroCat,
+    testo: searchTerm
+  };
 
   useEffect(() => {
     if (selectedMacroCat === 'Tutte') return;
@@ -90,6 +102,23 @@ export default function Uscite({
       <h1 className="sr-only">Uscite</h1>
       <FloatingAddButton label="Aggiungi Uscita" colorClass="bg-orange-700 hover:bg-orange-800" onClick={() => setShowAddModal(true)} />
 
+      <BarraSchede
+        ariaLabel="Sezioni di Uscite"
+        compatta={false}
+        accento="#ea580c"
+        fissa
+        attiva={scheda}
+        onChange={setScheda}
+        schede={[
+          { id: 'mese', etichetta: `${localSelectedMonth.charAt(0).toUpperCase()}${localSelectedMonth.slice(1)} ${selectedRecord.anno}`, icona: <CalendarDays className="w-[18px] h-[18px]" /> },
+          { id: 'analisi', etichetta: 'Analisi periodo', icona: <ChartColumn className="w-[18px] h-[18px]" /> }
+        ]}
+      />
+
+      {scheda === 'analisi' ? (
+        <AnalisiUscite />
+      ) : (
+      <>
       <UsciteKpiCards
         selectedRecord={selectedRecord}
         prevRecord={prevRecord}
@@ -188,19 +217,23 @@ export default function Uscite({
         />
       </div>
 
-      {/* Interactive table list filtering real inputs */}
+      {/* Archivio del mese: ordinamento e filtri per colonna (macro e categoria
+          sono gli stessi delle torte sopra, il testo è la ricerca qui accanto) */}
       <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 intense-search-bar">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5 intense-search-bar">
           <div>
             <h2 className="font-bold text-ink font-display text-base">Archivio Transazioni Uscite</h2>
-            <p className="text-xs text-ink-soft mt-1">Movimenti del mese, con ricerca e filtri</p>
+            <p className="text-xs text-ink-soft mt-1">
+              Movimenti di {localSelectedMonth} {selectedRecord.anno}, dal più recente. Per un periodo più lungo usa{' '}
+              <button type="button" onClick={() => setScheda('analisi')} className="font-bold text-orange-700 dark:text-orange-300 hover:underline cursor-pointer">Analisi</button>.
+            </p>
           </div>
 
-          {/* Quick search input */}
           <div className="flex items-center gap-2.5 relative w-full md:w-80">
             <Search className="w-4 h-4 text-ink-soft absolute left-3.5" />
             <input
-              type="text"
+              type="search"
+              aria-label="Cerca nelle transazioni del mese"
               placeholder="Cerca transazione, desc, cat..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -209,177 +242,21 @@ export default function Uscite({
           </div>
         </div>
 
-        {/* Table filters strip */}
-        <div className="flex flex-wrap items-center gap-3 bg-canvas border border-hairline p-3 rounded-xl text-xs text-ink-soft mb-4 font-medium select-none">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Filter className="w-3.5 h-3.5 text-ink-soft" />
-            <span>Filtri attivi:</span>
-          </div>
-
-          {/* macro category selector */}
-          <DropdownMenu
-            icon={Grid}
-            accent="orange"
-            widthClass="w-56"
-            label="Macro"
-            value={selectedMacroCat}
-            displayValue={selectedMacroCat}
-            options={macroCategoriesList}
-            onSelect={(m) => {
-              setSelectedMacroCat(m);
-              setSelectedMicroCat('Tutte');
-            }}
-            getOptionLabel={(m) => (m === 'Tutte' ? 'Macro Categorie (Tutte)' : m)}
-          />
-
-          {/* payment account selector */}
-          <DropdownMenu
-            icon={CreditCard}
-            accent="orange"
-            widthClass="w-56"
-            label="Conto"
-            value={selectedConto}
-            displayValue={selectedConto}
-            options={accountsList}
-            onSelect={setSelectedConto}
-            getOptionLabel={(a) => (a === 'Tutti' ? 'Conto Utilizzato (Tutti)' : a)}
-          />
-
-          {/* primary / secondary checklist switcher */}
-          <DropdownMenu
-            icon={Filter}
-            accent="orange"
-            widthClass="w-56"
-            label="Tipologia"
-            value={selectedType}
-            displayValue={
-              selectedType === 'Primarie'
-                ? 'Primarie (35%)'
-                : selectedType === 'Secondarie'
-                ? 'Secondarie (15%)'
-                : 'Tutte'
-            }
-            options={['Tutte', 'Primarie', 'Secondarie']}
-            onSelect={setSelectedType}
-            getOptionLabel={(v) =>
-              v === 'Tutte'
-                ? 'Tipologia Spesa (Tutte)'
-                : v === 'Primarie'
-                ? 'Solo Spese Primarie (Target 35%)'
-                : 'Solo Spese Secondarie (Target 15%)'
-            }
-          />
-
-          {/* Micro category selection indicator */}
-          {selectedMicroCat !== 'Tutte' && (
-            <span className="inline-flex items-center gap-1 bg-orange-500/10 border border-orange-500/25 text-orange-700 dark:text-orange-300 px-2.5 py-1 rounded-lg font-bold shrink-0">
-              <span>Micro: {selectedMicroCat}</span>
-              <button
-                onClick={() => setSelectedMicroCat('Tutte')}
-                className="hover:opacity-70 font-extrabold ml-1.5 cursor-pointer text-sm leading-none"
-                title="Rimuovi filtro micro categoria"
-              >
-                ×
-              </button>
-            </span>
-          )}
-
-          <span className="text-3xs text-slate-450 ml-auto font-mono">
-            Mostrati: <strong className="font-bold text-ink">{finalFilteredTransactions.length}</strong> record
-          </span>
-        </div>
-
-        {/* Transactions list layout table */}
-        {finalFilteredTransactions.length === 0 ? (
-          <div className="py-12 text-center text-ink-soft text-xs border border-dashed border-hairline rounded-2xl bg-canvas/50">
-            Nessuna transazione soddisfa i filtri selezionati.
-          </div>
-        ) : (
-          <>
-          {/* Telefono: un movimento per riga, importo sempre visibile a destra (la
-              tabella a 7 colonne su 390px mostrava solo data e descrizione) */}
-          <ul className="md:hidden -mx-2 space-y-1">
-            {finalFilteredTransactions.map((tx, idx) => (
-              <li key={tx.id || `txm-${idx}`} className="flex items-center gap-3 px-2 py-3 rounded-2xl odd:bg-canvas dark:odd:bg-white/[0.03]">
-                <span className="w-9 h-9 rounded-xl bg-canvas dark:bg-white/10 flex items-center justify-center text-lg shrink-0" aria-hidden="true">
-                  {tx.icon || <Receipt className="w-4 h-4 text-ink-soft dark:text-slate-400" />}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-sm font-semibold text-ink dark:text-slate-100 truncate">{tx.descrizione}</span>
-                  <span className="block text-2xs text-ink-soft dark:text-slate-400 truncate">
-                    {tx.data} · {tx.categoria} · {tx.conto}
-                  </span>
-                </span>
-                <span className="text-right shrink-0">
-                  <span className="block text-sm font-extrabold text-ink dark:text-slate-100 tabular-nums">{formatEuro(tx.importo)}</span>
-                  <span className={`block text-2xs font-bold ${tx.primaria ? 'text-orange-700 dark:text-orange-400' : 'text-ink-soft dark:text-slate-400'}`}>
-                    {tx.primaria ? 'Primaria' : 'Secondaria'}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-hairline text-2xs font-bold text-ink-soft uppercase tracking-wider">
-                  <th scope="col" className="py-3 px-4">Data</th>
-                  <th scope="col" className="py-3 px-4">Descrizione</th>
-                  <th scope="col" className="py-3 px-4">Macro</th>
-                  <th scope="col" className="py-3 px-4">Categoria</th>
-                  <th scope="col" className="py-3 px-4 text-right">Importo</th>
-                  <th scope="col" className="py-3 px-4">Conto utilizzato</th>
-                  <th scope="col" className="py-3 px-4 text-center">Primaria</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-xs">
-                {finalFilteredTransactions.map((tx, idx) => (
-                  <tr key={tx.id || `tx-${idx}`} className="hover:bg-canvas/60 transition-colors">
-                    <td className="py-3.5 px-4 text-ink-soft font-normal font-mono">
-                      {tx.data}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="shrink-0">{tx.icon || <Receipt className="w-4 h-4 text-ink-soft" />}</span>
-                        <span className="font-semibold text-ink truncate max-w-xs">{tx.descrizione}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="bg-canvas border border-hairline/50 text-3xs text-ink-soft px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">
-                        {tx.macroCategoria}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-ink-soft font-normal">
-                      {tx.categoria}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-ink font-mono">
-                      {formatEuro(tx.importo)}
-                    </td>
-                    <td className="py-3.5 px-4 text-ink-soft font-medium">
-                      <span className="inline-flex items-center gap-1 bg-canvas px-2 py-0.5 rounded text-3xs text-ink-soft font-mono">
-                        {tx.conto}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      {tx.primaria ? (
-                        <span className="inline-flex items-center bg-orange-700 text-white text-3xs font-bold uppercase px-2 py-0.5 rounded-sm">
-                          Sì ({dynamicThresholds.primarie}%)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center bg-orange-100 text-orange-700 text-3xs font-bold uppercase px-2 py-0.5 rounded-sm">
-                          No ({dynamicThresholds.secondarie}%)
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          </>
-        )}
+        <UsciteTransazioniTable
+          transazioni={activeMonthAllTransactions}
+          filtri={filtriTabella}
+          onFiltriChange={(f) => {
+            setFiltriColonne(f);
+            setSelectedMacroCat(f.macro || 'Tutte');
+            setSelectedMicroCat(f.categoria || 'Tutte');
+            setSearchTerm(f.testo);
+          }}
+          soglie={dynamicThresholds}
+        />
       </div>
+
+      </>
+      )}
 
       <Drawer
         isOpen={drawerOpen}

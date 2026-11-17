@@ -8,7 +8,8 @@
  * risultati dell'hook e smistati alla scheda attiva.
  */
 import React, { useState } from 'react';
-import { Repeat, Sparkles, ClipboardCheck } from 'lucide-react';
+import { Repeat, Sparkles, ClipboardCheck, LayoutDashboard, TrendingUp, Landmark, PiggyBank } from 'lucide-react';
+import BarraSchede from '../components/BarraSchede';
 import CruscottoGenerale from '../subviews/CruscottoGenerale';
 import Rendimenti from '../subviews/Rendimenti';
 import Conti from '../subviews/Conti';
@@ -60,7 +61,6 @@ export default function Investimenti({
     activeConto, setActiveConto,
     selectedMacroCategories, setSelectedMacroCategories,
     timeRange, setTimeRange,
-    isSticky,
     CRUSCOTTO_GENERALE, CRUSCOTTO_ANNO,
     calculatedRendimentoAnnuo, elapsedMonthsForSelectedYear,
     nestedPieData, totalAssetAllocation, filteredDetailData,
@@ -92,45 +92,23 @@ export default function Investimenti({
         onScegli={(tipo) => { setTipoDaPallini(tipo); setShowAddModal(true); }}
       />
       <AggiungiInvestimentoModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} tipoIniziale={tipoDaPallini} />
-      {/* Barra delle 4 schede (sticky). Su telefono, quando la scheda arriva da App,
+      {/* Barra delle 4 schede, fissa in alto mentre si scorre (pillola "liquid
+          glass" azzurra che fa già da sfondo). Su telefono, quando la scheda arriva da App,
           è nascosta: la scelta si fa dai pallini di Investimenti nella barra in basso. */}
-      <div
-        className={`${activeTabProp ? 'hidden md:block' : ''} sticky transition-all duration-300 z-30 ${
-          isSticky
-            ? 'top-[-16px] md:top-[-32px] -mx-4 px-4 md:-mx-8 md:px-8 pt-4 pb-2 bg-canvas/30 dark:bg-[#060a13]/30 backdrop-blur-md border-b border-hairline/30 dark:border-slate-800/10 shadow-xs'
-            : 'top-0 pt-0 pb-3 bg-transparent'
-        }`}
-      >
-        <div role="tablist" aria-label="Sezioni di Investimenti" className={`flex transition-all duration-300 p-1.5 rounded-2xl border gap-2 ${
-          isSticky
-            ? 'bg-white/35 dark:bg-[#0c1425]/35 border-hairline/30 dark:border-slate-800/20'
-            : 'bg-white/85 dark:bg-[#0c1425]/85 border-hairline dark:border-slate-800/60 shadow-xs'
-        }`}>
-          {/* Linguette vere per lo screen reader (role tab + aria-selected): prima erano
-              quattro pulsanti copiati uguali, senza dire quale fosse aperto */}
-          {([
-            ['cruscotto', 'Cruscotto'],
-            ['rendimenti', 'Rendimenti'],
-            ['conti', 'Conti'],
-            ['pensione', 'Fondo Pensione']
-          ] as const).map(([id, etichetta]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === id}
-              onClick={() => setActiveTab(id)}
-              className={`flex-1 px-2 sm:px-5 py-2 text-2xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
-                activeTab === id
-                  ? 'bg-sky-700 text-white shadow-xs'
-                  : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
-              }`}
-            >
-              {etichetta}
-            </button>
-          ))}
-        </div>
-      </div>
+      <BarraSchede
+        ariaLabel="Sezioni di Investimenti"
+        accento="#0284c7"
+        fissa
+        className={activeTabProp ? 'hidden md:flex' : ''}
+        attiva={activeTab}
+        onChange={setActiveTab}
+        schede={[
+          { id: 'cruscotto', etichetta: 'Cruscotto', icona: <LayoutDashboard className="w-[18px] h-[18px]" /> },
+          { id: 'rendimenti', etichetta: 'Rendimenti', icona: <TrendingUp className="w-[18px] h-[18px]" /> },
+          { id: 'conti', etichetta: 'Conti', icona: <Landmark className="w-[18px] h-[18px]" /> },
+          { id: 'pensione', etichetta: 'Fondo Pensione', icona: <PiggyBank className="w-[18px] h-[18px]" /> }
+        ]}
+      />
 
       {/* TAB 1: Cruscotto */}
       {activeTab === 'cruscotto' && (

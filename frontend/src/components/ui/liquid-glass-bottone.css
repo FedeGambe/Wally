@@ -1,0 +1,60 @@
+/*
+ * RIFERIMENTO, NON IMPORTATO. Stile "goccia di vetro" provato il 17/11/2026 per i
+ * pulsanti di aggiunta (FloatingAddButton, il "+" di AggiungiDatoBubbles) e per i
+ * pallini che il "+" apre; poi si è tornati ai pulsanti piatti. Per riattivarlo:
+ *  1. importare questo file (o copiarlo in src/index.css);
+ *  2. sul bottone/pallino mettere la classe `bottone-liquido` al posto delle
+ *     classi bg-* e passare il colore della sezione come variabile:
+ *     style={{ ['--liquido' as string]: '#ea580c' }}
+ *  3. togliere ring-* e shadow-* (il bordo di luce e l'alone sono qui dentro).
+ * In tema scuro le regole .glass-theme .bg-* di index.css sovrascrivono le classi
+ * bg-*: per questo il colore passa da una variabile e non da una classe.
+ * Va insieme a liquid-glass-navbar.tsx (stessa idea per la barra delle schede).
+ */
+
+/* Pulsanti "Aggiungi …" in primo piano (FloatingAddButton e il "+" di
+   AggiungiDatoBubbles) e i pallini che il "+" apre: goccia di vetro nel colore
+   della sezione, stesso linguaggio della barra delle schede
+   (components/ui/liquid-glass-navbar.tsx) ma col colore forte invece che appena
+   sfumato. Il colore arriva da --liquido (style inline); --liquido-base lo
+   smorza appena verso l'ardesia, per un effetto più vetro e meno pieno.
+   Niente animazioni al passaggio: solo un lieve schiarimento, e una piccola
+   pressione al clic. */
+.bottone-liquido {
+  --liquido: #2563eb;
+  --liquido-base: color-mix(in srgb, var(--liquido) 84%, #64748b);
+  color: #fff;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.22);
+  background:
+    radial-gradient(120% 120% at 30% 0%, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0) 52%),
+    linear-gradient(180deg, color-mix(in srgb, var(--liquido-base) 86%, white), var(--liquido-base) 55%, color-mix(in srgb, var(--liquido-base) 82%, black));
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.85),
+    inset 0 -3px 8px color-mix(in srgb, var(--liquido-base) 55%, black),
+    inset 0 0 0 1px rgb(255 255 255 / 0.32),
+    0 10px 28px -8px color-mix(in srgb, var(--liquido) 62%, transparent),
+    0 2px 6px rgb(0 0 0 / 0.18);
+  transition: filter 0.2s, box-shadow 0.2s, transform 0.15s, scale 0.2s, opacity 0.2s;
+}
+.bottone-liquido:hover,
+button:hover > .bottone-liquido {
+  filter: brightness(1.07);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.9),
+    inset 0 -3px 8px color-mix(in srgb, var(--liquido-base) 55%, black),
+    inset 0 0 0 1px rgb(255 255 255 / 0.36),
+    0 14px 34px -8px color-mix(in srgb, var(--liquido) 72%, transparent),
+    0 2px 6px rgb(0 0 0 / 0.2);
+}
+.bottone-liquido:active { transform: scale(0.97); }
+.bottone-liquido:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* Pallino scelto (secondo passaggio di Uscite/Investimenti): anello bianco pieno. */
+.bottone-liquido.pallino-attivo,
+.glass-theme .pallino-nav > span.bottone-liquido.pallino-attivo {
+  box-shadow:
+    0 0 0 4px #fff,
+    inset 0 1px 1px rgb(255 255 255 / 0.85),
+    0 10px 28px -8px color-mix(in srgb, var(--liquido) 62%, transparent) !important;
+}

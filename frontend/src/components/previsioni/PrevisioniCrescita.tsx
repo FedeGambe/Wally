@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { PiggyBank } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { Patrimonio } from '../../lib/previsioniService';
-import { COLORI, Nota, Riquadro, Suggerimento, ValoreEsatto, euroAsse, euroEsatto, meseBreve, meseLungo, percentuale } from './comune';
+import { ASSE, COLORI, GRIGLIA, Nota, Riquadro, Suggerimento, ValoreEsatto, euroAsse, euroEsatto, meseAsse, meseLungo, percentuale } from './comune';
 
 const decimale = (v: number | null) => (v === null ? '—' : v.toLocaleString('it-IT', { maximumFractionDigits: 1 }));
 
@@ -32,7 +32,7 @@ export default function PrevisioniCrescita({ patrimonio }: { patrimonio: Patrimo
       sottotitolo={`Somma mese per mese dal ${storico.mesi[0] ? meseLungo(storico.mesi[0].mese) : '—'}: cifre del foglio, nessuna stima.`}>
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="space-y-5">
-          <ValoreEsatto etichetta="Patrimonio di oggi" valore={euroEsatto(oggi.totale)}
+          <ValoreEsatto etichetta="Patrimonio di oggi" valore={oggi.totale}
             nota={`liquidità ${euroEsatto(oggi.liquidita)} · investimenti ${euroEsatto(oggi.investimenti)} · fondo pensione ${euroEsatto(oggi.fondoPensione)}`} />
 
           <div>
@@ -69,22 +69,33 @@ export default function PrevisioniCrescita({ patrimonio }: { patrimonio: Patrimo
           </div>
         </div>
 
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-8">
           <div>
-            <div className="text-2xs font-bold uppercase tracking-wider text-ink-soft mb-2">Crescita cumulata, per origine</div>
+            {/* La legenda è l'elenco "Ultimi 12 mesi" qui a sinistra, con gli stessi colori */}
+            <div className="text-2xs font-bold uppercase tracking-wider text-ink-soft mb-3">Crescita cumulata, per origine</div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mesi} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={COLORI.griglia} strokeOpacity={0.25} vertical={false} />
-                  <XAxis dataKey="mese" tickFormatter={meseBreve} stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} minTickGap={24} />
-                  <YAxis stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} width={44} tickFormatter={euroAsse} />
+                <AreaChart data={mesi} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    {/* Sfumature piene come la vista Cumulato della Home: le aree impilate si distinguono */}
+                    {VOCI.map(v => (
+                      <linearGradient key={v.chiave} id={`prevCrescita-${v.chiave}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={v.colore} stopOpacity={0.65} />
+                        <stop offset="95%" stopColor={v.colore} stopOpacity={0.25} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid {...GRIGLIA} />
+                  <XAxis dataKey="mese" tickFormatter={meseAsse} {...ASSE} minTickGap={24} />
+                  <YAxis {...ASSE} width={60} tickFormatter={euroAsse} />
                   <Tooltip content={({ active, payload }: any) => {
                     if (!active || !payload?.length) return null;
                     const p = payload[0].payload;
                     return <Suggerimento titolo={meseLungo(p.mese)} righe={VOCI.map(v => ({ nome: v.nome, valore: euroEsatto(p[v.chiave]), colore: v.colore }))} />;
                   }} />
                   {VOCI.map(v => (
-                    <Area key={v.chiave} dataKey={v.chiave} stackId="1" stroke={v.colore} fill={v.colore} fillOpacity={0.35} isAnimationActive={false} />
+                    <Area key={v.chiave} type="monotone" dataKey={v.chiave} stackId="1" stroke={v.colore} strokeWidth={2}
+                      fill={`url(#prevCrescita-${v.chiave})`} fillOpacity={1} />
                   ))}
                 </AreaChart>
               </ResponsiveContainer>
@@ -92,26 +103,33 @@ export default function PrevisioniCrescita({ patrimonio }: { patrimonio: Patrimo
           </div>
 
           <div>
-            <div className="flex items-baseline justify-between mb-2">
+            <div className="flex items-baseline justify-between mb-3">
               <div className="text-2xs font-bold uppercase tracking-wider text-ink-soft">Tasso di risparmio (ultimi 12 mesi)</div>
               <div className="text-xs text-ink">
                 oggi <strong>{percentuale(tassoOra, 1)}</strong>
                 {tassoAnnoPrima !== null && <span className="text-ink-soft"> · un anno fa {percentuale(tassoAnnoPrima, 1)}</span>}
               </div>
             </div>
-            <div className="h-40">
+            <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mesi} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={COLORI.griglia} strokeOpacity={0.25} vertical={false} />
-                  <XAxis dataKey="mese" tickFormatter={meseBreve} stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} minTickGap={24} />
-                  <YAxis stroke={COLORI.griglia} fontSize={11} tickLine={false} axisLine={false} width={44} tickFormatter={v => percentuale(v)} />
+                <AreaChart data={mesi} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="prevTasso" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={COLORI.risparmio} stopOpacity={0.15} />
+                      <stop offset="95%" stopColor={COLORI.risparmio} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...GRIGLIA} />
+                  <XAxis dataKey="mese" tickFormatter={meseAsse} {...ASSE} minTickGap={24} />
+                  <YAxis {...ASSE} width={60} tickFormatter={v => percentuale(v)} />
                   <Tooltip content={({ active, payload }: any) => {
                     if (!active || !payload?.length) return null;
                     const p = payload[0].payload;
                     return <Suggerimento titolo={meseLungo(p.mese)} righe={[{ nome: 'Tasso di risparmio', valore: percentuale(p.tasso, 1), colore: COLORI.risparmio }]} />;
                   }} />
-                  <Line dataKey="tasso" stroke={COLORI.risparmio} strokeWidth={2.5} dot={false} connectNulls isAnimationActive={false} />
-                </LineChart>
+                  <Area type="monotone" dataKey="tasso" stroke={COLORI.risparmio} strokeWidth={2.5} fill="url(#prevTasso)" fillOpacity={1}
+                    dot={false} activeDot={{ r: 5 }} connectNulls />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
