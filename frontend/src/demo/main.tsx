@@ -53,7 +53,7 @@ function Demo() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060a13] text-slate-100 antialiased font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#060a13] text-slate-100 antialiased font-sans relative overflow-x-clip">
       <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent/20 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[5%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-emerald-500/15 blur-[130px] pointer-events-none" />
       <div className="absolute top-[35%] right-[10%] w-[45vw] h-[45vw] rounded-full bg-rose-500/10 blur-[110px] pointer-events-none" />
@@ -73,7 +73,10 @@ function Demo() {
 
 // Nella demo non si aggiungono dati (non c'è un foglio collegato): via il pulsante "Aggiungi".
 const stile = document.createElement('style');
-stile.textContent = 'body > button.fixed.rounded-full{display:none}';
+// Qui scorre la finestra, non <main> come nell'app, e l'header (64px, sticky)
+// scorre insieme alla pagina: la barra delle schede fissa si ferma sotto l'header
+// invece che al top negativo pensato per <main>.
+stile.textContent = 'body > button.fixed.rounded-full{display:none} .barra-schede-fissa{top:56px !important}';
 document.head.appendChild(stile);
 
 createRoot(document.getElementById('root')!).render(

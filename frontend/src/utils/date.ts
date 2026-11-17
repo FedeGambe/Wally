@@ -94,3 +94,16 @@ export function getTransactionYear(t: { data?: string }): number {
   // Fallback finale: se proprio non si riesce a interpretare, usa l'anno corrente.
   return new Date().getFullYear();
 }
+
+/**
+ * Data di una transazione ("gg/mm/aaaa" o "aaaa-mm-gg") in millisecondi, per
+ * ordinare per data. Data non leggibile → 0 (finisce in fondo nell'ordine decrescente).
+ */
+export function dataTransazioneMs(data: string | undefined): number {
+  const parti = String(data || '').trim().split(/[\/\-.]/).map(p => parseInt(p, 10));
+  if (parti.length !== 3 || parti.some(isNaN)) return 0;
+  let [g, m, a] = parti;
+  if (String(data).trim().split(/[\/\-.]/)[0].length === 4) [a, m, g] = parti;
+  if (a < 100) a += 2000;
+  return new Date(a, m - 1, g).getTime();
+}

@@ -84,27 +84,6 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   const [activeConto, setActiveConto] = useState<'scalable' | 'trade'>('scalable');
   const [selectedMacroCategories, setSelectedMacroCategories] = useState<Array<'Azioni' | 'Obbligazioni' | 'Monetari'>>(['Azioni', 'Obbligazioni', 'Monetari']);
   const [timeRange, setTimeRange] = useState<'storico' | '12mesi'>('storico');
-  const [isSticky, setIsSticky] = useState(false);
-
-  useEffect(() => {
-    const scrollContainer = document.querySelector('main');
-    if (!scrollContainer) return;
-
-    const handleScroll = () => {
-      if (scrollContainer.scrollTop > 12) {
-        setIsSticky(true);
-      } else {
-        setIsSticky(false);
-      }
-    };
-
-    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
 
   // Se lo sheet ha un tab "Cruscotto" gia' compilato lo usiamo cosi' com'e';
   // altrimenti lo calcoliamo al volo dai fogli Scalable/Trade Republic. Spostato qui (prima di
@@ -687,7 +666,6 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     activeConto, setActiveConto,
     selectedMacroCategories, setSelectedMacroCategories,
     timeRange, setTimeRange,
-    isSticky,
     CRUSCOTTO_GENERALE, CRUSCOTTO_ANNO,
     calculatedRendimentoAnnuo, elapsedMonthsForSelectedYear,
     nestedPieData, totalAssetAllocation, filteredDetailData,
