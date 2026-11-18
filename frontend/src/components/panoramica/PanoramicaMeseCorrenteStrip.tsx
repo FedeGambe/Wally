@@ -34,14 +34,15 @@ interface PanoramicaMeseCorrenteStripProps {
  * budget consumato: pieno = soglia esaurita, oltre diventa rosso.
  * Oltre il 100% l'anello continua a girare: il secondo (e terzo) giro si
  * sovrappone al primo con una sfumatura più chiara, fino a MAX_GIRI.
- * Al centro la stessa proporzione in %. Il primo giro sfuma dal colore
+ * Al centro la quota sulle entrate (34,6%), non il rapporto con la soglia:
+ * quello lo dice già quanto è pieno l'anello. Il primo giro sfuma dal colore
  * scurito all'inizio al colore pieno alla fine e l'arco finisce con un
  * pallino più chiaro. Parte vuoto e si riempie al montaggio animando --ring-p
  * (registrata con @property in index.css; ferma con prefers-reduced-motion).
  */
 const MAX_GIRI = 3;
 
-function SogliaRing({ perc, soglia, ok }: { perc: number | undefined; soglia: number; ok: boolean }) {
+function SogliaRing({ perc, percAst = '', soglia, ok }: { perc: number | undefined; percAst?: string; soglia: number; ok: boolean }) {
   const ratio = perc !== undefined && soglia > 0 ? Math.max(0, perc / soglia) : undefined;
   const target = ratio !== undefined ? Math.min(ratio, MAX_GIRI) : 0;
   const giri = Math.max(1, Math.ceil(target));
@@ -69,8 +70,8 @@ function SogliaRing({ perc, soglia, ok }: { perc: number | undefined; soglia: nu
       className="soglia-ring relative shrink-0"
       style={ringStyle}
       role="img"
-      aria-label={ratio !== undefined ? `${Math.round(ratio * 100)}% della soglia del ${soglia}%` : 'Dato non disponibile'}
-      title={ratio !== undefined ? `${Math.round(ratio * 100)}% della soglia (${soglia}%)` : undefined}
+      aria-label={ratio !== undefined ? `Quota ${formatPercent(perc)} su una soglia del ${soglia}%: ${Math.round(ratio * 100)}% della soglia` : 'Dato non disponibile'}
+      title={ratio !== undefined ? `Quota ${formatPercent(perc)} su soglia ${soglia}% (${Math.round(ratio * 100)}% della soglia)` : undefined}
     >
       {/* Binario */}
       <div
@@ -129,8 +130,8 @@ function SogliaRing({ perc, soglia, ok }: { perc: number | undefined; soglia: nu
           />
         </div>
       )}
-      <span className={`absolute inset-0 flex items-center justify-center text-2xs font-extrabold font-display tabular-nums ${color}`}>
-        {ratio !== undefined ? `${Math.round(ratio * 100)}%` : '—'}
+      <span className={`absolute inset-0 flex items-center justify-center text-3xs font-extrabold font-display tabular-nums tracking-tight ${color}`}>
+        {perc !== undefined ? `${formatPercent(perc)}${percAst}` : '—'}
       </span>
     </div>
   );
@@ -175,10 +176,10 @@ function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', 
             </span>
           )}
         </div>
-        <SogliaRing perc={perc} soglia={soglia} ok={ok} />
+        <SogliaRing perc={perc} percAst={percAst} soglia={soglia} ok={ok} />
       </div>
       <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-        <span className="text-xs text-ink-soft font-medium whitespace-nowrap">Quota: <strong className="font-bold text-ink">{formatPercent(perc)}{percAst}</strong></span>
+        <span className="text-xs text-ink-soft font-medium whitespace-nowrap">Soglia: <strong className="font-bold text-ink">{soglia}%</strong></span>
         {/* Chip compatto: icona ✓/✗ e distanza dalla soglia in punti; la
             frase intera ("Sopra soglia di …") è nel tooltip e per lo screen reader. */}
         <span
