@@ -12,7 +12,8 @@
 //  1. Quattro card di patrimonio (Totale / Disponibile / Investito / Accantonato)
 //  2. Elenco conti con soglie di allerta, espandibile per il dettaglio di ognuno
 //     (PatrimonioContoCard); pulsanti Totale/Disponibile/Investito/Accantonato
-//     mostrano solo i conti con quota in quel capitale e il loro importo
+//     mostrano solo i conti con quota in quel capitale e il loro importo; le 4
+//     card in alto sono cliccabili e fanno lo stesso
 //  3. Due grafici a torta: suddivisione capitale e capitale accantonato per conto
 //     (PatrimonioCapitalSplitCard, PatrimonioEngagedCapitalCard)
 //  4. Grafico ad area "Andamento Finanziario" con zoom, 3 linee attivabili e
@@ -74,6 +75,8 @@ export default function Patrimonio() {
   // Pulsanti della Sintesi conti: Totale mostra tutti i conti col saldo, gli
   // altri solo i conti che hanno una quota in quel capitale, con quella quota.
   const [filtro, setFiltro] = useState<FiltroCapitale>('totale');
+  // Le 4 card in alto fanno lo stesso; ricliccare la card scelta torna a Totale
+  const scegliFiltro = (f: FiltroCapitale) => setFiltro(prev => (prev === f ? 'totale' : f));
   const contiFiltrati = filtro === 'totale'
     ? localConti
     : localConti.filter(c => Math.abs(importoConto(c, filtro)) > 0.005);
@@ -90,6 +93,8 @@ export default function Patrimonio() {
         {/* Totale libero: disponibile + investito, come nella Home; con l'accantonato sotto */}
         <FinanceKpiCard
           id="card-patrimonio"
+          onClick={() => scegliFiltro('totale')}
+          selected={filtro === 'totale'}
           type="totale"
           title="Totale libero"
           value={totalDisponibile + totalInvestito}
@@ -105,6 +110,8 @@ export default function Patrimonio() {
         {/* Wealth card 2 - Capitale Disponibile (Indigo) */}
         <FinanceKpiCard
           id="card-liquido"
+          onClick={() => scegliFiltro('disponibile')}
+          selected={filtro === 'disponibile'}
           type="disponibile"
           title="Capitale Disponibile"
           value={totalDisponibile}
@@ -120,6 +127,8 @@ export default function Patrimonio() {
         {/* Wealth card 3 - Capitale Investito (Emerald) */}
         <FinanceKpiCard
           id="card-investito"
+          onClick={() => scegliFiltro('investito')}
+          selected={filtro === 'investito'}
           type="investito"
           title="Capitale Investito"
           value={totalInvestito}
@@ -135,6 +144,8 @@ export default function Patrimonio() {
         {/* Wealth card 4 - Capitale Accantonato (Amber) */}
         <FinanceKpiCard
           id="card-impegnato"
+          onClick={() => scegliFiltro('accantonato')}
+          selected={filtro === 'accantonato'}
           type="impegnato"
           title="Capitale Accantonato"
           value={totalImpegnato}
