@@ -81,7 +81,7 @@ export function parseMeseStringToMonthYear(meseStr: string): { month: number; ye
  */
 export function useInvestimentiData(globalSelectedMonth: string, globalSelectedYear: string) {
   const { data } = useFinanceData();
-  const [activeConto, setActiveConto] = useState<'scalable' | 'trade'>('scalable');
+  const [activeConto, setActiveConto] = useState<'resoconto' | 'scalable' | 'trade'>('resoconto');
   const [selectedMacroCategories, setSelectedMacroCategories] = useState<Array<'Azioni' | 'Obbligazioni' | 'Monetari'>>(['Azioni', 'Obbligazioni', 'Monetari']);
   const [timeRange, setTimeRange] = useState<'storico' | '12mesi'>('storico');
 
@@ -614,7 +614,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
   // ripiega sul campo "anno" o su un controllo testuale grezzo sulle ultime 2 cifre
   // dell'anno dentro la stringa mese (tollera dati sporchi/formati vecchi).
   const filteredMonthlyRecords = useMemo(() => {
-    const list = activeConto === 'scalable' ? localScalableMonthly : localTradeRepublicMonthly;
+    const list = activeConto === 'trade' ? localTradeRepublicMonthly : localScalableMonthly;
     return list.filter((row: any) => {
       const parsed = parseMeseStringToMonthYear(row.mese);
       if (parsed && isMeseAnnoFuturo(row.mese, parsed.year)) return false;
@@ -676,6 +676,7 @@ export function useInvestimentiData(globalSelectedMonth: string, globalSelectedY
     accountKPIs,
     localScalableInstruments, localTradeRepublicInstruments,
     sortedFilteredRecords,
+    localTradeRepublicMonthly,
     localFondoPensione,
     localRendimenti, activeRendimenti
   };

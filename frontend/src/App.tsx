@@ -537,6 +537,7 @@ function DashboardShell({
             setSelectedYear={setSelectedYear}
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
+            onApriInteressi={() => { setInvestimentiTab('conti'); setActiveView('investimenti'); window.scrollTo({ top: 0 }); }}
           />
         );
       case 'uscite':

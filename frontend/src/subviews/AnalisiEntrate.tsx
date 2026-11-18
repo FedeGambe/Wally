@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts';
-import { CreditCard, Grid, Search, Tag } from 'lucide-react';
+import { ArrowRight, CreditCard, Grid, Percent, Search, Tag } from 'lucide-react';
+import { eInteresse, nomeConto } from '../utils/interessi';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import DropdownMenu from '../components/DropdownMenu';
 import SelettorePeriodo from '../components/SelettorePeriodo';
@@ -23,7 +24,8 @@ const PAGINA = 100;
 
 const unici = (valori: string[]) => Array.from(new Set(valori.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'it'));
 
-export default function AnalisiEntrate() {
+/** `onApriInteressi`: porta al Resoconto dei Conti (Investimenti); senza, il bottone non c'è. */
+export default function AnalisiEntrate({ onApriInteressi }: { onApriInteressi?: () => void } = {}) {
   const isMobile = useIsMobile();
   const d = useAnalisiEntrateData();
   const { filtri, setFiltri } = d;
@@ -36,6 +38,16 @@ export default function AnalisiEntrate() {
 
   const altriFiltri = [filtri.categoria, filtri.conto, filtri.testo ? `“${filtri.testo}”` : ''].filter(Boolean).join(' · ');
   const conFiltri = JSON.stringify(filtri) !== JSON.stringify(FILTRI_ENTRATE_VUOTI);
+
+  // Accenno agli interessi del periodo (stesse regole del Resoconto, filtri ignorati)
+  const interessi = useMemo(() => {
+    const righe = d.entratePeriodo.filter(eInteresse);
+    return {
+      totale: righe.reduce((t, e) => t + (Number(e.importo) || 0), 0),
+      conti: new Set(righe.map(e => nomeConto(e.conto))).size,
+      totaleEntrate: d.entratePeriodo.reduce((t, e) => t + (Number(e.importo) || 0), 0),
+    };
+  }, [d.entratePeriodo]);
 
   const delta = d.precedente && d.precedente.totale > 0 ? ((d.totale - d.precedente.totale) / d.precedente.totale) * 100 : null;
   const maxAsse = d.andamento.reduce((m, q) => Math.max(m, q.totale), 0);
@@ -123,6 +135,29 @@ export default function AnalisiEntrate() {
           {d.mesePiuAlto ? d.mesePiuAlto.etichetta.replace("'", '20') : 'nessuna entrata'}
         </Kpi>
       </div>
+
+      {/* Accenno agli interessi dei conti, con il link al Resoconto */}
+      {interessi.totale > 0 && (
+        <div className="bg-white p-4 md:px-6 rounded-3xl border border-hairline shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <span className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+              <Percent className="w-4 h-4" />
+            </span>
+            <p className="text-xs text-ink-soft leading-relaxed">
+              Nel periodo i conti ti hanno reso <span className="font-bold text-ink">{formatEuro(interessi.totale)}</span> di interessi
+              {interessi.conti > 1 ? ` da ${interessi.conti} conti` : ''}
+              {interessi.totaleEntrate > 0 && <> ({formatPercent((interessi.totale / interessi.totaleEntrate) * 100)} delle entrate)</>}.
+              {onApriInteressi && ' Con il saveback e anno per anno nel Resoconto dei Conti.'}
+            </p>
+          </div>
+          {onApriInteressi && (
+            <button type="button" onClick={onApriInteressi}
+              className="self-start sm:self-center flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer whitespace-nowrap">
+              Vedi interessi e saveback <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Andamento */}
       <div className={CARD}>

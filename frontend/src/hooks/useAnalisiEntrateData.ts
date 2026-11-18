@@ -36,7 +36,7 @@ export function filtraEntrate(entrate: EntrataRecord[], f: FiltriEntrate, ignora
   });
 }
 
-function chiaveEntrata(e: EntrataRecord): number | null {
+export function chiaveEntrata(e: EntrataRecord): number | null {
   let anno = Number(e.anno);
   if (anno > 0 && anno < 100) anno += 2000;
   const mese = getMonthIndex(String(e.mese || '').trim());

@@ -71,6 +71,7 @@ export default function Investimenti({
     accountKPIs,
     localScalableInstruments, localTradeRepublicInstruments,
     sortedFilteredRecords,
+    localTradeRepublicMonthly,
     localFondoPensione,
     localRendimenti, activeRendimenti
   } = useInvestimentiData(globalSelectedMonth, globalSelectedYear);
@@ -165,6 +166,7 @@ export default function Investimenti({
           localScalableInstruments={localScalableInstruments}
           localTradeRepublicInstruments={localTradeRepublicInstruments}
           sortedFilteredRecords={sortedFilteredRecords}
+          tradeMensile={localTradeRepublicMonthly}
           globalSelectedYear={globalSelectedYear}
           formatEuro={formatEuro}
           formatPercent={formatPercent}

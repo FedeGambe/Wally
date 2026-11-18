@@ -35,13 +35,16 @@ interface EntrateProps {
   setSelectedYear: (year: string) => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
+  /** Porta al Resoconto dei Conti in Investimenti (bottone dell'Analisi periodo) */
+  onApriInteressi?: () => void;
 }
 
 export default function Entrate({
   selectedYear,
   setSelectedYear,
   selectedMonth,
-  setSelectedMonth
+  setSelectedMonth,
+  onApriInteressi
 }: EntrateProps) {
   const isMobile = useIsMobile();
   const {
@@ -80,7 +83,7 @@ export default function Entrate({
       />
 
       {scheda === 'analisi' ? (
-        <AnalisiEntrate />
+        <AnalisiEntrate onApriInteressi={onApriInteressi} />
       ) : (
       <>
       <EntrateBentoCards

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { ChevronUp, Landmark, PiggyBank, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { ChevronUp, Landmark, TrendingUp } from 'lucide-react';
 import { rendColor, rendColorTesto } from '../utils/format';
 import RigheTelefono from '../components/RigheTelefono';
 import EuroAmount from '../components/EuroAmount';
+import ContiResoconto from '../components/investimenti/ContiResoconto';
 
 // Sotto-vista "Conti" della pagina Investimenti: mostra il dettaglio dei due
 // conti broker (Scalable Capital e Trade Republic), selezionabili con i tab in alto.
@@ -10,11 +11,14 @@ import EuroAmount from '../components/EuroAmount';
 // per anno) e accountKPIs (valori di fallback quando non ci sono dati reali dal foglio).
 // Contenuti principali:
 //  - 3 KPI in alto (Saldo, Investito, Plusvalenza) calcolati dall'ultimo mese disponibile
-//  - per Trade Republic: 3 pannelli con interessi/saveback/dividendi accumulati e relativo storico
+//  - scheda Resoconto (default): interessi di tutti i conti e saveback, su un periodo a scelta
+//  - per Trade Republic: pannello bond e dividendi con lo storico cumulato
 //  - tabella "Registro Storico Mensile" con tutte le colonne del foglio Google per il broker attivo
 interface ContiProps {
-  activeConto: 'scalable' | 'trade';
-  setActiveConto: (conto: 'scalable' | 'trade') => void;
+  activeConto: 'resoconto' | 'scalable' | 'trade';
+  setActiveConto: (conto: 'resoconto' | 'scalable' | 'trade') => void;
+  /** Tutte le righe mensili di Trade Republic (saveback del Resoconto, non filtrate per anno) */
+  tradeMensile: any[];
   accountKPIs: any;
   localScalableInstruments: any[];
   localTradeRepublicInstruments: any[];
@@ -29,6 +33,7 @@ export default function Conti({
   setActiveConto,
   accountKPIs,
   sortedFilteredRecords,
+  tradeMensile,
   globalSelectedYear,
   formatEuro,
   formatPercent,
@@ -88,83 +93,17 @@ export default function Conti({
     };
   }, [latestRecord, sortedFilteredRecords, accountKPIs, activeConto]);
 
-  // 3. Compute real metrics for Trade Republic widgets (Interessi, Savebacks, Bond/Dividends)
+  // 3. Dividendi di Trade Republic (interessi e saveback sono nel Resoconto).
   // I dividendi sono la somma di più colonne del foglio (iBonds + Amundi + generico "dividendi"),
   // perché lo sheet storicamente ha aggiunto colonne separate per ogni fonte di dividendo.
-  const realMetrics = useMemo(() => {
-    let sumInteressi = 0;
-    let sumSaveback = 0;
-    let sumDividendi = 0;
-    let hasRealData = false;
-
-    sortedFilteredRecords.forEach(r => {
-      const intVal = Number(r.interessiConto || r.interessiContoComulativo || 0);
-      const sbVal = Number(r.savebacks || 0);
-      const divVal = Number(r.dividendiIbonds || 0) + Number(r.dividendiAmundi || 0) + Number(r.dividendi || 0);
-
-      if (intVal !== 0 || sbVal !== 0 || divVal !== 0) {
-        hasRealData = true;
-      }
-
-      sumInteressi += intVal;
-      sumSaveback += sbVal;
-      sumDividendi += divVal;
-    });
-
-    const latestInteressi = latestRecord ? Number(latestRecord.interessiConto || 0) : 0;
-    const latestSaveback = latestRecord ? Number(latestRecord.savebacks || 0) : 0;
-    const latestDividendi = latestRecord 
-      ? (Number(latestRecord.dividendiIbonds || 0) + Number(latestRecord.dividendiAmundi || 0) + Number(latestRecord.dividendi || 0)) 
-      : 0;
-
-    // Se non ci sono affatto righe dal foglio (utente nuovo, o filtro senza risultati),
-    // mostriamo valori di esempio invece di 0 €, per non dare l'idea che l'app sia rotta.
-    // Elegant fallback to mock data if there is no real sheet record at all
-    if (!hasRealData && sortedFilteredRecords.length === 0) {
-      return {
-        monthlyInteressi: 12.33,
-        annualInteressi: 152.10,
-        monthlySaveback: 10.00,
-        annualSaveback: 120.00,
-        monthlyDividendi: 45.18,
-        annualDividendi: 542.16,
-      };
-    }
-
-    return {
-      monthlyInteressi: latestInteressi,
-      annualInteressi: sumInteressi,
-      monthlySaveback: latestSaveback,
-      annualSaveback: sumSaveback,
-      monthlyDividendi: latestDividendi,
-      annualDividendi: sumDividendi,
-    };
-  }, [sortedFilteredRecords, latestRecord]);
-
-  // 4. Compute running totals for interests, saveback and dividends
-  // Calcola il totale progressivo (somma cumulativa mese su mese) per alimentare le liste
-  // "Progressione Storica" sotto ai 3 pannelli Trade Republic: ogni riga mostra il cumulato
-  // fino a quel mese, non solo il valore del singolo mese.
+  // runningTotals: cumulato mese su mese per la lista "Progressione Storica".
   const runningTotals = useMemo(() => {
-    let cumInteressi = 0;
-    let cumSaveback = 0;
     let cumDividendi = 0;
-
     return sortedFilteredRecords.map(r => {
-      const intVal = Number(r.interessiConto || 0);
-      const sbVal = Number(r.savebacks || 0);
       const divVal = Number(r.dividendiIbonds || 0) + Number(r.dividendiAmundi || 0) + Number(r.dividendi || 0);
-
-      cumInteressi += intVal;
-      cumSaveback += sbVal;
       cumDividendi += divVal;
-
       return {
         mese: r.mese,
-        interessi: intVal,
-        cumInteressi,
-        saveback: sbVal,
-        cumSaveback,
         dividendi: divVal,
         cumDividendi,
         dividendiIbonds: Number(r.dividendiIbonds || 0),
@@ -172,33 +111,34 @@ export default function Conti({
       };
     });
   }, [sortedFilteredRecords]);
+  const totaleDividendi = runningTotals.length ? runningTotals[runningTotals.length - 1].cumDividendi : 0;
 
   return (
     <div className="space-y-6 text-left animate-fadeIn">
-      {/* Subtabs to choose between Scalable Capital and Trade republic */}
-      <div className="flex border-b border-hairline dark:border-slate-800/60 gap-6 mb-6 select-none outline-hidden">
-        <button
-          onClick={() => setActiveConto('scalable')}
-          className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-            activeConto === 'scalable'
-              ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
-              : 'border-transparent text-ink-soft hover:text-ink dark:hover:text-slate-200'
-          }`}
-        >
-          Scalable Capital Portfolio
-        </button>
-        <button
-          onClick={() => setActiveConto('trade')}
-          className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-            activeConto === 'trade'
-              ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
-              : 'border-transparent text-ink-soft hover:text-ink dark:hover:text-slate-200'
-          }`}
-        >
-          Trade Republic Portfolio
-        </button>
+      {/* Schede: Resoconto (interessi e saveback dei due conti), Scalable, Trade Republic */}
+      <div className="flex border-b border-hairline dark:border-slate-800/60 gap-6 mb-6 select-none outline-hidden overflow-x-auto">
+        {([
+          ['resoconto', 'Resoconto'],
+          ['scalable', 'Scalable Capital'],
+          ['trade', 'Trade Republic'],
+        ] as const).map(([id, etichetta]) => (
+          <button
+            key={id}
+            onClick={() => setActiveConto(id)}
+            className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeConto === id
+                ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400'
+                : 'border-transparent text-ink-soft hover:text-ink dark:hover:text-slate-200'
+            }`}
+          >
+            {etichetta}
+          </button>
+        ))}
       </div>
 
+      {activeConto === 'resoconto' ? (
+        <ContiResoconto tradeMensile={tradeMensile} />
+      ) : (<>
       {/* Accounts KPIs panels */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-[#0c1425]/45 p-5 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-32 transition-all duration-300 hover:shadow-md">
@@ -249,97 +189,21 @@ export default function Conti({
         </div>
       </div>
 
-      {/* Trade Republic Interests, Savebacks and Dividends widgets - MOVED ABOVE REGISTRO */}
+      {/* Trade Republic: bond e dividendi */}
       {activeConto === 'trade' && (
         <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:shadow-md">
           <div className="mb-6 border-b border-hairline dark:border-slate-800/60 pb-4">
             <h2 className="font-bold text-ink dark:text-slate-100 font-display text-base flex items-center gap-2">
               <Landmark className="w-5 h-5 text-sky-500 dark:text-sky-400" />
-              Dettaglio Rendimenti e Benefit Accumulati ({globalSelectedYear})
+              Bond e dividendi ({globalSelectedYear})
             </h2>
             <p className="text-xs text-ink-soft dark:text-slate-500 mt-0.5">
-              Riepilogo delle voci di rendimento passivo con dettaglio sullo storico e progressione cumulativa.
+              Cedole e dividendi incassati, con il cumulato mese per mese. Interessi e saveback sono nel Resoconto.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* COLUMN 1: INTERESSI ACCUMULATI */}
-            <div className="p-5 rounded-2xl bg-sky-50/20 dark:bg-sky-950/10 border border-sky-150/40 dark:border-sky-900/20 flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold text-ink-soft dark:text-slate-400 uppercase tracking-wider block">Interessi Accumulati</span>
-                  <span className="px-2 py-0.5 text-3xs font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded">4% Lordo</span>
-                </div>
-                <div className="mb-4">
-                  <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
-                    <EuroAmount value={realMetrics.annualInteressi} />
-                  </span>
-                  <span className="text-2xs text-ink-soft dark:text-slate-500 block font-medium mt-1">
-                    Totale maturato nell'anno
-                  </span>
-                </div>
-              </div>
-              
-              {/* Historical progression list */}
-              <div className="mt-4 border-t border-sky-150/40 dark:border-sky-900/20 pt-4">
-                <span className="text-3xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
-                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                  {runningTotals.length === 0 ? (
-                    <span className="text-xs text-ink-soft block py-2">Nessun dato registrato</span>
-                  ) : (
-                    runningTotals.slice().reverse().map((m, i) => (
-                      <div key={i} className="flex justify-between text-xs py-0.5">
-                        <span className="text-ink-soft dark:text-slate-400 capitalize">{m.mese}</span>
-                        <div className="text-right font-mono">
-                          <span className="text-ink dark:text-slate-200 font-bold">{formatEuro(m.cumInteressi)}</span>
-                          <span className="text-3xs text-emerald-500 dark:text-emerald-400 ml-1.5">({formatEuro(m.interessi)})</span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* COLUMN 2: SAVEBACK */}
-            <div className="p-5 rounded-2xl bg-sky-50/20 dark:bg-sky-950/10 border border-sky-150/40 dark:border-sky-900/20 flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold text-ink-soft dark:text-slate-400 uppercase tracking-wider block">Saveback Maturati</span>
-                  <span className="px-2 py-0.5 text-3xs font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 rounded">1% Spesa</span>
-                </div>
-                <div className="mb-4">
-                  <span className="text-3xl font-black text-sky-600 dark:text-sky-400 font-display block">
-                    <EuroAmount value={realMetrics.annualSaveback} />
-                  </span>
-                  <span className="text-2xs text-ink-soft dark:text-slate-500 block font-medium mt-1">
-                    Totale accreditato nell'anno
-                  </span>
-                </div>
-              </div>
-
-              {/* Historical progression list */}
-              <div className="mt-4 border-t border-sky-150/40 dark:border-sky-900/20 pt-4">
-                <span className="text-3xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-500 block mb-2">Progressione Storica (Cumulato)</span>
-                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                  {runningTotals.length === 0 ? (
-                    <span className="text-xs text-ink-soft block py-2">Nessun dato registrato</span>
-                  ) : (
-                    runningTotals.slice().reverse().map((m, i) => (
-                      <div key={i} className="flex justify-between text-xs py-0.5">
-                        <span className="text-ink-soft dark:text-slate-400 capitalize">{m.mese}</span>
-                        <div className="text-right font-mono">
-                          <span className="text-ink dark:text-slate-200 font-bold">{formatEuro(m.cumSaveback)}</span>
-                          <span className="text-3xs text-emerald-500 dark:text-emerald-400 ml-1.5">({formatEuro(m.saveback)})</span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* COLUMN 3: INTERESSI BOND & DIVIDENDI */}
+          <div className="grid grid-cols-1 gap-6">
+            {/* Bond & dividendi (interessi e saveback stanno nel Resoconto) */}
             <div className="p-5 rounded-2xl bg-emerald-50/10 dark:bg-emerald-950/10 border border-emerald-100/20 dark:border-emerald-900/20 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-3">
@@ -348,7 +212,7 @@ export default function Conti({
                 </div>
                 <div className="mb-4">
                   <span className="text-3xl font-black text-up font-display block">
-                    <EuroAmount value={realMetrics.annualDividendi} />
+                    <EuroAmount value={totaleDividendi} />
                   </span>
                   <span className="text-2xs text-ink-soft dark:text-slate-500 block font-medium mt-1">
                     Totale pagato nell'anno
@@ -505,6 +369,7 @@ export default function Conti({
           </>
         )}
       </div>
+      </>)}
     </div>
   );
 }
