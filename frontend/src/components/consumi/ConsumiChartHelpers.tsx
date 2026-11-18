@@ -66,6 +66,12 @@ export function TimeRangeToggle({ value, onChange }: { value: TimeRange; onChang
   );
 }
 
+// Stile dei riquadri al passaggio del mouse: lo stesso di KmLtTooltip (primo grafico della
+// pagina), testo a 12px, così tutti i grafici di Analisi Consumi hanno legende uguali.
+export const TOOLTIP_BOX = { backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px', padding: '8px 12px', fontSize: 12 };
+export const TOOLTIP_LABEL = { color: '#fff', fontWeight: 'bold' as const, marginBottom: 4, fontSize: 12 };
+export const tooltipItem = (color: string) => ({ color, fontSize: 12, padding: 0 });
+
 // Tooltip dedicato per Km/Lt: verde la media 4 settimane, bianco la settimana, grigio il dato di bordo auto
 const ETICHETTE_KMLT: Record<string, { testo: string; colore: string }> = {
   kmAlLitroMedia4: { testo: 'Media 4 sett.', colore: '#34d399' },
@@ -75,8 +81,8 @@ const ETICHETTE_KMLT: Record<string, { testo: string; colore: string }> = {
 export function KmLtTooltip({ active, payload, label }: any) {
   if (!active || !payload || !payload.length) return null;
   return (
-    <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px', padding: '8px 12px' }}>
-      <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: 4, fontSize: 12 }}>{label}</div>
+    <div style={TOOLTIP_BOX}>
+      <div style={TOOLTIP_LABEL}>{label}</div>
       {payload
         .filter((entry: any) => entry.value !== null && entry.value !== undefined)
         .map((entry: any) => (

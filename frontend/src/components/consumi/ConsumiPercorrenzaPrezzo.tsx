@@ -2,7 +2,7 @@ import React from 'react';
 import { Car } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { monthAxisProps, formatAxisKm, formatAxisPrezzo, fmtNum } from './ConsumiChartHelpers';
+import { monthAxisProps, formatAxisKm, formatAxisPrezzo, fmtNum, TOOLTIP_BOX, TOOLTIP_LABEL, tooltipItem } from './ConsumiChartHelpers';
 import type { RecordConsumo } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 2 "Percorrenza & Prezzo
@@ -51,9 +51,10 @@ export default function ConsumiPercorrenzaPrezzo({
                   <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(chartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisKm} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#fda4af' }}
+                    contentStyle={TOOLTIP_BOX}
+                    labelStyle={TOOLTIP_LABEL}
+                    separator=": "
+                    itemStyle={tooltipItem('#fda4af')}
                     formatter={(value: any) => [`${fmtNum(value, 0)} Km`, 'Km Effettuati']}
                   />
                   <Area
@@ -99,9 +100,10 @@ export default function ConsumiPercorrenzaPrezzo({
                   <XAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(chartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisPrezzo} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#f59e0b' }}
+                    contentStyle={TOOLTIP_BOX}
+                    labelStyle={TOOLTIP_LABEL}
+                    separator=": "
+                    itemStyle={tooltipItem('#f59e0b')}
                     formatter={(value: any) => [`${fmtNum(value, 3)} €`, 'Prezzo al Lt']}
                   />
                   <Area type="monotone" dataKey="prezzoAlLitro" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrezzoAlLitro)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />

@@ -3,7 +3,7 @@ import { AlertOctagon } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { formatEuro } from '../../utils/format';
-import { monthAxisProps, fmtNum, formatAxisNumber, formatAxisEuro, SegmentedToggle } from './ConsumiChartHelpers';
+import { monthAxisProps, fmtNum, formatAxisNumber, formatAxisEuro, SegmentedToggle, TOOLTIP_BOX, TOOLTIP_LABEL, tooltipItem } from './ConsumiChartHelpers';
 import type { RecordConsumo, ExtraMode, ExtraUnit } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 3 "Costo Extra o Risparmio",
@@ -104,9 +104,10 @@ export default function ConsumiCostoExtraKmPersi({
               <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={inEuro ? formatAxisEuro : formatAxisNumber} domain={['auto', 'auto']} />
               <ReferenceLine y={0} stroke="#94a3b8" strokeOpacity={0.6} />
               <Tooltip
-                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
-                labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                itemStyle={{ color: '#fff' }}
+                contentStyle={TOOLTIP_BOX}
+                labelStyle={TOOLTIP_LABEL}
+                    separator=": "
+                itemStyle={tooltipItem('#fff')}
                 formatter={(value: any) => inEuro
                   ? [formatEuro(Math.abs(value)) + suffisso, value < 0 ? 'Risparmio' : 'Costo Extra']
                   : [`${fmtNum(Math.abs(value))} Km${suffisso}`, value < 0 ? 'Km Guadagnati' : 'Km Persi']}

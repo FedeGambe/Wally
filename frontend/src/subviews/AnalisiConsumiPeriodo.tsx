@@ -6,7 +6,7 @@ import SelettorePeriodo from '../components/SelettorePeriodo';
 import { useAnalisiConsumiPeriodo, Scomposizione } from '../hooks/useAnalisiConsumiPeriodo';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { formatAxisCompact, formatEuro, formatPercent } from '../utils/format';
-import { fmtNum } from '../components/consumi/ConsumiChartHelpers';
+import { fmtNum, TOOLTIP_BOX, TOOLTIP_LABEL } from '../components/consumi/ConsumiChartHelpers';
 
 /**
  * Scheda "Analisi periodo" di Analisi Consumi: quanto costa l'auto in carburante
@@ -54,8 +54,8 @@ export default function AnalisiConsumiPeriodo() {
     if (!active || !payload?.length) return null;
     const q = payload[0].payload;
     return (
-      <div style={{ background: '#1e293b', borderRadius: 12, color: '#fff', fontSize: 12, padding: '8px 12px' }}>
-        <div className="font-bold" style={{ marginBottom: 4 }}>{label}</div>
+      <div style={{ ...TOOLTIP_BOX, color: '#fff' }}>
+        <div style={TOOLTIP_LABEL}>{label}</div>
         <div>Spesa: {formatEuro(q.spesa)}</div>
         <div style={{ opacity: 0.8 }}>{fmtNum(q.km, 0)} km · {fmtNum(q.litri, 1)} Lt</div>
         {q.euroPer100Km !== null && <div style={{ color: AMBRA }}>{formatEuro(q.euroPer100Km)} ogni 100 km</div>}

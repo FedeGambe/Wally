@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { formatEuro } from '../../utils/format';
-import { monthAxisProps, formatAxisNumber, formatAxisEuro, fmtNum, KmLtTooltip } from './ConsumiChartHelpers';
+import { monthAxisProps, formatAxisNumber, formatAxisEuro, fmtNum, KmLtTooltip, TOOLTIP_BOX, TOOLTIP_LABEL, tooltipItem } from './ConsumiChartHelpers';
 import type { RecordConsumo } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 1 "Efficienza di Marcia"
@@ -102,9 +102,10 @@ export default function ConsumiEfficienzaMarcia({
                   <XAxis stroke={GRIGIO} fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(chartData, isMobile)} />
                   <YAxis stroke={GRIGIO} fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#f59e0b' }}
+                    contentStyle={TOOLTIP_BOX}
+                    labelStyle={TOOLTIP_LABEL}
+                    separator=": "
+                    itemStyle={tooltipItem('#f59e0b')}
                     formatter={(value: any, name: any) => [formatEuro(value), name === 'euroPer100KmMedia4' ? 'Media 4 sett.' : 'Settimana']}
                   />
                   <ReferenceLine y={medianaCosto100} stroke={GRIGIO} strokeDasharray="2 4" label={etichettaMediana(`mediana ${formatEuro(medianaCosto100)}`)} />
