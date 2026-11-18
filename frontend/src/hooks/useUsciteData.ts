@@ -202,10 +202,18 @@ export function useUsciteData(
   // L'elenco dell'archivio (con ordinamento e filtri di colonna) lo fa
   // UsciteTransazioniTable a partire da activeMonthAllTransactions.
 
+  // Le uscite del mese ristrette alla card scelta in alto (Primarie o
+  // Secondarie): le torte guardano solo queste, come il grafico.
+  const transazioniDelTipo = useMemo(() => {
+    if (activeChartFilter === 'all') return activeMonthAllTransactions;
+    const primarie = activeChartFilter === 'primarie';
+    return activeMonthAllTransactions.filter(t => !!t.primaria === primarie);
+  }, [activeMonthAllTransactions, activeChartFilter]);
+
   // Breakdown expenditure per Macro Category matching selected month and year
   const macroCategoryDistribution = useMemo(() => {
     const counts: { [key: string]: number } = {};
-    activeMonthAllTransactions.forEach((t) => {
+    transazioniDelTipo.forEach((t) => {
       const cat = t.macroCategoria || 'Altro';
       counts[cat] = (counts[cat] || 0) + Number(t.importo || 0);
     });
@@ -214,12 +222,12 @@ export function useUsciteData(
       name: key,
       value: counts[key]
     })).sort((a, b) => b.value - a.value);
-  }, [activeMonthAllTransactions]);
+  }, [transazioniDelTipo]);
 
   // Breakdown expenditure per Categoria (Micro Category) matching selected month and year
   const microCategoryDistribution = useMemo(() => {
     const counts: { [key: string]: number } = {};
-    activeMonthAllTransactions.forEach((t) => {
+    transazioniDelTipo.forEach((t) => {
       if (selectedMacroCat !== 'Tutte') {
         const transMacro = t.macroCategoria || 'Altro';
         if (transMacro !== selectedMacroCat) return;
@@ -235,7 +243,7 @@ export function useUsciteData(
         value: counts[key]
       };
     }).sort((a, b) => b.value - a.value);
-  }, [activeMonthAllTransactions, selectedMacroCat]);
+  }, [transazioniDelTipo, selectedMacroCat]);
 
   // Selezione mese cliccabile dal grafico storico, sincronizzata col selettore globale in header.
   // Recharts v3 non passa più `activePayload` all'onClick del chart: usiamo `activeLabel`,

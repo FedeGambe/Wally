@@ -78,6 +78,7 @@ export default function Uscite({
   const [zoomedOut, setZoomedOut] = useState(false);
   const { hasOutliers } = scalaAsseUscite(rolling12MonthsData, activeChartFilter);
   const [scheda, setScheda] = useState<UsciteScheda>('mese');
+  const soloTipo = activeChartFilter === 'all' ? '' : ` · solo ${activeChartFilter}`;
 
   // Filtri di colonna dell'archivio: macro, categoria e testo vivono nell'hook
   // (li usano anche grafico e torte), gli altri solo qui.
@@ -86,7 +87,9 @@ export default function Uscite({
     ...filtriColonne,
     macro: selectedMacroCat === 'Tutte' ? '' : selectedMacroCat,
     categoria: selectedMicroCat === 'Tutte' ? '' : selectedMicroCat,
-    testo: searchTerm
+    testo: searchTerm,
+    // La card scelta in alto (Primarie/Secondarie) filtra anche l'archivio.
+    tipo: activeChartFilter === 'all' ? '' : activeChartFilter
   };
 
   useEffect(() => {
@@ -196,7 +199,7 @@ export default function Uscite({
         <CategoryPieCard
           icon={Grid}
           title="Spese per Macro Categoria"
-          subtitle="Sottodivisione in base alle voci principali in euro"
+          subtitle={`Sottodivisione in base alle voci principali in euro${soloTipo}`}
           data={macroCategoryDistribution}
           colors={SECTOR_COLORS}
           selected={selectedMacroCat}
@@ -206,7 +209,7 @@ export default function Uscite({
         <CategoryPieCard
           icon={CreditCard}
           title="Spese per Micro Categoria"
-          subtitle="Sottodivisione in base alle categorie delle transazioni del mese"
+          subtitle={`Sottodivisione in base alle categorie delle transazioni del mese${soloTipo}`}
           data={microCategoryDistribution}
           colors={SECTOR_COLORS}
           colorOffset={3}
@@ -250,6 +253,7 @@ export default function Uscite({
             setSelectedMacroCat(f.macro || 'Tutte');
             setSelectedMicroCat(f.categoria || 'Tutte');
             setSearchTerm(f.testo);
+            setActiveChartFilter(f.tipo || 'all');
           }}
           soglie={dynamicThresholds}
         />
