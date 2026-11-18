@@ -50,6 +50,12 @@ export default function ConsumiRiepilogoSettimanale({
   // il badge si colora sullo stesso punteggio, così testo e colore concordano.
   const esitoRange: KpiRange = { ...stats.efficienza, higherIsBetter: true };
   const kmGuadagnati = selectedWeek.kmPersi < 0;
+  // Da dove vengono i numeri della settimana: un rifornimento, più di uno, o metà di uno che copre due settimane
+  const origine = selectedWeek.bisettimanale
+    ? `Metà del rifornimento del ${selectedWeek.data} (copre 2 settimane)`
+    : selectedWeek.rifornimenti > 1
+      ? `${selectedWeek.rifornimenti} rifornimenti, ultimo il ${selectedWeek.data}`
+      : `Rifornimento: ${selectedWeek.data}`;
   const risparmio = selectedWeek.costoExtra < 0;
   return (
     <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
@@ -107,17 +113,17 @@ export default function ConsumiRiepilogoSettimanale({
             {fmtNum(selectedWeek.kmEffettuati, 1)} <span className="text-lg font-medium text-ink-soft dark:text-slate-500">Km</span>
           </span>
           <span className="text-3xs text-ink-soft dark:text-slate-400 mt-1.5 block font-mono">
-            Rifornimento: {selectedWeek.data} • {fmtNum(Number(selectedWeek.quantitaLitri), 2)} Lt • {fmtNum(Number(selectedWeek.prezzoAlLitro), 3)} €/Lt
+            {origine} • {fmtNum(Number(selectedWeek.quantitaLitri), 2)} Lt • {fmtNum(Number(selectedWeek.prezzoAlLitro), 3)} €/Lt
           </span>
           {previousWeek && (
             <div className="mt-1.5 space-y-0.5">
               {kmDelta !== null && (
-                <span className={`text-3xs block ${deltaClass(kmDelta, true)}`}>
-                  <span className="font-bold">{kmDelta >= 0 ? '▲' : '▼'} {Math.abs(kmDelta)} km</span> vs sett. precedente
+                <span className="text-3xs block text-ink-soft dark:text-slate-400">
+                  <span className="font-bold">{kmDelta >= 0 ? '▲' : '▼'} {fmtNum(Math.abs(kmDelta), 1)} km</span> vs sett. precedente
                 </span>
               )}
               {litriDelta !== null && (
-                <span className={`text-3xs block ${deltaClass(litriDelta, true)}`}>
+                <span className="text-3xs block text-ink-soft dark:text-slate-400">
                   <span className="font-bold">{litriDelta >= 0 ? '▲' : '▼'} {fmtNum(Math.abs(litriDelta), 1)} Lt</span> vs sett. precedente
                 </span>
               )}

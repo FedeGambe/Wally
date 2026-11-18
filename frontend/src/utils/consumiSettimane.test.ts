@@ -10,7 +10,7 @@ describe('dividiSeBisettimanale', () => {
   });
   it('dimezza costo, litri e km con gap di 2 settimane', () => {
     const [, b] = dividiSeBisettimanale([sett(0), sett(2)]);
-    expect(b).toMatchObject({ costo: 30, quantitaLitri: 15, kmEffettuati: 200 });
+    expect(b).toMatchObject({ costo: 30, quantitaLitri: 15, kmEffettuati: 200, bisettimanale: true });
   });
   it('non tocca gap di 3 settimane', () => {
     expect(dividiSeBisettimanale([sett(0), sett(3)])[1]).toEqual(sett(3));

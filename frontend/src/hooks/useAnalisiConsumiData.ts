@@ -76,6 +76,10 @@ export interface RecordConsumo {
   kmPersiRecord: number;
   costoExtraRecord: number;
   esitoSettimana: EsitoSettimana;
+  /** Quanti rifornimenti cadono nella settimana. */
+  rifornimenti: number;
+  /** true se i valori sono la metà di un rifornimento che copre due settimane (vedi dividiSeBisettimanale). */
+  bisettimanale: boolean;
 }
 
 export type TimeRange = 'storico' | '12mesi';
@@ -109,6 +113,8 @@ const FALLBACK_WEEK: RecordConsumo = {
   costoExtraRecord: 0,
   efficienzaPercentuale: 0,
   esitoSettimana: 'Nella media' as EsitoSettimana,
+  rifornimenti: 0,
+  bisettimanale: false,
   costoExtra: 0
 };
 
@@ -184,7 +190,8 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
           kmEffettuati,
           kmAlLitro: totaleLitri > 0 ? kmEffettuati / totaleLitri : 0,
           kmAlLitroAuto,
-          efficienzaPercentuale
+          efficienzaPercentuale,
+          rifornimenti: ordinate.length
         };
       })
       .sort((a, b) => a.anchorTime - b.anchorTime));
@@ -202,6 +209,7 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
 
     const settimane = settimaneBase.map(s => ({
       ...s,
+      bisettimanale: s.bisettimanale === true,
       euroPer100Km: s.kmEffettuati > 0 ? (s.costo / s.kmEffettuati) * 100 : 0,
       kmPersi: medianaKmAlLitro > 0 && s.kmAlLitro > 0 ? s.quantitaLitri * medianaKmAlLitro - s.kmEffettuati : 0,
       costoExtra: costoRispetto(s, medianaKmAlLitro),
@@ -336,7 +344,8 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   const litriDelta = previousWeek ? selectedWeek.quantitaLitri - previousWeek.quantitaLitri : null;
   const prezzoDelta = previousWeek ? selectedWeek.prezzoAlLitro - previousWeek.prezzoAlLitro : null;
 
-  // Km/litri in più sono "peggio" (rosso); il prezzo al litro segue la logica opposta (in calo è "peggio")
+  // Colore di una variazione: dangerWhenPositive=true se un aumento è "peggio" (rosso), come per il
+  // prezzo al litro. Km e litri non lo usano: farne di più non è né meglio né peggio.
   const deltaClass = (delta: number, dangerWhenPositive: boolean) => {
     const isDanger = dangerWhenPositive ? delta >= 0 : delta < 0;
     return isDanger ? 'text-down' : 'text-up';
