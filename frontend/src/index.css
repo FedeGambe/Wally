@@ -46,6 +46,16 @@
   --kpi-testo-mix: white 35%; /* kpiColorTesto: schiarisce la scala a soglia per il testo su scuro */
 }
 
+/* Anelli di "Mese in evidenza" (SogliaRing): --ring-p è la frazione riempita
+   (0..1). Registrata come <number> così il passaggio da 0 al valore si anima. */
+@property --ring-p {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+.soglia-ring { transition: --ring-p 700ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .soglia-ring { transition: none; } }
+
 @theme inline {
   --color-up: var(--color-up);
   --color-down: var(--color-down);

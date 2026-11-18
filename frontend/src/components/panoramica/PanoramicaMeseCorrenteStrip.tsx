@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, Check, X } from 'lucide-react';
 import EuroAmount from '../EuroAmount';
 import { formatEuro, formatPercent } from '../../utils/format';
 import type { RisparmioMese } from '../../data/mockData';
@@ -26,6 +26,172 @@ interface PanoramicaMeseCorrenteStripProps {
   /** Presente se lo stipendio del mese non è ancora registrato (usePanoramicaData). */
   stimaStipendio?: { mediana: number; entrate: number; risparmioNetto: number } | null;
   setActiveView?: (view: string) => void;
+}
+
+/**
+ * Anello che si riempie in proporzione a quota / soglia. Per Risparmio e
+ * Investito ("sopra") pieno = soglia raggiunta; per le Spese ("sotto") è il
+ * budget consumato: pieno = soglia esaurita, oltre diventa rosso.
+ * Oltre il 100% l'anello continua a girare: il secondo (e terzo) giro si
+ * sovrappone al primo con una sfumatura più chiara, fino a MAX_GIRI.
+ * Al centro la stessa proporzione in %. Il primo giro sfuma dal colore
+ * scurito all'inizio al colore pieno alla fine e l'arco finisce con un
+ * pallino più chiaro. Parte vuoto e si riempie al montaggio animando --ring-p
+ * (registrata con @property in index.css; ferma con prefers-reduced-motion).
+ */
+const MAX_GIRI = 3;
+
+function SogliaRing({ perc, soglia, ok }: { perc: number | undefined; soglia: number; ok: boolean }) {
+  const ratio = perc !== undefined && soglia > 0 ? Math.max(0, perc / soglia) : undefined;
+  const target = ratio !== undefined ? Math.min(ratio, MAX_GIRI) : 0;
+  const giri = Math.max(1, Math.ceil(target));
+  const [fill, setFill] = useState(0);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setFill(target));
+    return () => cancelAnimationFrame(id);
+  }, [target]);
+
+  const size = 56;
+  const stroke = 6;
+  const base = ok ? 'var(--color-up)' : 'var(--color-down)';
+  const color = ok ? 'text-up' : 'text-down';
+  const ringStyle = {
+    '--ring-p': fill,
+    '--ring-c': base,
+    width: size,
+    height: size,
+    // Più giri, più tempo: la velocità del riempimento resta simile.
+    transitionDuration: `${700 + 500 * (giri - 1)}ms`,
+  } as React.CSSProperties;
+  const mask = `radial-gradient(farthest-side, transparent calc(100% - ${stroke}px), #000 calc(100% - ${stroke}px))`;
+  return (
+    <div
+      className="soglia-ring relative shrink-0"
+      style={ringStyle}
+      role="img"
+      aria-label={ratio !== undefined ? `${Math.round(ratio * 100)}% della soglia del ${soglia}%` : 'Dato non disponibile'}
+      title={ratio !== undefined ? `${Math.round(ratio * 100)}% della soglia (${soglia}%)` : undefined}
+    >
+      {/* Binario */}
+      <div
+        className="absolute inset-0 rounded-full bg-slate-100 dark:bg-slate-700/40"
+        style={{ mask, WebkitMask: mask }}
+      />
+      {/* Inizio arrotondato: mezzo cerchio del colore di partenza in cima */}
+      {target > 0 && (
+        <span
+          className="absolute left-1/2 rounded-full"
+          style={{
+            top: 0,
+            width: stroke,
+            height: stroke,
+            transform: 'translateX(-50%)',
+            clipPath: 'inset(0 50% 0 0)',
+            background: 'color-mix(in oklab, var(--ring-c), black 60%)',
+          }}
+        />
+      )}
+      {/* Un arco per giro. Il giro i mostra clamp(0, p - i, 1) del cerchio:
+          il primo sfuma dal colore scurito al pieno, i successivi dal pieno
+          al più chiaro, così si distinguono sopra il giro precedente. */}
+      {Array.from({ length: giri }, (_, i) => {
+        const p = `clamp(0, var(--ring-p) - ${i}, 1)`;
+        const da = i === 0 ? 'color-mix(in oklab, var(--ring-c), black 60%)' : 'var(--ring-c)';
+        const a = i === 0 ? 'var(--ring-c)' : 'color-mix(in oklab, var(--ring-c), white 35%)';
+        return (
+          <div
+            key={i}
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(from 0deg, ${da} 0deg, ${a} calc(${p} * 360deg), transparent calc(${p} * 360deg))`,
+              mask,
+              WebkitMask: mask,
+            }}
+          />
+        );
+      })}
+      {/* Pallino finale, più chiaro, ruotato sulla punta dell'arco */}
+      {target > 0 && (
+        <div
+          className="absolute inset-0"
+          style={{ transform: 'rotate(calc(var(--ring-p) * 360deg))' }}
+        >
+          <span
+            className="absolute left-1/2 rounded-full"
+            style={{
+              top: stroke / 2,
+              width: stroke + 3,
+              height: stroke + 3,
+              transform: 'translate(-50%, -50%)',
+              background: 'color-mix(in srgb, var(--ring-c), white 55%)',
+              boxShadow: '0 0 0 1.5px var(--ring-c), 0 0 8px var(--ring-c)',
+            }}
+          />
+        </div>
+      )}
+      <span className={`absolute inset-0 flex items-center justify-center text-2xs font-extrabold font-display tabular-nums ${color}`}>
+        {ratio !== undefined ? `${Math.round(ratio * 100)}%` : '—'}
+      </span>
+    </div>
+  );
+}
+
+interface MeseCardProps {
+  label: string;
+  value: number | undefined;
+  valueAst?: string;
+  deltaEuro: number | undefined;
+  perc: number | undefined;
+  percAst?: string;
+  percDelta: number | undefined;
+  soglia: number;
+  /** "sopra": di più è meglio (Risparmio, Investito); "sotto": di meno è meglio (Spese). */
+  verso: 'sopra' | 'sotto';
+  onClick: () => void;
+}
+
+/** Card di uno dei 4 mini-widget: cifra con lo scostamento dalla soglia in € sotto, anello a destra. */
+function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', percDelta, soglia, verso, onClick }: MeseCardProps) {
+  const ok = percDelta !== undefined && percDelta >= 0;
+  const distanza = percDelta !== undefined ? formatPercent(Math.abs(percDelta)) : '***%';
+  const statoSoglia = ok
+    ? `${verso === 'sopra' ? 'Sopra' : 'Sotto'} la soglia del ${soglia}% di ${distanza}`
+    : `Fuori soglia (${soglia}%) di ${distanza}`;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between gap-3 min-h-32 cursor-pointer hover:border-accent transition-colors"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">{label}</span>
+          <span className="text-2xl font-extrabold font-display text-ink block mt-1 truncate">
+            <EuroAmount value={value} />{valueAst}
+          </span>
+          {deltaEuro !== undefined && (
+            <span className={`text-xs font-bold block ${deltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
+              {deltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(deltaEuro))}
+            </span>
+          )}
+        </div>
+        <SogliaRing perc={perc} soglia={soglia} ok={ok} />
+      </div>
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <span className="text-xs text-ink-soft font-medium whitespace-nowrap">Quota: <strong className="font-bold text-ink">{formatPercent(perc)}{percAst}</strong></span>
+        {/* Chip compatto: icona ✓/✗ e distanza dalla soglia in punti; la
+            frase intera ("Sopra soglia di …") è nel tooltip e per lo screen reader. */}
+        <span
+          className={`inline-flex items-center gap-0.5 whitespace-nowrap text-3xs font-bold pl-1 pr-2 py-0.5 rounded-full border ${ok ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}
+          title={statoSoglia}
+        >
+          {ok ? <Check className="w-3 h-3" strokeWidth={3} aria-hidden /> : <X className="w-3 h-3" strokeWidth={3} aria-hidden />}
+          <span aria-hidden>{formatPercent(percDelta, { signed: true })}</span>
+          <span className="sr-only">{statoSoglia}</span>
+        </span>
+      </div>
+    </button>
+  );
 }
 
 /**
@@ -116,59 +282,29 @@ export default function PanoramicaMeseCorrenteStrip({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-6">
-            {/* Risparmio */}
-            <button
-              type="button"
+            <MeseCard
+              label="Risparmio"
+              value={risparmioMese}
+              valueAst={ast}
+              deltaEuro={rispDeltaEuro}
+              perc={rispPerc}
+              percAst={ast}
+              percDelta={rispPercDelta}
+              soglia={dynamicThresholds.risparmio}
+              verso="sopra"
               onClick={() => setActiveView?.('patrimonio')}
-              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
-            >
-              <div>
-                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Risparmio</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-extrabold font-display text-ink block">
-                    <EuroAmount value={risparmioMese} />{ast}
-                  </span>
-                  {rispDeltaEuro !== undefined && (
-                    <span className={`text-xs font-bold ${rispDeltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
-                      {rispDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(rispDeltaEuro))}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(rispPerc)}{ast}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${rispPercDelta !== undefined && rispPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                  {rispPercDelta !== undefined && rispPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(rispPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(rispPercDelta, { signed: true })}`}
-                </span>
-              </div>
-            </button>
-
-            {/* Investito */}
-            <button
-              type="button"
+            />
+            <MeseCard
+              label="Investito"
+              value={currentMonthData.investito}
+              deltaEuro={invDeltaEuro}
+              perc={invPerc}
+              percAst={ast}
+              percDelta={invPercDelta}
+              soglia={dynamicThresholds.investiti}
+              verso="sopra"
               onClick={() => setActiveView?.('investimenti')}
-              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
-            >
-              <div>
-                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Investito</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-extrabold font-display text-ink block">
-                    <EuroAmount value={currentMonthData.investito} />
-                  </span>
-                  {invDeltaEuro !== undefined && (
-                    <span className={`text-xs font-bold ${invDeltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
-                      {invDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(invDeltaEuro))}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(invPerc)}{ast}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${invPercDelta !== undefined && invPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                  {invPercDelta !== undefined && invPercDelta >= 0 ? `Sopra Soglia ✓ ${formatPercent(invPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(invPercDelta, { signed: true })}`}
-                </span>
-              </div>
-            </button>
+            />
           </div>
         </div>
 
@@ -184,59 +320,28 @@ export default function PanoramicaMeseCorrenteStrip({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-6">
-            {/* Spese Primarie */}
-            <button
-              type="button"
+            <MeseCard
+              label="Spese Primarie"
+              value={currentMonthData.spesePrimarie}
+              deltaEuro={primDeltaEuro}
+              perc={primPerc}
+              percAst={ast}
+              percDelta={primPercDelta}
+              soglia={dynamicThresholds.primarie}
+              verso="sotto"
               onClick={() => setActiveView?.('uscite')}
-              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
-            >
-              <div>
-                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Spese Primarie</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-extrabold font-display text-ink block">
-                    <EuroAmount value={currentMonthData.spesePrimarie} />
-                  </span>
-                  {primDeltaEuro !== undefined && (
-                    <span className={`text-xs font-bold ${primDeltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
-                      {primDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(primDeltaEuro))}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(primPerc)}{ast}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${primPercDelta !== undefined && primPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                  {primPercDelta !== undefined && primPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(primPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(primPercDelta, { signed: true })}`}
-                </span>
-              </div>
-            </button>
-
-            {/* Spese Secondarie */}
-            <button
-              type="button"
+            />
+            <MeseCard
+              label="Spese Secondarie"
+              value={currentMonthData.speseSecondarie}
+              deltaEuro={secDeltaEuro}
+              perc={secPerc}
+              percAst={ast}
+              percDelta={secPercDelta}
+              soglia={dynamicThresholds.secondarie}
+              verso="sotto"
               onClick={() => setActiveView?.('uscite')}
-              className="w-full text-left p-5 rounded-2xl bg-canvas dark:bg-slate-800 border border-hairline dark:border-slate-700 flex flex-col justify-between h-32 cursor-pointer hover:border-accent transition-colors"
-            >
-              <div>
-                <span className="text-3xs text-ink-soft font-bold uppercase tracking-wider block">Spese Secondarie</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-extrabold font-display text-ink block">
-                    <EuroAmount value={currentMonthData.speseSecondarie} />
-                  </span>
-                  {secDeltaEuro !== undefined && (
-                    <span className={`text-xs font-bold ${secDeltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
-                      {secDeltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(secDeltaEuro))}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-xs text-ink-soft font-medium">Quota: <strong className="font-bold text-ink">{formatPercent(secPerc)}{ast}</strong></span>
-                <span className={`inline-flex items-center gap-0.5 text-3xs font-bold px-2 py-0.5 rounded-full border ${secPercDelta !== undefined && secPercDelta >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}>
-                  {secPercDelta !== undefined && secPercDelta >= 0 ? `Sotto Soglia ✓ ${formatPercent(secPercDelta, { signed: true })}` : `Fuori Soglia ✗ ${formatPercent(secPercDelta, { signed: true })}`}
-                </span>
-              </div>
-            </button>
+            />
           </div>
         </div>
       </div>
