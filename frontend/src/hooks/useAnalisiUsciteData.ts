@@ -138,6 +138,23 @@ export function useAnalisiUsciteData() {
     return { totale: somma(filtraUscite(txs, filtri)), inizio: pInizio, fine: pFine };
   }, [conChiave, inizio, numeroMesi, primoMese, filtri]);
 
+  // Card Totali / Primarie / Secondarie: ignorano il filtro tipo (sono loro a
+  // sceglierlo), così si vedono sempre tutte e tre le cifre.
+  const perTipo = useMemo(() => {
+    const dividi = (txs: Transaction[]) => {
+      const primarie = somma(txs.filter(t => t.primaria));
+      const totale = somma(txs);
+      return { totale, primarie, secondarie: totale - primarie };
+    };
+    const attuale = dividi(filtraUscite(transazioniPeriodo, filtri, ['tipo']));
+    let prima: ReturnType<typeof dividi> | undefined;
+    if (primoMese <= inizio - numeroMesi) {
+      const txs = conChiave.filter(x => x.k >= inizio - numeroMesi && x.k < inizio).map(x => x.t);
+      prima = dividi(filtraUscite(txs, filtri, ['tipo']));
+    }
+    return { attuale, prima };
+  }, [transazioniPeriodo, conChiave, filtri, inizio, numeroMesi, primoMese]);
+
   // Le torte ignorano il proprio filtro (come in Uscite: la fetta scelta resta
   // evidenziata e le altre si vedono ancora).
   const perMacro = useMemo(() => raggruppaPer(filtraUscite(transazioniPeriodo, filtri, ['macro', 'categoria']), t => t.macroCategoria || 'Altro'), [transazioniPeriodo, filtri]);
@@ -161,7 +178,7 @@ export function useAnalisiUsciteData() {
     mesiConSpesa: andamentoMensile.filter(p => p.totale > 0).length,
     andamento, mesePiuAlto, precedente,
     etichettaMese,
-    perMacro, perCategoria
+    perMacro, perCategoria, perTipo
   };
 }
 

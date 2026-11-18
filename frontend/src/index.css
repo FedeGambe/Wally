@@ -134,6 +134,13 @@ body {
   box-shadow: none !important;
 }
 
+/* Barra delle schede (components/BarraSchede.tsx): stesso fondo della sidebar,
+   bianco nel tema chiaro; nel tema scuro usa .fondo-sidebar (in fondo al file). */
+.barra-schede-pillola {
+  background-color: #ffffff;
+  border-color: var(--color-hairline, #e2e8f0);
+}
+
 /* Sidebar navigation rail translucent glass styling */
 .glass-theme aside.bg-white {
   background-color: rgba(11, 15, 25, 0.35) !important;
@@ -405,4 +412,22 @@ input[type="date"]::-webkit-date-and-time-value {
   .animate-pulse {
     animation: none;
   }
+}
+
+/* Fondo della sidebar nel tema scuro (vetro scuro sfocato), riusato da barra
+   delle schede, card "Questo mese" della Home e card Rendimento/Contributo
+   dell'anno in Investimenti. In fondo al file così vince sulle regole .bg-white
+   del tema glass. Nel tema chiaro ogni elemento tiene i suoi colori.
+   Anche il riquadro "Filtro Mese Selezionato" del Cruscotto e le card Rendimento/Ultimo
+   mese di Rendimenti. Con .bordo-sidebar prende anche il bordo della sidebar, senza tiene il suo. */
+/* Classe ripetuta per pesare più di ".glass-theme .bg-white.rounded-2xl"
+   (popup), che altrimenti vince quando il mouse non è sopra. */
+.glass-theme .fondo-sidebar.fondo-sidebar.fondo-sidebar,
+.glass-theme .fondo-sidebar.fondo-sidebar.fondo-sidebar:hover {
+  background: rgba(11, 15, 25, 0.35) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+}
+.glass-theme .fondo-sidebar.fondo-sidebar.bordo-sidebar {
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }

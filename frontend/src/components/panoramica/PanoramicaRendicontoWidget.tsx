@@ -49,7 +49,7 @@ export default function PanoramicaRendicontoWidget({ currentMonthData, sogliaRis
     <button
       type="button"
       onClick={onOpenDetail}
-      className="w-full h-full bg-slate-900 border border-slate-800 text-white p-5 lg:p-6 rounded-3xl shadow-sm text-left flex flex-col cursor-pointer transition-transform duration-200 active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+      className="fondo-sidebar bordo-sidebar w-full h-full bg-slate-900 border border-slate-800 text-white p-5 lg:p-6 rounded-3xl shadow-sm text-left flex flex-col cursor-pointer transition-transform duration-200 active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
     >
       <span className="flex items-center justify-between gap-3">
         <span className="text-base font-bold font-display text-white capitalize">{titolo}</span>

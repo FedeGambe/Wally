@@ -50,6 +50,7 @@ export default function Previsioni() {
         ariaLabel="Sezioni di Previsioni"
         compatta={false}
         accento={VIOLA}
+        classeAttiva="bg-violet-600 text-white"
         fissa
         attiva={scheda}
         onChange={setScheda}

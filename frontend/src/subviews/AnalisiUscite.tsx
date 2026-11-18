@@ -2,9 +2,10 @@ import React, { useMemo } from 'react';
 import {
   Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts';
-import { CalendarRange, CreditCard, Filter, Grid, Search, Tag } from 'lucide-react';
+import { CalendarRange, CreditCard, Grid, Search, Tag } from 'lucide-react';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteTransazioniTable from '../components/uscite/UsciteTransazioniTable';
+import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
 import DropdownMenu from '../components/DropdownMenu';
 import { useAnalisiUsciteData } from '../hooks/useAnalisiUsciteData';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -48,9 +49,7 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
     ['personalizzato', 'Da… a…']
   ];
 
-  const titoloFiltri = [filtri.macro, filtri.categoria, filtri.conto,
-    filtri.tipo === 'primarie' ? 'Primarie' : filtri.tipo === 'secondarie' ? 'Secondarie' : '',
-    filtri.testo ? `“${filtri.testo}”` : ''].filter(Boolean).join(' · ');
+  const altriFiltri = [filtri.macro, filtri.categoria, filtri.conto, filtri.testo ? `“${filtri.testo}”` : ''].filter(Boolean).join(' · ');
   const conFiltri = JSON.stringify(filtri) !== JSON.stringify(FILTRI_USCITE_VUOTI);
 
   const delta = d.precedente && d.precedente.totale > 0 ? ((d.totale - d.precedente.totale) / d.precedente.totale) * 100 : null;
@@ -90,20 +89,41 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
 
   return (
     <div className="space-y-6">
-      {/* Periodo e filtri */}
-      <div className={CARD}>
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div>
-            <h2 className="font-bold text-ink font-display text-base flex items-center gap-2">
-              <CalendarRange className="w-5 h-5 text-orange-600" />
-              Uscite {d.etichettaPeriodo}
-            </h2>
-            <p className="text-xs text-ink-soft mt-1">
-              {titoloFiltri ? <>Solo <strong className="text-ink">{titoloFiltri}</strong>. </> : 'Tutte le uscite. '}
-              Scegli il periodo e filtra per categoria, conto o testo.
-            </p>
-          </div>
-          <div className="relative w-full lg:w-72 shrink-0">
+      {/* Periodo e filtri in una riga sola; Primarie/Secondarie si scelgono
+          dalle card sotto i quattro indicatori */}
+      <div className="bg-white p-3 md:p-4 rounded-3xl border border-hairline shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <DropdownMenu
+            icon={CalendarRange}
+            accent="orange"
+            widthClass="w-48"
+            label="Periodo"
+            value={d.periodo}
+            displayValue={periodi.find(([id]) => id === d.periodo)?.[1] ?? ''}
+            options={periodi.map(([id]) => id)}
+            onSelect={d.setPeriodo}
+            getOptionLabel={id => periodi.find(([x]) => x === id)?.[1] ?? id}
+          />
+          {d.periodo === 'personalizzato' && (
+            <div className="flex items-center gap-1.5 text-xs text-ink-soft font-medium">
+              <input type="month" aria-label="Dal mese" value={d.da} min={d.minInput} max={d.maxInput} onChange={e => d.setDa(e.target.value)} className={INPUT_MESE} />
+              –
+              <input type="month" aria-label="Al mese" value={d.a} min={d.minInput} max={d.maxInput} onChange={e => d.setA(e.target.value)} className={INPUT_MESE} />
+            </div>
+          )}
+          {menu('Macro', Grid, filtri.macro, opzioni.macro, v => set({ macro: v, categoria: '' }))}
+          {menu('Categoria', Tag, filtri.categoria, opzioni.categoria, v => set({ categoria: v }))}
+          {menu('Conto', CreditCard, filtri.conto, opzioni.conto, v => set({ conto: v }))}
+          {conFiltri && (
+            <button
+              type="button"
+              onClick={() => setFiltri(FILTRI_USCITE_VUOTI)}
+              className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-xs px-3 py-1 rounded-xl font-bold transition cursor-pointer"
+            >
+              Azzera filtri ×
+            </button>
+          )}
+          <div className="relative w-full md:w-64 md:ml-auto">
             <Search className="w-4 h-4 text-ink-soft absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="search"
@@ -114,52 +134,6 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
               className="w-full bg-canvas border border-hairline rounded-xl py-2 pl-10 pr-4 text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-orange-500"
             />
           </div>
-        </div>
-
-        <div role="radiogroup" aria-label="Periodo" className="flex flex-wrap gap-2 mt-5">
-          {periodi.map(([id, etichetta]) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={d.periodo === id}
-              onClick={() => d.setPeriodo(id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                d.periodo === id
-                  ? 'bg-orange-700 text-white shadow-xs'
-                  : 'bg-canvas border border-hairline text-ink-soft hover:text-ink dark:hover:text-white'
-              }`}
-            >
-              {etichetta}
-            </button>
-          ))}
-        </div>
-        {d.periodo === 'personalizzato' && (
-          <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-ink-soft font-medium">
-            <label className="flex items-center gap-2">Da
-              <input type="month" value={d.da} min={d.minInput} max={d.maxInput} onChange={e => d.setDa(e.target.value)} className={INPUT_MESE} />
-            </label>
-            <label className="flex items-center gap-2">a
-              <input type="month" value={d.a} min={d.minInput} max={d.maxInput} onChange={e => d.setA(e.target.value)} className={INPUT_MESE} />
-            </label>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-hairline">
-          {menu('Macro', Grid, filtri.macro, opzioni.macro, v => set({ macro: v, categoria: '' }))}
-          {menu('Categoria', Tag, filtri.categoria, opzioni.categoria, v => set({ categoria: v }))}
-          {menu('Conto', CreditCard, filtri.conto, opzioni.conto, v => set({ conto: v }))}
-          {menu('Tipologia', Filter, filtri.tipo, ['primarie', 'secondarie'], v => set({ tipo: v as FiltriUscite['tipo'] }),
-            v => (v === 'primarie' ? 'Primarie' : 'Secondarie'))}
-          {conFiltri && (
-            <button
-              type="button"
-              onClick={() => setFiltri(FILTRI_USCITE_VUOTI)}
-              className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-xs px-3 py-1 rounded-xl font-bold transition cursor-pointer"
-            >
-              Azzera filtri ×
-            </button>
-          )}
         </div>
       </div>
 
@@ -185,6 +159,30 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
         </Kpi>
       </div>
 
+      {/* Totali / Primarie / Secondarie: come in cima al mese, più basse e senza
+          soglie; scegliere una card filtra grafico, torte e tabella */}
+      <UsciteKpiCards
+        compatta
+        sottotitolo={d.etichettaPeriodo}
+        etichettaConfronto={`vs ${d.numeroMesi} ${d.numeroMesi === 1 ? 'mese' : 'mesi'} prima`}
+        selectedRecord={{
+          mese: '', anno: 0,
+          speseTotali: d.perTipo.attuale.totale,
+          spesePrimarie: d.perTipo.attuale.primarie,
+          speseSecondarie: d.perTipo.attuale.secondarie
+        }}
+        prevRecord={d.perTipo.prima && {
+          speseTotali: d.perTipo.prima.totale,
+          spesePrimarie: d.perTipo.prima.primarie,
+          speseSecondarie: d.perTipo.prima.secondarie
+        }}
+        activeChartFilter={filtri.tipo || 'all'}
+        setActiveChartFilter={f => set({ tipo: f === 'all' ? '' : f })}
+        totalPctOfIncome={0}
+        primaryPctOfIncome={0}
+        secondaryPctOfIncome={0}
+      />
+
       {/* Andamento */}
       <div className={CARD}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -193,7 +191,7 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
               Andamento {perAnno ? 'anno per anno' : 'mese per mese'}
             </h2>
             <p className="text-xs text-ink-soft mt-1">
-              Primarie e secondarie{titoloFiltri ? ` di ${titoloFiltri}` : ''}{!perAnno && d.mediaMensile > 0 ? '; la linea tratteggiata è la media al mese' : ''}.
+              {filtri.tipo ? `Solo ${filtri.tipo}` : 'Primarie e secondarie'}{altriFiltri ? ` di ${altriFiltri}` : ''}{!perAnno && d.mediaMensile > 0 ? '; la linea tratteggiata è la media al mese' : ''}.
             </p>
           </div>
           {d.piuAnni && (

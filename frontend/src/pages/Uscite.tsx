@@ -109,6 +109,7 @@ export default function Uscite({
         ariaLabel="Sezioni di Uscite"
         compatta={false}
         accento="#ea580c"
+        classeAttiva="bg-orange-600 text-white"
         fissa
         attiva={scheda}
         onChange={setScheda}

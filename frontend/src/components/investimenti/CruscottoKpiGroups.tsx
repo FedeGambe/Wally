@@ -124,7 +124,7 @@ export default function CruscottoKpiGroups({
         </div>
         <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {/* Rendimento Annuo Box */}
-          <div className="bg-white dark:bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700">
+          <div className="fondo-sidebar bg-white dark:bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700">
             <div className="flex justify-between items-start">
               <span className="text-3xs text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Rendimento {globalSelectedYear}</span>
               <div className="bg-sky-100 dark:bg-sky-950/50 p-1 rounded-lg">
@@ -150,7 +150,7 @@ export default function CruscottoKpiGroups({
           </div>
 
           {/* Contributo Anno Box */}
-          <div className="bg-white dark:bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700">
+          <div className="fondo-sidebar bg-white dark:bg-[#0c1425]/90 p-3 sm:p-5 rounded-2xl border border-sky-200 dark:border-sky-900/60 shadow-xs flex flex-col justify-between min-h-[130px] sm:h-36 transition-all duration-300 hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700">
             <div className="flex justify-between items-start">
               <span className="text-3xs text-ink-soft dark:text-slate-300 font-extrabold uppercase tracking-wider block">Contributo {globalSelectedYear}</span>
               <div className="bg-sky-100 dark:bg-sky-950/50 p-1 rounded-lg">

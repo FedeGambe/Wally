@@ -98,6 +98,7 @@ export default function Investimenti({
       <BarraSchede
         ariaLabel="Sezioni di Investimenti"
         accento="#0284c7"
+        classeAttiva="bg-sky-500 text-white"
         fissa
         className={activeTabProp ? 'hidden md:flex' : ''}
         attiva={activeTab}

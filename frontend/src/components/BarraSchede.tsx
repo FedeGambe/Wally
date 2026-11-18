@@ -48,12 +48,16 @@ interface BarraSchedeProps<T extends string> {
   accento?: string;
   /** Resta fissa in alto durante lo scorrimento. */
   fissa?: boolean;
+  /** Classe della scheda scelta, la stessa del pulsante della pagina nella
+   *  sidebar (es. "bg-orange-600 text-white"): così prende la stessa sfumatura
+   *  (vedi .glass-theme .bg-orange-600 in index.css). Senza, il colore `accento`. */
+  classeAttiva?: string;
   /** "piatta" (default) o "liquida" (vedi sopra). */
   variante?: 'piatta' | 'liquida';
   className?: string;
 }
 
-export default function BarraSchede<T extends string>({ schede, attiva, onChange, ariaLabel, compatta, accento = '#0284c7', fissa = false, variante = 'piatta', className = '' }: BarraSchedeProps<T>) {
+export default function BarraSchede<T extends string>({ schede, attiva, onChange, ariaLabel, compatta, accento = '#0284c7', fissa = false, classeAttiva, variante = 'piatta', className = '' }: BarraSchedeProps<T>) {
   const contenitore = `flex justify-center ${
     fissa ? 'barra-schede-fissa sticky top-[-16px] md:top-[-32px] z-30 -mt-4 pt-4 pb-1 pointer-events-none [&>*]:pointer-events-auto' : ''
   } ${className}`;
@@ -75,7 +79,7 @@ export default function BarraSchede<T extends string>({ schede, attiva, onChange
       <div
         role="tablist"
         aria-label={ariaLabel}
-        className="inline-flex max-w-full p-1 gap-1 rounded-full border bg-white/85 dark:bg-[#0c1425]/85 border-hairline dark:border-slate-800/60 shadow-xs backdrop-blur-md"
+        className="barra-schede-pillola fondo-sidebar bordo-sidebar inline-flex max-w-full p-1 gap-1 rounded-full border shadow-xs"
       >
         {schede.map(s => {
           const scelta = s.id === attiva;
@@ -86,10 +90,10 @@ export default function BarraSchede<T extends string>({ schede, attiva, onChange
               role="tab"
               aria-selected={scelta}
               onClick={() => onChange(s.id)}
-              style={scelta ? { backgroundColor: pieno } : undefined}
+              style={scelta && !classeAttiva ? { backgroundColor: pieno } : undefined}
               className={`inline-flex items-center justify-center gap-2 h-9 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap transition-colors cursor-pointer ${
                 scelta
-                  ? 'text-white shadow-xs'
+                  ? `${classeAttiva ?? 'text-white'} shadow-xs`
                   : 'text-ink-soft dark:text-slate-400 hover:text-ink dark:hover:text-white hover:bg-canvas dark:hover:bg-slate-800/30'
               }`}
             >
