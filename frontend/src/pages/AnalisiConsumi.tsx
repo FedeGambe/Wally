@@ -9,8 +9,13 @@
  *  - ConsumiPercorrenzaPrezzo: grafici Km percorsi e Prezzo carburante
  *  - ConsumiCostoExtraKmPersi: un grafico Costo Extra / Km Persi rispetto alla mediana
  * Tutti i grafici sono cliccabili per cambiare la settimana selezionata.
+ * In alto la barra delle schede: la settimana scelta oppure "Analisi periodo"
+ * (subviews/AnalisiConsumiPeriodo.tsx), il costo del carburante su un periodo intero.
  */
 import React, { useState } from 'react';
+import { CalendarDays, ChartColumn } from 'lucide-react';
+import BarraSchede from '../components/BarraSchede';
+import AnalisiConsumiPeriodo from '../subviews/AnalisiConsumiPeriodo';
 import Modal from '../components/Modal';
 import FloatingAddButton from '../components/FloatingAddButton';
 import ConsumiRiepilogoSettimanale from '../components/consumi/ConsumiRiepilogoSettimanale';
@@ -39,11 +44,31 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   } = useAnalisiConsumiData(goToTodaySignal);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [scheda, setScheda] = useState<'settimana' | 'analisi'>('settimana');
 
   return (
     <div className="space-y-6 animate-fadeIn">
       <h1 className="sr-only">Analisi Consumi</h1>
       <FloatingAddButton label="Aggiungi Consumo" colorClass="bg-rose-600 hover:bg-rose-700" onClick={() => setShowAddModal(true)} />
+
+      <BarraSchede
+        ariaLabel="Sezioni di Analisi Consumi"
+        compatta={false}
+        accento="#e11d48"
+        classeAttiva="bg-rose-600 text-white"
+        fissa
+        attiva={scheda}
+        onChange={setScheda}
+        schede={[
+          { id: 'settimana', etichetta: `Settimana ${selectedWeek.settimana}`, icona: <CalendarDays className="w-[18px] h-[18px]" /> },
+          { id: 'analisi', etichetta: 'Analisi periodo', icona: <ChartColumn className="w-[18px] h-[18px]" /> }
+        ]}
+      />
+
+      {scheda === 'analisi' ? (
+        <AnalisiConsumiPeriodo />
+      ) : (
+      <>
 
       <ConsumiRiepilogoSettimanale
         selectedWeek={selectedWeek}
@@ -88,6 +113,8 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
         setExtraUnit={setExtraUnit}
         handleChartClick={handleChartClick}
       />
+      </>
+      )}
 
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Aggiungi Consumo" fullScreenOnMobile>
         <AggiungiConsumoForm onSaved={() => setShowAddModal(false)} />

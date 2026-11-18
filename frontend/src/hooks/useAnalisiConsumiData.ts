@@ -29,6 +29,43 @@ export function toDate(dataStr: string): Date | null {
   return p ? new Date(p.year, p.month - 1, p.day) : null;
 }
 
+export interface Rifornimento {
+  date: Date;
+  costo: number;
+  quantitaLitri: number;
+  prezzoAlLitro: number;
+  kmFinali: number;
+  /** Km fatti dal rifornimento precedente (colonna F del foglio). */
+  kmEffettuati: number;
+  kmAlLitroAuto: number | null;
+  efficienzaPercentuale: number;
+}
+
+/**
+ * Righe del foglio "Analisi Consumi" (una per rifornimento) già convertite in numeri.
+ * Tutti i valori numerici arrivano dal foglio come stringhe (o vuoti): "|| 0" fa da fallback
+ * per le celle mancanti. L'eccezione è kmAlLitroAuto, dove 0 vuol dire "nessun dato".
+ * Usata dalla vista settimanale (useAnalisiConsumiData) e da "Analisi periodo".
+ */
+export function leggiRifornimenti(rawList: any[]): Rifornimento[] {
+  return rawList
+    .slice(1) // scarta la prima riga: sempre incompleta
+    .filter((r: any) => r && (r.data || r.costo || r.kmEffettuati)) // filter empty rows
+    .map((r: any) => ({
+      date: toDate(String(r.data || '')),
+      costo: Number(r.costo || 0),
+      quantitaLitri: Number(r.quantitaLitri || 0),
+      prezzoAlLitro: Number(r.prezzoAlLitro || 0),
+      kmFinali: Number(r.kmFinali || 0),
+      kmEffettuati: Number(r.kmEffettuati || 0),
+      // fetchSpreadsheetData normalizza le celle numeriche vuote a 0: un kmAlLitroAuto reale non è mai 0,
+      // quindi 0 qui significa "nessun dato" (auto non ancora tracciata quel rifornimento).
+      kmAlLitroAuto: (() => { const v = Number(r.kmAlLitroAuto || 0); return v === 0 ? null : v; })(),
+      efficienzaPercentuale: Number(r.efficienzaPercentuale || 0)
+    }))
+    .filter((r): r is Rifornimento => r.date !== null);
+}
+
 // Le "settimane" di Analisi Consumi vanno da martedì a lunedì (non lunedì-domenica):
 // ogni data viene ancorata al martedì della sua settimana, traslando indietro di
 // (giorno_settimana - martedì) giorni. getDay(): 0=domenica..6=sabato, martedì=2.
@@ -149,22 +186,7 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
 
     // Il foglio ha una riga per rifornimento (non per settimana): la parsiamo così com'è,
     // l'aggregazione per settimana avviene subito dopo.
-    const parsedRows = rawList
-      .slice(1) // scarta la prima riga: sempre incompleta
-      .filter((r: any) => r && (r.data || r.costo || r.kmEffettuati)) // filter empty rows
-      .map((r: any) => ({
-        date: toDate(String(r.data || '')),
-        costo: Number(r.costo || 0),
-        quantitaLitri: Number(r.quantitaLitri || 0),
-        prezzoAlLitro: Number(r.prezzoAlLitro || 0),
-        kmFinali: Number(r.kmFinali || 0),
-        kmEffettuati: Number(r.kmEffettuati || 0),
-        // fetchSpreadsheetData normalizza le celle numeriche vuote a 0: un kmAlLitroAuto reale non è mai 0,
-        // quindi 0 qui significa "nessun dato" (auto non ancora tracciata quel rifornimento).
-        kmAlLitroAuto: (() => { const v = Number(r.kmAlLitroAuto || 0); return v === 0 ? null : v; })(),
-        efficienzaPercentuale: Number(r.efficienzaPercentuale || 0)
-      }))
-      .filter((r): r is typeof r & { date: Date } => r.date !== null);
+    const parsedRows = leggiRifornimenti(rawList);
 
     // Raggruppa i rifornimenti per settimana (martedì-lunedì, vedi getAnchorTuesday): più
     // rifornimenti nella stessa settimana diventano un solo punto dati per grafici/KPI.
