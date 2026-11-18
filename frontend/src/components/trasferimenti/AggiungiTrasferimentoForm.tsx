@@ -41,8 +41,11 @@ export default function AggiungiTrasferimentoForm({ onSaved, iniziale }: Aggiung
   const [meseIdx, setMeseIdx] = useState(iniziale?.meseIdx ?? oggi.getMonth());
   const [anno, setAnno] = useState(iniziale?.anno ?? oggi.getFullYear());
   const [categoria, setCategoria] = useState('Trasferimento');
-  const [contoOrdinante, setContoOrdinante] = useState(iniziale?.contoOrdinante || conti[0] || '');
-  const [contoBeneficiario, setContoBeneficiario] = useState(iniziale?.contoBeneficiario || conti[1] || conti[0] || '');
+  // Da un movimento della banca il lato che la banca non conosce resta
+  // "Nessuno": prima diventava il primo conto della lista (Contanti) e
+  // l'importo si azzerava, ricalcolato dalle banconote ancora a zero.
+  const [contoOrdinante, setContoOrdinante] = useState(iniziale ? (iniziale.contoOrdinante || '') : (conti[0] || ''));
+  const [contoBeneficiario, setContoBeneficiario] = useState(iniziale ? (iniziale.contoBeneficiario || '') : (conti[1] || conti[0] || ''));
   const [importo, setImporto] = useState(iniziale?.importo ? String(iniziale.importo) : '');
   const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
 
@@ -53,11 +56,13 @@ export default function AggiungiTrasferimentoForm({ onSaved, iniziale }: Aggiung
   // Contanti (anche appena selezionato, per non lasciare visibile un importo
   // digitato a mano prima del cambio conto). Il campo Importo diventa di sola
   // lettura in quel caso (vedi JSX più sotto).
+  // Con un importo già dato (movimento della banca) lo si tiene finché non si
+  // indica almeno una banconota.
   useEffect(() => {
-    if (coinvolgeContanti) {
-      setImporto(String(contantiTotal(contantiCounts)));
-    }
-  }, [coinvolgeContanti, contantiCounts]);
+    if (!coinvolgeContanti) return;
+    const totale = contantiTotal(contantiCounts);
+    if (totale > 0 || !iniziale?.importo) setImporto(String(totale));
+  }, [coinvolgeContanti, contantiCounts, iniziale?.importo]);
 
   const contiUguali = Boolean(contoOrdinante) && contoOrdinante === contoBeneficiario;
   const isValid = Boolean((contoOrdinante || contoBeneficiario) && !contiUguali && Number(importo) > 0);

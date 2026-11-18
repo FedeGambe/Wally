@@ -21,7 +21,7 @@ interface ModalProps {
   fullScreen?: boolean;
   /** Larghezza massima della card centrata (ignorata se fullScreen). Default 'max-w-md'. */
   maxWidthClass?: string;
-  /** Sfoca (backdrop-blur) il contenuto sotto l'overlay invece del solo scurimento. */
+  /** Sfocatura più forte del contenuto sotto l'overlay (di base è già sfocato). */
   blurBackdrop?: boolean;
   /** Se presente, mostra un pulsante "indietro" prima del titolo (es. per tornare
    * al selettore di AggiungiDatoModal senza chiudere il popup). */
@@ -59,12 +59,16 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen: fu
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Velo sotto il popup: sempre sfocato, altrimenti cifre e card della
+              pagina si leggono attraverso il vetro del popup e fanno confusione.
+              L'opacità animata è quella del velo intero (colore già al 60%),
+              non solo del colore, così la sfocatura entra ed esce insieme. */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className={`fixed inset-0 bg-slate-900 z-[70] ${blurBackdrop ? 'backdrop-blur-md' : ''}`}
+            className={`fixed inset-0 bg-slate-900/60 dark:bg-slate-950/60 z-[70] ${blurBackdrop ? 'backdrop-blur-lg' : 'backdrop-blur-md'}`}
           />
           <div
             className={`fixed inset-0 z-[71] ${fullScreen ? '' : 'flex items-center justify-center p-4'}`}
