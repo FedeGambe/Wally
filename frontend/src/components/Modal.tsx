@@ -91,7 +91,7 @@ export default function Modal({ isOpen, onClose, title, children, fullScreen: fu
                   : `fondo-popup w-full ${maxWidthClass} max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0b0f19] rounded-3xl shadow-2xl outline-hidden ${borderless ? '' : 'border border-hairline dark:border-white/10'}`
               }
             >
-              <div className={`p-5 flex items-center gap-2.5 shrink-0 sticky top-0 testata-popup bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'} ${mobileFull ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : ''} ${borderless ? '' : 'border-b border-hairline dark:border-white/10'}`}>
+              <div className={`p-5 flex items-center gap-2.5 shrink-0 sticky top-0 z-10 testata-popup bg-[#ffffff] dark:bg-[#0b0f19] ${fullScreen ? '' : 'rounded-t-3xl'} ${mobileFull ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : ''} ${borderless ? '' : 'border-b border-hairline dark:border-white/10'}`}>
                 {onBack && (
                   <button
                     onClick={onBack}
