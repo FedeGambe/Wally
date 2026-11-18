@@ -61,12 +61,17 @@ export function TimeRangeToggle({ value, onChange }: { value: TimeRange; onChang
     <SegmentedToggle
       value={value}
       onChange={onChange}
-      options={[{ value: 'storico', label: 'Storico' }, { value: '12mesi', label: 'Ultimi 12 Mesi' }]}
+      options={[{ value: '12mesi', label: 'Ultimi 12 mesi' }, { value: 'storico', label: 'Storico' }]}
     />
   );
 }
 
-// Tooltip dedicato per Km/Lt: bianco per il valore calcolato, grigio per il dato di bordo auto
+// Tooltip dedicato per Km/Lt: verde la media 4 settimane, bianco la settimana, grigio il dato di bordo auto
+const ETICHETTE_KMLT: Record<string, { testo: string; colore: string }> = {
+  kmAlLitroMedia4: { testo: 'Media 4 sett.', colore: '#34d399' },
+  kmAlLitro: { testo: 'Settimana', colore: '#fff' },
+  kmAlLitroAuto: { testo: 'Computer di bordo', colore: '#94a3b8' }
+};
 export function KmLtTooltip({ active, payload, label }: any) {
   if (!active || !payload || !payload.length) return null;
   return (
@@ -75,8 +80,8 @@ export function KmLtTooltip({ active, payload, label }: any) {
       {payload
         .filter((entry: any) => entry.value !== null && entry.value !== undefined)
         .map((entry: any) => (
-          <div key={entry.dataKey} style={{ color: entry.dataKey === 'kmAlLitroAuto' ? '#94a3b8' : '#fff', fontSize: 12 }}>
-            {entry.dataKey === 'kmAlLitroAuto' ? 'Km/Lt Auto' : 'Km/Lt'}: {fmtNum(entry.value)} km/lt
+          <div key={entry.dataKey} style={{ color: ETICHETTE_KMLT[entry.dataKey]?.colore ?? '#fff', fontSize: 12 }}>
+            {ETICHETTE_KMLT[entry.dataKey]?.testo ?? 'Km/Lt'}: {fmtNum(entry.value)} km/lt
           </div>
         ))}
     </div>

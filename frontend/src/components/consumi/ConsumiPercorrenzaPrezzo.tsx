@@ -2,28 +2,18 @@ import React from 'react';
 import { Car } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { monthAxisProps, formatAxisKm, formatAxisPrezzo, fmtNum, TimeRangeToggle } from './ConsumiChartHelpers';
-import type { RecordConsumo, TimeRange } from '../../hooks/useAnalisiConsumiData';
+import { monthAxisProps, formatAxisKm, formatAxisPrezzo, fmtNum } from './ConsumiChartHelpers';
+import type { RecordConsumo } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 2 "Percorrenza & Prezzo
 // Carburante" (Km percorsi per settimana + Andamento prezzo €/Lt).
 interface ConsumiPercorrenzaPrezzoProps {
-  kmChartData: RecordConsumo[];
-  kmChartRange: TimeRange;
-  setKmChartRange: (range: TimeRange) => void;
-  prezzoChartData: RecordConsumo[];
-  prezzoChartRange: TimeRange;
-  setPrezzoChartRange: (range: TimeRange) => void;
+  chartData: RecordConsumo[];
   handleChartClick: (event: any) => void;
 }
 
 export default function ConsumiPercorrenzaPrezzo({
-  kmChartData,
-  kmChartRange,
-  setKmChartRange,
-  prezzoChartData,
-  prezzoChartRange,
-  setPrezzoChartRange,
+  chartData,
   handleChartClick
 }: ConsumiPercorrenzaPrezzoProps) {
   const isMobile = useIsMobile();
@@ -39,16 +29,15 @@ export default function ConsumiPercorrenzaPrezzo({
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Chilometri Percorsi per Settimana</h3>
-            <TimeRangeToggle value={kmChartRange} onChange={setKmChartRange} />
           </div>
-          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Grafico storico della mobilità settimanale. Clicca sui punti per ispezionare.</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Km fatti ogni settimana. Clicca un punto per vedere quella settimana nel riepilogo.</p>
           <div className="h-44">
-            {kmChartData.length === 0 ? (
+            {chartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={kmChartData}
+                  data={chartData}
                   margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                   onClick={handleChartClick}
                 >
@@ -59,7 +48,7 @@ export default function ConsumiPercorrenzaPrezzo({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(kmChartData, isMobile)} />
+                  <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(chartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisKm} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
@@ -88,16 +77,15 @@ export default function ConsumiPercorrenzaPrezzo({
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Andamento Prezzo Carburante (€/Lt)</h3>
-            <TimeRangeToggle value={prezzoChartRange} onChange={setPrezzoChartRange} />
           </div>
-          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Storicità fluttuazione costi benzina</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Prezzo medio pagato al litro, pesato sui litri dei rifornimenti</p>
           <div className="h-44">
-            {prezzoChartData.length === 0 ? (
+            {chartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={prezzoChartData}
+                  data={chartData}
                   margin={{ top: 10, right: 10, left: isMobile ? 0 : 10, bottom: 0 }}
                   onClick={handleChartClick}
                 >
@@ -108,7 +96,7 @@ export default function ConsumiPercorrenzaPrezzo({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
-                  <XAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(prezzoChartData, isMobile)} />
+                  <XAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} {...monthAxisProps(chartData, isMobile)} />
                   <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisPrezzo} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}

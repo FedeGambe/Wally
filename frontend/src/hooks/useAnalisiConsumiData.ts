@@ -80,10 +80,18 @@ export interface RecordConsumo {
   rifornimenti: number;
   /** true se i valori sono la metà di un rifornimento che copre due settimane (vedi dividiSeBisettimanale). */
   bisettimanale: boolean;
+  /** Media mobile sulle ultime 4 settimane (questa compresa): km totali / litri totali. */
+  kmAlLitroMedia4: number | null;
+  /** Media mobile sulle ultime 4 settimane: costo totale / km totali × 100. */
+  euroPer100KmMedia4: number | null;
 }
 
 export type TimeRange = 'storico' | '12mesi';
 export type ExtraMode = 'accumulato' | 'perKm';
+export type ExtraUnit = 'euro' | 'km';
+
+// Settimane della media mobile dei grafici km/litro e €/100 km
+const FINESTRA_MEDIA = 4;
 
 export function filtraUltimi12Mesi(records: RecordConsumo[], range: TimeRange): RecordConsumo[] {
   if (range !== '12mesi' || records.length === 0) return records;
@@ -115,6 +123,8 @@ const FALLBACK_WEEK: RecordConsumo = {
   esitoSettimana: 'Nella media' as EsitoSettimana,
   rifornimenti: 0,
   bisettimanale: false,
+  kmAlLitroMedia4: null,
+  euroPer100KmMedia4: null,
   costoExtra: 0
 };
 
@@ -218,7 +228,22 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
     }));
 
     const esiti = calcolaEsitiSettimanali(settimane);
-    return settimane.map((s, index) => ({ ...s, esitoSettimana: esiti[index] }));
+    // Media mobile come rapporto tra somme (non media dei rapporti): una settimana con pochi km
+    // non pesa quanto una con tanti. Calcolata su tutto lo storico, così anche le prime settimane
+    // della vista "ultimi 12 mesi" hanno le 4 settimane precedenti.
+    return settimane.map((s, index) => {
+      const finestra = settimane.slice(Math.max(0, index - FINESTRA_MEDIA + 1), index + 1);
+      const km = finestra.reduce((t, w) => t + w.kmEffettuati, 0);
+      const litri = finestra.reduce((t, w) => t + w.quantitaLitri, 0);
+      const costo = finestra.reduce((t, w) => t + w.costo, 0);
+      const piena = finestra.length === FINESTRA_MEDIA;
+      return {
+        ...s,
+        esitoSettimana: esiti[index],
+        kmAlLitroMedia4: piena && litri > 0 ? km / litri : null,
+        euroPer100KmMedia4: piena && km > 0 ? costo / km * 100 : null
+      };
+    });
   }, [data.analisiConsumi]);
 
   // 2. Local selection state
@@ -250,35 +275,20 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goToTodaySignal]);
 
-  // 3. Time range indipendente per ciascun grafico storico
-  const [kmChartRange, setKmChartRange] = useState<TimeRange>('storico');
-  const [kmLtChartRange, setKmLtChartRange] = useState<TimeRange>('storico');
-  const [euro100ChartRange, setEuro100ChartRange] = useState<TimeRange>('storico');
-  const [prezzoChartRange, setPrezzoChartRange] = useState<TimeRange>('storico');
-  const [costoExtraChartRange, setCostoExtraChartRange] = useState<TimeRange>('storico');
-  const [kmPersiChartRange, setKmPersiChartRange] = useState<TimeRange>('storico');
+  // 3. Un solo periodo per tutti i grafici (di default gli ultimi 12 mesi)
+  const [chartRange, setChartRange] = useState<TimeRange>('12mesi');
   const [extraMode, setExtraMode] = useState<ExtraMode>('accumulato');
+  const [extraUnit, setExtraUnit] = useState<ExtraUnit>('euro');
 
-  const kmChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, kmChartRange), [consumiRecords, kmChartRange]);
-  const kmLtChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, kmLtChartRange), [consumiRecords, kmLtChartRange]);
-  const euro100ChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, euro100ChartRange), [consumiRecords, euro100ChartRange]);
-  const prezzoChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, prezzoChartRange), [consumiRecords, prezzoChartRange]);
+  const chartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, chartRange), [consumiRecords, chartRange]);
 
   // Costo extra e km persi: normalizzabili "ogni 100 km" (per km i valori sarebbero centesimi
   // illeggibili), dividendo per i km effettuati nella settimana
-  const applyExtraMode = (records: RecordConsumo[], field: 'costoExtra' | 'kmPersi') => {
-    if (extraMode === 'accumulato') return records;
-    return records.map(r => ({ ...r, [field]: r.kmEffettuati > 0 ? (r[field] || 0) / r.kmEffettuati * 100 : 0 }));
-  };
-
-  const costoExtraChartData = useMemo(
-    () => applyExtraMode(filtraUltimi12Mesi(consumiRecords, costoExtraChartRange), 'costoExtra'),
-    [consumiRecords, costoExtraChartRange, extraMode]
-  );
-  const kmPersiChartData = useMemo(
-    () => applyExtraMode(filtraUltimi12Mesi(consumiRecords, kmPersiChartRange), 'kmPersi'),
-    [consumiRecords, kmPersiChartRange, extraMode]
-  );
+  const extraChartData = useMemo(() => {
+    if (extraMode === 'accumulato') return chartData;
+    const per100 = (v: number, km: number) => km > 0 ? v / km * 100 : 0;
+    return chartData.map(r => ({ ...r, costoExtra: per100(r.costoExtra, r.kmEffettuati), kmPersi: per100(r.kmPersi, r.kmEffettuati) }));
+  }, [chartData, extraMode]);
 
   const selectedWeek = selectedWeekState || FALLBACK_WEEK;
 
@@ -363,13 +373,8 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   return {
     consumiRecords,
     selectedWeek, selectedWeekState, setSelectedWeekState,
-    kmChartRange, setKmChartRange, kmChartData,
-    kmLtChartRange, setKmLtChartRange, kmLtChartData,
-    euro100ChartRange, setEuro100ChartRange, euro100ChartData,
-    prezzoChartRange, setPrezzoChartRange, prezzoChartData,
-    costoExtraChartRange, setCostoExtraChartRange, costoExtraChartData,
-    kmPersiChartRange, setKmPersiChartRange, kmPersiChartData,
-    extraMode, setExtraMode,
+    chartRange, setChartRange, chartData,
+    extraChartData, extraMode, setExtraMode, extraUnit, setExtraUnit,
     stats,
     kmLtLabel, cost100Label, kmPersiLabel, costoExtraLabel,
     previousWeek, kmDelta, litriDelta, prezzoDelta,

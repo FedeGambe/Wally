@@ -4,9 +4,10 @@
  * selezionata, statistiche/etichette KPI) vive nell'hook useAnalisiConsumiData
  * (src/hooks/useAnalisiConsumiData.ts). Questo file compone solo la pagina:
  *  - ConsumiRiepilogoSettimanale: riepilogo della settimana selezionata
- *  - ConsumiEfficienzaMarcia: grafici Km/Litro e Costo per 100 Km
+ *  - un solo interruttore Ultimi 12 mesi / Storico per tutti i grafici
+ *  - ConsumiEfficienzaMarcia: grafici Km/Litro e Costo per 100 Km (media 4 settimane + mediana)
  *  - ConsumiPercorrenzaPrezzo: grafici Km percorsi e Prezzo carburante
- *  - ConsumiCostoExtraKmPersi: grafici Costo Extra e Km Persi per inefficienza
+ *  - ConsumiCostoExtraKmPersi: un grafico Costo Extra / Km Persi rispetto alla mediana
  * Tutti i grafici sono cliccabili per cambiare la settimana selezionata.
  */
 import React, { useState } from 'react';
@@ -17,6 +18,7 @@ import ConsumiEfficienzaMarcia from '../components/consumi/ConsumiEfficienzaMarc
 import ConsumiPercorrenzaPrezzo from '../components/consumi/ConsumiPercorrenzaPrezzo';
 import ConsumiCostoExtraKmPersi from '../components/consumi/ConsumiCostoExtraKmPersi';
 import AggiungiConsumoForm from '../components/consumi/AggiungiConsumoForm';
+import { TimeRangeToggle } from '../components/consumi/ConsumiChartHelpers';
 import { useAnalisiConsumiData } from '../hooks/useAnalisiConsumiData';
 
 interface AnalisiConsumiProps {
@@ -27,13 +29,8 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
   const {
     consumiRecords,
     selectedWeek, setSelectedWeekState,
-    kmChartRange, setKmChartRange, kmChartData,
-    kmLtChartRange, setKmLtChartRange, kmLtChartData,
-    euro100ChartRange, setEuro100ChartRange, euro100ChartData,
-    prezzoChartRange, setPrezzoChartRange, prezzoChartData,
-    costoExtraChartRange, setCostoExtraChartRange, costoExtraChartData,
-    kmPersiChartRange, setKmPersiChartRange, kmPersiChartData,
-    extraMode, setExtraMode,
+    chartRange, setChartRange, chartData,
+    extraChartData, extraMode, setExtraMode, extraUnit, setExtraUnit,
     stats,
     kmLtLabel, cost100Label, kmPersiLabel, costoExtraLabel,
     previousWeek, kmDelta, litriDelta, prezzoDelta,
@@ -66,35 +63,29 @@ export default function AnalisiConsumi({ goToTodaySignal }: AnalisiConsumiProps)
         setSelectedWeekState={setSelectedWeekState}
       />
 
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h2 className="font-bold text-ink dark:text-slate-100 font-display text-sm">Andamento</h2>
+        <TimeRangeToggle value={chartRange} onChange={setChartRange} />
+      </div>
+
       <ConsumiEfficienzaMarcia
-        kmLtChartData={kmLtChartData}
-        kmLtChartRange={kmLtChartRange}
-        setKmLtChartRange={setKmLtChartRange}
-        euro100ChartData={euro100ChartData}
-        euro100ChartRange={euro100ChartRange}
-        setEuro100ChartRange={setEuro100ChartRange}
+        chartData={chartData}
+        medianaKmAlLitro={stats.kmAlLitro.median}
+        medianaCosto100={stats.costo100.median}
         handleChartClick={handleChartClick}
       />
 
       <ConsumiPercorrenzaPrezzo
-        kmChartData={kmChartData}
-        kmChartRange={kmChartRange}
-        setKmChartRange={setKmChartRange}
-        prezzoChartData={prezzoChartData}
-        prezzoChartRange={prezzoChartRange}
-        setPrezzoChartRange={setPrezzoChartRange}
+        chartData={chartData}
         handleChartClick={handleChartClick}
       />
 
       <ConsumiCostoExtraKmPersi
-        costoExtraChartData={costoExtraChartData}
-        costoExtraChartRange={costoExtraChartRange}
-        setCostoExtraChartRange={setCostoExtraChartRange}
-        kmPersiChartData={kmPersiChartData}
-        kmPersiChartRange={kmPersiChartRange}
-        setKmPersiChartRange={setKmPersiChartRange}
+        extraChartData={extraChartData}
         extraMode={extraMode}
         setExtraMode={setExtraMode}
+        extraUnit={extraUnit}
+        setExtraUnit={setExtraUnit}
         handleChartClick={handleChartClick}
       />
 
