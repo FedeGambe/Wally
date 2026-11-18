@@ -22,6 +22,10 @@ interface FinanceKpiCardProps {
     className?: string;
     /** Taglia della cifra; default "text-2xl". La Home la ingrandisce da lg, dove le card sono più alte. */
     valoreClassName?: string;
+    /** Se presente la card diventa cliccabile (anche da tastiera con Invio/Spazio). */
+    onClick?: () => void;
+    /** Card scelta: anello del suo colore attorno (solo per le card cliccabili). */
+    selected?: boolean;
 }
 
 export default function FinanceKpiCard({
@@ -32,11 +36,14 @@ export default function FinanceKpiCard({
     icon: Icon,
     id,
     className = '',
-    valoreClassName = 'text-2xl'
+    valoreClassName = 'text-2xl',
+    onClick,
+    selected = false
 }: FinanceKpiCardProps) {
     // Dynamic classes per card type (stile a riquadro chiaro/scuro, coerente con i widget del Cruscotto Investimenti)
     const typeConfigs = {
         disponibile: {
+            ring: 'ring-emerald-600 dark:ring-emerald-500',
             cardClass: 'bg-emerald-200/70 dark:bg-emerald-950/65 border-emerald-200/80 dark:border-emerald-900/50',
             titleColor: 'text-up',
             iconWrapper: 'bg-emerald-100 dark:bg-emerald-950/60 text-up',
@@ -45,6 +52,7 @@ export default function FinanceKpiCard({
             bgIconColor: 'text-emerald-500/5 dark:text-emerald-400/5'
         },
         investito: {
+            ring: 'ring-sky-600 dark:ring-sky-500',
             cardClass: 'bg-sky-200/70 dark:bg-sky-950/65 border-sky-200/80 dark:border-sky-900/50',
             titleColor: 'text-sky-600 dark:text-sky-400',
             iconWrapper: 'bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400',
@@ -53,6 +61,7 @@ export default function FinanceKpiCard({
             bgIconColor: 'text-sky-500/5 dark:text-sky-400/5'
         },
         impegnato: {
+            ring: 'ring-amber-500 dark:ring-amber-500',
             cardClass: 'bg-amber-200/70 dark:bg-amber-950/65 border-amber-200/80 dark:border-amber-900/50',
             titleColor: 'text-amber-600 dark:text-amber-400',
             iconWrapper: 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400',
@@ -61,6 +70,7 @@ export default function FinanceKpiCard({
             bgIconColor: 'text-amber-500/5 dark:text-amber-400/5'
         },
         totale: {
+            ring: 'ring-slate-400 dark:ring-slate-500',
             cardClass: 'bg-transparent border-hairline dark:border-slate-800/60',
             titleColor: 'text-ink-soft dark:text-slate-500',
             iconWrapper: 'bg-canvas dark:bg-slate-800/60 text-ink-soft dark:text-slate-300',
@@ -75,10 +85,25 @@ export default function FinanceKpiCard({
     // neutro invece di far crashare il rendering.
     const config = typeConfigs[type] || typeConfigs.totale;
 
+    // Cliccabile: si comporta come un pulsante a due stati (aria-pressed)
+    const cliccabile = onClick ? {
+        role: 'button',
+        tabIndex: 0,
+        'aria-pressed': selected,
+        onClick,
+        onKeyDown: (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }
+        },
+    } : {};
+    const statoClick = onClick
+        ? `cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${config.ring} ${selected ? 'ring-2 ring-offset-2 ring-offset-canvas dark:ring-offset-slate-950' : ''}`
+        : '';
+
     return (
         <div
             id={id}
-            className={`${config.cardClass} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-24 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${className}`}
+            {...cliccabile}
+            className={`${config.cardClass} ${statoClick} rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-xs relative overflow-hidden h-24 sm:h-40 border transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${className}`}
         >
             {/* Top row with Title and small Icon Container */}
             <div className="flex justify-between items-start z-10">
