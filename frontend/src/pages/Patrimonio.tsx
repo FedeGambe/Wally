@@ -11,7 +11,8 @@
 // Sotto-sezioni della pagina:
 //  1. Quattro card di patrimonio (Totale / Disponibile / Investito / Accantonato)
 //  2. Elenco conti con soglie di allerta, espandibile per il dettaglio di ognuno
-//     (PatrimonioContoCard)
+//     (PatrimonioContoCard); pulsanti Totale/Disponibile/Investito/Accantonato
+//     mostrano solo i conti con quota in quel capitale e il loro importo
 //  3. Due grafici a torta: suddivisione capitale e capitale accantonato per conto
 //     (PatrimonioCapitalSplitCard, PatrimonioEngagedCapitalCard)
 //  4. Grafico ad area "Andamento Finanziario" con zoom, 3 linee attivabili e
@@ -24,12 +25,33 @@ import {
   BarChart3
 } from 'lucide-react';
 import FinanceKpiCard from '../components/FinanceKpiCard';
-import PatrimonioContoCard from '../components/patrimonio/PatrimonioContoCard';
+import { useState } from 'react';
+import PatrimonioContoCard, { NOMI_FILTRO, importoConto, type FiltroCapitale } from '../components/patrimonio/PatrimonioContoCard';
 import PatrimonioCapitalSplitCard from '../components/patrimonio/PatrimonioCapitalSplitCard';
 import PatrimonioEngagedCapitalCard from '../components/patrimonio/PatrimonioEngagedCapitalCard';
 import PatrimonioTrendChart from '../components/patrimonio/PatrimonioTrendChart';
 import { formatEuro, formatPercent } from '../utils/format';
 import { usePatrimonioData } from '../hooks/usePatrimonioData';
+
+// Colori dei pulsanti della Sintesi conti, gli stessi delle 4 card in alto
+const COLORI_FILTRO: Record<FiltroCapitale, { spento: string; attivo: string }> = {
+  totale: {
+    spento: 'border-slate-200 text-slate-400 hover:bg-slate-50 dark:border-slate-700/70 dark:text-slate-500 dark:hover:bg-white/5',
+    attivo: 'border-slate-400 bg-slate-400 text-white dark:border-slate-600 dark:bg-slate-600/80',
+  },
+  disponibile: {
+    spento: 'border-emerald-200/70 text-emerald-900/40 hover:bg-emerald-50/60 dark:border-emerald-900/50 dark:text-emerald-200/40 dark:hover:bg-emerald-950/30',
+    attivo: 'border-emerald-700 bg-emerald-700 text-white dark:border-emerald-600 dark:bg-emerald-700',
+  },
+  investito: {
+    spento: 'border-sky-200/70 text-sky-900/40 hover:bg-sky-50/60 dark:border-sky-900/50 dark:text-sky-200/40 dark:hover:bg-sky-950/30',
+    attivo: 'border-sky-700 bg-sky-700 text-white dark:border-sky-600 dark:bg-sky-700',
+  },
+  accantonato: {
+    spento: 'border-amber-200/70 text-amber-900/40 hover:bg-amber-50/60 dark:border-amber-900/50 dark:text-amber-200/40 dark:hover:bg-amber-950/30',
+    attivo: 'border-amber-600 bg-amber-600 text-white dark:border-amber-500 dark:bg-amber-700',
+  },
+};
 
 export default function Patrimonio() {
   const {
@@ -48,6 +70,17 @@ export default function Patrimonio() {
 
   const toggleConto = (conto: typeof localConti[number]) =>
     setSelectedConto(isContoSelected(conto) ? null : conto);
+
+  // Pulsanti della Sintesi conti: Totale mostra tutti i conti col saldo, gli
+  // altri solo i conti che hanno una quota in quel capitale, con quella quota.
+  const [filtro, setFiltro] = useState<FiltroCapitale>('totale');
+  const contiFiltrati = filtro === 'totale'
+    ? localConti
+    : localConti.filter(c => Math.abs(importoConto(c, filtro)) > 0.005);
+  const totaleFiltro = contiFiltrati.reduce((sum, c) => sum + importoConto(c, filtro), 0);
+  // Con Totale restano i primi 4 a sinistra come prima; filtrati, metà e metà
+  const meta = filtro === 'totale' ? 4 : Math.ceil(contiFiltrati.length / 2);
+  const colonne = [contiFiltrati.slice(0, meta), contiFiltrati.slice(meta)];
 
   return (
     <div className="space-y-6">
@@ -117,33 +150,45 @@ export default function Patrimonio() {
 
       {/* Accounts Summary Cards List - full width, 2 columns (primi 4 a sx, restanti a dx) */}
       <div className="bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md">
-        <h2 className="font-bold text-ink font-display text-base mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-          <span>Sintesi Situazione Conti</span>
-          <span className="text-3xs text-ink-soft font-mono">Soglia critica di allerta: {formatEuro(5000)}</span>
-        </h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            {localConti.slice(0, 4).map((conto, idx) => (
-              <PatrimonioContoCard
-                key={conto.id || conto.categoria || idx}
-                conto={conto}
-                isSelected={isContoSelected(conto)}
-                onToggle={() => toggleConto(conto)}
-              />
-            ))}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="font-bold text-ink font-display text-base">Sintesi Situazione Conti</h2>
+            <p className="text-xs text-ink-soft mt-1">
+              {contiFiltrati.length} {contiFiltrati.length === 1 ? 'conto' : 'conti'} ·{' '}
+              <strong className="text-sm font-bold font-display text-ink">{formatEuro(totaleFiltro)}</strong>
+            </p>
           </div>
-          <div className="space-y-3">
-            {localConti.slice(4).map((conto, idx) => (
-              <PatrimonioContoCard
-                key={conto.id || conto.categoria || idx}
-                conto={conto}
-                isSelected={isContoSelected(conto)}
-                onToggle={() => toggleConto(conto)}
-              />
+          {/* Pulsanti coi colori delle 4 card in alto: bordo sottile e testo colorato,
+              attivo con lo sfondo scuro del suo colore */}
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Capitale da mostrare">
+            {(Object.keys(NOMI_FILTRO) as FiltroCapitale[]).map(f => (
+              <button key={f} type="button" onClick={() => setFiltro(f)} aria-pressed={filtro === f}
+                className={`px-2.5 py-1 rounded-lg border text-2xs font-semibold transition-colors cursor-pointer ${COLORI_FILTRO[f][filtro === f ? 'attivo' : 'spento']}`}>
+                {NOMI_FILTRO[f]}
+              </button>
             ))}
           </div>
         </div>
+
+        {contiFiltrati.length === 0 ? (
+          <p className="text-sm text-ink-soft py-6 text-center">Nessun conto con capitale {NOMI_FILTRO[filtro].toLowerCase()}.</p>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {colonne.map((lista, col) => (
+              <div key={col} className="space-y-3">
+                {lista.map((conto, idx) => (
+                  <PatrimonioContoCard
+                    key={conto.id || conto.categoria || idx}
+                    conto={conto}
+                    isSelected={isContoSelected(conto)}
+                    onToggle={() => toggleConto(conto)}
+                    filtro={filtro}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
