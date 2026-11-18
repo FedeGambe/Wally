@@ -154,6 +154,10 @@ interface MeseCardProps {
 /** Card di uno dei 4 mini-widget: cifra con lo scostamento dalla soglia in € sotto, anello a destra. */
 function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', percDelta, soglia, verso, onClick }: MeseCardProps) {
   const ok = percDelta !== undefined && percDelta >= 0;
+  // deltaEuro e percDelta sono il margine (positivo = soglia rispettata). A
+  // schermo invece il segno dice "quanto sopra o sotto la soglia": per le
+  // spese sotto soglia è negativo (-7,5%, -136,80 €) ma resta verde.
+  const segno = (v: number) => (verso === 'sotto' ? -v : v) || 0;
   const distanza = percDelta !== undefined ? formatPercent(Math.abs(percDelta)) : '***%';
   const statoSoglia = ok
     ? `${verso === 'sopra' ? 'Sopra' : 'Sotto'} la soglia del ${soglia}% di ${distanza}`
@@ -172,7 +176,7 @@ function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', 
           </span>
           {deltaEuro !== undefined && (
             <span className={`text-xs font-bold block ${deltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
-              {deltaEuro >= 0 ? '+' : '-'}{formatEuro(Math.abs(deltaEuro))}
+              {segno(deltaEuro) >= 0 ? '+' : '-'}{formatEuro(Math.abs(deltaEuro))}
             </span>
           )}
         </div>
@@ -187,7 +191,7 @@ function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', 
           title={statoSoglia}
         >
           {ok ? <Check className="w-3 h-3" strokeWidth={3} aria-hidden /> : <X className="w-3 h-3" strokeWidth={3} aria-hidden />}
-          <span aria-hidden>{formatPercent(percDelta, { signed: true })}</span>
+          <span aria-hidden>{formatPercent(percDelta !== undefined ? segno(percDelta) : undefined, { signed: true })}</span>
           <span className="sr-only">{statoSoglia}</span>
         </span>
       </div>
