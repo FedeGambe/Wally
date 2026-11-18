@@ -431,3 +431,20 @@ input[type="date"]::-webkit-date-and-time-value {
 .glass-theme .fondo-sidebar.fondo-sidebar.bordo-sidebar {
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
+
+/* Popup (components/Modal.tsx, es. Aggiungi dato) nel tema scuro: stesso vetro
+   della sidebar. Il popup è in un portal su <body>, fuori da .glass-theme, quindi
+   la regola si appoggia a html.dark. La testata fissa resta trasparente e sfoca
+   solo quello che le scorre sotto, così non fa una fascia più scura. */
+html.dark .fondo-popup.fondo-popup {
+  /* Più coprente della sidebar (0.35): il popup sta sopra le card colorate. */
+  background: rgba(11, 15, 25, 0.7) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+html.dark .testata-popup.testata-popup {
+  background: transparent !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}

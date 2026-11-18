@@ -12,10 +12,14 @@
 //  3. EntratePieCard (x2) — ripartizione per categoria e per conto di accredito
 //  4. EntrateMovimentiTable — dettaglio dei singoli movimenti del mese selezionato
 //  5. Drawer laterale con l'elenco delle transazioni quando si clicca un punto
+// In alto la barra delle schede: il mese scelto oppure "Analisi periodo"
+// (subviews/AnalisiEntrate.tsx), le entrate su un periodo intero.
 // ============================================================================
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { Grid, CreditCard } from 'lucide-react';
+import { Grid, CreditCard, CalendarDays, ChartColumn } from 'lucide-react';
+import BarraSchede from '../components/BarraSchede';
+import AnalisiEntrate from '../subviews/AnalisiEntrate';
 import Drawer from '../components/Drawer';
 import Modal from '../components/Modal';
 import FloatingAddButton from '../components/FloatingAddButton';
@@ -54,12 +58,31 @@ export default function Entrate({
   } = useEntrateData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [scheda, setScheda] = useState<'mese' | 'analisi'>('mese');
 
   return (
     <div className="space-y-6">
       <h1 className="sr-only">Entrate</h1>
       <FloatingAddButton label="Aggiungi Entrata" colorClass="bg-emerald-600 hover:bg-emerald-700" onClick={() => setShowAddModal(true)} />
 
+      <BarraSchede
+        ariaLabel="Sezioni di Entrate"
+        compatta={false}
+        accento="#059669"
+        classeAttiva="bg-emerald-600 text-white"
+        fissa
+        attiva={scheda}
+        onChange={setScheda}
+        schede={[
+          { id: 'mese', etichetta: `${selectedRecord?.meseDisplay ?? ''} ${selectedRecord?.anno ?? ''}`.trim(), icona: <CalendarDays className="w-[18px] h-[18px]" /> },
+          { id: 'analisi', etichetta: 'Analisi periodo', icona: <ChartColumn className="w-[18px] h-[18px]" /> }
+        ]}
+      />
+
+      {scheda === 'analisi' ? (
+        <AnalisiEntrate />
+      ) : (
+      <>
       <EntrateBentoCards
         selectedRecord={selectedRecord}
         prevRecord={prevRecord}
@@ -98,6 +121,8 @@ export default function Entrate({
       </div>
 
       <EntrateMovimentiTable selectedRecord={selectedRecord} activeMonthEntries={activeMonthEntries} />
+      </>
+      )}
 
       <Drawer
         isOpen={drawerOpen}

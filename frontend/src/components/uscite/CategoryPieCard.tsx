@@ -27,7 +27,27 @@ interface CategoryPieCardProps {
   onSelect: (name: string) => void;
   containerRef?: React.RefObject<HTMLDivElement | null>;
   highlighted?: boolean;
+  /** Colore della pagina: arancio (Uscite, default) o verde (Entrate). */
+  tono?: 'orange' | 'emerald';
 }
+
+// Classi scritte per intero perché Tailwind le trovi.
+const TONI = {
+  orange: {
+    evidenza: 'border-orange-400 ring-4 ring-orange-400/30',
+    icona: 'text-orange-600',
+    fondo: 'bg-orange-500/10',
+    riga: 'bg-orange-500/10 border border-orange-500/25 shadow-xs',
+    testo: 'text-orange-700 dark:text-orange-300'
+  },
+  emerald: {
+    evidenza: 'border-emerald-400 ring-4 ring-emerald-400/30',
+    icona: 'text-emerald-600',
+    fondo: 'bg-emerald-500/10',
+    riga: 'bg-emerald-500/10 border border-emerald-500/25 shadow-xs',
+    testo: 'text-emerald-700 dark:text-emerald-300'
+  }
+};
 
 const renderPieTooltip = ({ active, payload }: any) => {
   if (!active || !payload || payload.length === 0) return null;
@@ -63,19 +83,21 @@ export default function CategoryPieCard({
   allValue = 'Tutte',
   onSelect,
   containerRef,
-  highlighted = false
+  highlighted = false,
+  tono = 'orange'
 }: CategoryPieCardProps) {
+  const t = TONI[tono];
   const toggle = (name: string) => onSelect(selected === name ? allValue : name);
 
   return (
     <div
       ref={containerRef}
       className={`bg-white p-6 rounded-3xl border shadow-sm text-left transition-all duration-300 hover:shadow-md ${
-        highlighted ? 'border-orange-400 ring-4 ring-orange-400/30' : 'border-hairline'
+        highlighted ? t.evidenza : 'border-hairline'
       }`}
     >
       <h2 className="font-bold text-ink font-display text-base flex items-center gap-2">
-        <Icon className="w-5 h-5 text-orange-600" />
+        <Icon className={`w-5 h-5 ${t.icona}`} />
         {title}
       </h2>
       <p className="text-xs text-ink-soft mt-1">{subtitle}</p>
@@ -86,7 +108,7 @@ export default function CategoryPieCard({
         voci={data.map((entry, idx) => ({ nome: entry.name || 'Altro', valore: entry.value, colore: colors[(idx + colorOffset) % colors.length] }))}
         selezionata={selected}
         onSelect={toggle}
-        classeSelezionata="bg-orange-500/10"
+        classeSelezionata={t.fondo}
       />
 
       <div className="hidden md:flex flex-col sm:flex-row items-center justify-around gap-6 mt-6">
@@ -142,15 +164,15 @@ export default function CategoryPieCard({
                 aria-pressed={isSelected}
                 className={`w-full flex items-center justify-between p-1.5 rounded-xl transition-all cursor-pointer select-none ${
                   isSelected
-                    ? 'bg-orange-500/10 border border-orange-500/25 shadow-xs'
+                    ? t.riga
                     : 'hover:bg-canvas dark:hover:bg-white/5 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colors[(idx + colorOffset) % colors.length] }} />
-                  <span className={`text-ink-soft dark:text-slate-300 truncate ${isSelected ? 'font-bold text-orange-700 dark:text-orange-300' : 'font-semibold'}`}>{name}</span>
+                  <span className={`text-ink-soft dark:text-slate-300 truncate ${isSelected ? `font-bold ${t.testo}` : 'font-semibold'}`}>{name}</span>
                 </div>
-                <span className={`font-bold ${isSelected ? 'text-orange-700 dark:text-orange-300' : 'text-ink dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
+                <span className={`font-bold ${isSelected ? t.testo : 'text-ink dark:text-slate-100'}`}>{formatEuro(entry.value)}</span>
               </button>
             );
           })}

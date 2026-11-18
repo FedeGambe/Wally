@@ -2,11 +2,12 @@ import React, { useMemo } from 'react';
 import {
   Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts';
-import { CalendarRange, CreditCard, Grid, Search, Tag } from 'lucide-react';
+import { CreditCard, Grid, Search, Tag } from 'lucide-react';
 import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteTransazioniTable from '../components/uscite/UsciteTransazioniTable';
 import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
 import DropdownMenu from '../components/DropdownMenu';
+import SelettorePeriodo from '../components/SelettorePeriodo';
 import { useAnalisiUsciteData } from '../hooks/useAnalisiUsciteData';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { formatAxisCompact, formatEuro, formatPercent } from '../utils/format';
@@ -22,7 +23,6 @@ const COLORI = ['#3b82f6', '#f59e0b', '#10b981', '#ec4899', '#8b5cf6', '#ef4444'
 const PRIMARIE = '#c2410c';
 const SECONDARIE = '#fb923c';
 const CARD = 'bg-white p-6 rounded-3xl border border-hairline shadow-sm text-left transition-all duration-300 hover:shadow-md';
-const INPUT_MESE = 'bg-canvas border border-hairline rounded-xl px-3 py-1.5 text-xs font-bold text-ink focus:outline-hidden focus:ring-1 focus:ring-orange-500';
 
 const unici = (valori: string[]) => Array.from(new Set(valori.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'it'));
 
@@ -41,13 +41,6 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
     categoria: unici(filtraUscite(d.transazioniPeriodo, filtri, ['categoria']).map(t => t.categoria || 'Altro')),
     conto: unici(filtraUscite(d.transazioniPeriodo, filtri, ['conto']).map(t => t.conto))
   }), [d.transazioniPeriodo, filtri]);
-
-  const periodi: [string, string][] = [
-    ['ultimi12', 'Ultimi 12 mesi'],
-    ...d.anni.map(a => [`anno-${a}`, String(a)] as [string, string]),
-    ['tutto', 'Tutto'],
-    ['personalizzato', 'Da… a…']
-  ];
 
   const altriFiltri = [filtri.macro, filtri.categoria, filtri.conto, filtri.testo ? `“${filtri.testo}”` : ''].filter(Boolean).join(' · ');
   const conFiltri = JSON.stringify(filtri) !== JSON.stringify(FILTRI_USCITE_VUOTI);
@@ -93,24 +86,7 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
           dalle card sotto i quattro indicatori */}
       <div className="bg-white p-3 md:p-4 rounded-3xl border border-hairline shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <DropdownMenu
-            icon={CalendarRange}
-            accent="orange"
-            widthClass="w-48"
-            label="Periodo"
-            value={d.periodo}
-            displayValue={periodi.find(([id]) => id === d.periodo)?.[1] ?? ''}
-            options={periodi.map(([id]) => id)}
-            onSelect={d.setPeriodo}
-            getOptionLabel={id => periodi.find(([x]) => x === id)?.[1] ?? id}
-          />
-          {d.periodo === 'personalizzato' && (
-            <div className="flex items-center gap-1.5 text-xs text-ink-soft font-medium">
-              <input type="month" aria-label="Dal mese" value={d.da} min={d.minInput} max={d.maxInput} onChange={e => d.setDa(e.target.value)} className={INPUT_MESE} />
-              –
-              <input type="month" aria-label="Al mese" value={d.a} min={d.minInput} max={d.maxInput} onChange={e => d.setA(e.target.value)} className={INPUT_MESE} />
-            </div>
-          )}
+          <SelettorePeriodo p={d} accent="orange" ring="focus:ring-orange-500" />
           {menu('Macro', Grid, filtri.macro, opzioni.macro, v => set({ macro: v, categoria: '' }))}
           {menu('Categoria', Tag, filtri.categoria, opzioni.categoria, v => set({ categoria: v }))}
           {menu('Conto', CreditCard, filtri.conto, opzioni.conto, v => set({ conto: v }))}
