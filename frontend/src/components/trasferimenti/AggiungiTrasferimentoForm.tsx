@@ -15,8 +15,13 @@ interface AggiungiTrasferimentoFormProps {
   iniziale?: { meseIdx?: number; anno?: number; contoOrdinante?: string; contoBeneficiario?: string; importo?: number };
 }
 
+/** Voce dei menu conto per lasciarlo vuoto: basta uno dei due conti. */
+const NESSUNO = 'Nessuno';
+
 /**
- * Form "Aggiungi Trasferimento".
+ * Form "Aggiungi Trasferimento". Basta uno dei due conti (es. soldi arrivati
+ * da fuori o usciti verso un conto che non è in app); l'altro può restare
+ * "Nessuno" e nel foglio la cella resta vuota.
  * Resta un log puro dei movimenti tra conti: NON aggiorna i saldi mostrati in
  * Patrimonio (che restano uno snapshot letto dal foglio Google) — decisione
  * presa per evitare doppio conteggio finché non si definisce una logica di
@@ -54,7 +59,8 @@ export default function AggiungiTrasferimentoForm({ onSaved, iniziale }: Aggiung
     }
   }, [coinvolgeContanti, contantiCounts]);
 
-  const isValid = Boolean(contoOrdinante && contoBeneficiario && contoOrdinante !== contoBeneficiario && Number(importo) > 0);
+  const contiUguali = Boolean(contoOrdinante) && contoOrdinante === contoBeneficiario;
+  const isValid = Boolean((contoOrdinante || contoBeneficiario) && !contiUguali && Number(importo) > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,10 +157,10 @@ export default function AggiungiTrasferimentoForm({ onSaved, iniziale }: Aggiung
           fullWidth
           hideLabel
           borderless
-          value={contoOrdinante}
-          displayValue={contoOrdinante}
-          options={conti}
-          onSelect={setContoOrdinante}
+          value={contoOrdinante || NESSUNO}
+          displayValue={contoOrdinante || NESSUNO}
+          options={[NESSUNO, ...conti]}
+          onSelect={c => setContoOrdinante(c === NESSUNO ? '' : c)}
         />
       </div>
 
@@ -167,13 +173,16 @@ export default function AggiungiTrasferimentoForm({ onSaved, iniziale }: Aggiung
           fullWidth
           hideLabel
           borderless
-          value={contoBeneficiario}
-          displayValue={contoBeneficiario}
-          options={conti}
-          onSelect={setContoBeneficiario}
+          value={contoBeneficiario || NESSUNO}
+          displayValue={contoBeneficiario || NESSUNO}
+          options={[NESSUNO, ...conti]}
+          onSelect={c => setContoBeneficiario(c === NESSUNO ? '' : c)}
         />
-        {contoOrdinante && contoBeneficiario && contoOrdinante === contoBeneficiario && (
+        {contiUguali && (
           <p className="text-2xs text-down font-semibold mt-1">Conto ordinante e beneficiario devono essere diversi.</p>
+        )}
+        {!contoOrdinante && !contoBeneficiario && (
+          <p className="text-2xs text-down font-semibold mt-1">Scegli almeno uno dei due conti.</p>
         )}
       </div>
 
