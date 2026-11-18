@@ -7,13 +7,34 @@ import type { ContoPatrimonio } from '../../data/mockData';
 // Estratto da Patrimonio.tsx: singola riga conto nell'elenco "Sintesi Situazione
 // Conti", con pannello di dettaglio espandibile al click (saldo, quota
 // investimenti/accantonamenti, soglia di allarme se configurata sul foglio).
+// Capitale scelto con i pulsanti sopra l'elenco: con 'totale' a destra c'è il
+// saldo, altrimenti la quota del conto in quel capitale.
+export type FiltroCapitale = 'totale' | 'disponibile' | 'investito' | 'accantonato';
+
+export const NOMI_FILTRO: Record<FiltroCapitale, string> = {
+  totale: 'Totale',
+  disponibile: 'Disponibile',
+  investito: 'Investito',
+  accantonato: 'Accantonato',
+};
+
+export function importoConto(conto: ContoPatrimonio, filtro: FiltroCapitale): number {
+  if (filtro === 'disponibile') return conto.capitaleDisponibile;
+  if (filtro === 'investito') return conto.capitaleInvestito;
+  if (filtro === 'accantonato') return conto.capitaleImpegnato;
+  return conto.capitaleTotale;
+}
+
 interface PatrimonioContoCardProps {
   conto: ContoPatrimonio;
   isSelected: boolean;
   onToggle: () => void;
+  filtro?: FiltroCapitale;
 }
 
-export default function PatrimonioContoCard({ conto, isSelected, onToggle }: PatrimonioContoCardProps) {
+export default function PatrimonioContoCard({ conto, isSelected, onToggle, filtro = 'totale' }: PatrimonioContoCardProps) {
+  // Nel riepilogo sotto il nome, la quota del capitale scelto risalta
+  const forte = (f: FiltroCapitale) => filtro === f ? 'text-ink' : 'text-ink-soft';
   const isUnderThreshold = conto.capitaleTotale < conto.sogliaAllarme;
   const limitRemaining = conto.sogliaAllarme - conto.capitaleTotale;
 
@@ -79,17 +100,17 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
           <div className="text-left min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">{conto.categoria}</p>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-2xs text-ink-soft font-medium">
-              <span>Disponibile: <strong className="text-ink-soft">{formatEuro(conto.capitaleDisponibile)}</strong></span>
+              <span>Disponibile: <strong className={forte('disponibile')}>{formatEuro(conto.capitaleDisponibile)}</strong></span>
               {conto.capitaleInvestito > 0 && (
                 <>
                   <span>•</span>
-                  <span>Investito: <strong className="text-ink-soft">{formatEuro(conto.capitaleInvestito)}</strong></span>
+                  <span>Investito: <strong className={forte('investito')}>{formatEuro(conto.capitaleInvestito)}</strong></span>
                 </>
               )}
               {conto.capitaleImpegnato > 0 && (
                 <>
                   <span>•</span>
-                  <span>Vincolato: <strong className="text-ink-soft">{formatEuro(conto.capitaleImpegnato)}</strong></span>
+                  <span>Vincolato: <strong className={forte('accantonato')}>{formatEuro(conto.capitaleImpegnato)}</strong></span>
                 </>
               )}
             </div>
@@ -136,9 +157,9 @@ export default function PatrimonioContoCard({ conto, isSelected, onToggle }: Pat
           )}
 
           <div className="text-right shrink-0">
-            <span className="text-ink-soft font-bold text-3xs uppercase block">Saldo</span>
+            <span className="text-ink-soft font-bold text-3xs uppercase block">{filtro === 'totale' ? 'Saldo' : NOMI_FILTRO[filtro]}</span>
             <span className="text-sm font-bold text-ink font-display block mt-0.5">
-              {formatEuro(conto.capitaleTotale)}
+              {formatEuro(importoConto(conto, filtro))}
             </span>
           </div>
         </div>
