@@ -234,18 +234,18 @@ SCHEDE: list[SchedaFoglio] = [
     SchedaFoglio(
         titolo="Analisi consumi", intervallo="Analisi consumi!A:P",
         campi=["data", "costo", "quantitaLitri", "prezzoAlLitro", "kmFinali", "kmEffettuati", "litriPrecedenti",
-               "kmAlLitro", "kmAlLitroAuto", "euroPer100Km", "litriPer100Km", "kmPersi", "kmPersiMediani",
+               "kmAlLitro", "kmAlLitroAuto", "euroPer100Km", "litriPer100Km", "kmPersi", "kmPersiRecord",
                "costoExtra", "esitoSettimana", "efficienzaPercentuale"],
         intestazioni=["Data", "Costo", "Quantità (Lt)", "€/Lt", "Km finali", "Km effettuati", "Litri precedenti",
-                      "Km/lt", "Km/lt (auto)", "€/100km", "Lt/100km", "Km persi", "km persi mediani",
+                      "Km/lt", "Km/lt (auto)", "€/100km", "Lt/100km", "Km persi", "Km persi vs record",
                       "Costo extra", "Esito settimana", "Efficienza"],
         numerici=["costo", "quantitaLitri", "prezzoAlLitro", "kmFinali", "kmEffettuati", "litriPrecedenti",
-                  "kmAlLitro", "kmAlLitroAuto", "euroPer100Km", "litriPer100Km", "kmPersi", "kmPersiMediani",
+                  "kmAlLitro", "kmAlLitroAuto", "euroPer100Km", "litriPer100Km", "kmPersi", "kmPersiRecord",
                   "costoExtra", "efficienzaPercentuale"],
         date=["data"],
         # Calcolate dal foglio: l'app non le ricalcola mai.
         formule=["kmEffettuati", "litriPrecedenti", "kmAlLitro", "euroPer100Km", "litriPer100Km", "kmPersi",
-                 "kmPersiMediani", "costoExtra", "esitoSettimana", "efficienzaPercentuale"],
+                 "kmPersiRecord", "costoExtra", "esitoSettimana", "efficienzaPercentuale"],
         chiave="analisiConsumi",
     ),
 ]

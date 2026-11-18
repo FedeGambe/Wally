@@ -46,6 +46,11 @@ export default function ConsumiRiepilogoSettimanale({
   setSelectedWeekState
 }: ConsumiRiepilogoSettimanaleProps) {
   const settimaneOrdinate = [...consumiRecords].reverse();
+  // L'esito è la classifica delle settimane per punteggio (utils/esitoSettimanale.ts):
+  // il badge si colora sullo stesso punteggio, così testo e colore concordano.
+  const esitoRange: KpiRange = { ...stats.efficienza, higherIsBetter: true };
+  const kmGuadagnati = selectedWeek.kmPersi < 0;
+  const risparmio = selectedWeek.costoExtra < 0;
   return (
     <div className="bg-white dark:bg-[#0c1425]/45 p-6 rounded-3xl border border-hairline dark:border-slate-800/80 shadow-sm text-left">
       <div className="flex items-center justify-between flex-wrap gap-3 border-b border-hairline dark:border-slate-800/60 pb-4 mb-4">
@@ -57,8 +62,8 @@ export default function ConsumiRiepilogoSettimanale({
           <span
             className="px-4 py-1.5 rounded-full text-sm uppercase tracking-wider font-bold text-white transition-all"
             style={{
-              backgroundColor: kpiTextColor(selectedWeek.efficienzaPercentuale, { ...stats.efficienza, higherIsBetter: true }),
-              boxShadow: `0 0 20px -3px ${kpiColorAlpha(selectedWeek.efficienzaPercentuale, { ...stats.efficienza, higherIsBetter: true }, 0.65)}`
+              backgroundColor: kpiTextColor(selectedWeek.efficienzaPercentuale, esitoRange),
+              boxShadow: `0 0 20px -3px ${kpiColorAlpha(selectedWeek.efficienzaPercentuale, esitoRange, 0.65)}`
             }}
           >
             {selectedWeek.esitoSettimana}
@@ -157,21 +162,21 @@ export default function ConsumiRiepilogoSettimanale({
           </div>
         </div>
 
-        {/* Sotto-widget 3: km persi e costo extra (rispetto alla mediana) */}
+        {/* Sotto-widget 3: km persi/guadagnati e costo extra/risparmio rispetto alla mediana; sotto, lo scarto dal record personale */}
         <div className="h-full flex flex-col gap-3">
           <div
             className="p-3.5 rounded-xl border transition-all grid grid-cols-3 gap-2 flex-1 hover:shadow-[0_0_20px_-4px_var(--glow)]"
             style={kpiCardStyle(selectedWeek.kmPersi, stats.kmPersi, false)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-3xs font-bold uppercase tracking-wider block">Km Persi</span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">{kmGuadagnati ? 'Km Guadagnati' : 'Km Persi'}</span>
               <span className="text-xl font-bold font-display block">
-                {typeof selectedWeek.kmPersi === 'number' && !isNaN(selectedWeek.kmPersi) ? fmtNum(selectedWeek.kmPersi, 1) + ' km' : '***'}
+                {typeof selectedWeek.kmPersi === 'number' && !isNaN(selectedWeek.kmPersi) ? fmtNum(Math.abs(selectedWeek.kmPersi), 1) + ' km' : '***'}
               </span>
             </div>
             <div className="text-right">
               <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.kmPersi, stats.kmPersi, false)}>{kmPersiLabel}</span>
-              <span className="text-xs font-mono opacity-70 block">{fmtNum(stats.kmPersi.median, 1)} km</span>
+              <span className="text-xs font-mono opacity-70 block">Al record: {fmtNum(selectedWeek.kmPersiRecord, 1)} km</span>
             </div>
           </div>
           <div
@@ -179,12 +184,12 @@ export default function ConsumiRiepilogoSettimanale({
             style={kpiCardStyle(selectedWeek.costoExtra, stats.costoExtra, false)}
           >
             <div className="col-span-2 h-full flex flex-col justify-between">
-              <span className="text-3xs font-bold uppercase tracking-wider block">Costo Extra</span>
-              <span className="text-xl font-bold font-display block"><EuroAmount value={selectedWeek.costoExtra} /></span>
+              <span className="text-3xs font-bold uppercase tracking-wider block">{risparmio ? 'Risparmio' : 'Costo Extra'}</span>
+              <span className="text-xl font-bold font-display block"><EuroAmount value={Math.abs(selectedWeek.costoExtra)} /></span>
             </div>
             <div className="text-right">
               <span className="text-xs font-bold font-mono block dark:brightness-150" style={kpiTextStyle(selectedWeek.costoExtra, stats.costoExtra, false)}>{costoExtraLabel}</span>
-              <span className="text-xs font-mono opacity-70 block">{formatEuro(stats.costoExtra.median)}</span>
+              <span className="text-xs font-mono opacity-70 block">Al record: {formatEuro(selectedWeek.costoExtraRecord)}</span>
             </div>
           </div>
         </div>
@@ -192,7 +197,7 @@ export default function ConsumiRiepilogoSettimanale({
 
       <div className="mt-4 px-1 text-2xs text-ink-soft dark:text-slate-400 leading-relaxed">
         <span className="font-bold block mb-0.5 text-ink dark:text-slate-200">Come leggere i colori</span>
-        I KPI e le colorazioni sono valutati automaticamente rispetto alla tua mediana storica di consumo carburante ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? fmtNum(stats.kmAlLitro.median, 1) + ' km/lt' : '***'}).
+        L'esito è la posizione del punteggio tra tutte le tue settimane. Colori, km persi e costo extra confrontano la settimana con la tua mediana storica di consumo ({typeof stats.kmAlLitro.median === 'number' && !isNaN(stats.kmAlLitro.median) ? fmtNum(stats.kmAlLitro.median, 1) + ' km/lt' : '***'}): una settimana normale vale zero, una migliore mostra km guadagnati e risparmio. "Al record" è quanto avresti potuto risparmiare consumando come nella tua settimana migliore.
       </div>
     </div>
   );

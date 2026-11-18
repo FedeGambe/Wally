@@ -1,13 +1,40 @@
 import React from 'react';
 import { AlertOctagon } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { formatEuro } from '../../utils/format';
 import { monthAxisProps, fmtNum, formatAxisNumber, formatAxisEuro, SegmentedToggle, TimeRangeToggle } from './ConsumiChartHelpers';
 import type { RecordConsumo, TimeRange, ExtraMode } from '../../hooks/useAnalisiConsumiData';
 
 // Estratto da AnalisiConsumi.tsx: CONTENITORE 3 "Costo Extra & Km Persi"
-// (dovuti a inefficienza di guida), con toggle Accumulato/€ per Km.
+// rispetto alla mediana storica di km/litro, con toggle Accumulato/Ogni 100 km.
+// I valori hanno il segno: sopra lo zero (rosso) la settimana ha consumato più del
+// solito, sotto (verde) ha risparmiato.
+
+const ROSSO = '#e11d48';
+const VERDE = '#10b981';
+
+// Posizione dello zero nell'altezza del grafico (0 = in alto, 1 = in basso), per
+// spezzare il gradiente: rosso sopra lo zero, verde sotto.
+function offsetZero(records: RecordConsumo[], key: 'costoExtra' | 'kmPersi'): number {
+  const valori = records.map(r => r[key]);
+  const max = Math.max(...valori);
+  const min = Math.min(...valori);
+  if (max <= 0) return 0;
+  if (min >= 0) return 1;
+  return max / (max - min);
+}
+
+function GradienteSegno({ id, offset, fill }: { id: string; offset: number; fill?: boolean }) {
+  return (
+    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+      <stop offset={0} stopColor={ROSSO} stopOpacity={fill ? 0.25 : 1} />
+      <stop offset={offset} stopColor={ROSSO} stopOpacity={fill ? 0.05 : 1} />
+      <stop offset={offset} stopColor={VERDE} stopOpacity={fill ? 0.05 : 1} />
+      <stop offset={1} stopColor={VERDE} stopOpacity={fill ? 0.25 : 1} />
+    </linearGradient>
+  );
+}
 interface ConsumiCostoExtraKmPersiProps {
   costoExtraChartData: RecordConsumo[];
   costoExtraChartRange: TimeRange;
@@ -43,17 +70,17 @@ export default function ConsumiCostoExtraKmPersi({
         <SegmentedToggle<ExtraMode>
           value={extraMode}
           onChange={setExtraMode}
-          options={[{ value: 'accumulato', label: 'Accumulato' }, { value: 'perKm', label: '€/Km' }]}
+          options={[{ value: 'accumulato', label: 'Totale' }, { value: 'perKm', label: 'Ogni 100 km' }]}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Costo extra */}
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo Extra da Inefficienza Carburante</h3>
+            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Costo Extra o Risparmio</h3>
             <TimeRangeToggle value={costoExtraChartRange} onChange={setCostoExtraChartRange} />
           </div>
-          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Costo in euro (€) dovuto ad andamento guida inefficiente sopra la media consigliata</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Euro spesi in più (sopra lo zero) o risparmiati (sotto) rispetto al tuo consumo mediano</p>
           <div className="h-44">
             {costoExtraChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
@@ -65,24 +92,23 @@ export default function ConsumiCostoExtraKmPersi({
                   onClick={handleChartClick}
                 >
                   <defs>
-                    <linearGradient id="colorCostoExtra" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0.01} />
-                    </linearGradient>
+                    <GradienteSegno id="strokeCostoExtra" offset={offsetZero(costoExtraChartData, 'costoExtra')} />
+                    <GradienteSegno id="colorCostoExtra" offset={offsetZero(costoExtraChartData, 'costoExtra')} fill />
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                   <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(costoExtraChartData, isMobile)} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 60} tickFormatter={formatAxisEuro} domain={['auto', 'auto']} />
+                  <ReferenceLine y={0} stroke="#94a3b8" strokeOpacity={0.6} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#f97316' }}
+                    itemStyle={{ color: '#fff' }}
                     formatter={(value: any) => [
-                      formatEuro(value),
-                      extraMode === 'perKm' ? 'Costo Extra/Km' : 'Costo Extra'
+                      formatEuro(Math.abs(value)) + (extraMode === 'perKm' ? ' ogni 100 km' : ''),
+                      value < 0 ? 'Risparmio' : 'Costo Extra'
                     ]}
                   />
-                  <Area type="monotone" dataKey="costoExtra" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCostoExtra)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
+                  <Area type="monotone" dataKey="costoExtra" stroke="url(#strokeCostoExtra)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCostoExtra)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -92,10 +118,10 @@ export default function ConsumiCostoExtraKmPersi({
         {/* Km persi */}
         <div className="p-4 rounded-2xl border border-hairline dark:border-slate-800/60 bg-canvas/40 dark:bg-slate-900/20">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Km Persi per Inefficienza</h3>
+            <h3 className="font-bold text-ink dark:text-slate-200 font-display text-xs">Km Persi o Guadagnati</h3>
             <TimeRangeToggle value={kmPersiChartRange} onChange={setKmPersiChartRange} />
           </div>
-          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Chilometri "persi" per uno stile di guida sopra la media consigliata</p>
+          <p className="text-2xs text-ink-soft dark:text-slate-500 mb-4">Km in meno (sopra lo zero) o in più (sotto) fatti con gli stessi litri rispetto al tuo consumo mediano</p>
           <div className="h-44">
             {kmPersiChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Nessun dato registrato</div>
@@ -107,21 +133,23 @@ export default function ConsumiCostoExtraKmPersi({
                   onClick={handleChartClick}
                 >
                   <defs>
-                    <linearGradient id="colorKmPersi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#e11d48" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#e11d48" stopOpacity={0.01} />
-                    </linearGradient>
+                    <GradienteSegno id="strokeKmPersi" offset={offsetZero(kmPersiChartData, 'kmPersi')} />
+                    <GradienteSegno id="colorKmPersi" offset={offsetZero(kmPersiChartData, 'kmPersi')} fill />
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-100, #f1f5f9)" className="dark:opacity-10" />
                   <XAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} {...monthAxisProps(kmPersiChartData, isMobile)} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={[(dataMin: number) => Math.max(0, dataMin * 0.9), 'auto']} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 40 : 60} tickFormatter={formatAxisNumber} domain={['auto', 'auto']} />
+                  <ReferenceLine y={0} stroke="#94a3b8" strokeOpacity={0.6} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: 'none', borderRadius: '12px' }}
                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#fda4af' }}
-                    formatter={(value: any) => [`${fmtNum(value)} Km`, extraMode === 'perKm' ? 'Km Persi/Km' : 'Km Persi']}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any) => [
+                      `${fmtNum(Math.abs(value))} Km` + (extraMode === 'perKm' ? ' ogni 100 km' : ''),
+                      value < 0 ? 'Km Guadagnati' : 'Km Persi'
+                    ]}
                   />
-                  <Area type="monotone" dataKey="kmPersi" stroke="#e11d48" strokeWidth={2.5} fillOpacity={1} fill="url(#colorKmPersi)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
+                  <Area type="monotone" dataKey="kmPersi" stroke="url(#strokeKmPersi)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorKmPersi)" dot={false} activeDot={{ r: 5, cursor: 'pointer' }} />
                 </AreaChart>
               </ResponsiveContainer>
             )}

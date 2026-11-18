@@ -1,46 +1,29 @@
 /**
  * Calcola un "voto" testuale (Migliore/Ottima/.../Peggiore) per ogni settimana registrata
- * nella pagina Analisi Consumi (consumo carburante auto), confrontando ogni settimana con
- * tutto lo storico: non c'è una soglia fissa, il giudizio è sempre relativo alle altre
- * settimane registrate. Usato da src/pages/AnalisiConsumi.tsx.
+ * nella pagina Analisi Consumi (consumo carburante auto), mettendo in classifica le settimane
+ * per punteggio (colonna "Efficienza" del foglio, 0-1, più alto è meglio): non c'è una soglia
+ * fissa, il giudizio è sempre relativo alle altre settimane registrate. Il foglio fa la stessa
+ * classifica nella colonna O. Usato da src/hooks/useAnalisiConsumiData.ts.
  */
 export type EsitoSettimana = 'Migliore' | 'Ottima' | 'Buona' | 'Nella media' | 'Non buona' | 'Scarsa' | 'Peggiore';
 
 interface RigaConsumo {
-  kmEffettuati: number;
-  prezzoAlLitro: number;
-  kmAlLitro: number;
-}
-
-function mediana(valori: number[]): number {
-  const ordinati = [...valori].sort((a, b) => a - b);
-  const meta = Math.floor(ordinati.length / 2);
-  return ordinati.length % 2 !== 0
-    ? ordinati[meta]
-    : (ordinati[meta - 1] + ordinati[meta]) / 2;
+  efficienzaPercentuale: number;
 }
 
 const BUCKET_INTERMEDI: EsitoSettimana[] = ['Ottima', 'Buona', 'Nella media', 'Non buona', 'Scarsa'];
 
-// Punteggio: costo extra (positivo) o risparmio (negativo) rispetto al consumo mediano
-function calcolaScore(riga: RigaConsumo, medianaKmAlLitro: number): number {
-  if (!riga.kmAlLitro || !medianaKmAlLitro) return 0;
-  return riga.kmEffettuati * riga.prezzoAlLitro * (1 / riga.kmAlLitro - 1 / medianaKmAlLitro);
-}
-
 // Calcola l'esito di ogni settimana relativamente a tutto lo storico.
-// Migliore e Peggiore vengono assegnati a un solo record ciascuno (lo score minimo e massimo).
+// Migliore e Peggiore vengono assegnati a un solo record ciascuno (punteggio massimo e minimo).
 export function calcolaEsitiSettimanali<T extends RigaConsumo>(records: T[]): EsitoSettimana[] {
   const n = records.length;
   if (n === 0) return [];
   if (n === 1) return ['Nella media'];
 
-  const medianaKmAlLitro = mediana(records.map(r => r.kmAlLitro));
-  const scores = records.map(r => calcolaScore(r, medianaKmAlLitro));
-
-  const ordineRank = scores
-    .map((score, index) => ({ score, index }))
-    .sort((a, b) => a.score - b.score);
+  // Punteggio più alto = settimana migliore: si ordina dal più alto al più basso
+  const ordineRank = records
+    .map((r, index) => ({ punteggio: r.efficienzaPercentuale || 0, index }))
+    .sort((a, b) => b.punteggio - a.punteggio);
 
   const esiti: EsitoSettimana[] = new Array(n);
   ordineRank.forEach(({ index }, rank) => {
@@ -51,7 +34,7 @@ export function calcolaEsitiSettimanali<T extends RigaConsumo>(records: T[]): Es
     } else {
       // Tutte le settimane "di mezzo" (escluse Migliore/Peggiore) vengono divise in 5 fasce
       // uguali in base alla loro posizione in classifica (percentile), non al valore assoluto
-      // dello score: posizioneRelativa va da 0 (appena dopo la migliore) a 1 (appena prima
+      // del punteggio: posizioneRelativa va da 0 (appena dopo la migliore) a 1 (appena prima
       // della peggiore). Math.min(4, ...) evita che un arrotondamento porti bucket a 5
       // (fuori dai 5 elementi validi dell'array, indici 0-4).
       const posizioneRelativa = (rank - 1) / (n - 2);

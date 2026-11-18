@@ -67,9 +67,14 @@ export interface RecordConsumo {
   kmAlLitro: number;
   kmAlLitroAuto: number | null;
   euroPer100Km: number;
+  /** Km persi (+) o guadagnati (−) rispetto alla mediana storica di km/litro. */
   kmPersi: number;
   efficienzaPercentuale: number;
+  /** Euro spesi in più (+) o risparmiati (−) rispetto alla mediana storica di km/litro. */
   costoExtra: number;
+  /** Stesse misure rispetto al record personale (miglior km/litro): mai negative. */
+  kmPersiRecord: number;
+  costoExtraRecord: number;
   esitoSettimana: EsitoSettimana;
 }
 
@@ -100,6 +105,8 @@ const FALLBACK_WEEK: RecordConsumo = {
   kmAlLitroAuto: null,
   euroPer100Km: 0,
   kmPersi: 0,
+  kmPersiRecord: 0,
+  costoExtraRecord: 0,
   efficienzaPercentuale: 0,
   esitoSettimana: 'Nella media' as EsitoSettimana,
   costoExtra: 0
@@ -182,20 +189,24 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
       })
       .sort((a, b) => a.anchorTime - b.anchorTime));
 
-    // Seconda passata: Km persi/Costo extra confrontano ogni settimana con il MAX (record
-    // personale) e la MEDIANA di km/litro su TUTTO lo storico (stesse formule della colonna
-    // corrispondente sul foglio Google, Analisi consumi!H/J/L/N) — richiede quindi che tutte le
-    // settimane siano già aggregate, non si può calcolare riga per riga.
+    // Seconda passata: Km persi/Costo extra confrontano ogni settimana con la MEDIANA di km/litro
+    // su TUTTO lo storico, con il segno (negativo = km guadagnati / euro risparmiati). Il confronto
+    // con il MAX (record personale) resta come misura secondaria, mai negativa. Stesse formule del
+    // foglio Google (Analisi consumi!L/M/N), che però usa la mediana dei singoli rifornimenti e non
+    // delle settimane. Richiede che tutte le settimane siano già aggregate.
     const kmAlLitroStorico = settimaneBase.map(s => s.kmAlLitro).filter(v => v > 0);
     const maxKmAlLitro = kmAlLitroStorico.length > 0 ? Math.max(...kmAlLitroStorico) : 0;
+    const medianaKmAlLitro = kmAlLitroStorico.length > 0 ? median(kmAlLitroStorico) : 0;
+    const costoRispetto = (s: { kmEffettuati: number; prezzoAlLitro: number; kmAlLitro: number }, riferimento: number) =>
+      (s.kmAlLitro > 0 && riferimento > 0) ? s.kmEffettuati * s.prezzoAlLitro * (1 / s.kmAlLitro - 1 / riferimento) : 0;
 
     const settimane = settimaneBase.map(s => ({
       ...s,
       euroPer100Km: s.kmEffettuati > 0 ? (s.costo / s.kmEffettuati) * 100 : 0,
-      kmPersi: maxKmAlLitro > 0 ? Math.max(0, s.quantitaLitri * maxKmAlLitro - s.kmEffettuati) : 0,
-      costoExtra: (s.kmAlLitro > 0 && maxKmAlLitro > 0)
-        ? Math.max(0, s.kmEffettuati * s.prezzoAlLitro * (1 / s.kmAlLitro - 1 / maxKmAlLitro))
-        : 0
+      kmPersi: medianaKmAlLitro > 0 && s.kmAlLitro > 0 ? s.quantitaLitri * medianaKmAlLitro - s.kmEffettuati : 0,
+      costoExtra: costoRispetto(s, medianaKmAlLitro),
+      kmPersiRecord: maxKmAlLitro > 0 ? Math.max(0, s.quantitaLitri * maxKmAlLitro - s.kmEffettuati) : 0,
+      costoExtraRecord: Math.max(0, costoRispetto(s, maxKmAlLitro))
     }));
 
     const esiti = calcolaEsitiSettimanali(settimane);
@@ -245,10 +256,11 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   const euro100ChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, euro100ChartRange), [consumiRecords, euro100ChartRange]);
   const prezzoChartData = useMemo(() => filtraUltimi12Mesi(consumiRecords, prezzoChartRange), [consumiRecords, prezzoChartRange]);
 
-  // Costo extra e km persi: normalizzabili "per km" dividendo per i km effettuati nella settimana
+  // Costo extra e km persi: normalizzabili "ogni 100 km" (per km i valori sarebbero centesimi
+  // illeggibili), dividendo per i km effettuati nella settimana
   const applyExtraMode = (records: RecordConsumo[], field: 'costoExtra' | 'kmPersi') => {
     if (extraMode === 'accumulato') return records;
-    return records.map(r => ({ ...r, [field]: (r[field] || 0) / (r.kmEffettuati || 1) }));
+    return records.map(r => ({ ...r, [field]: r.kmEffettuati > 0 ? (r[field] || 0) / r.kmEffettuati * 100 : 0 }));
   };
 
   const costoExtraChartData = useMemo(
@@ -283,9 +295,8 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
   }, [consumiRecords]);
 
   // Etichetta testuale posizione vs mediana (il colore, continuo, è calcolato a parte con kpiColor/kpiColorAlpha)
-  const kpiLabel = (value: number, range: KpiRange, higherIsBetter: boolean, zeroLabel?: string): string => {
+  const kpiLabel = (value: number, range: KpiRange, higherIsBetter: boolean): string => {
     if (isNaN(value)) return 'Dato non disponibile';
-    if (zeroLabel !== undefined && value === 0) return zeroLabel;
     const span = range.max - range.min;
     const epsilon = span > 0 ? span * 0.05 : 0;
     const diff = higherIsBetter ? value - range.median : range.median - value;
@@ -307,11 +318,14 @@ export function useAnalisiConsumiData(goToTodaySignal?: number) {
     color: kpiTextColor(value, { ...range, higherIsBetter })
   });
 
-  // kmLt: più alto è meglio. costo100/costoExtra/kmPersi: più basso è meglio.
+  // kmLt: più alto è meglio. costo100: più basso è meglio.
   const kmLtLabel = kpiLabel(selectedWeek.kmAlLitro, stats.kmAlLitro, true);
   const cost100Label = kpiLabel(selectedWeek.euroPer100Km, stats.costo100, false);
-  const kmPersiLabel = kpiLabel(selectedWeek.kmPersi, stats.kmPersi, false, 'Nessun Km Perso');
-  const costoExtraLabel = kpiLabel(selectedWeek.costoExtra, stats.costoExtra, false, 'Nessun Costo Extra');
+  // Km persi e costo extra sono già scarti dalla mediana: il segno dice da che parte sta la settimana
+  const segnoLabel = (value: number): string =>
+    isNaN(value) ? 'Dato non disponibile' : value < 0 ? 'Migliore della media' : value > 0 ? 'Peggiore della media' : 'Nella media';
+  const kmPersiLabel = segnoLabel(selectedWeek.kmPersi);
+  const costoExtraLabel = segnoLabel(selectedWeek.costoExtra);
 
   // Settimana precedente a quella selezionata, per il confronto km/litri/prezzo
   const selectedWeekIndex = selectedWeekState
