@@ -5,6 +5,7 @@ import { INTESTAZIONI_RISPARMIO } from '../config/sheetsConfig';
 import { formatEuro } from '../utils/format';
 import { getMonthIndex, getTransactionYear, isMeseAnnoFuturo } from '../utils/date';
 import { getThresholdsDelMese } from '../utils/thresholds';
+import { speseFuoriNorma } from '../utils/speseFuoriNorma';
 
 const DEFAULT_RISPARMIO_HEADERS = INTESTAZIONI_RISPARMIO;
 
@@ -199,6 +200,12 @@ export function useUsciteData(
     });
   }, [localTransactions, selectedRecord]);
 
+  // Categorie del mese molto sopra i 12 mesi prima (card "Fuori dal normale").
+  const fuoriNorma = useMemo(
+    () => speseFuoriNorma(localTransactions, selectedRecord.anno * 12 + getMonthIndex(selectedRecord.mese)),
+    [localTransactions, selectedRecord.anno, selectedRecord.mese]
+  );
+
   // L'elenco dell'archivio (con ordinamento e filtri di colonna) lo fa
   // UsciteTransazioniTable a partire da activeMonthAllTransactions.
 
@@ -296,6 +303,7 @@ export function useUsciteData(
     dynamicThresholds,
     rolling12MonthsData,
     activeMonthAllTransactions,
+    fuoriNorma,
     macroCategoryDistribution, microCategoryDistribution,
     handleChartClick, handleOpenMonthDetail
   };

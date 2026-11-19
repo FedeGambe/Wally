@@ -12,6 +12,7 @@
 //
 // Sotto-sezioni della pagina:
 //  1. UsciteKpiCards: tre card KPI (Spese Totali, Primarie, Secondarie)
+//  1b. SpeseFuoriNormaCard: categorie del mese molto sopra il solito
 //  2. UsciteTrendChart: grafico ad area con lo storico spese ultimi 12 mesi
 //  3. CategoryPieCard x2: distribuzione per Macro Categoria e Micro Categoria
 //     (cliccare una fetta della Macro filtra la Micro, vedi useEffect sotto)
@@ -31,6 +32,7 @@ import CategoryPieCard from '../components/uscite/CategoryPieCard';
 import UsciteKpiCards from '../components/uscite/UsciteKpiCards';
 import UsciteTrendChart, { scalaAsseUscite } from '../components/uscite/UsciteTrendChart';
 import AggiungiUscitaForm from '../components/uscite/AggiungiUscitaForm';
+import SpeseFuoriNormaCard from '../components/uscite/SpeseFuoriNormaCard';
 import UsciteTransazioniTable from '../components/uscite/UsciteTransazioniTable';
 import AnalisiUscite from '../subviews/AnalisiUscite';
 import { useUsciteData } from '../hooks/useUsciteData';
@@ -66,6 +68,7 @@ export default function Uscite({
     dynamicThresholds,
     rolling12MonthsData,
     activeMonthAllTransactions,
+    fuoriNorma,
     macroCategoryDistribution, microCategoryDistribution,
     handleChartClick, handleOpenMonthDetail
   } = useUsciteData(selectedYear, setSelectedYear, selectedMonth, setSelectedMonth);
@@ -132,6 +135,19 @@ export default function Uscite({
         primaryPctOfIncome={primaryPctOfIncome}
         secondaryPctOfIncome={secondaryPctOfIncome}
         dynamicThresholds={dynamicThresholds}
+      />
+
+      <SpeseFuoriNormaCard
+        spese={fuoriNorma}
+        periodo={`${localSelectedMonth.toLowerCase()} ${selectedRecord.anno}`}
+        categoriaScelta={selectedMicroCat}
+        onScegli={(s) => {
+          // Ritoccare la categoria già scelta toglie il filtro, come nelle torte.
+          const gia = selectedMicroCat === s.categoria && selectedMacroCat === s.macroCategoria;
+          setActiveChartFilter('all');
+          setSelectedMacroCat(gia ? 'Tutte' : s.macroCategoria);
+          setSelectedMicroCat(gia ? 'Tutte' : s.categoria);
+        }}
       />
 
       {/* Monthly expense distribution stacked lines */}
