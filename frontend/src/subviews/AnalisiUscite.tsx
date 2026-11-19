@@ -194,7 +194,7 @@ export default function AnalisiUscite({ soglie }: AnalisiUsciteProps) {
               <XAxis dataKey="etichetta" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} minTickGap={isMobile ? 8 : 4} />
               <YAxis
                 stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 64}
-                tickFormatter={v => isMobile ? formatAxisCompact(v, maxAsse) : `${Number(v).toLocaleString('it-IT')} €`}
+                tickFormatter={v => isMobile ? formatAxisCompact(v, maxAsse) : `${Number(v).toLocaleString('it-IT')}\u00A0€`}
               />
               <Tooltip content={renderTooltip} cursor={{ fill: 'rgba(148,163,184,0.12)' }} />
               <Legend verticalAlign="top" height={32} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, fontWeight: 600 }} />

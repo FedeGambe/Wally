@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Plus } from 'lucide-react';
-import { useNascondiAggiunta } from '../hooks/useBolleAperte';
+import { useNascondiAggiunta, useScorreGiu } from '../hooks/useBolleAperte';
 
 interface FloatingAddButtonProps {
   label: string;
@@ -17,9 +17,13 @@ interface FloatingAddButtonProps {
  * pagine hanno animazioni d'ingresso con transform, che renderebbero il
  * `fixed` relativo alla pagina invece che alla finestra. Sparisce mentre sono
  * aperti i pallini di Transazioni/Investimenti della barra in basso (telefono).
+ * Su telefono si fa da parte anche mentre si scorre verso il basso (copriva le
+ * cifre allineate a destra delle card) e torna appena si risale.
  */
+
 export default function FloatingAddButton({ label, onClick, colorClass }: FloatingAddButtonProps) {
   const nascosto = useNascondiAggiunta();
+  const scorreGiu = useScorreGiu();
   return createPortal(
     <button
       type="button"
@@ -27,7 +31,7 @@ export default function FloatingAddButton({ label, onClick, colorClass }: Floati
       aria-label={label}
       tabIndex={nascosto ? -1 : undefined}
       aria-hidden={nascosto || undefined}
-      className={`fixed z-40 right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:right-8 md:bottom-8 inline-flex items-center justify-center gap-2 w-14 h-14 md:w-auto md:h-auto md:px-5 md:py-3.5 rounded-full text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer ${colorClass} ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''}`}
+      className={`fixed z-40 right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:right-8 md:bottom-8 inline-flex items-center justify-center gap-2 w-14 h-14 md:w-auto md:h-auto md:px-5 md:py-3.5 rounded-full text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer ${colorClass} ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''} ${scorreGiu && !nascosto ? 'max-md:translate-y-28 max-md:opacity-0 max-md:pointer-events-none' : ''}`}
     >
       <Plus className="w-6 h-6 md:w-4 md:h-4" />
       <span className="hidden md:inline">{label}</span>

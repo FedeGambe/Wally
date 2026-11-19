@@ -144,7 +144,7 @@ export default function CruscottoInvestmentTrendChart({
                 width={isMobile ? 42 : 60}
                 tickFormatter={(val) => isMobile
                   ? formatAxisCompact(val, yAxisMaxAbs)
-                  : `${Number(val).toLocaleString('it-IT')} €`}
+                  : `${Number(val).toLocaleString('it-IT')}\u00A0€`}
               />
               <Tooltip
                 formatter={(value: any) => formatEuro(value)}

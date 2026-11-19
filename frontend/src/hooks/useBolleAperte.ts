@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 /**
  * Quale menu a pallini è aperto in questo momento, condiviso fra componenti che
@@ -50,4 +50,30 @@ export function useNascondiAggiunta(): boolean {
   const menu = useBolleAperte();
   const pannello = useSyncExternalStore(subscribe, () => pannelliAperti > 0, () => false);
   return menu === 'transazioni' || menu === 'investimenti' || pannello;
+}
+
+/**
+ * Per il "+" in basso a destra su telefono (FloatingAddButton, AggiungiDatoBubbles):
+ * true mentre l'utente scorre verso il basso (oltre i primi 120px); false appena risale. */
+export function useScorreGiu(): boolean {
+  const [giu, setGiu] = useState(false);
+  useEffect(() => {
+    // Il contenitore che scorre non è sempre la finestra (nell'app è il <main>):
+    // si ascolta in fase di cattura, così arriva lo scroll di qualunque elemento.
+    const ultime = new WeakMap<EventTarget, number>();
+    const onScroll = (e: Event) => {
+      const el = e.target === document ? document.scrollingElement : (e.target as Element);
+      if (!el || !(el instanceof Element)) return;
+      // Scroll orizzontali (barre delle schede, tabelle) non contano.
+      if (el.scrollHeight <= el.clientHeight + 1) return;
+      const y = el.scrollTop;
+      const prima = ultime.get(el) ?? y;
+      ultime.set(el, y);
+      if (Math.abs(y - prima) < 6) return;
+      setGiu(y > prima && y > 120);
+    };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener('scroll', onScroll, { capture: true });
+  }, []);
+  return giu;
 }

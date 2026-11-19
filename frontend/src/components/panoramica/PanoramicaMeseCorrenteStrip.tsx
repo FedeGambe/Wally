@@ -31,7 +31,8 @@ interface PanoramicaMeseCorrenteStripProps {
 /**
  * Anello che si riempie in proporzione a quota / soglia. Per Risparmio e
  * Investito ("sopra") pieno = soglia raggiunta; per le Spese ("sotto") è il
- * budget consumato: pieno = soglia esaurita, oltre diventa rosso.
+ * budget consumato: pieno = soglia esaurita. Colore da statoDaMargine:
+ * verde, arancio vicino alla soglia (da +1 a -5 punti), rosso oltre.
  * Oltre il 100% l'anello continua a girare: il secondo (e terzo) giro si
  * sovrappone al primo con una sfumatura più chiara, fino a MAX_GIRI.
  * Al centro la quota sulle entrate (34,6%), non il rapporto con la soglia:
@@ -42,7 +43,25 @@ interface PanoramicaMeseCorrenteStripProps {
  */
 const MAX_GIRI = 3;
 
-function SogliaRing({ perc, percAst = '', soglia, ok }: { perc: number | undefined; percAst?: string; soglia: number; ok: boolean }) {
+/**
+ * Stato rispetto alla soglia, dal margine in punti (positivo = soglia rispettata):
+ * verde da +1 in su, arancio da +1 fino a -5 (vicino alla soglia o appena oltre),
+ * rosso oltre i -5 punti.
+ */
+type StatoSoglia = 'ok' | 'attenzione' | 'fuori';
+function statoDaMargine(margine: number | undefined): StatoSoglia {
+  if (margine === undefined) return 'fuori';
+  if (margine >= 1) return 'ok';
+  if (margine >= -5) return 'attenzione';
+  return 'fuori';
+}
+const COLORE_STATO: Record<StatoSoglia, { anello: string; testo: string; chip: string }> = {
+  ok: { anello: 'var(--color-up)', testo: 'text-up', chip: 'bg-emerald-50 text-emerald-700 border-emerald-200/60' },
+  attenzione: { anello: 'var(--color-arancio)', testo: 'text-[var(--color-arancio)]', chip: 'bg-orange-50 text-orange-700 border-orange-200/60' },
+  fuori: { anello: 'var(--color-down)', testo: 'text-down', chip: 'bg-rose-50 text-rose-700 border-rose-200/60' },
+};
+
+function SogliaRing({ perc, percAst = '', soglia, stato }: { perc: number | undefined; percAst?: string; soglia: number; stato: StatoSoglia }) {
   const ratio = perc !== undefined && soglia > 0 ? Math.max(0, perc / soglia) : undefined;
   const target = ratio !== undefined ? Math.min(ratio, MAX_GIRI) : 0;
   const giri = Math.max(1, Math.ceil(target));
@@ -54,8 +73,8 @@ function SogliaRing({ perc, percAst = '', soglia, ok }: { perc: number | undefin
 
   const size = 56;
   const stroke = 6;
-  const base = ok ? 'var(--color-up)' : 'var(--color-down)';
-  const color = ok ? 'text-up' : 'text-down';
+  const base = COLORE_STATO[stato].anello;
+  const color = COLORE_STATO[stato].testo;
   const ringStyle = {
     '--ring-p': fill,
     '--ring-c': base,
@@ -154,6 +173,7 @@ interface MeseCardProps {
 /** Card di uno dei 4 mini-widget: cifra con lo scostamento dalla soglia in € sotto, anello a destra. */
 function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', percDelta, soglia, verso, onClick }: MeseCardProps) {
   const ok = percDelta !== undefined && percDelta >= 0;
+  const stato = statoDaMargine(percDelta);
   // deltaEuro e percDelta sono il margine (positivo = soglia rispettata). A
   // schermo invece il segno dice "quanto sopra o sotto la soglia": per le
   // spese sotto soglia è negativo (-7,5%, -136,80 €) ma resta verde.
@@ -175,19 +195,19 @@ function MeseCard({ label, value, valueAst = '', deltaEuro, perc, percAst = '', 
             <EuroAmount value={value} />{valueAst}
           </span>
           {deltaEuro !== undefined && (
-            <span className={`text-xs font-bold block ${deltaEuro >= 0 ? 'text-up' : 'text-down'}`}>
+            <span className={`text-xs font-bold block ${COLORE_STATO[stato].testo}`}>
               {segno(deltaEuro) >= 0 ? '+' : '-'}{formatEuro(Math.abs(deltaEuro))}
             </span>
           )}
         </div>
-        <SogliaRing perc={perc} percAst={percAst} soglia={soglia} ok={ok} />
+        <SogliaRing perc={perc} percAst={percAst} soglia={soglia} stato={stato} />
       </div>
       <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <span className="text-xs text-ink-soft font-medium whitespace-nowrap">Soglia: <strong className="font-bold text-ink">{soglia}%</strong></span>
         {/* Chip compatto: icona ✓/✗ e distanza dalla soglia in punti; la
             frase intera ("Sopra soglia di …") è nel tooltip e per lo screen reader. */}
         <span
-          className={`inline-flex items-center gap-0.5 whitespace-nowrap text-3xs font-bold pl-1 pr-2 py-0.5 rounded-full border ${ok ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-rose-50 text-rose-700 border-rose-200/60'}`}
+          className={`inline-flex items-center gap-0.5 whitespace-nowrap text-3xs font-bold pl-1 pr-2 py-0.5 rounded-full border ${COLORE_STATO[stato].chip}`}
           title={statoSoglia}
         >
           {ok ? <Check className="w-3 h-3" strokeWidth={3} aria-hidden /> : <X className="w-3 h-3" strokeWidth={3} aria-hidden />}

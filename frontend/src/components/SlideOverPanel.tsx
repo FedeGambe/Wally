@@ -1,4 +1,5 @@
 import React, { useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -6,8 +7,8 @@ import { usePannelloAperto } from '../hooks/useBolleAperte';
 
 /**
  * Guscio condiviso per tutti i pannelli laterali scorrevoli (drawer) dell'app:
- * overlay di sfondo, pannello con sfondo/bordo theme-aware (bianco in tema
- * chiaro, vetro scuro sfocato in tema scuro), header con titolo/sottotitolo
+ * velo di sfondo, pannello con sfondo/bordo theme-aware (bianco in tema
+ * chiaro, lo stesso vetro scuro dei popup di Modal.tsx in tema scuro), header con titolo/sottotitolo
  * e bottone di chiusura. Il contenuto (`children`) e un `footer` opzionale
  * restano a carico di chi lo usa — questo componente non sa nulla del
  * dominio (transazioni, strumenti, ecc.), solo struttura e layout.
@@ -28,19 +29,28 @@ export default function SlideOverPanel({ isOpen, onClose, title, subtitle, child
   // Il "+" in basso a destra starebbe sopra il pannello: sparisce finché è aperto.
   usePannelloAperto(isOpen);
 
-  return (
+  // In portal su <body> come Modal.tsx: le pagine entrano con un'animazione a
+  // transform (e molte card hanno backdrop-filter), che renderebbe il `fixed`
+  // relativo alla pagina o alla card invece che allo schermo. Fuori dal
+  // contenitore dell'app si perde la classe glass-theme (tema scuro, App.tsx)
+  // che serve alle card dentro il pannello: la si rimette qui, come in
+  // AggiungiDatoBubbles.
+  const scuro = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+
+  return createPortal(
+    <div className={scuro ? 'glass-theme' : undefined}>
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop Overlay: leggero, il buio "vero" lo dà il pannello (bg scuro
-              translucido + backdrop-blur), altrimenti un overlay quasi opaco dietro
-              annullava l'effetto vetro facendo vedere solo un blur di colore piatto */}
+          {/* Velo sotto il pannello: lo stesso dei popup di inserimento (Modal.tsx),
+              scuro e sfocato, così le cifre della pagina non si leggono attraverso
+              il vetro del pannello. */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.35 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900 z-[55]"
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/60 backdrop-blur-md z-[55]"
           />
 
           <motion.div
@@ -53,7 +63,7 @@ export default function SlideOverPanel({ isOpen, onClose, title, subtitle, child
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-[#0b0f19]/95 backdrop-blur-xl shadow-2xl z-[60] flex flex-col h-full border-l border-hairline dark:border-white/10 outline-hidden"
+            className="fondo-popup fixed right-0 top-0 bottom-0 w-full max-w-md bg-[#ffffff] dark:bg-[#0b0f19] shadow-2xl z-[60] flex flex-col h-full border-l border-hairline dark:border-white/10 outline-hidden"
           >
             {/* Intestazione come quella di Modal.tsx (stesso padding, titolo e bottone
                 chiudi rosso), così pannelli laterali e popup sembrano della stessa app.
@@ -80,5 +90,7 @@ export default function SlideOverPanel({ isOpen, onClose, title, subtitle, child
         </>
       )}
     </AnimatePresence>
+    </div>,
+    document.body
   );
 }

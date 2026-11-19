@@ -238,7 +238,7 @@ export default function PatrimonioTrendChart({
                   axisLine={false}
                   width={52}
                   tickFormatter={(value) =>
-                    value >= 1000 ? `${(value / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k €` : `${value} €`
+                    value >= 1000 ? `${(value / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k\u00A0€` : `${value}\u00A0€`
                   }
                 />
 

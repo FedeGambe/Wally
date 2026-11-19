@@ -86,7 +86,7 @@ export function formatAxisCompact(value: unknown, maxAbsValue: number, simbolo =
   const num = Number(value);
   if (isNaN(num)) return '';
   if (niceAxisStep(Math.abs(maxAbsValue)) >= 1000) {
-    return `${(num / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k ${simbolo}`;
+    return `${(num / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k\u00A0${simbolo}`;
   }
-  return `${num.toLocaleString('it-IT', { useGrouping: true })} ${simbolo}`;
+  return `${num.toLocaleString('it-IT', { useGrouping: true })}\u00A0${simbolo}`;
 }

@@ -363,33 +363,36 @@ export default function CruscottoAssetAllocationCard({
         title="Capitale Investito per Strumento"
         subtitle={`${formatEuro(totalAssetAllocation)} investiti (non riflette il valore attuale)`}
       >
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-28 md:pb-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pb-6">
           {legendRows.map((row, idx) => {
                   const rowPerc = totalAssetAllocation > 0 ? (row.value / totalAssetAllocation) * 100 : 0;
                   return (
                     <div key={idx}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2 truncate pl-1">
-                          <LegendDot color={row.color} pulsing={row.investitoUltimoMese} className="w-2 h-2" />
-                          <span className="text-ink dark:text-white text-xs font-bold truncate" title={row.name}>{row.name}</span>
+                      {/* Nome a capo invece che tagliato (su telefono il pannello è stretto),
+                          importo a destra con la quota sotto. */}
+                      <div className="flex items-start justify-between gap-3 mb-1.5">
+                        <div className="flex items-start gap-2 min-w-0 pl-1">
+                          <LegendDot color={row.color} pulsing={row.investitoUltimoMese} className="w-2 h-2 mt-1" />
+                          <span className="text-ink dark:text-white text-xs font-bold leading-snug">{row.name}</span>
                         </div>
-                        <span className="text-ink dark:text-white text-xs font-mono font-bold shrink-0">
-                          ({rowPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%) {formatEuro(row.value)}
-                        </span>
+                        <div className="text-right font-mono shrink-0 leading-tight">
+                          <span className="block text-ink dark:text-white text-xs font-bold">{formatEuro(row.value)}</span>
+                          <span className="block text-ink-soft dark:text-slate-400 text-2xs font-semibold">{rowPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
+                        </div>
                       </div>
                       {row.kind === 'group' && (
                         <div className="space-y-1.5 pl-3.5">
                           {row.items!.map((sub, subIdx) => {
                             const subPerc = row.value > 0 ? (sub.value / row.value) * 100 : 0;
                             return (
-                              <div key={subIdx} className="flex items-center justify-between p-2.5 bg-canvas dark:bg-white/5 rounded-xl border border-hairline dark:border-white/10">
-                                <div className="flex items-center gap-2 truncate pl-1">
-                                  <LegendDot color={sub.color} pulsing={sub.investitoUltimoMese} />
-                                  <span className="text-ink-soft dark:text-slate-400 text-2xs font-medium truncate" title={sub.name}>{sub.name}</span>
+                              <div key={subIdx} className="flex items-start justify-between gap-3 p-2.5 bg-canvas dark:bg-white/5 rounded-xl border border-hairline dark:border-white/10">
+                                <div className="flex items-start gap-2 min-w-0 pl-1">
+                                  <LegendDot color={sub.color} pulsing={sub.investitoUltimoMese} className="w-1.5 h-1.5 mt-1" />
+                                  <span className="text-ink-soft dark:text-slate-400 text-2xs font-medium leading-snug">{sub.name}</span>
                                 </div>
-                                <div className="flex items-center gap-2 font-mono text-right shrink-0">
-                                  <span className="text-ink-soft text-3xs font-bold">({subPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)</span>
-                                  <span className="text-ink-soft dark:text-slate-400 text-2xs font-semibold">{formatEuro(sub.value)}</span>
+                                <div className="text-right font-mono shrink-0 leading-tight">
+                                  <span className="block text-ink-soft dark:text-slate-400 text-2xs font-semibold">{formatEuro(sub.value)}</span>
+                                  <span className="block text-ink-soft text-3xs font-bold">{subPerc.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
                                 </div>
                               </div>
                             );

@@ -129,7 +129,7 @@ export default function AnalisiConsumiPeriodo() {
                 <XAxis dataKey="etichetta" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} minTickGap={isMobile ? 8 : 4} />
                 <YAxis
                   yAxisId="spesa" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 64}
-                  tickFormatter={v => isMobile ? formatAxisCompact(v, maxAsse) : `${Number(v).toLocaleString('it-IT')} €`}
+                  tickFormatter={v => isMobile ? formatAxisCompact(v, maxAsse) : `${Number(v).toLocaleString('it-IT')}\u00A0€`}
                 />
                 <YAxis
                   yAxisId="cento" orientation="right" stroke={AMBRA} fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 36 : 48}

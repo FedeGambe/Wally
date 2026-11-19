@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, TrendingUp, Sparkles, Repeat, Fuel } from 'lucide-react';
 import type { TipoDato } from './AggiungiDatoModal';
-import { useBolleAperte, setBolleAperte, useNascondiAggiunta } from '../hooks/useBolleAperte';
+import { useBolleAperte, setBolleAperte, useNascondiAggiunta, useScorreGiu } from '../hooks/useBolleAperte';
 
 /**
  * Bottone "+" della Home e di Investimenti (che passa `voci` e testi suoi): al posto del popup con la griglia dei tipi,
@@ -186,6 +186,8 @@ export default function AggiungiDatoBubbles<T extends string = Exclude<TipoDato,
   // questi pallini, e mentre quelli sono aperti il "+" sparisce.
   const aperto = useBolleAperte() === 'aggiungi';
   const nascosto = useNascondiAggiunta();
+  // Su telefono si fa da parte mentre si scorre in giù (copriva le cifre a destra delle card), non a menu aperto.
+  const nascondiScorrendo = useScorreGiu() && !aperto && !nascosto;
   const [scelta, setScelta] = useState<string | null>(null);
 
   const chiudi = () => {
@@ -307,7 +309,7 @@ export default function AggiungiDatoBubbles<T extends string = Exclude<TipoDato,
           aria-expanded={aperto}
           tabIndex={nascosto ? -1 : undefined}
           aria-hidden={nascosto || undefined}
-          className={`relative rounded-full ${coloreBottone} text-white flex items-center justify-center gap-2 shadow-lg ${grande ? 'px-5 py-3.5 text-sm font-bold' : 'w-14 h-14'} hover:shadow-xl transition-all duration-200 cursor-pointer ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''}`}
+          className={`relative rounded-full ${coloreBottone} text-white flex items-center justify-center gap-2 shadow-lg ${grande ? 'px-5 py-3.5 text-sm font-bold' : 'w-14 h-14'} hover:shadow-xl transition-all duration-200 cursor-pointer ${nascosto ? 'scale-0 opacity-0 pointer-events-none' : ''} ${nascondiScorrendo ? 'max-md:translate-y-28 max-md:opacity-0 max-md:pointer-events-none' : ''}`}
         >
           <motion.span animate={{ rotate: aperto ? 45 : 0 }} transition={MOLLA} className="flex">
             <Plus className={grande ? 'w-4 h-4' : 'w-6 h-6'} />

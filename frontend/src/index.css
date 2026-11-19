@@ -28,6 +28,7 @@
   --color-up: #089B3C;     /* entrate, crescita, successo — verde del logo */
   --color-down: #e11d48;   /* uscite, perdita, errore — rose-600 */
   --color-warn: #d97706;   /* avviso / soglia — amber-600 */
+  --color-arancio: #ea580c; /* vicino alla soglia (anelli di Mese in evidenza) — orange-600 */
   --color-info: #0284c7;   /* stato informativo secondario — sky-600 */
   --color-accent: #00A19A; /* brand / CTA — teal (nuovo logo) */
   --color-accent-strong: #00796F; /* teal scuro per i pulsanti pieni con testo bianco (5,3:1): il teal del logo con il bianco sta a 3,2:1 */
@@ -39,6 +40,7 @@
   --color-up: #34d399;
   --color-down: #fb7185;
   --color-warn: #fbbf24;
+  --color-arancio: #fb923c;
   --color-info: #38bdf8;
   --color-accent: #15B4B7;
   --color-accent-strong: #00796F;

@@ -134,7 +134,7 @@ export default function Drawer({
                 2) stats presente ma senza monthDetail -> riepilogo semplice (totale + conteggio)
                 3) nessuno dei due -> si passa direttamente all'elenco transazioni qui sotto */}
       {stats?.monthDetail ? (
-        <div className="p-6 pb-28 md:pb-6 border-b border-hairline dark:border-white/10 flex-1 overflow-y-auto space-y-5">
+        <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pb-6 border-b border-hairline dark:border-white/10 flex-1 overflow-y-auto space-y-5">
           {(() => {
             // IIFE (funzione auto-invocata): serve solo per poter definire delle
             // variabili locali (m, pct, pieData...) prima del `return` del JSX,
@@ -278,7 +278,7 @@ export default function Drawer({
                 un riepilogo mensile (monthDetail), per non duplicare informazioni:
                 nella vista mensile la torta+mini-card bastano come riepilogo. */}
       {!stats?.monthDetail && (
-        <div className="flex-1 overflow-y-auto p-6 pb-28 md:pb-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pb-6 space-y-4">
           <h4 className="text-xs font-bold text-ink-soft uppercase tracking-widest mb-2">
             Dettaglio Movimenti
           </h4>

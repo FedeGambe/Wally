@@ -194,7 +194,7 @@ export default function AnalisiEntrate({ onApriInteressi }: { onApriInteressi?: 
               <XAxis dataKey="etichetta" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} minTickGap={isMobile ? 8 : 4} />
               <YAxis
                 stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={isMobile ? 44 : 64}
-                tickFormatter={v => isMobile ? formatAxisCompact(v, maxAsse) : `${Number(v).toLocaleString('it-IT')} €`}
+                tickFormatter={v => isMobile ? formatAxisCompact(v, maxAsse) : `${Number(v).toLocaleString('it-IT')}\u00A0€`}
               />
               <Tooltip content={renderTooltip} cursor={{ fill: 'rgba(148,163,184,0.12)' }} />
               <Bar dataKey="totale" name="Entrate" fill={VERDE} radius={[6, 6, 0, 0]} maxBarSize={48} />

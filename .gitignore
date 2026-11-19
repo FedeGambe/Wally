@@ -24,3 +24,6 @@ __pycache__/
 
 # Script locali (npm run dev)
 /scripts/
+
+# Cache di TypeScript (tsc), si rigenera da sola
+*.tsbuildinfo

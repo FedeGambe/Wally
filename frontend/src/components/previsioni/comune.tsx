@@ -56,7 +56,7 @@ export const percentuale = (v: number | null | undefined, decimali = 0) =>
 
 /** Asse dei grafici: 1.200 → "1,2k €", 250.000 → "250k €", 800 → "800 €" (come Patrimonio). */
 export const euroAsse = (v: number) =>
-  Math.abs(v) >= 1000 ? `${(v / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k €` : `${Math.round(v)} €`;
+  Math.abs(v) >= 1000 ? `${(v / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k\u00A0€` : `${Math.round(v)}\u00A0€`;
 
 /** Colori della pagina: viola per le stime (il colore di Previsioni), i colori dei dati per le cifre vere. */
 export const COLORI = {
