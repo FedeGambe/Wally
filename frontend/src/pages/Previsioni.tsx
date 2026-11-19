@@ -10,10 +10,11 @@
  *  - Prossimi 12 mesi: PrevisioniProssimiMesi, entrate, spese e avanzo
  *  - Patrimonio: PrevisioniCrescita (da dove viene la crescita, cifre vere) e
  *    PrevisioniProiezione (dove può arrivare, con i cursori "E se…")
+ *  - Auto: PrevisioniAuto, km e costi dell'auto nei prossimi 12 mesi
  * Su telefono mostra solo un avviso: i grafici sono pensati per lo schermo largo.
  */
 import React, { useState } from 'react';
-import { CalendarClock, CalendarRange, Monitor, Sparkles, TrendingUp } from 'lucide-react';
+import { Car, CalendarClock, CalendarRange, Monitor, Sparkles, TrendingUp } from 'lucide-react';
 import { usePrevisioni } from '../hooks/usePrevisioni';
 import { useIsMobile } from '../hooks/useIsMobile';
 import BarraSchede from '../components/BarraSchede';
@@ -21,6 +22,7 @@ import PrevisioniFineMese from '../components/previsioni/PrevisioniFineMese';
 import PrevisioniProssimiMesi from '../components/previsioni/PrevisioniProssimiMesi';
 import PrevisioniCrescita from '../components/previsioni/PrevisioniCrescita';
 import PrevisioniProiezione from '../components/previsioni/PrevisioniProiezione';
+import PrevisioniAuto from '../components/previsioni/PrevisioniAuto';
 import PrevisioniKpiCards, { type SchedaPrevisioni } from '../components/previsioni/PrevisioniKpiCards';
 import { NonDisponibile, Riquadro } from '../components/previsioni/comune';
 
@@ -58,6 +60,7 @@ export default function Previsioni() {
           { id: 'mese', etichetta: 'Questo mese', icona: <CalendarClock className="w-[18px] h-[18px]" /> },
           { id: 'prossimi', etichetta: 'Prossimi 12 mesi', icona: <CalendarRange className="w-[18px] h-[18px]" /> },
           { id: 'patrimonio', etichetta: 'Patrimonio', icona: <TrendingUp className="w-[18px] h-[18px]" /> },
+          { id: 'auto', etichetta: 'Auto', icona: <Car className="w-[18px] h-[18px]" /> },
         ]}
       />
 
@@ -83,6 +86,7 @@ export default function Previsioni() {
 
           {scheda === 'mese' && <PrevisioniFineMese fineMese={risposta.fineMese} />}
           {scheda === 'prossimi' && <PrevisioniProssimiMesi flussi={risposta.flussi} />}
+          {scheda === 'auto' && <PrevisioniAuto auto={risposta.auto} />}
           {scheda === 'patrimonio' && (risposta.patrimonio.disponibile ? (
             <>
               <PrevisioniCrescita patrimonio={risposta.patrimonio} />

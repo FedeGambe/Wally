@@ -4,6 +4,7 @@ Previsioni per la pagina "Previsioni" dell'app (solo computer).
   A. fine_mese.py   come chiude il mese in corso
   B. flussi.py      entrate, spese e avanzo dei prossimi 12 mesi
   C. patrimonio.py  da dove viene la crescita del patrimonio e dove può arrivare
+  D. auto.py        km e costi dell'auto nei prossimi 12 mesi
 
 Ogni stima ha una fascia (10°-90° percentile) e, dove si può, l'errore medio
 misurato provandola sui mesi passati. Lavorano solo sui dati ricevuti
@@ -11,6 +12,7 @@ dall'app: niente letture dal foglio.
 """
 from datetime import date
 
+from backend.domain.previsioni.auto import previsione_auto
 from backend.domain.previsioni.fine_mese import previsione_fine_mese
 from backend.domain.previsioni.flussi import previsioni_flussi
 from backend.domain.previsioni.patrimonio import Ipotesi, previsioni_patrimonio
@@ -23,4 +25,5 @@ def calcola_previsioni(dati: dict, oggi: date, ipotesi: dict | None = None) -> d
                                      dati.get("soglie"), oggi, entrate_previste)
     patrimonio = previsioni_patrimonio(dati, oggi, Ipotesi.da_dizionario(ipotesi), flussi)
     flussi.pop("_avanzo", None)
-    return {"oggi": oggi.isoformat(), "fineMese": fine_mese, "flussi": flussi, "patrimonio": patrimonio}
+    auto = previsione_auto(dati.get("analisiConsumi"), dati.get("presetUscite"), oggi)
+    return {"oggi": oggi.isoformat(), "fineMese": fine_mese, "flussi": flussi, "patrimonio": patrimonio, "auto": auto}

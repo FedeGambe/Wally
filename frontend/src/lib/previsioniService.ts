@@ -134,11 +134,32 @@ export interface Patrimonio {
   ipotesi: IpotesiPrevisioni;
 }
 
+/** D. Auto (backend/domain/previsioni/auto.py): km dei prossimi 12 mesi; il costo
+ *  del carburante lo calcola l'app con il prezzo scelto (km / kmAlLitro × prezzo). */
+export interface Auto {
+  disponibile: true;
+  ultimoRifornimento: string; // "2026-11-15"
+  giorniUsati: number;
+  kmAlGiorno: number;
+  kmAnno: Stima;
+  contachilometri: { oggi: number; traUnAnno: number };
+  kmMeseFinora: number;
+  kmAlLitro: number;
+  prezzo: { attuale: number; minimoAnno: number | null; massimoAnno: number | null; medioAnno: number | null };
+  rateFisse: { mensile: number; voci: { nome: string; importo: number }[] };
+  storico: { mese: string; km: number; carburante: number }[];
+  previsti: { mese: string; km: Stima }[];
+  affidabilita: { erroreMedio: number | null; prove: number; giorni: number };
+  rifornimenti: number;
+}
+
 export interface RispostaPrevisioni {
   oggi: string;
   fineMese: FineMese | NonDisponibile;
   flussi: Flussi | NonDisponibile;
   patrimonio: Patrimonio | NonDisponibile;
+  /** Manca nelle previsioni demo calcolate prima che ci fosse. */
+  auto?: Auto | NonDisponibile;
 }
 
 export const IPOTESI_PREDEFINITE: IpotesiPrevisioni = {
@@ -160,7 +181,7 @@ export const IPOTESI_PREDEFINITE: IpotesiPrevisioni = {
 /** Le sole parti dei dati che servono alle previsioni. */
 export const CHIAVI_DATI = [
   'risparmio', 'uscite', 'entrate', 'presetUscite', 'presetInvestimenti', 'soglie', 'patrimonio',
-  'capitaleImpegnato', 'rendimentiInvestimenti', 'fondoPensione', 'cruscottoInvestimenti',
+  'capitaleImpegnato', 'rendimentiInvestimenti', 'fondoPensione', 'cruscottoInvestimenti', 'analisiConsumi',
 ] as const;
 
 export const chiediPrevisioni = (accessToken: string, dati: Record<string, unknown>, ipotesi: IpotesiPrevisioni) =>

@@ -68,6 +68,7 @@ export const COLORI = {
   versamenti: '#0ea5e9',
   mercato: '#089B3C',
   fondoPensione: '#d97706',
+  auto: '#e11d48', // rosa di Analisi Consumi
   neutro: '#94a3b8',
 };
 

@@ -5,7 +5,7 @@ import EuroAmount from '../EuroAmount';
 import type { RispostaPrevisioni } from '../../lib/previsioniService';
 import { COLORI, euroEsatto, euroStima, meseBreve, meseLungo, percentuale } from './comune';
 
-export type SchedaPrevisioni = 'mese' | 'prossimi' | 'patrimonio';
+export type SchedaPrevisioni = 'mese' | 'prossimi' | 'patrimonio' | 'auto';
 
 /**
  * Le quattro card in alto di Previsioni. Ognuna ha il colore del suo dato,

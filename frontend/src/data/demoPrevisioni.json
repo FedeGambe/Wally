@@ -30,7 +30,14 @@
   },
   "entrateMese": 2100.0,
   "entrateStimate": false,
+  "stipendioMediano": null,
   "soglie": [
+   {
+    "nome": "Spese Totali",
+    "percentuale": 50.0,
+    "limite": 1050.0,
+    "probabilitaSforamento": 0.0
+   },
    {
     "nome": "Spese Primarie",
     "percentuale": 35.0,
@@ -193,6 +200,455 @@
     "alto": 555.7
    }
   ],
+  "curve": {
+   "totale": [
+    {
+     "giorno": 1,
+     "speso": 0.0
+    },
+    {
+     "giorno": 2,
+     "speso": 0.0
+    },
+    {
+     "giorno": 3,
+     "speso": 180.0
+    },
+    {
+     "giorno": 4,
+     "speso": 180.0
+    },
+    {
+     "giorno": 5,
+     "speso": 180.0
+    },
+    {
+     "giorno": 6,
+     "speso": 180.0
+    },
+    {
+     "giorno": 7,
+     "speso": 219.9
+    },
+    {
+     "giorno": 8,
+     "speso": 219.9
+    },
+    {
+     "giorno": 9,
+     "speso": 219.9
+    },
+    {
+     "giorno": 10,
+     "speso": 248.4
+    },
+    {
+     "giorno": 11,
+     "speso": 248.4
+    },
+    {
+     "giorno": 12,
+     "speso": 248.4
+    },
+    {
+     "giorno": 13,
+     "speso": 248.4
+    },
+    {
+     "giorno": 14,
+     "speso": 293.4
+    },
+    {
+     "giorno": 15,
+     "speso": 293.4
+    },
+    {
+     "giorno": 16,
+     "speso": 293.4
+    },
+    {
+     "giorno": 17,
+     "speso": 293.4
+    },
+    {
+     "giorno": 18,
+     "speso": 357.7,
+     "basso": 357.7,
+     "centrale": 357.7,
+     "alto": 357.7
+    },
+    {
+     "giorno": 19,
+     "basso": 357.7,
+     "centrale": 357.7,
+     "alto": 404.5
+    },
+    {
+     "giorno": 20,
+     "basso": 357.7,
+     "centrale": 357.7,
+     "alto": 409.7
+    },
+    {
+     "giorno": 21,
+     "basso": 357.7,
+     "centrale": 357.7,
+     "alto": 409.7
+    },
+    {
+     "giorno": 22,
+     "basso": 357.7,
+     "centrale": 370.69,
+     "alto": 413.46
+    },
+    {
+     "giorno": 23,
+     "basso": 357.7,
+     "centrale": 370.69,
+     "alto": 413.46
+    },
+    {
+     "giorno": 24,
+     "basso": 362.9,
+     "centrale": 380.1,
+     "alto": 538.9
+    },
+    {
+     "giorno": 25,
+     "basso": 362.9,
+     "centrale": 380.1,
+     "alto": 538.9
+    },
+    {
+     "giorno": 26,
+     "basso": 362.9,
+     "centrale": 380.1,
+     "alto": 538.9
+    },
+    {
+     "giorno": 27,
+     "basso": 366.66,
+     "centrale": 415.69,
+     "alto": 538.9
+    },
+    {
+     "giorno": 28,
+     "basso": 394.34,
+     "centrale": 435.7,
+     "alto": 555.7
+    },
+    {
+     "giorno": 29,
+     "basso": 394.34,
+     "centrale": 435.7,
+     "alto": 555.7
+    },
+    {
+     "giorno": 30,
+     "basso": 394.34,
+     "centrale": 435.7,
+     "alto": 555.7
+    }
+   ],
+   "primarie": [
+    {
+     "giorno": 1,
+     "speso": 0.0
+    },
+    {
+     "giorno": 2,
+     "speso": 0.0
+    },
+    {
+     "giorno": 3,
+     "speso": 180.0
+    },
+    {
+     "giorno": 4,
+     "speso": 180.0
+    },
+    {
+     "giorno": 5,
+     "speso": 180.0
+    },
+    {
+     "giorno": 6,
+     "speso": 180.0
+    },
+    {
+     "giorno": 7,
+     "speso": 180.0
+    },
+    {
+     "giorno": 8,
+     "speso": 180.0
+    },
+    {
+     "giorno": 9,
+     "speso": 180.0
+    },
+    {
+     "giorno": 10,
+     "speso": 180.0
+    },
+    {
+     "giorno": 11,
+     "speso": 180.0
+    },
+    {
+     "giorno": 12,
+     "speso": 180.0
+    },
+    {
+     "giorno": 13,
+     "speso": 180.0
+    },
+    {
+     "giorno": 14,
+     "speso": 225.0
+    },
+    {
+     "giorno": 15,
+     "speso": 225.0
+    },
+    {
+     "giorno": 16,
+     "speso": 225.0
+    },
+    {
+     "giorno": 17,
+     "speso": 225.0
+    },
+    {
+     "giorno": 18,
+     "speso": 289.3,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 289.3
+    },
+    {
+     "giorno": 19,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 336.1
+    },
+    {
+     "giorno": 20,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 336.1
+    },
+    {
+     "giorno": 21,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 336.1
+    },
+    {
+     "giorno": 22,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 345.06
+    },
+    {
+     "giorno": 23,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 345.06
+    },
+    {
+     "giorno": 24,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 345.06
+    },
+    {
+     "giorno": 25,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 345.06
+    },
+    {
+     "giorno": 26,
+     "basso": 289.3,
+     "centrale": 289.3,
+     "alto": 345.06
+    },
+    {
+     "giorno": 27,
+     "basso": 289.3,
+     "centrale": 311.7,
+     "alto": 354.1
+    },
+    {
+     "giorno": 28,
+     "basso": 289.3,
+     "centrale": 311.7,
+     "alto": 354.1
+    },
+    {
+     "giorno": 29,
+     "basso": 289.3,
+     "centrale": 311.7,
+     "alto": 354.1
+    },
+    {
+     "giorno": 30,
+     "basso": 289.3,
+     "centrale": 311.7,
+     "alto": 354.1
+    }
+   ],
+   "secondarie": [
+    {
+     "giorno": 1,
+     "speso": 0.0
+    },
+    {
+     "giorno": 2,
+     "speso": 0.0
+    },
+    {
+     "giorno": 3,
+     "speso": 0.0
+    },
+    {
+     "giorno": 4,
+     "speso": 0.0
+    },
+    {
+     "giorno": 5,
+     "speso": 0.0
+    },
+    {
+     "giorno": 6,
+     "speso": 0.0
+    },
+    {
+     "giorno": 7,
+     "speso": 39.9
+    },
+    {
+     "giorno": 8,
+     "speso": 39.9
+    },
+    {
+     "giorno": 9,
+     "speso": 39.9
+    },
+    {
+     "giorno": 10,
+     "speso": 68.4
+    },
+    {
+     "giorno": 11,
+     "speso": 68.4
+    },
+    {
+     "giorno": 12,
+     "speso": 68.4
+    },
+    {
+     "giorno": 13,
+     "speso": 68.4
+    },
+    {
+     "giorno": 14,
+     "speso": 68.4
+    },
+    {
+     "giorno": 15,
+     "speso": 68.4
+    },
+    {
+     "giorno": 16,
+     "speso": 68.4
+    },
+    {
+     "giorno": 17,
+     "speso": 68.4
+    },
+    {
+     "giorno": 18,
+     "speso": 68.4,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 68.4
+    },
+    {
+     "giorno": 19,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 68.4
+    },
+    {
+     "giorno": 20,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 76.19
+    },
+    {
+     "giorno": 21,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 76.19
+    },
+    {
+     "giorno": 22,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 76.19
+    },
+    {
+     "giorno": 23,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 76.19
+    },
+    {
+     "giorno": 24,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 223.6
+    },
+    {
+     "giorno": 25,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 223.6
+    },
+    {
+     "giorno": 26,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 223.6
+    },
+    {
+     "giorno": 27,
+     "basso": 68.4,
+     "centrale": 68.4,
+     "alto": 223.6
+    },
+    {
+     "giorno": 28,
+     "basso": 68.4,
+     "centrale": 81.39,
+     "alto": 266.4
+    },
+    {
+     "giorno": 29,
+     "basso": 68.4,
+     "centrale": 81.39,
+     "alto": 266.4
+    },
+    {
+     "giorno": 30,
+     "basso": 68.4,
+     "centrale": 81.39,
+     "alto": 266.4
+    }
+   ]
+  },
   "affidabilita": {
    "erroreMedio": 72.52,
    "mesiProvati": 5
@@ -2812,5 +3268,158 @@
     }
    }
   }
+ },
+ "auto": {
+  "disponibile": true,
+  "ultimoRifornimento": "2026-06-05",
+  "giorniUsati": 154,
+  "kmAlGiorno": 12.21,
+  "kmAnno": {
+   "centrale": 4455,
+   "basso": 4299,
+   "alto": 4612
+  },
+  "contachilometri": {
+   "oggi": 52080,
+   "traUnAnno": 56535
+  },
+  "kmMeseFinora": 46,
+  "kmAlLitro": 18.16,
+  "prezzo": {
+   "attuale": 1.792,
+   "minimoAnno": 1.724,
+   "massimoAnno": 1.802,
+   "medioAnno": 1.767
+  },
+  "rateFisse": {
+   "mensile": 0,
+   "voci": []
+  },
+  "storico": [
+   {
+    "mese": "2026-02",
+    "km": 334.3,
+    "carburante": 25.0
+   },
+   {
+    "mese": "2026-03",
+    "km": 325.3,
+    "carburante": 30.0
+   },
+   {
+    "mese": "2026-04",
+    "km": 271.9,
+    "carburante": 34.0
+   },
+   {
+    "mese": "2026-05",
+    "km": 354.3,
+    "carburante": 21.0
+   }
+  ],
+  "previsti": [
+   {
+    "mese": "2026-07",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2026-08",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2026-09",
+    "km": {
+     "centrale": 366.2,
+     "basso": 321.1,
+     "alto": 411.3
+    }
+   },
+   {
+    "mese": "2026-10",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2026-11",
+    "km": {
+     "centrale": 366.2,
+     "basso": 321.1,
+     "alto": 411.3
+    }
+   },
+   {
+    "mese": "2026-12",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2027-01",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2027-02",
+    "km": {
+     "centrale": 341.8,
+     "basso": 296.7,
+     "alto": 386.9
+    }
+   },
+   {
+    "mese": "2027-03",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2027-04",
+    "km": {
+     "centrale": 366.2,
+     "basso": 321.1,
+     "alto": 411.3
+    }
+   },
+   {
+    "mese": "2027-05",
+    "km": {
+     "centrale": 378.4,
+     "basso": 333.3,
+     "alto": 423.5
+    }
+   },
+   {
+    "mese": "2027-06",
+    "km": {
+     "centrale": 366.2,
+     "basso": 321.1,
+     "alto": 411.3
+    }
+   }
+  ],
+  "affidabilita": {
+   "erroreMedio": null,
+   "prove": 0,
+   "giorni": 90
+  },
+  "rifornimenti": 7
  }
 }

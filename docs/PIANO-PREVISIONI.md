@@ -23,10 +23,9 @@ Deciso il 31/10/2026. Pagina solo da computer con stime sui dati del foglio, cal
 2. A. Chiusura del mese, B. prossimi 12 mesi, C. crescita del patrimonio (storico per origine, tasso di risparmio, autonomia, proiezione, "E se…", obiettivo).
 3. Pagina `Previsioni.tsx` nella barra laterale (solo computer).
 4. Incognito (dati finti mandati al backend) e demo (`data/demoPrevisioni.json`, `npm run previsioni:demo`).
+5. D. Auto (`auto.py`, scheda Auto): km dei prossimi 12 mesi dal ritmo del contachilometri dell'ultimo anno, consumo dell'ultimo anno, prezzo della benzina a cursore (di partenza la mediana degli ultimi 4 rifornimenti), rate fisse dai preset. Provato sui dati veri: sui 90 giorni dopo sbaglia in media ~9%.
 
 ## Prossimi passi possibili
 
 - Stagionalità per categoria, quando ci saranno almeno 2 anni di uscite dettagliate (da fine 2027).
-- Spese fuori dal normale, per mese e categoria.
-- Auto: km all'anno e costo carburante dei prossimi 12 mesi.
 - Fondo pensione: proiezione fino alla pensione con le regole di contribuzione.
