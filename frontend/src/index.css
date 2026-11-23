@@ -159,8 +159,14 @@ body {
 /* Barra delle schede (components/BarraSchede.tsx): stesso fondo della sidebar,
    bianco nel tema chiaro; nel tema scuro usa .fondo-sidebar (in fondo al file). */
 .barra-schede-pillola {
-  background-color: #ffffff;
-  border-color: var(--color-hairline, #e2e8f0);
+  background-color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px) saturate(1.8);
+  -webkit-backdrop-filter: blur(14px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.04),
+    0 8px 24px -10px rgba(15, 23, 42, 0.25);
 }
 
 /* Sidebar navigation rail translucent glass styling */
@@ -458,6 +464,20 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 .glass-theme .fondo-sidebar.fondo-sidebar.bordo-sidebar {
   border-color: rgba(255, 255, 255, 0.06) !important;
+}
+/* Barra delle schede nel tema scuro: vetro vero invece del fondo della sidebar.
+   Sfocatura più bassa (su una pillola così piccola 35px scioglievano tutto in un
+   colore unico), saturate perché i colori sotto si accendano, luce sul bordo alto. */
+.glass-theme .barra-schede-pillola.fondo-sidebar.fondo-sidebar.fondo-sidebar,
+.glass-theme .barra-schede-pillola.fondo-sidebar.fondo-sidebar.fondo-sidebar:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01)), rgba(11, 15, 25, 0.25) !important;
+  backdrop-filter: blur(14px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.8) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 10px 30px -12px rgba(0, 0, 0, 0.7) !important;
 }
 
 /* Popup (components/Modal.tsx, es. Aggiungi dato) nel tema scuro: stesso vetro
