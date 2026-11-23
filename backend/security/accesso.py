@@ -30,14 +30,24 @@ def token_bearer(request: Request) -> str:
 
 
 def _uguali(a: str, b: str) -> bool:
+    """Confronta due testi segreti in tempo costante (non si può indovinare un
+    segreto misurando quanto ci mette il confronto).
+    """
     return hmac.compare_digest(a.encode(), b.encode())
 
 
 def da_cron(request: Request) -> bool:
+    """True se la richiesta arriva dal cron di Vercel (porta il CRON_SECRET giusto)."""
     return _uguali(token_bearer(request), env("CRON_SECRET"))
 
 
 def da_proprietario(request: Request) -> bool:
+    """True se la richiesta arriva dal proprietario di Wally.
+
+    Controllo: con il token Google della richiesta si prova ad aprire il foglio
+    Finanza. Ci riesce solo chi ha accesso a quel foglio, quindi non serve
+    tenere un elenco di email ammesse. Costa una chiamata a Google.
+    """
     token = token_bearer(request)
     if not token:
         return False
@@ -51,20 +61,30 @@ def da_proprietario(request: Request) -> bool:
 
 
 def non_autorizzato() -> JSONResponse:
+    """La risposta 401 {"errore": "Non autorizzato"}."""
     return JSONResponse({"errore": "Non autorizzato"}, status_code=401)
 
 
 def _firma(testo: str) -> str:
+    """La firma di un testo con CRON_SECRET (HMAC-SHA256): chi non conosce il
+    segreto non può creare una firma valida.
+    """
     digest = hmac.new(env("CRON_SECRET").encode(), testo.encode(), hashlib.sha256).digest()
     return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
 
 
 def _adesso_ms() -> int:
+    """L'ora attuale in millisecondi (come Date.now() in JavaScript)."""
     return int(time.time() * 1000)
 
 
 def crea_state(banca: str, paese: str) -> str:
-    """state = banca|paese|scadenza|nonce|firma: valido 1 ora."""
+    """Lo `state` da mandare alla banca quando parte un collegamento.
+
+    È banca|paese|scadenza|codice casuale|firma, valido 1 ora. Quando la banca
+    rimanda l'utente su Wally restituisce lo stesso state: leggi_state controlla
+    che sia nostro e non scaduto.
+    """
     parti = [banca, paese, _adesso_ms() + VALIDITA_STATE_MS, uuid.uuid4()]
     corpo = "|".join(quote(str(p), safe="") for p in parti)
     return f"{corpo}|{_firma(corpo)}"

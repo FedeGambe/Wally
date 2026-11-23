@@ -34,6 +34,16 @@ TARGET_NETTO = TARGET_INVESTIMENTI + TARGET_RISPARMIO
 
 @dataclass(frozen=True)
 class SchedaFoglio:
+    """Come è fatta una scheda del foglio e come diventa dati per l'app.
+
+      titolo, intervallo   nome del tab e celle da leggere ("Uscite!A:J")
+      campi                nomi delle colonne nell'app ("data", "importo"…)
+      intestazioni         le intestazioni della riga 1, nello stesso ordine
+      chiave               dove finiscono le righe nei dati dell'app ("uscite")
+      numerici, booleani   campi da convertire in numero o vero/falso
+      date, date_mese      campi data (vedi il commento in cima al file)
+      formule              colonne che sul foglio sono formule: non si scrivono
+    """
     titolo: str
     intervallo: str
     campi: list[str]
@@ -266,6 +276,9 @@ SCHEDE_DA_CREARE = [s.titolo for s in SCHEDE if s.titolo not in SCHEDE_NON_DA_CR
 
 
 def scheda(titolo: str) -> SchedaFoglio | None:
+    """La definizione della scheda con quel titolo, o None se non c'è.
+    Esempio: scheda("Uscite").campi → ["data", "mese", "descrizione", …].
+    """
     return next((s for s in SCHEDE if s.titolo == titolo), None)
 
 

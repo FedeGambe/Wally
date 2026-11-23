@@ -27,13 +27,22 @@ RITARDO_CONTABILIZZAZIONE = {"Trade Republic": 1}
 
 
 def _arrotonda_js(x: float) -> float:
-    """Come Math.round: a metà si arrotonda verso l'alto."""
+    """Arrotonda all'intero come Math.round di JavaScript: a metà verso l'alto.
+    Esempi: 2.5 → 3 · -2.5 → -2 (round di Python darebbe 2 e -2).
+    """
     return math.floor(x + 0.5)
 
 
 # --- Regole -------------------------------------------------------------------
 
 def regola_vale(regola: dict, m: dict) -> bool:
+    """True se il movimento `m` rispetta tutte le condizioni della regola.
+
+    Le condizioni (tutte facoltative tranne il verso, vedi regole_banca.py):
+    conto, verso (uscita/entrata), parole nella causale, importi, giorni del mese.
+    Esempio: la regola "PAC Scalable (addebito)" vale per un'uscita di Unicredit
+    la cui causale contiene "ADDEBITO SEPA DD" e "SCALABLE CAPITAL".
+    """
     if regola.get("conto") and regola["conto"] != m["conto"]:
         return False
     if (regola["verso"] == "uscita") != (m["importo"] < 0):
@@ -121,9 +130,12 @@ def regole_trasferimenti_tra_conti(conti_collegati: list[str], conti: list[str])
 
 def tutte_le_regole(preset_uscite: list[dict], preset_investimenti: list[dict],
                     conti_collegati: list[str], conti: list[str]) -> list[dict]:
-    """In ordine: preset e PAC (automatici, i più precisi), regole fisse
+    """Tutte le regole, nell'ordine in cui vanno provate.
+
+    In ordine: preset e PAC (automatici, i più precisi), regole fisse
     (stipendio, PAC Scalable, bonifici a sé stessi), bonifici che nominano un
-    altro conto."""
+    altro conto. Vale la prima che combacia.
+    """
     return (regole_da_preset_uscite(preset_uscite)
             + regole_da_preset_investimenti(preset_investimenti, conti_collegati)
             + REGOLE_FISSE
@@ -133,6 +145,9 @@ def tutte_le_regole(preset_uscite: list[dict], preset_investimenti: list[dict],
 # --- Classificazione ------------------------------------------------------------
 
 def _giorni_tra(a: str, b: str) -> float:
+    """Quanti giorni fra due date "AAAA-MM-GG" (sempre positivo); infinito se
+    una non è una data. Esempio: ("2026-11-20", "2026-11-23") → 3.
+    """
     try:
         return abs((date.fromisoformat(a) - date.fromisoformat(b)).days)
     except (TypeError, ValueError):
@@ -140,8 +155,15 @@ def _giorni_tra(a: str, b: str) -> float:
 
 
 def classifica(movimenti: list[dict], regole: list[dict], finestra_giorni: int = 3) -> list[dict]:
-    """
-    Classifica i movimenti di tutti i conti collegati:
+    """Decide cosa fare di ogni movimento scaricato dalle banche.
+
+    Riceve: i movimenti di tutti i conti collegati, le regole (tutte_le_regole)
+    e quanti giorni può metterci un bonifico ad arrivare.
+    Restituisce: per ogni movimento, nello stesso ordine:
+      {"movimento", "esito", "proposta"?, "regola"?, "abbinatoA"?}
+    con esito "automatico", "da-confermare" o "lato-trasferimento".
+
+    Come:
      1. regole, nell'ordine dato: la prima che vale decide (automatico, o da
         confermare con una proposta se la regola ha `conferma`);
      2. giri tra conti: un'uscita e un'entrata dello stesso importo su due conti
@@ -161,6 +183,9 @@ def classifica(movimenti: list[dict], regole: list[dict], finestra_giorni: int =
                               "proposta": regola["proposta"], "regola": regola["nome"]}
 
     def abbinabile(m):
+        """True se il movimento può ancora diventare un lato di un giro tra conti:
+        nessuna regola automatica l'ha preso e non è già abbinato.
+        """
         e = esiti.get(m["id"])
         return not e or (e["esito"] != "automatico" and not e.get("abbinatoA"))
 
@@ -190,7 +215,9 @@ def classifica(movimenti: list[dict], regole: list[dict], finestra_giorni: int =
 
 def data_probabile(m: dict) -> str:
     """Data probabile del pagamento di una spesa: quella della banca meno il
-    ritardo di contabilizzazione del conto. Solo per le uscite."""
+    ritardo di contabilizzazione del conto. Solo per le uscite.
+    Esempio: uscita Trade Republic con data 2026-11-23 → "2026-11-22".
+    """
     ritardo = RITARDO_CONTABILIZZAZIONE.get(m["conto"], 0) if m["importo"] < 0 else 0
     if not ritardo:
         return m["data"]
@@ -201,15 +228,20 @@ def data_probabile(m: dict) -> str:
 
 
 def descrizione_breve(causale: str) -> str:
-    """Dalla causale UniCredit ("... A MARIO ROSSI PER Cena da Gino") la parte
-    dopo "PER", scritta da chi ha fatto il bonifico. '' se non c'è."""
+    """Dalla causale UniCredit la parte dopo "PER", scritta da chi ha fatto il
+    bonifico; '' se non c'è.
+    Esempio: "BONIFICO A MARIO ROSSI PER Cena da Gino" → "Cena da Gino".
+    """
     i = causale.rfind(" PER ")
     return causale[i + 5:].strip() if i >= 0 else ""
 
 
 def conto_nella_causale(causale: str, conti: list[str], escludi: str) -> str | None:
-    """Il conto di Wally nominato nella causale, se c'è (il più lungo vince):
-    l'altro lato di un bonifico a sé stessi, che la banca non indica."""
+    """Il conto di Wally nominato nella causale, se c'è (il nome più lungo vince):
+    l'altro lato di un bonifico a sé stessi, che la banca non indica.
+    Esempio: causale "GIROCONTO SANTANDER VINCOLATO", conti Unicredit,
+    Santander, Santander Vincolato → "Santander Vincolato".
+    """
     testo = causale.upper()
     candidati = sorted((c for c in conti if c.strip() and c != escludi), key=len, reverse=True)
     return next((c for c in candidati if c.upper() in testo), None)

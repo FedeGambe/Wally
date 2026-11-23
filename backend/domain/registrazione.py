@@ -19,6 +19,7 @@ SCARTO_GIORNI = 4
 
 
 def _stesso_importo(a, b) -> bool:
+    """True se i due importi sono uguali al centesimo. Esempio: ("29.40", 29.4) → True."""
     return abs(float(a or 0) - float(b or 0)) < 0.005
 
 
@@ -34,17 +35,27 @@ def mese_label_broker(anno: int, mese: str) -> str:
 
 
 def _icona(macro: str, macro_categorie: list[dict]) -> str:
+    """L'icona della macro categoria (es. 🚗 per Automobile); 💸 se non c'è."""
     trovata = next((m for m in macro_categorie if m.get("nome") == macro), None)
     return (trovata or {}).get("icon") or "💸"
 
 
 def pianifica_registrazioni(classificati: list[dict], preset_uscite: list[dict], preset_trasferimenti: list[dict],
                             uscite: list[dict], trasferimenti: list[dict], macro_categorie: list[dict]) -> list[dict]:
-    """
-    Operazioni da eseguire, nell'ordine. Ognuna ha `tipo` ("record",
-    "investimenti", "gia-presente"), le `righe` di "Movimenti Banca" che chiude e
-    una `descrizione` da mostrare. `classificati` porta anche la `riga` di ogni
-    movimento.
+    """Cosa scrivere sul foglio per i movimenti riconosciuti in automatico.
+
+    Riceve: i movimenti classificati (con la `riga` di ognuno in "Movimenti
+    Banca"), i preset di uscite e trasferimenti, le uscite e i trasferimenti
+    già sul foglio e le macro categorie (per l'icona).
+    Restituisce: le operazioni da eseguire, nell'ordine. Ognuna ha:
+      tipo         "record" (scrivere un'uscita e/o un trasferimento),
+                   "investimenti" (i PAC del mese di un broker) o
+                   "gia-presente" (c'è già: solo segnare il movimento)
+      righe        le righe di "Movimenti Banca" che chiude
+      descrizione  il testo da mostrare
+    Esempio: un bonifico "RATA BOLLO" riconosciuto dal preset "Rata Bollo"
+    → un record con l'uscita "Rata Bollo" (e il trasferimento collegato, se
+    c'è un preset trasferimenti con quel nome).
     """
     operazioni: list[dict] = []
     riga_di = {c["movimento"]["id"]: c["riga"] for c in classificati}
@@ -127,6 +138,7 @@ def pianifica_registrazioni(classificati: list[dict], preset_uscite: list[dict],
 
 
 def _anno_della_data(data_it) -> str | None:
+    """L'anno da una data "gg/mm/aaaa", come testo. Esempio: "05/10/2026" → "2026"."""
     parti = str(data_it or "").split("/")
     return parti[2] if len(parti) > 2 else None
 
@@ -146,6 +158,9 @@ def _giorno_da_data_it(data_it) -> float:
 
 
 def _giorno_da_iso(data_iso: str) -> float:
+    """Giorni dal 1/1/1970 di una data "AAAA-MM-GG" (per misurare distanze);
+    NaN se non è una data. Esempio: "1970-01-02" → 1.
+    """
     try:
         return (date.fromisoformat(data_iso) - date(1970, 1, 1)).days
     except (TypeError, ValueError):

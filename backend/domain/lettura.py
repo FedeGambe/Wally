@@ -15,8 +15,15 @@ from backend.models.foglio import BROKER, SCHEDE, TITOLI_DATI_BASE, SchedaFoglio
 
 
 def valori_per_scheda(value_ranges: list[dict]):
-    """Funzione che restituisce le righe di una scheda dato il titolo ([] se non letta)."""
+    """Prepara una funzione per prendere le righe di una scheda dal suo titolo.
+
+    Riceve: la risposta di Google a una lettura di più schede insieme
+    (una voce per scheda, con "range" e "values").
+    Restituisce: una funzione: valori("Uscite") → le righe della scheda Uscite,
+    [] se quella scheda non è stata letta.
+    """
     def valori(titolo: str) -> list[list]:
+        """Le righe della scheda con quel titolo (maiuscole indifferenti), [] se non letta."""
         prefisso = titolo.lower() + "!"
         for vr in value_ranges:
             if str(vr.get("range", "")).replace("'", "").lower().startswith(prefisso):
@@ -33,13 +40,18 @@ def schede_presenti(schede: Iterable[SchedaFoglio], titoli_foglio: list[str]) ->
 
 
 def _maiuscola_iniziale(testo: str) -> str:
+    """Prima lettera maiuscola, il resto minuscolo. Esempio: "ottOBRE" → "Ottobre"."""
     return testo[:1].upper() + testo[1:].lower()
 
 
 # --- Colonne degli strumenti dei broker ------------------------------------
 
 def _categoria_da_riga2(testo: str) -> str | None:
-    """Categoria di una colonna strumento dalla riga 2 (Azioni/Obbligazioni/Monetari)."""
+    """L'asset class scritta nella riga 2 di una colonna strumento dei broker.
+
+    Esempi: "Obbligazioni" → "obbligazioni" · "Azioni" → "azioni" · "" → None
+    (si controllano prima le obbligazioni: "obbligazioni" contiene "azioni").
+    """
     testo = testo.lower()
     # Prima le obbligazioni: "obbligazioni" contiene la parola "azioni".
     if "obbligazione" in testo or "obbligazioni" in testo or "bond" in testo:
@@ -52,7 +64,14 @@ def _categoria_da_riga2(testo: str) -> str | None:
 
 
 def colonne_strumenti(righe: list[list]) -> list[tuple[str, str, str]]:
-    """(nome campo, intestazione, categoria) di ogni colonna strumento della scheda."""
+    """Le colonne degli strumenti di una scheda broker (Scalable, Trade Republic).
+
+    Riceve: le righe della scheda (riga 1 = nomi, riga 2 = asset class).
+    Restituisce: (nome del campo, intestazione, asset class) per ogni colonna
+    che ha un'asset class nella riga 2.
+    Esempio: riga 1 "Vanguard FTSE All-World", riga 2 "Azioni"
+      → ("vanguardFtseAllWorld", "Vanguard FTSE All-World", "azioni")
+    """
     if len(righe) < 2:
         return []
     riga1, riga2 = righe[0], righe[1]
@@ -74,6 +93,7 @@ def strumenti_attivi(righe: list[list]) -> list[dict]:
     if not righe or len(righe) < 2:
         return []
     def ha_data(riga: list) -> bool:
+        """True se la riga ha qualcosa nella colonna A (il mese)."""
         return bool(riga) and riga[0] is not None and str(riga[0]).strip() != ""
 
     ultima = next((i for i in range(len(righe) - 1, 1, -1) if ha_data(righe[i])), len(righe) - 1)
@@ -113,12 +133,23 @@ def strumenti_attivi(righe: list[list]) -> list[dict]:
 # --- Dati Base (liste e preset) ---------------------------------------------
 
 def _nomi(righe: list[dict]) -> list[str]:
+    """I nomi non vuoti delle righe, senza spazi ai lati.
+    Esempio: [{"nome": " Unicredit "}, {"nome": ""}] → ["Unicredit"].
+    """
     return [n for n in (str(r.get("nome") or "").strip() for r in righe) if n]
 
 
 def _macro_categorie(righe: list[dict]) -> list[dict]:
-    """Una riga per (macro, categoria) → una voce per macro con le sue categorie.
-    Le macro senza categorie hanno una riga con categoria vuota."""
+    """Le categorie delle uscite raggruppate per macro.
+
+    Riceve: una riga per (macro, categoria), come nella scheda Categorie Uscite.
+    Restituisce: una voce per macro con icona e categorie. Le macro senza
+    categorie hanno una riga con categoria vuota.
+    Esempio:
+      Automobile 🚗 Rifornimento · Automobile Bollo · Regali (vuota)
+      → [{"nome": "Automobile", "icon": "🚗", "categorie": ["Rifornimento", "Bollo"]},
+         {"nome": "Regali", "icon": "💸", "categorie": []}]
+    """
     macro: dict[str, dict] = {}
     for r in righe:
         nome = str(r.get("macro") or "").strip()
@@ -132,8 +163,15 @@ def _macro_categorie(righe: list[dict]) -> list[dict]:
 
 
 def preset_investimenti_da_matrice(righe: list[list]) -> list[dict]:
-    """Scheda "Preset Investimenti Ricorrenti": riga 1 = "Conto" + strumenti, una
-    riga per broker, importo nella cella broker × strumento (vuota = niente)."""
+    """La scheda "Preset Investimenti Ricorrenti" come elenco di preset.
+
+    Riceve: le righe della scheda: riga 1 = "Conto" + strumenti, una riga per
+    broker, importo nella cella broker × strumento (vuota = niente).
+    Restituisce: un preset per ogni cella con un importo.
+    Esempio: [["Conto", "VWCE", "Bond"], ["Trade Republic", "80", ""]]
+      → [{"id": "preset-i-Trade Republic-1", "broker": "Trade Republic",
+          "strumento": "VWCE", "importo": 80.0}]
+    """
     if not righe or len(righe) < 2:
         return []
     strumenti = [str(h or "").strip() for h in righe[0]]
@@ -151,6 +189,11 @@ def preset_investimenti_da_matrice(righe: list[list]) -> list[dict]:
 
 
 def _preset_uscite(righe: list[dict]) -> list[dict]:
+    """Le righe di "Preset Uscite Ricorrenti" come preset dell'app.
+
+    Ogni preset ha id, nome, macroCategoria, categoria, conto, importo,
+    giornoDelMese (1 se vuoto) e primaria. Quelli senza nome restano fuori.
+    """
     preset = [{
         "id": f"preset-{i}",
         "nome": str(r.get("nome") or "").strip(),
@@ -165,6 +208,10 @@ def _preset_uscite(righe: list[dict]) -> list[dict]:
 
 
 def _preset_trasferimenti(righe: list[dict]) -> list[dict]:
+    """Le righe di "Preset Trasferimenti Ricorrenti" come preset dell'app
+    (id, categoria, conti ordinante e beneficiario, importo). Quelli senza
+    categoria restano fuori.
+    """
     preset = [{
         "id": f"preset-t-{i}",
         "categoria": str(r.get("categoria") or "").strip(),
@@ -176,12 +223,22 @@ def _preset_trasferimenti(righe: list[dict]) -> list[dict]:
 
 
 def _oggetti(scheda: SchedaFoglio, righe: list[list], campi=None, intestazioni=None, numerici=None) -> list[dict]:
+    """righe_in_oggetti con i campi della scheda; campi, intestazioni e
+    numerici si possono sostituire (per le colonne degli strumenti aggiunte).
+    """
     return righe_in_oggetti(righe, campi or scheda.campi, intestazioni or scheda.intestazioni,
                             scheda.booleani, numerici or scheda.numerici)
 
 
 def dati_base(value_ranges: list[dict], titoli_foglio: list[str]) -> dict:
-    """Conti, categorie, soglie e preset dal foglio di configurazione."""
+    """Tutto il foglio di configurazione: conti, categorie, soglie e preset.
+
+    Riceve: la risposta di Google alla lettura delle schede e i titoli delle
+    schede che esistono.
+    Restituisce: {"conti", "categorieEntrate", "macroCategorieUscite", "soglie",
+    "presetUscite", "presetTrasferimenti", "presetInvestimenti",
+    "quotaFondoPensione"}, solo per le schede presenti.
+    """
     valori = valori_per_scheda(value_ranges)
     schede = schede_presenti((s for s in SCHEDE if s.titolo in TITOLI_DATI_BASE), titoli_foglio)
     dati: dict = {}
@@ -215,7 +272,13 @@ def dati_base(value_ranges: list[dict], titoli_foglio: list[str]) -> dict:
 # --- Foglio principale -------------------------------------------------------
 
 def _sistema_risparmio(r: dict, anno_corrente: int) -> dict:
-    """"ottobre 26" → mese "Ottobre", anno 2026; più i nomi usati dalle pagine."""
+    """Una riga di Risparmio con mese e anno separati e i nomi usati dalle pagine.
+
+    Esempio: {"mese": "ottobre 26", "investiti": "700"}
+      → mese "Ottobre", anno 2026, investito 700.0 (più risparmioNetto e
+        andamentoRisparmio, 0 se vuoti).
+    Senza anno nel mese, vale l'anno in corso.
+    """
     r = dict(r)
     mese = str(r.get("mese") or "").strip()
     if mese:
@@ -233,6 +296,11 @@ def _sistema_risparmio(r: dict, anno_corrente: int) -> dict:
 
 
 def _sistema_entrata(r: dict, indice: int, anno_corrente: int) -> dict:
+    """Una riga di Entrate con id, mese con la maiuscola e anno a 4 cifre.
+
+    Esempio: ({"mese": "ottobre", "anno": 26}, posizione 4)
+      → {"mese": "Ottobre", "anno": 2026, "id": "e-dyn-5"}
+    """
     r = {**r, "id": f"e-dyn-{indice + 1}"}
     if r.get("mese"):
         r["mese"] = _maiuscola_iniziale(str(r["mese"]))
@@ -242,7 +310,15 @@ def _sistema_entrata(r: dict, indice: int, anno_corrente: int) -> dict:
 
 
 def dati_principali(value_ranges: list[dict], titoli_foglio: list[str], anno_corrente: int) -> dict:
-    """Tutte le schede del foglio principale, più i campi calcolati."""
+    """Tutto il foglio principale, come lo usa l'app.
+
+    Riceve: la risposta di Google alla lettura delle schede, i titoli delle
+    schede che esistono e l'anno in corso.
+    Restituisce: un dizionario con una chiave per scheda (uscite, entrate,
+    risparmio, scalable, tradeRepublic, …), più le colonne degli strumenti dei
+    broker (…Fields, …Headers, …ColumnCategories), gli strumenti attivi e il
+    Cruscotto Investimenti calcolato (calcola_cruscotto).
+    """
     valori = valori_per_scheda(value_ranges)
     titoli = {t.lower() for t in titoli_foglio}
     dati: dict = {}

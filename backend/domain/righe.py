@@ -27,14 +27,24 @@ def nome_campo(intestazione: str) -> str:
 def _semplifica(testo: str) -> str:
     # "comulativ..." copre sia "comulativo" che "comulative": i fogli Scalable e
     # Trade Republic hanno lo stesso refuso con desinenze diverse.
+    """L'intestazione ridotta a sole lettere e cifre minuscole, per confrontarla.
+
+    Corregge anche il refuso "comulativ…" dei fogli Scalable e Trade Republic.
+    Esempio: "Commissioni Comulative" → "commissionicumulative".
+    """
     return re.sub(r"[^a-z0-9]", "", testo.lower()).replace("comulativ", "cumulativ")
 
 
 def _colonna_del_campo(campo: str, intestazione_attesa: str, intestazioni_foglio: list[str]) -> int:
-    """
-    Colonna del foglio per un campo: prima per intestazione esatta, poi per nome
-    del campo, poi per somiglianza. Così l'app regge se nel foglio le colonne
-    vengono riordinate, purché le intestazioni restino riconoscibili.
+    """In quale colonna del foglio sta un campo.
+
+    Riceve: il nome del campo ("importo"), l'intestazione che ci si aspetta
+    ("Importo") e le intestazioni vere della riga 1 (già in minuscolo).
+    Restituisce: la posizione della colonna (0 = A), o -1 se non c'è.
+    Cerca prima l'intestazione esatta, poi il nome del campo, poi una
+    somiglianza. Così l'app regge se nel foglio le colonne vengono riordinate,
+    purché le intestazioni restino riconoscibili.
+    Esempio: ("importo", "Importo", ["data", "descrizione", "importo"]) → 2.
     """
     attesa = intestazione_attesa.lower().strip()
     if attesa in intestazioni_foglio:
@@ -61,10 +71,18 @@ def _colonna_del_campo(campo: str, intestazione_attesa: str, intestazioni_foglio
 
 def righe_in_oggetti(righe: list[list], campi: list[str], intestazioni: list[str],
                      booleani: list[str] = (), numerici: list[str] = ()) -> list[dict]:
-    """
-    Dalla riga 2 in giù, un dizionario per riga con i `campi` come chiavi.
-    Celle vuote: 0 per i campi numerici, False per i booleani, "" per gli altri.
-    Ogni oggetto riceve un id stabile costruito dai suoi valori.
+    """Le righe di una scheda trasformate nei dizionari che usa l'app.
+
+    Riceve: le righe come arrivano da Google (riga 1 = intestazioni), i nomi
+    dei campi, le intestazioni attese e quali campi sono vero/falso o numeri.
+    Restituisce: un dizionario per riga, dalla riga 2 in giù, con in più un
+    "id" costruito dai suoi valori (data, descrizione, importo…) e dal numero
+    di riga, che resta uguale finché la riga non cambia.
+    Celle vuote: 0 per i numeri, False per i vero/falso, "" per il resto.
+    Esempio:
+      [["Data", "Importo", "Primaria"], ["23/11/2026", "29,40", "TRUE"]]
+      → [{"data": "23/11/2026", "importo": 29.4, "primaria": True,
+          "id": "23/11/2026-29.4-1"}]
     """
     if not righe or len(righe) <= 1:
         return []

@@ -24,7 +24,13 @@ router = APIRouter(prefix="/api/fogli")
 
 @router.get("/dati")
 def dati(request: Request, foglio: str):
+    """Legge tutto il foglio principale (uscite, entrate, investimenti…) e lo
+    restituisce nella forma che usa l'app, con il Cruscotto Investimenti calcolato.
+    """
     def lavoro(sheets: GoogleSheets):
+        """Il lavoro vero, con il foglio già aperto con il token dell'utente:
+        legge le schede presenti e le trasforma (dati_principali).
+        """
         titoli = sheets.titoli_schede(foglio)
         intervalli = [s.intervallo for s in schede_presenti(SCHEDE, titoli)]
         return dati_principali(sheets.leggi_intervalli(foglio, intervalli), titoli, datetime.now().year)
@@ -34,7 +40,9 @@ def dati(request: Request, foglio: str):
 
 @router.get("/dati-base")
 def dati_base_configurazione(request: Request, foglio: str):
+    """Legge il foglio di configurazione: conti, categorie, soglie e preset."""
     def lavoro(sheets: GoogleSheets):
+        """Il lavoro vero: legge le schede dei Dati Base presenti e le trasforma (dati_base)."""
         titoli = sheets.titoli_schede(foglio)
         schede = schede_presenti((s for s in SCHEDE if s.titolo in TITOLI_DATI_BASE), titoli)
         return dati_base(sheets.leggi_intervalli(foglio, [s.intervallo for s in schede]), titoli)

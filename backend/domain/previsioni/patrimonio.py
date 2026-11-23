@@ -46,12 +46,26 @@ ANNI_MASSIMI = 40
 
 @dataclass
 class Rendimento:
+    """Ipotesi su un tipo di investimento: rendimento medio e volatilità annui, in %.
+    Esempio: Rendimento(6.5, 15.0) = azioni, +6,5% l'anno in media, ±15% di oscillazione tipica.
+    """
     medio: float       # % annuo
     volatilita: float  # % annua (deviazione standard)
 
 
 @dataclass
 class Ipotesi:
+    """Le scelte dei cursori di "E se…" nella pagina Previsioni, con i valori di default.
+
+      anni               quanti anni simulare
+      risparmio_extra    € al mese in più che restano sui conti
+      pac_extra          € al mese in più negli investimenti
+      crescita_entrate   % all'anno di aumento delle entrate
+      inflazione         % all'anno; > 0 = cifre in euro di oggi
+      includi_fondo      se contare il fondo pensione (TFR)
+      obiettivo          € da raggiungere, o None
+      rendimenti         un Rendimento per azioni, obbligazioni, monetari e fondo pensione
+    """
     anni: int = 20
     risparmio_extra: float = 0.0      # € al mese in più che restano sui conti
     pac_extra: float = 0.0            # € al mese in più negli investimenti

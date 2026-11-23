@@ -35,7 +35,14 @@ def dal_da_testo(valore) -> str:
 
 
 def soglie_del_mese(soglie: list[dict] | None, anno: int, mese: int) -> list[dict]:
-    """Una soglia per categoria, quella valida nel mese (mese 1-12)."""
+    """Una soglia per categoria: quella che valeva nel mese dato (mese 1-12).
+
+    Riceve: tutte le versioni delle soglie (con o senza "dal") e anno e mese.
+    Restituisce: per ogni categoria la versione più recente con "dal" uguale o
+    prima di quel mese; se il mese viene prima di tutte, la più vecchia.
+    Esempio: Spese Primarie 50% da sempre e 35% dal 2026-04
+      marzo 2026 → 50%     novembre 2026 → 35%
+    """
     chiave = f"{anno}-{mese:02d}"
     valide: dict[str, dict] = {}
     piu_vecchie: dict[str, dict] = {}
@@ -63,7 +70,10 @@ def soglie_del_mese(soglie: list[dict] | None, anno: int, mese: int) -> list[dic
 # Percentuale | Dal).
 
 def _percentuale(valore) -> float | None:
-    """"35%" → 35, 0,35 → 35, 35 → 35; None se la cella è vuota."""
+    """La percentuale di una cella, sempre come numero da 0 a 100.
+
+    Esempi: "35%" → 35 · 0,35 → 35 · 35 → 35 · cella vuota → None
+    """
     if valore is None or str(valore).strip() == "":
         return None
     n = float(numero_localizzato(valore))
@@ -73,9 +83,19 @@ def _percentuale(valore) -> float | None:
 
 
 def soglie_da_righe(righe: list[list]) -> list[dict]:
-    """Le righe della scheda Soglie (riga 1 = intestazioni) come elenco di
-    versioni {categoria, percentuale, dal?}. Nel formato a periodi una
-    categoria che non cambia rispetto al periodo prima non crea una versione."""
+    """Le righe della scheda Soglie come elenco di versioni.
+
+    Riceve: le righe della scheda (riga 1 = intestazioni).
+    Restituisce: [{categoria, percentuale, dal?}, ...]. Una categoria che resta
+    uguale al periodo prima non crea una versione nuova. Legge sia il formato
+    a periodi (una riga per "Dal") sia quello vecchio (una riga per categoria).
+    Esempio:
+      Dal            | Spese Primarie | Spese Secondarie
+      settembre 2025 | 50%            | 20%
+      aprile 2026    | 35%            | 20%
+      → Primarie 50 dal 2025-09, Secondarie 20 dal 2025-09, Primarie 35 dal 2026-04
+        (le Secondarie di aprile sono uguali: niente versione nuova)
+    """
     if not righe or len(righe) < 2:
         return []
     intestazioni = [str(c or "").strip() for c in righe[0]]
@@ -110,6 +130,9 @@ def soglie_da_righe(righe: list[list]) -> list[dict]:
 
 
 def _soglie_per_categoria(intestazioni: list[str], righe: list[list]) -> list[dict]:
+    """Il formato vecchio della scheda Soglie: una riga per categoria
+    (Categoria | Percentuale | Dal). Restituisce le stesse versioni di soglie_da_righe.
+    """
     basse = [h.lower() for h in intestazioni]
     i_perc = basse.index("percentuale") if "percentuale" in basse else 1
     i_dal = basse.index("dal") if "dal" in basse else 2
@@ -128,9 +151,14 @@ def _soglie_per_categoria(intestazioni: list[str], righe: list[list]) -> list[di
 
 
 def matrice_soglie(soglie: list[dict] | None) -> list[list]:
-    """Le versioni come righe a periodi da scrivere dalla cella A1: una riga per
-    ogni mese in cui cambia qualcosa, con tutte le categorie valide allora.
-    Percentuali come frazione (35 → 0,35), "Dal" come data aaaa-mm-01."""
+    """Il contrario di soglie_da_righe: le versioni come righe da scrivere sul foglio.
+
+    Restituisce: riga 1 = "Dal" + categorie, poi una riga per ogni mese in cui
+    cambia qualcosa, con tutte le categorie valide allora. Percentuali come
+    frazione (35 → 0,35), "Dal" come data del primo del mese.
+    Esempio: Primarie 50 da sempre e 35 dal 2026-04
+      → [["Dal", "Spese Primarie"], ["", 0.5], ["2026-04-01", 0.35]]
+    """
     soglie = [s for s in soglie or [] if str(s.get("categoria") or "").strip()]
     categorie = list(dict.fromkeys(str(s["categoria"]).strip() for s in soglie))
     date = sorted({str(s.get("dal") or "") for s in soglie})

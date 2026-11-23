@@ -61,6 +61,7 @@ def sposta_formula(formula: str, righe: int) -> str:
         return formula
 
     def sposta(m: re.Match) -> str:
+        """Un riferimento trovato nella formula, spostato di `righe` (se la riga non ha il $)."""
         ancora_col, colonna, ancora_riga, riga = m.groups()
         if ancora_riga == "$":
             return m.group()
@@ -79,7 +80,13 @@ def _data_come_js(anno: int, mese: int, giorno: int) -> date:
 
 
 def data_da_testo(valore) -> date | None:
-    """Data da "25/12/2026", "2026-12-25", "25/12/26" o numero seriale di Sheets."""
+    """Data da come può essere scritta in una cella.
+
+    Esempi: "25/12/2026", "2026-12-25", "25/12/26" → date(2026, 12, 25)
+    · "46349" (numero seriale di Sheets) → date(2026, 11, 23)
+    · "31/02/2026" → date(2026, 3, 3) (come JavaScript, i giorni in più
+      scivolano nel mese dopo) · "ciao" → None
+    """
     if not valore:
         return None
     testo = str(valore).strip()
@@ -133,10 +140,13 @@ def data_del_mese(nome_mese, anno) -> str:
 # --- Riga nuova -------------------------------------------------------------
 
 def richieste_preparazione_riga(scheda: SchedaFoglio, sheet_id: int, riga: int, righe_griglia: int) -> list[dict]:
-    """
-    Prima di scrivere: allunga la griglia se la riga non esiste ancora, e dà
-    alle celle data il formato gg/mm/aaaa e a quelle mese il formato "mmmm"
-    (una riga appena aggiunta non eredita la formattazione delle altre).
+    """Le richieste da mandare a Google prima di scrivere una riga nuova.
+
+    Riceve: la scheda, il suo id numerico, il numero della riga nuova e quante
+    righe ha ora la griglia.
+    Restituisce: le richieste per allungare la griglia (se la riga non esiste
+    ancora) e per dare alle celle data il formato gg/mm/aaaa e a quelle mese il
+    formato "mmmm": una riga appena aggiunta non eredita la formattazione.
     """
     richieste = []
     if riga > righe_griglia:
@@ -156,6 +166,11 @@ def richieste_preparazione_riga(scheda: SchedaFoglio, sheet_id: int, riga: int, 
 
 
 def _valore_cella(scheda: SchedaFoglio, campo: str, record: dict):
+    """Il valore da scrivere nella cella di un campo di una riga nuova.
+
+    True/False → "Si"/"No" · date → gg/mm/aaaa · mesi di Entrate e
+    Trasferimenti → data del primo del mese (data_del_mese) · niente → "".
+    """
     valore = record.get(campo)
     if campo in scheda.date_mese:
         return data_del_mese(valore, record.get("anno"))
@@ -169,10 +184,14 @@ def _valore_cella(scheda: SchedaFoglio, campo: str, record: dict):
 
 
 def celle_riga_nuova(scheda: SchedaFoglio, record: dict, riga: int, formule_sopra: list) -> list[dict]:
-    """
-    Una cella per campo nella riga nuova. Le colonne-formula copiano la formula
-    della riga sopra spostata di una riga; se sopra non c'è una formula (prima
-    riga dati) la cella resta intatta invece di riceverne un valore a caso.
+    """Le celle da scrivere per aggiungere una riga.
+
+    Riceve: la scheda, il record da scrivere, il numero della riga e le formule
+    della riga sopra.
+    Restituisce: una cella per campo ({"range": "Uscite!B120", "values": [[…]]}).
+    Le colonne-formula copiano la formula della riga sopra spostata di una riga;
+    se sopra non c'è una formula (prima riga dati) la cella resta intatta invece
+    di riceverne un valore a caso.
     """
     celle = []
     for indice, campo in enumerate(scheda.campi):
@@ -206,14 +225,19 @@ def numero_cella(valore) -> float:
 
 
 def _intero_se_possibile(n):
+    """3.0 → 3; gli altri valori restano com'erano (per scrivere 3 e non 3.0)."""
     return int(n) if isinstance(n, float) and n.is_integer() else n
 
 
 def celle_portafoglio(riga_attuale: list, variazioni: dict[int, int]) -> list[dict]:
-    """
-    Nuovi contatori di banconote: positivi = aggiunte, negativi = tolte. Solo le
-    celle dei tagli che cambiano. Se un contatore andrebbe sotto zero non si
-    scrive niente: un numero di banconote negativo non ha senso.
+    """Le celle da scrivere quando si aggiungono o tolgono banconote.
+
+    Riceve: la riga 3 di "Portafoglio Raw" com'è ora (un contatore per taglio,
+    colonne B:F) e le variazioni ({20: 2, 50: -1} = due da 20 in più, una da 50
+    in meno).
+    Restituisce: solo le celle dei tagli che cambiano, con il nuovo contatore.
+    Errore (ErroreScrittura) se un contatore andrebbe sotto zero.
+    Esempio: ci sono 3 banconote da 20, variazione {20: 2} → D3 = 5.
     """
     attive = [t for t in PORTAFOGLIO_COLONNE if variazioni.get(t)]
     if not attive:
@@ -247,13 +271,19 @@ def valore_accodato(attuale, importo):
 
 
 def intervallo_somma(formula: str) -> tuple[int, int] | None:
-    """Colonne sommate da "Importo investito Mensile": "=…SUM(B23:I23)…" → (1, 8)."""
+    """Le colonne sommate dalla formula di "Importo investito Mensile".
+
+    Esempio: "=SUM(B23:I23)" → (1, 8) (da B a I); None se non c'è un SUM/SOMMA.
+    """
     m = re.search(r"(?:SUM|SOMMA)\(\s*\$?([A-Z]+)\$?\d+\s*:\s*\$?([A-Z]+)\$?\d+\s*\)", formula, re.IGNORECASE)
     return (indice_colonna(m.group(1)), indice_colonna(m.group(2))) if m else None
 
 
 def riga_del_mese(colonna_a: list[list], mese: str) -> int | None:
-    """Numero di riga (da 1) del mese in colonna A ("ottobre 2026")."""
+    """Il numero di riga (da 1) del mese cercato nella colonna A, o None.
+
+    Esempio: colonna A = Mese, settembre 2026, ottobre 2026; "Ottobre 2026" → 3.
+    """
     cercato = mese.strip().lower()
     for i, r in enumerate(colonna_a):
         if str((r[0] if r else "") or "").strip().lower() == cercato:
@@ -262,6 +292,11 @@ def riga_del_mese(colonna_a: list[list], mese: str) -> int | None:
 
 
 def colonne_degli_strumenti(intestazioni: list, strumenti: list[str], scheda: str) -> list[int]:
+    """Le colonne (0 = A) degli strumenti cercati, dalla riga 1 della scheda.
+
+    Esempio: intestazioni ["Mese", "VWCE", "Bond"], strumenti ["bond"] → [2].
+    Errore (ErroreScrittura) se uno strumento non c'è.
+    """
     normalizzate = [str(h or "").strip().lower() for h in intestazioni]
     colonne = []
     for strumento in strumenti:
@@ -282,9 +317,11 @@ def celle_investimenti(scheda: str, mese: str, riga: int, voci: list[dict], colo
     si accoda a quello presente.
     """
     def attuale(i):
+        """Cosa c'è ora nella cella dello strumento i-esimo (formula o valore)."""
         return formule_riga[colonne[i]] if colonne[i] < len(formule_riga) else None
 
     def solo_saveback(a) -> bool:
+        """True se la cella contiene solo il saveback della riga, es. "=U24"."""
         return colonna_saveback is not None and isinstance(a, str) and a.startswith("=") and \
             re.fullmatch(_riferimento_saveback(colonna_saveback, riga), a[1:].strip()) is not None
 
@@ -303,6 +340,7 @@ def celle_investimenti(scheda: str, mese: str, riga: int, voci: list[dict], colo
                 f'Nessun dato scritto su "{scheda}": celle di {mese} già valorizzate — {", ".join(conflitti)}.')
 
     def valore(i, v):
+        """Il nuovo valore della cella dello strumento i-esimo."""
         if somma:
             return valore_accodato(attuale(i), v["importo"])
         if solo_saveback(attuale(i)):
@@ -319,17 +357,26 @@ def celle_investimenti(scheda: str, mese: str, riga: int, voci: list[dict], colo
 # "=52+U24" se si somma al contributo del mese.
 
 def _riferimento_saveback(colonna_saveback: int, riga: int) -> str:
-    """Regex del riferimento alla cella Savebacks della riga ("U24", "$U$24")."""
+    """Il riferimento alla cella Savebacks della riga, come espressione regolare:
+    trova sia "U24" sia "$U$24". Esempio: colonna 20 (U), riga 24.
+    """
     return rf"\$?{lettera_colonna(colonna_saveback)}\$?{riga}"
 
 
 def contiene_saveback(formula, colonna_saveback: int, riga: int) -> bool:
+    """True se la formula usa la cella Savebacks della stessa riga.
+
+    Esempi (Savebacks in colonna U, riga 24): "=52+U24" → True · "=52+U25" → False
+    """
     return isinstance(formula, str) and formula.startswith("=") and \
         re.search(rf"(?<![A-Z$]){_riferimento_saveback(colonna_saveback, riga)}(?!\d)", formula.upper()) is not None
 
 
 def colonne_prodotti(intestazioni: list, formula_importo: str, scheda: str) -> list[int]:
-    """Colonne degli strumenti: quelle sommate da "Importo investito Mensile"."""
+    """Le colonne degli strumenti di una scheda broker: quelle sommate da
+    "Importo investito Mensile", tolte quelle senza intestazione.
+    Esempio: "=SUM(B5:D5)" con intestazioni Mese, VWCE, (vuota), Bond → [1, 3].
+    """
     intervallo = intervallo_somma(formula_importo or "")
     if not intervallo:
         raise ErroreScrittura(f'La formula di "Importo investito Mensile" di "{scheda}" non contiene un intervallo: '
@@ -340,8 +387,14 @@ def colonne_prodotti(intestazioni: list, formula_importo: str, scheda: str) -> l
 
 def ultimo_prodotto_saveback(formule: list[list], colonne: list[int], colonna_saveback: int,
                              prima_riga: int = 1) -> int | None:
-    """Colonna dello strumento in cui è andato l'ultimo saveback: si cercano, dal
-    basso, le celle che puntano alla cella Savebacks della propria riga."""
+    """Colonna dello strumento in cui è andato l'ultimo saveback: si cercano,
+    dal basso, le celle che puntano alla cella Savebacks della propria riga.
+
+    Riceve: le formule delle righe (dalla riga `prima_riga`), le colonne
+    degli strumenti e la colonna Savebacks.
+    Restituisce: la colonna trovata, o None se il saveback non è mai stato usato.
+    Esempio: riga 1 B = "=U1", riga 2 C = "=52+U2" → 2 (colonna C, la più recente).
+    """
     for i in range(len(formule) - 1, -1, -1):
         riga = prima_riga + i
         for c in colonne:
@@ -363,6 +416,7 @@ def cella_con_saveback(attuale, colonna_saveback: int, riga: int):
 
 
 def controlla_strumento_nuovo(scheda: str, intestazioni: list, nome: str) -> None:
+    """Errore (ErroreScrittura) se uno strumento con quel nome c'è già nella scheda."""
     normalizzate = [str(h or "").strip().lower() for h in intestazioni]
     if nome.strip().lower() in normalizzate:
         raise ErroreScrittura(f'"{nome}" esiste già nel tab "{scheda}": usa l\'investimento extra su quello strumento.')
@@ -387,6 +441,9 @@ def colonna_nuovo_strumento(mese: str, formula_importo: str, colonna_importo: in
 
 
 def colonna_importo_mensile(intestazioni: list, scheda: str) -> int:
+    """La colonna "Importo investito Mensile" (0 = A); errore se non c'è.
+    Esempio: ["Mese", "Importo investito Mensile"] → 1.
+    """
     normalizzate = [re.sub(r"[^a-z]", "", str(h or "").strip().lower()) for h in intestazioni]
     if "importoinvestitomensile" not in normalizzate:
         raise ErroreScrittura(f'Colonna "Importo investito Mensile" non trovata in "{scheda}": nessuna colonna aggiunta.')
@@ -394,7 +451,13 @@ def colonna_importo_mensile(intestazioni: list, scheda: str) -> int:
 
 
 def celle_verifica_mensile(scheda: str, voci: list[dict], intestazioni: list, colonna_a: list[list]) -> list[str]:
-    """Cella (intestazione × mese) di ogni voce della verifica mensile."""
+    """Le celle da scrivere per la verifica mensile, una per voce.
+
+    Riceve: la scheda, le voci ({intestazione, meseLabel, valore}), la riga 1
+    e la colonna A.
+    Restituisce: gli indirizzi delle celle colonna × mese, es. ["Scalable!B2"].
+    Errore se una colonna o un mese non c'è.
+    """
     normalizzate = [normalizza_intestazione(h) for h in intestazioni]
     mesi = [str((r[0] if r else "") or "").strip().lower() for r in colonna_a]
     celle = []
@@ -410,6 +473,9 @@ def celle_verifica_mensile(scheda: str, voci: list[dict], intestazioni: list, co
 
 
 def controlla_celle_vuote(scheda: str, voci: list[dict], attuali: list) -> None:
+    """Errore (ErroreScrittura) se una delle celle della verifica mensile ha già
+    un valore: la verifica non sovrascrive mai.
+    """
     conflitti = [f"{v['intestazione']} di {v['meseLabel']} (già {come_testo_js(a)})"
                  for v, a in zip(voci, attuali) if a not in (None, "")]
     if conflitti:
@@ -419,6 +485,9 @@ def controlla_celle_vuote(scheda: str, voci: list[dict], attuali: list) -> None:
 # --- Dati Base (foglio di configurazione) ------------------------------------
 
 def _valore_per_foglio(scheda: SchedaFoglio, campo: str, oggetto: dict):
+    """Il valore di un campo dei Dati Base come va scritto sul foglio:
+    True/False → "Si"/"No", date → AAAA-MM-GG, niente → "".
+    """
     valore = oggetto.get(campo)
     if valore is None:
         return ""
@@ -430,14 +499,25 @@ def _valore_per_foglio(scheda: SchedaFoglio, campo: str, oggetto: dict):
 
 
 def righe_scheda(scheda: SchedaFoglio, oggetti: list[dict]) -> list[list]:
-    """Intestazioni + una riga per oggetto, da scrivere a partire da A1."""
+    """Le righe di una scheda dei Dati Base da scrivere da A1: intestazioni e
+    poi una riga per oggetto.
+    """
     return [list(scheda.intestazioni)] + [[_valore_per_foglio(scheda, c, o) for c in scheda.campi] for o in oggetti]
 
 
 def oggetti_dati_base(dati: dict) -> dict[str, list[dict]]:
-    """I Dati Base dell'app (liste, macro con categorie) come righe piatte delle
-    schede del foglio di configurazione. Soglie e preset investimenti sono
-    matrici: domain/soglie.py e matrice_preset_investimenti."""
+    """I Dati Base dell'app come righe piatte delle schede del foglio di
+    configurazione.
+
+    Riceve: i Dati Base come li ha l'app (conti, macro con le loro categorie,
+    preset…).
+    Restituisce: {nome del gruppo di righe: [righe]}, es. le macro diventano una
+    riga per (macro, categoria):
+      Automobile 🚗 [Bollo] → {"macro": "Automobile", "icon": "🚗", "categoria": "Bollo"}
+      Regali 🎁 []          → {"macro": "Regali", "icon": "🎁", "categoria": ""}
+    Soglie e preset investimenti sono matrici: matrice_soglie (soglie.py) e
+    matrice_preset_investimenti.
+    """
     categorie_uscite = []
     for m in dati.get("macroCategorieUscite") or []:
         if m.get("categorie"):
@@ -457,8 +537,13 @@ def oggetti_dati_base(dati: dict) -> dict[str, list[dict]]:
 
 
 def matrice_preset_investimenti(preset: list[dict]) -> list[list]:
-    """Riga 1 = "Conto" + strumenti nell'ordine in cui compaiono, una riga per
-    broker, cella vuota dove non c'è contributo."""
+    """I preset investimenti come tabella da scrivere sul foglio.
+
+    Riga 1 = "Conto" + strumenti nell'ordine in cui compaiono, poi una riga per
+    broker, cella vuota dove non c'è contributo.
+    Esempio: Trade Republic VWCE 80, Scalable Bond 40
+      → [["Conto", "VWCE", "Bond"], ["Trade Republic", 80, ""], ["Scalable", "", 40]]
+    """
     strumenti, broker = [], []
     for p in preset:
         if p["strumento"] not in strumenti:
@@ -467,6 +552,7 @@ def matrice_preset_investimenti(preset: list[dict]) -> list[list]:
             broker.append(p["broker"])
 
     def importo(b, s):
+        """L'importo del broker `b` per lo strumento `s`, "" se non c'è."""
         trovato = next((p for p in preset if p["broker"] == b and p["strumento"] == s), None)
         return trovato["importo"] if trovato and trovato.get("importo") is not None else ""
 

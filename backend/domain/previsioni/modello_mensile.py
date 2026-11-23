@@ -35,6 +35,12 @@ Z_80 = 1.2816            # ±1,28 deviazioni = 80% dei casi (10°-90° percentil
 
 @dataclass
 class Modello:
+    """Il modello di una serie mensile: un livello e l'effetto di ogni mese dell'anno.
+
+      livello       il valore "normale" di un mese (media degli ultimi 12, senza stagionalità)
+      stagionalita  12 numeri, gennaio → dicembre: di quanto quel mese sta sopra
+                    o sotto il livello (es. dicembre +150 €)
+    """
     livello: float
     stagionalita: np.ndarray  # 12 valori, indice = mese di calendario - 1
 

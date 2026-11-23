@@ -35,12 +35,17 @@ FINESTRA_MODELLI = 24  # ETS/ARIMA sugli ultimi 24 mesi: prima la scala era dive
 # --- Modelli: storia (valori, mesi di calendario) → prossimi h mesi ------------
 
 def attuale(v, mesi, h):
+    """Il modello vero dell'app (modello_mensile.stima): livello degli ultimi 12
+    mesi + stagionalità. Ogni modello di questo file riceve la serie `v`, i
+    mesi e quanti mesi prevedere (`h`), e restituisce le `h` previsioni.
+    """
     return stima(v, mesi).prevedi([mesi[-1] + i for i in range(1, h + 1)])
 
 
 def variante(finestra: int, stagionalita: bool):
     """Il modello attuale con il livello su `finestra` mesi, con o senza stagionalità."""
     def modello(v, mesi, h):
+        """Il modello costruito da `variante`, con quella finestra e stagionalità."""
         m = stima(v, mesi)
         stag = m.stagionalita if stagionalita else np.zeros(12)
         recenti = slice(max(0, len(v) - finestra), len(v))
@@ -50,18 +55,22 @@ def variante(finestra: int, stagionalita: bool):
 
 
 def ultimo_mese(v, mesi, h):
+    """Modello più semplice possibile: il prossimo mese uguale all'ultimo."""
     return np.repeat(v[-1], h)
 
 
 def media(k):
+    """Modello: la media degli ultimi `k` mesi, ripetuta."""
     return lambda v, mesi, h: np.repeat(np.mean(v[-k:]), h)
 
 
 def mediana(k):
+    """Modello: la mediana degli ultimi `k` mesi, ripetuta."""
     return lambda v, mesi, h: np.repeat(np.median(v[-k:]), h)
 
 
 def ets(v, mesi, h):
+    """Modello statistico ETS (Holt con trend smorzato) sugli ultimi 24 mesi."""
     from statsmodels.tsa.holtwinters import ExponentialSmoothing
     y = v[-FINESTRA_MODELLI:]
     with warnings.catch_warnings():
@@ -70,6 +79,7 @@ def ets(v, mesi, h):
 
 
 def arima(v, mesi, h):
+    """Modello statistico ARIMA(1,0,0) sugli ultimi 24 mesi."""
     from statsmodels.tsa.arima.model import ARIMA
     y = v[-FINESTRA_MODELLI:]
     with warnings.catch_warnings():
@@ -87,6 +97,9 @@ def _caratteristiche(v, mesi, i):
 def apprendimento(fabbrica):
     """Modello di ML addestrato su tutta la storia disponibile, previsione ricorsiva."""
     def modello(v, mesi, h):
+        """Addestra il modello di ML su tutti i mesi visti, poi prevede un mese alla
+        volta usando le previsioni come se fossero mesi veri.
+        """
         righe = range(3, len(v))
         if len(righe) < 8:
             return np.repeat(np.mean(v[-3:]), h)
@@ -104,6 +117,7 @@ def apprendimento(fabbrica):
 
 
 def modelli():
+    """Tutti i modelli da confrontare, per nome."""
     from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
     from sklearn.linear_model import Ridge
     return {
@@ -126,6 +140,12 @@ def modelli():
 # --- Prova sul passato --------------------------------------------------------
 
 def confronta(dati: dict, oggi: date) -> dict:
+    """La prova sul passato di tutti i modelli.
+
+    Per ogni mese di partenza degli ultimi 24, ogni modello vede solo i mesi
+    prima e prevede il mese dopo (e i 3 dopo). Restituisce gli errori di ogni
+    modello su spese, entrate, avanzo e avanzo di 3 mesi.
+    """
     righe = mesi_chiusi(dati.get("risparmio"), oggi)
     extra_u, extra_e, _ = straordinarie_per_mese(dati.get("uscite") or [], dati.get("entrate") or [])
     stipendi = serie_stipendio(dati.get("entrate") or [])
@@ -156,12 +176,14 @@ def confronta(dati: dict, oggi: date) -> dict:
 
 
 def stampa(c: dict) -> None:
+    """Stampa la tabella degli errori medi: sugli ultimi 24 mesi e sugli ultimi 12."""
     p = c["partenze"]
     print(f"Partenze: {p[0]} … {p[-1]} ({len(p)} mesi). Errore medio in euro, più basso = meglio.\n")
     print(f"{'modello':42} {'spese':>16} {'entrate':>16} {'avanzo':>16} {'avanzo 3 mesi':>16}")
     print(f"{'':42} {'24m / 12m':>16} {'24m / 12m':>16} {'24m / 12m':>16} {'24m / 12m':>16}")
     for nome, e in c["risultati"].items():
         def cella(x):
+            """"media 24 mesi / media 12 mesi" di una lista di errori, o "—" se vuota."""
             return f"{np.mean(x):7.0f} / {np.mean(x[-12:]):6.0f}" if x else "—"
         print(f"{nome:42} {cella(e['spese']):>16} {cella(e['entrate']):>16} {cella(e['avanzo']):>16} {cella(e['avanzo3']):>16}")
 

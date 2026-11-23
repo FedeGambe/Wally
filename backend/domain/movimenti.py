@@ -17,6 +17,11 @@ from decimal import ROUND_HALF_UP, Decimal
 
 @dataclass
 class MovimentoBanca:
+    """Un movimento di una banca, già nella forma che usa Wally.
+
+    Esempio: MovimentoBanca("Unicredit|ABC123", "Unicredit", "2026-11-20",
+    -29.4, "PAGAMENTO POS ENI") = un'uscita di 29,40 € del 20 novembre.
+    """
     id: str
     conto: str        # nome del conto in Wally (es. 'Unicredit')
     data: str         # YYYY-MM-DD (data di contabilizzazione)
@@ -32,6 +37,9 @@ def pulisci_causale(testo: str) -> str:
 
 
 def _numero(valore) -> float:
+    """Il valore come float; 0.0 se manca o non è un numero.
+    Esempi: "12.5" → 12.5 · None → 0.0 · "x" → 0.0
+    """
     try:
         n = float(valore)
     except (TypeError, ValueError):
@@ -46,18 +54,28 @@ def _due_decimali(importo: float) -> str:
 
 
 def _primo(*valori):
+    """Il primo dei valori che non è None.
+    Esempio: _primo(None, "2026-10-01", "2026-10-02") → "2026-10-01".
+    Serve per la data: si prende quella di contabilizzazione, se manca la
+    valuta, se manca quella dell'operazione.
+    """
     return next((v for v in valori if v is not None), None)
 
 
 def normalizza_movimenti(grezzi: list[dict], conto: str) -> list[MovimentoBanca]:
-    """
-    Converte i movimenti grezzi di un conto (risposta di
+    """Converte i movimenti grezzi di un conto (come li manda Enable Banking,
     GET /accounts/{uid}/transactions) in MovimentoBanca.
+
+    Riceve: la lista grezza della banca e il nome del conto in Wally.
+    Restituisce: i MovimentoBanca, senza quelli in attesa e quelli a zero.
+    Le uscite hanno l'importo negativo.
 
     Se la banca non dà un id (Trade Republic) l'id è conto|data|importo|n, con n
     che conta i movimenti identici dello stesso giorno: due caffè da 1,20 € lo
     stesso giorno restano due movimenti distinti, e lo stesso movimento
     riscaricato domani riottiene lo stesso id (niente doppioni).
+    Esempio: due uscite da 1,20 € di Trade Republic il 20/11/2026 →
+      "Trade Republic|2026-11-20|-1.20|0" e "Trade Republic|2026-11-20|-1.20|1".
     """
     visti: dict[str, int] = {}
     risultato = []

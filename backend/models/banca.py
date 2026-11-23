@@ -26,6 +26,13 @@ MOVIMENTI_INTESTAZIONI = ["ID", "Data", "Conto", "Importo", "Descrizione", "Stat
 @dataclass
 class Collegamento:
     # Stesso ordine delle colonne di COLLEGAMENTI_INTESTAZIONI.
+    """Una riga di "Banca Collegamenti": un conto bancario collegato a Wally.
+
+    I campi sono nello stesso ordine delle colonne (COLLEGAMENTI_INTESTAZIONI):
+    banca, paese, sessione e scadenza del consenso, account (id del conto per
+    Enable Banking), IBAN, conto di Wally a cui corrisponde e da che giorno
+    sincronizzare.
+    """
     banca: str
     paese: str
     sessione: str
@@ -37,7 +44,13 @@ class Collegamento:
 
     @classmethod
     def da_riga(cls, riga: dict[str, str]) -> "Collegamento":
+        """Il Collegamento da una riga letta dal foglio ({"Banca": "UniCredit", ...});
+        le colonne mancanti diventano "".
+        """
         return cls(*(riga.get(colonna, "") for colonna in COLLEGAMENTI_INTESTAZIONI))
 
     def a_riga(self) -> list[str]:
+        """Il contrario di da_riga: i valori come lista, nell'ordine delle colonne,
+        pronti da scrivere sul foglio.
+        """
         return list(astuple(self))

@@ -24,6 +24,7 @@ class ErroreSheets(Exception):
     """Errore dell'API di Google, con lo stato HTTP (401 = token scaduto o non valido)."""
 
     def __init__(self, messaggio: str, stato: int):
+        """Il messaggio di Google e lo stato HTTP della risposta."""
         super().__init__(messaggio)
         self.stato = stato
 
@@ -32,7 +33,11 @@ _credenziali_service_account = None
 
 
 def _token_service_account() -> str:
-    """Token del service account, riusato finché è valido."""
+    """Il token del service account wally-sync, riusato finché è valido.
+
+    Serve per il lavoro senza utente davanti (la sincronizzazione notturna).
+    La chiave arriva dalla variabile GOOGLE_SA_KEY.
+    """
     global _credenziali_service_account
     if _credenziali_service_account is None:
         info = json.loads(env("GOOGLE_SA_KEY"))
@@ -46,10 +51,14 @@ def _token_service_account() -> str:
 
 
 def _intervallo(titolo: str, celle: str = "") -> str:
+    """Il nome della scheda (più celle facoltative) pronto da mettere in un indirizzo web.
+    Esempio: ("Movimenti Banca", "!A1") → "%27Movimenti%20Banca%27%21A1".
+    """
     return quote(f"'{titolo}'{celle}", safe="")
 
 
 def _messaggio_google(res: requests.Response) -> str:
+    """Il messaggio d'errore di una risposta di Google, il più leggibile disponibile."""
     try:
         return res.json()["error"]["message"]
     except (ValueError, KeyError, TypeError):
@@ -57,14 +66,32 @@ def _messaggio_google(res: requests.Response) -> str:
 
 
 class GoogleSheets:
+    """Il collegamento a Google Sheets con un token.
+
+    Si crea con il token dell'utente (GoogleSheets(token)) o con quello del
+    service account (GoogleSheets.service_account()). Ogni metodo è una
+    chiamata all'API: leggere schede e celle, scrivere celle, aggiungere righe,
+    creare schede.
+    """
     def __init__(self, token: str):
+        """Tiene il token con cui fare tutte le chiamate."""
         self._token = token
 
     @classmethod
     def service_account(cls) -> "GoogleSheets":
+        """Un GoogleSheets che lavora con il service account wally-sync invece che
+        con l'utente.
+        """
         return cls(_token_service_account())
 
     def _chiama(self, metodo: str, foglio: str, percorso: str, body=None, params=None) -> dict:
+        """Una chiamata all'API di Google Sheets sul foglio dato.
+
+        Riceve: il metodo (GET, POST…), l'id del foglio, il resto dell'indirizzo,
+        il corpo JSON e i parametri.
+        Restituisce: la risposta di Google come dizionario.
+        Errore (ErroreSheets, con lo stato HTTP) se Google rifiuta.
+        """
         res = requests.request(
             metodo,
             f"{API}/{foglio}{percorso}",
@@ -80,6 +107,7 @@ class GoogleSheets:
     # --- Lettura ------------------------------------------------------------
 
     def titoli_schede(self, foglio: str) -> list[str]:
+        """I nomi di tutte le schede del foglio. Esempio: ["Uscite", "Entrate", …]."""
         meta = self._chiama("GET", foglio, "", params={"fields": "sheets.properties.title"})
         return [str(s.get("properties", {}).get("title", "")) for s in meta.get("sheets", [])]
 
@@ -123,6 +151,7 @@ class GoogleSheets:
             self._chiama("POST", foglio, ":batchUpdate", {"requests": richieste})
 
     def svuota(self, foglio: str, intervallo: str) -> None:
+        """Cancella i valori dell'intervallo (es. "Soglie!A:ZZ"), lasciando la formattazione."""
         self._chiama("POST", foglio, f"/values/{quote(intervallo, safe='')}:clear")
 
     def crea_foglio(self, titolo: str, schede: list[str]) -> str:

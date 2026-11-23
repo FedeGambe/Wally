@@ -52,16 +52,19 @@ GIORNI_INDIETRO = 10
 
 def _fogli() -> GoogleSheets:
     # Il cron gira senza utente: si usa il service account.
+    """Il collegamento a Google con il service account (il cron gira senza utente)."""
     return GoogleSheets.service_account()
 
 
 def _oggi() -> str:
+    """La data di oggi (UTC) come "AAAA-MM-GG"."""
     return datetime.now(timezone.utc).date().isoformat()
 
 
 # --- Collegamento -----------------------------------------------------------
 
 class RichiestaCollega(BaseModel):
+    """La banca da collegare, con il nome di Enable Banking (es. "UniCredit"), e il paese."""
     banca: str = ""
     paese: str = "IT"
 
@@ -98,6 +101,10 @@ def collega(request: Request, richiesta: RichiestaCollega):
 
 def _torna_a_wally(request: Request, parametri: dict[str, str]) -> RedirectResponse:
     # Dietro Vercel l'indirizzo pubblico è nelle intestazioni x-forwarded-*.
+    """Rimanda il browser alla pagina di Wally con dei parametri
+    (es. /?banca=collegata&nome=UniCredit). Dietro Vercel l'indirizzo pubblico
+    è nelle intestazioni x-forwarded-*.
+    """
     protocollo = request.headers.get("x-forwarded-proto", request.url.scheme)
     host = request.headers.get("x-forwarded-host") or request.headers.get("host", request.url.netloc)
     return RedirectResponse(f"{protocollo}://{host}/?{urlencode(parametri)}", status_code=302)
@@ -220,6 +227,7 @@ def sincronizza(psu: dict[str, str] | None = None) -> dict:
 
 @router.get("/sincronizza")
 def sincronizza_da_cron(request: Request):
+    """Sincronizzazione notturna, chiamata dal cron di Vercel una volta al giorno."""
     if not da_cron(request):
         return non_autorizzato()
     return sincronizza()
@@ -227,6 +235,10 @@ def sincronizza_da_cron(request: Request):
 
 @router.post("/sincronizza")
 def sincronizza_ora(request: Request):
+    """Sincronizzazione dal pulsante "Sincronizza ora" di Wally. Manda alla banca
+    le intestazioni PSU (titolare presente), così non conta nel limite di 4
+    letture al giorno.
+    """
     if not da_proprietario(request):
         return non_autorizzato()
     return sincronizza(intestazioni_psu(request))
@@ -247,6 +259,7 @@ def _valori_o_vuoto(sheets: GoogleSheets, foglio: str, intervallo: str) -> list[
 
 
 def _testo(valore) -> str:
+    """Il valore di una cella come testo ("" se vuota; 23.0 → "23")."""
     return "" if valore is None else come_testo_js(valore)
 
 
@@ -268,20 +281,25 @@ def _righe_movimenti(sheets: GoogleSheets, foglio: str) -> list[dict]:
 
 @router.get("/movimenti")
 def movimenti(request: Request, foglio: str):
+    """Le righe di "Movimenti Banca", con il loro numero di riga e lo Stato."""
     return con_utente(request, f'Lettura di "{MOVIMENTI_TITOLO}" non riuscita',
                       lambda sheets: {"movimenti": _righe_movimenti(sheets, foglio)})
 
 
 @router.get("/collegamenti")
 def collegamenti(request: Request, foglio: str):
-    """Banche collegate (foglio di configurazione), per scadenze e conti."""
+    """Le banche collegate (foglio di configurazione): banca, scadenza del
+    consenso, IBAN e conto di Wally.
+    """
     def lavoro(sheets: GoogleSheets):
+        """Legge "Banca Collegamenti" e tiene solo le colonne che servono all'app."""
         valori = _valori_o_vuoto(sheets, foglio, f"'{COLLEGAMENTI_TITOLO}'")
         if not valori:
             return {"collegamenti": []}
         intestazioni, *righe = valori
 
         def campo(r, nome):
+            """Il valore della colonna `nome` nella riga `r`, "" se la colonna non c'è."""
             i = intestazioni.index(nome) if nome in intestazioni else -1
             return _testo(r[i]) if 0 <= i < len(r) else ""
 
@@ -293,11 +311,13 @@ def collegamenti(request: Request, foglio: str):
 
 
 class AggiornamentoStato(BaseModel):
+    """Una riga di "Movimenti Banca" e lo Stato da scriverci ("Registrato", "Scartato")."""
     riga: int
     stato: str
 
 
 class RichiestaStato(BaseModel):
+    """Le righe di "Movimenti Banca" a cui cambiare lo Stato."""
     foglio: str
     aggiornamenti: list[AggiornamentoStato]
 
@@ -306,6 +326,7 @@ class RichiestaStato(BaseModel):
 def segna_movimenti(request: Request, r: RichiestaStato):
     """Scrive solo la colonna Stato (F) delle righe indicate: registrato o scartato."""
     def lavoro(sheets: GoogleSheets):
+        """Scrive lo Stato nella colonna F di ogni riga indicata."""
         sheets.scrivi_celle(r.foglio, [{"range": f"'{MOVIMENTI_TITOLO}'!F{a.riga}", "values": [[a.stato]]}
                                        for a in r.aggiornamenti], modo="RAW")
 
@@ -345,6 +366,9 @@ def _importo_gia_inserito(dati: dict, broker: str, strumento: str, mese_label: s
 
 
 def _classificati(righe: list[dict], regole: list[dict]) -> list[dict]:
+    """I movimenti non ancora gestiti (Stato vuoto) classificati, con la riga di
+    ognuno in "Movimenti Banca".
+    """
     da_gestire = [m for m in righe if not m["stato"]]
     return [{**c, "riga": c["movimento"]["riga"]} for c in classifica(da_gestire, regole)]
 
@@ -419,6 +443,9 @@ def elabora(request: Request, r: RichiestaElabora):
     di quanto registrato e l'eventuale errore della registrazione.
     """
     def lavoro(sheets: GoogleSheets):
+        """Il lavoro vero: regole, movimenti, dati freschi del foglio; poi
+        eventualmente la registrazione automatica e infine la lista "Da confermare".
+        """
         regole = tutte_le_regole(r.presetUscite, r.presetInvestimenti, r.contiCollegati, r.conti)
         righe = _righe_movimenti(sheets, r.foglio)
         titoli = sheets.titoli_schede(r.foglio)

@@ -18,6 +18,7 @@ class ErroreEB(Exception):
     """Errore di una chiamata a Enable Banking, con lo stato HTTP (429 = limite di richieste della banca)."""
 
     def __init__(self, messaggio: str, stato: int):
+        """Il messaggio da mostrare e lo stato HTTP della risposta."""
         super().__init__(messaggio)
         self.stato = stato
 
@@ -34,6 +35,13 @@ def _jwt() -> str:
 
 
 def chiama_eb(metodo: str, percorso: str, body=None, params=None, extra: dict[str, str] | None = None):
+    """Una chiamata all'API di Enable Banking, firmata con il nostro JWT.
+
+    Riceve: metodo, percorso ("/aspsps", "/sessions"…), corpo JSON, parametri e
+    intestazioni in più (quelle PSU, vedi intestazioni_psu).
+    Restituisce: la risposta come dizionario.
+    Errore (ErroreEB, con lo stato HTTP) se la chiamata non va.
+    """
     res = requests.request(
         metodo,
         f"{API}{percorso}",

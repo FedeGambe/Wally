@@ -30,6 +30,9 @@ ESCLUSE = {"Movimenti", "correttivo"}
 
 
 def uscite_utili(dati: dict) -> list[dict]:
+    """Le uscite con data e categoria, senza PAC, trasferimenti e correttivi,
+    in ordine di data e con solo i campi che servono alla prova.
+    """
     righe = []
     for u in dati.get("uscite") or []:
         d = data_da_testo(u.get("data"))
@@ -47,6 +50,12 @@ def _numeri(r: dict) -> list[float]:
 
 
 def prova(dati: dict, oggi: date) -> None:
+    """Prova i modi di indovinare la categoria e stampa quanto ci prendono.
+
+    Imparano dalle uscite fino a 6 mesi fa e indovinano quelle degli ultimi 6.
+    Due casi: con la descrizione scritta a mano, e senza (solo importo, giorno
+    e conto, come i movimenti di Trade Republic).
+    """
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.linear_model import LogisticRegression
@@ -60,12 +69,14 @@ def prova(dati: dict, oggi: date) -> None:
     print(f"Imparano da {len(allena)} uscite (fino al {taglio:%d/%m/%Y}), indovinano le {len(verifica)} dopo.\n")
 
     def punteggio(nome: str, proposte: list[list[str]], campo: str):
+        """Stampa la quota di proposte giuste al primo colpo e tra le prime 3."""
         vere = [r[campo] for r in verifica]
         giusta = np.mean([p[:1] == [v] for p, v in zip(proposte, vere)])
         top3 = np.mean([v in p[:3] for p, v in zip(proposte, vere)])
         print(f"  {nome:58} giusta {giusta:5.0%}   tra le prime 3 {top3:5.0%}")
 
     def classi_ordinate(modello, X) -> list[list[str]]:
+        """Per ogni uscita, le categorie dalla più probabile alla meno probabile."""
         prob = modello.predict_proba(X)
         return [list(modello.classes_[np.argsort(-p)]) for p in prob]
 
@@ -92,6 +103,7 @@ def prova(dati: dict, oggi: date) -> None:
         # Testo + importo + conto: si uniscono le probabilità dei due modelli
         conto = OneHotEncoder(handle_unknown="ignore").fit([[r["conto"]] for r in allena])
         def misto(rs):
+            """Descrizione, conto e importo messi insieme come numeri per il modello."""
             from scipy.sparse import hstack
             return hstack([testo[0].transform([r["descrizione"] for r in rs]),
                            conto.transform([[r["conto"]] for r in rs]),

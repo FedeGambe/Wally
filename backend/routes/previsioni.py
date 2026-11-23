@@ -25,12 +25,21 @@ _token_controllati: dict[str, float] = {}
 
 
 class RichiestaPrevisioni(BaseModel):
+    """Cosa manda l'app: i dati che ha in memoria, le ipotesi dei cursori e,
+    solo per le prove, una data di oggi diversa da quella vera.
+    """
     dati: dict
     ipotesi: dict | None = None
     oggi: str | None = None  # "AAAA-MM-GG"; di solito manca e vale la data del server
 
 
 def _autorizzato(request: Request) -> bool:
+    """True se la richiesta arriva dal proprietario.
+
+    Il controllo vero (da_proprietario) costa una chiamata a Google: un token
+    già controllato vale 10 minuti, così muovere un cursore non rifà il
+    controllo ogni volta.
+    """
     token = token_bearer(request)
     adesso = time.time()
     if token and _token_controllati.get(token, 0) > adesso:
@@ -45,6 +54,9 @@ def _autorizzato(request: Request) -> bool:
 
 @router.post("/previsioni")
 def previsioni(request: Request, r: RichiestaPrevisioni):
+    """Tutte le stime della pagina Previsioni: fine mese, prossimi 12 mesi,
+    patrimonio e auto, calcolate sui dati mandati dall'app.
+    """
     if not _autorizzato(request):
         return non_autorizzato()
     oggi = date.fromisoformat(r.oggi) if r.oggi else date.today()

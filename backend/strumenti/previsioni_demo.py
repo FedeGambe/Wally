@@ -20,6 +20,9 @@ DESTINAZIONE = Path(__file__).resolve().parents[2] / "frontend" / "src" / "data"
 
 
 def main() -> None:
+    """Legge i dati demo da stdin, calcola le previsioni alla data fissa
+    OGGI_DEMO e le scrive in frontend/src/data/demoPrevisioni.json.
+    """
     dati = json.load(sys.stdin)
     ipotesi = Ipotesi().come_dizionario() | {"obiettivo": 50000}
     risultato = calcola_previsioni(dati, OGGI_DEMO, ipotesi)

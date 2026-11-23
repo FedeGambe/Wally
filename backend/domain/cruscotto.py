@@ -41,7 +41,12 @@ def leggi_mese(testo) -> tuple[int, int] | None:
 
 
 def _categoria(campo: str, categorie: dict[str, str]) -> str | None:
-    """Categoria di una colonna strumento, corretta dal nome quando è evidente."""
+    """Asset class di una colonna strumento: azioni, obbligazioni o monetari.
+
+    Se il nome lo dice chiaramente vince il nome ("…Bond…" → obbligazioni,
+    "…Overnight…" → monetari), altrimenti vale quella scritta nella riga 2
+    del foglio (`categorie`).
+    """
     nome = campo.lower()
     if "bond" in nome or "obbligazion" in nome or "ibond" in nome:
         return "obbligazioni"
@@ -61,14 +66,22 @@ def _con_data(righe: list[dict]) -> list[dict]:
 
 
 def _cronologico(righe: list[dict]) -> list[dict]:
+    """Le righe ordinate per anno e mese, dalla più vecchia."""
     return sorted(righe, key=lambda r: (r["year"], r["month"]))
 
 
 def _numero(valore) -> float:
+    """Il valore come float, 0 se vuoto. Esempio: "" → 0.0, 12 → 12.0."""
     return float(valore or 0)
 
 
 def _somma_categoria(righe: list[dict], categorie: dict[str, str], categoria: str) -> float:
+    """Quanto è stato versato in un'asset class nelle righe date.
+
+    Riceve: le righe di un broker (di solito quelle di un anno), la categoria
+    di ogni colonna strumento e l'asset class ("azioni").
+    Restituisce: la somma di tutte le colonne di quell'asset class in tutte le righe.
+    """
     totale = 0
     for r in righe:
         somma_riga = 0
@@ -92,7 +105,18 @@ def _ultime_commissioni_cumulate(righe_cronologiche: list[dict], anno: int) -> f
 
 
 def calcola_cruscotto(dati: dict) -> list[dict]:
-    """Un elemento per anno, dal più recente al più vecchio."""
+    """Il Cruscotto Investimenti: un riepilogo per anno, dal più recente.
+
+    Riceve: i dati dell'app (scalable, tradeRepublic, rendimentiInvestimenti
+    e la categoria di ogni colonna strumento).
+    Restituisce, per ogni anno:
+      azioni/obbligazioni/monetari InvestitoAnno e InvestitoCum
+                            versato nell'anno e totale versato fino a fine anno
+      commissioni…          commissioni dell'anno e cumulate
+      investitoAnnuale, investitoCumulativo   i totali, commissioni comprese
+      rendimento…           rendimento in euro (anno e cumulato), medio mensile
+                            e stima annua in %
+    """
     scalable = _con_data(dati.get("scalable") or [])
     trade_republic = _con_data(dati.get("tradeRepublic") or [])
     rendimenti = _con_data(dati.get("rendimentiInvestimenti") or dati.get("rendimenti") or [])
@@ -145,6 +169,13 @@ def calcola_cruscotto(dati: dict) -> list[dict]:
 
 
 def _rendimenti_anno(rendimenti: list[dict], cronologici: list[dict], anno: int) -> dict:
+    """Il rendimento di un anno, dalla scheda Rendimenti.
+
+    Restituisce: rendimentoCumulativoEuro (a fine anno; se l'ultimo mese è vuoto
+    si risale all'ultimo scritto), rendimentoAnnualeEuro (somma dei mesi),
+    rendimentoMedioMensilePerc (media dei mesi già registrati) e
+    rendimentoAnnuoStimatoPerc (media mensile × 12).
+    """
     vuoto = {"rendimentoCumulativoEuro": 0, "rendimentoAnnualeEuro": 0,
              "rendimentoMedioMensilePerc": 0, "rendimentoAnnuoStimatoPerc": 0}
     dell_anno = sorted((r for r in rendimenti if r["year"] == anno), key=lambda r: r["month"])

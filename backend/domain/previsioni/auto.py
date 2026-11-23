@@ -1,23 +1,16 @@
 """
 D. Auto: quanti km nei prossimi 12 mesi e quanto costeranno.
 
-Dati: la scheda "Analisi Consumi" (un rifornimento per riga, con i km del
-contachilometri) e le uscite ricorrenti dell'auto (preset).
+Dati: la scheda "Analisi Consumi" (un rifornimento per riga, con i km del contachilometri) e le uscite ricorrenti dell'auto (preset).
 
 Come si stima, dopo averlo provato sui dati veri (ott 2025 → nov 2026):
-- Km: il ritmo dell'ultimo anno, dal contachilometri (km fatti negli ultimi
-  365 giorni, o in quelli che ci sono se meno). Finestre più corte sbagliavano
-  di più: sui 3 mesi dopo, 1 mese di ritmo ~10%, 3 mesi ~8%, 6 mesi ~8%; sui
-  6 mesi dopo, 6 mesi di ritmo ~4%. Niente stagionalità: c'è un anno solo.
-- Fascia dei km: quanto variano i km da un mese all'altro nell'ultimo anno
-  (10°-90° percentile di una normale; sull'anno lo scarto cresce come √12).
+- Km: il ritmo dell'ultimo anno, dal contachilometri (km fatti negli ultimi 365 giorni, o in quelli che ci sono se meno). 
+      Finestre più corte sbagliavano di più: sui 3 mesi dopo, 1 mese di ritmo ~10%, 3 mesi ~8%, 6 mesi ~8%; sui 6 mesi dopo, 6 mesi di ritmo ~4%. Niente stagionalità: c'è un anno solo.
+- Fascia dei km: quanto variano i km da un mese all'altro nell'ultimo anno (10°-90° percentile di una normale; sull'anno lo scarto cresce come √12).
 - Consumo: km/litro di tutti i rifornimenti dell'ultimo anno.
-- Prezzo: la mediana degli ultimi 4 rifornimenti. Sul passato l'ultimo prezzo
-  sbagliava meno della media dei 3 o 12 mesi (0,08 €/l a un mese, 0,15 a tre,
-  0,29 a sei): il prezzo non si prevede, quindi nell'app è un cursore.
+- Prezzo: la mediana degli ultimi 4 rifornimenti. Sul passato l'ultimo prezzo sbagliava meno della media dei 3 o 12 mesi (0,08 €/l a un mese, 0,15 a tre, 0,29 a sei): il prezzo non si prevede, quindi nell'app è un cursore.
   Il costo del carburante lo calcola l'app (km / km al litro × prezzo).
-- Rate fisse: i preset delle uscite dell'auto (macro Automobile, bollo,
-  revisione), ogni mese uguali.
+- Rate fisse: i preset delle uscite dell'auto (macro Automobile, bollo, revisione), ogni mese uguali.
 """
 from datetime import date, timedelta
 
@@ -37,8 +30,7 @@ def _rifornimenti(righe: list[dict] | None, oggi: date) -> list[dict]:
     """Le righe di Analisi Consumi pulite e in ordine di data.
 
     Restano fuori le righe senza data, nel futuro o senza km del contachilometri.
-    Ogni rifornimento ha: data, km (contachilometri), costo, litri, prezzo,
-    kmFatti (km dal rifornimento prima).
+    Ogni rifornimento ha: data, km (contachilometri), costo, litri, prezzo, kmFatti (km dal rifornimento prima).
     """
     puliti = []
     for r in righe or []:
@@ -78,9 +70,9 @@ def _primo_del_mese(indice: int) -> date:
 
 
 def _affidabilita_km(conta: _Contachilometri, ultimo: date, orizzonte: int = 90) -> dict:
-    """Prova sul passato dello stesso metodo: a ogni partenza (ogni 15 giorni), il ritmo
-    dei giorni prima (fino a un anno, almeno GIORNI_MINIMI) contro i km veri dei
-    `orizzonte` giorni dopo. Errore medio in % dei km veri."""
+    """Prova sul passato dello stesso metodo: 
+    a ogni partenza (ogni 15 giorni), il ritmo dei giorni prima (fino a un anno, almeno GIORNI_MINIMI) contro i km veri dei `orizzonte` giorni dopo. 
+    Errore medio in % dei km veri."""
     errori = []
     origine = conta.inizio + timedelta(days=GIORNI_MINIMI)
     while origine + timedelta(days=orizzonte) <= ultimo:

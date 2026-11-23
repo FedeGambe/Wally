@@ -42,6 +42,9 @@ SCHEDA_SOGLIE = "Soglie"
 
 def _proprieta(sheets: GoogleSheets, foglio: str, titolo: str) -> dict:
     # Confronto senza maiuscole: "Analisi consumi" nella mappa, "Analisi Consumi" sul foglio.
+    """Id numerico e dimensioni della scheda con quel titolo (maiuscole indifferenti).
+    Errore (ErroreScrittura) se la scheda non c'è.
+    """
     trovata = next((p for p in sheets.proprieta_schede(foglio) if str(p.get("title", "")).lower() == titolo.lower()), None)
     if trovata is None:
         raise ErroreScrittura(f'Tab "{titolo}" non trovata sul foglio Google.')
@@ -49,11 +52,15 @@ def _proprieta(sheets: GoogleSheets, foglio: str, titolo: str) -> dict:
 
 
 def _prima_riga(sheets: GoogleSheets, foglio: str, titolo: str) -> list:
+    """La riga 1 della scheda (le intestazioni) come la mostra il foglio."""
     valori = sheets.leggi_valori(foglio, f"{titolo}!1:1", "FORMATTED_VALUE")
     return valori[0] if valori else []
 
 
 def _riga_mese(sheets: GoogleSheets, foglio: str, titolo: str, mese: str) -> int:
+    """Il numero di riga del mese nella colonna A (es. "ottobre 2026" → 24).
+    Errore (ErroreScrittura) se il mese non c'è.
+    """
     riga = riga_del_mese(sheets.leggi_valori(foglio, f"{titolo}!A:A", "FORMATTED_VALUE"), mese)
     if riga is None:
         raise ErroreScrittura(f'Riga "{mese}" non trovata nella colonna A di "{titolo}".')
@@ -85,6 +92,11 @@ def aggiungi_riga(sheets: GoogleSheets, foglio: str, titolo: str, record: dict) 
 
 
 def aggiorna_portafoglio(sheets: GoogleSheets, foglio: str, variazioni: dict[int, int]) -> None:
+    """Aggiunge o toglie banconote nel "Portafoglio Raw".
+
+    Riceve: il foglio e le variazioni per taglio ({20: 2, 50: -1}).
+    Legge i contatori attuali e scrive solo quelli che cambiano (celle_portafoglio).
+    """
     if not any(variazioni.get(t) for t in PORTAFOGLIO_COLONNE):
         return
     valori = sheets.leggi_valori(foglio, PORTAFOGLIO_INTERVALLO)
@@ -106,6 +118,15 @@ def scrivi_investimenti(sheets: GoogleSheets, foglio: str, titolo: str, mese: st
 
 def aggiungi_strumento(sheets: GoogleSheets, foglio: str, titolo: str, nome: str, asset_class: str,
                        mese: str, importo) -> None:
+    """Aggiunge la colonna di uno strumento nuovo in una scheda broker.
+
+    Riceve: foglio, scheda (Scalable o Trade Republic), nome dello strumento,
+    asset class (riga 2), mese e importo facoltativo per quel mese.
+    Passi: controlla che lo strumento non ci sia già, trova dove inserire la
+    colonna (dentro l'intervallo sommato da "Importo investito Mensile", così
+    la somma si allarga da sola), la inserisce e scrive nome, asset class e
+    importo.
+    """
     intestazioni = _prima_riga(sheets, foglio, titolo)
     controlla_strumento_nuovo(titolo, intestazioni, nome)
     colonna_importo = colonna_importo_mensile(intestazioni, titolo)
@@ -164,6 +185,7 @@ def verifica_mensile(sheets: GoogleSheets, foglio: str, titolo: str, voci: list[
 
 
 def _colonna_saveback(intestazioni: list) -> int | None:
+    """La colonna "Savebacks" della scheda (0 = A), o None se non c'è."""
     normalizzate = [normalizza_intestazione(h) for h in intestazioni]
     cercata = normalizza_intestazione("Savebacks")
     return normalizzate.index(cercata) if cercata in normalizzate else None
@@ -214,4 +236,5 @@ def salva_dati_base(sheets: GoogleSheets, foglio: str, dati: dict) -> None:
 
 
 def crea_foglio(sheets: GoogleSheets) -> str:
+    """Crea un foglio Google nuovo con le schede dell'app; restituisce il suo id."""
     return sheets.crea_foglio("Wally - Dashboard Economica", SCHEDE_DA_CREARE)
