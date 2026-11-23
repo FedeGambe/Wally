@@ -19,7 +19,8 @@ from backend.domain.previsioni.patrimonio import Ipotesi, previsioni_patrimonio
 
 
 def calcola_previsioni(dati: dict, oggi: date, ipotesi: dict | None = None) -> dict:
-    flussi = previsioni_flussi(dati.get("risparmio"), oggi, dati.get("uscite"), dati.get("entrate"))
+    flussi = previsioni_flussi(dati.get("risparmio"), oggi, dati.get("uscite"), dati.get("entrate"),
+                               preset_uscite=dati.get("presetUscite"))
     entrate_previste = flussi["previsti"][0]["entrate"]["centrale"] if flussi["disponibile"] else None
     fine_mese = previsione_fine_mese(dati.get("uscite"), dati.get("presetUscite"), dati.get("entrate"),
                                      dati.get("soglie"), oggi, entrate_previste)

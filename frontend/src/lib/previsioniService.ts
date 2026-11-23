@@ -75,7 +75,15 @@ export interface Flussi {
     mensilitaExtra: { mese: string; nome: string; importo: number; frazione: number }[];
   } | null;
   straordinarie: VoceStraordinaria[];
-  previsti: { mese: string; entrate: Stima; spese: Stima; avanzo: Stima; avanzoCumulato: Stima }[];
+  previsti: {
+    mese: string; entrate: Stima; spese: Stima; avanzo: Stima; avanzoCumulato: Stima;
+    /** Di cui primarie frequenti (es. rifornimento), stimate dai giorni della settimana del mese. */
+    primarieFrequenti?: number;
+    /** Sabati del mese. */
+    weekend?: number;
+  }[];
+  /** Le categorie primarie stimate per giorno della settimana (es. Rifornimento). */
+  categorieFrequenti?: string[];
   affidabilita: Record<'entrate' | 'spese' | 'avanzo', { erroreMedio: number | null; mesiProvati: number }>;
   mesiUsati: number;
 }

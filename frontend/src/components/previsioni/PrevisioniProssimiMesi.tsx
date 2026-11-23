@@ -26,6 +26,7 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
     if (ultimo) Object.assign(ultimo, { centrale: ultimo.vero, fascia: [ultimo.vero, ultimo.vero] });
     const previsti = flussi.previsti.map(p => ({
       mese: p.mese, centrale: p[serie].centrale, basso: p[serie].basso, alto: p[serie].alto, fascia: [p[serie].basso, p[serie].alto],
+      frequenti: p.primarieFrequenti, weekend: p.weekend,
     }));
     return [...storico, ...previsti];
   }, [flussi, serie]);
@@ -35,6 +36,7 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
   }
   const ultimoPrevisto = flussi.previsti[flussi.previsti.length - 1];
   const affidabilita = flussi.affidabilita[serie];
+  const elencoCategorie = (flussi.categorieFrequenti ?? []).join(' e ').toLowerCase() || 'primarie frequenti';
 
   const scelta = <Segmenti voci={NOMI} attiva={serie} onChange={setSerie} etichetta="Serie da mostrare" />;
 
@@ -93,7 +95,11 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
                   const righe = p.vero !== undefined
                     ? [{ nome: `${NOMI[serie]} (senza straordinarie)`, valore: euroEsatto(p.vero), colore: COLORE[serie] }, ...fuori]
                     : [{ nome: `${NOMI[serie]} (stima)`, valore: `~ ${euroStima(p.centrale)}`, colore: COLORI.stima },
-                       { nome: '8 volte su 10 tra', valore: `${euroStima(p.basso)} e ${euroStima(p.alto)}` }];
+                       { nome: '8 volte su 10 tra', valore: `${euroStima(p.basso)} e ${euroStima(p.alto)}` },
+                       ...(serie === 'spese' && p.frequenti ? [{
+                         nome: `di cui ${elencoCategorie}${p.weekend ? ` (${p.weekend} weekend)` : ''}`,
+                         valore: `~ ${euroStima(p.frequenti)}`,
+                       }] : [])];
                   return <Suggerimento titolo={meseLungo(p.mese)} righe={righe} />;
                 }} />
                 <Area type="monotone" dataKey="fascia" stroke="none" fill={COLORI.fascia} fillOpacity={0.15} activeDot={false} />
@@ -148,6 +154,7 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
 
       <Nota>
         Come è calcolata: stipendio del periodo attuale con tredicesima e quattordicesima, più le altre entrate e le spese stimate con la media degli ultimi 12 mesi e l'effetto tipico di quel mese dell'anno ({flussi.mesiUsati} mesi della scheda Risparmio), tutto senza le voci straordinarie.
+        Le primarie frequenti (almeno 2 al mese, come il rifornimento) sono stimate a parte, dalla spesa media di ogni giorno della settimana per i giorni di quel mese: un mese con 5 weekend conta un rifornimento in più di uno con 4.
         La fascia viene da quanto i mesi dell'ultimo anno si sono discostati dalla stima.
         {affidabilita.erroreMedio !== null && <> Provata sugli ultimi {affidabilita.mesiProvati} mesi, la stima del mese dopo ({NOMI[serie].toLowerCase()}) sbagliava in media di {euroEsatto(affidabilita.erroreMedio)} (compresi eventuali cambi di situazione, come un nuovo stipendio).</>}
       </Nota>

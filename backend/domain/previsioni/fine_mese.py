@@ -31,6 +31,8 @@ from datetime import date, timedelta
 
 import numpy as np
 
+from backend.domain.previsioni.giorni_settimana import (categorie_frequenti, giorni_della_settimana, nomi_preset,
+                                                        primarie_variabili)
 from backend.domain.previsioni.serie import chiave_mese, data_da_testo, indice_mese, mese_da_testo, numero
 from backend.domain.previsioni.stipendio import serie_stipendio
 from backend.domain.previsioni.straordinarie import uscite_straordinarie
@@ -39,7 +41,6 @@ from backend.domain.soglie import soglie_del_mese
 MESI_INDIETRO = 12
 SCENARI_MINIMI = 3
 SOGLIE_PREDEFINITE = {"Spese Primarie": 35.0, "Spese Secondarie": 15.0}
-USCITE_AL_MESE_FREQUENTI = 2  # da qui una categoria primaria segue il giorno della settimana
 GIORNI_SETTIMANA = ["lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato", "domenica"]
 MESI_STIPENDIO_MEDIANO = 6
 
@@ -91,8 +92,7 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
     giorno = oggi.day
     giorni_mese = calendar.monthrange(oggi.year, oggi.month)[1]
     per_mese = _uscite_per_mese(uscite)
-    # Per nome, senza badare alle maiuscole: sul foglio "Rata assicurazione" è lo stesso preset.
-    nomi_preset = {str(p.get("nome") or "").strip().lower() for p in preset_uscite or []} - {""}
+    preset = nomi_preset(preset_uscite)  # in minuscolo
 
     passati = [m for m in range(corrente - MESI_INDIETRO, corrente) if per_mese.get(m)]
     if len(passati) < SCENARI_MINIMI:
@@ -115,15 +115,11 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
     # --- Scenari dai mesi passati: spesa variabile dopo il giorno di oggi -----
     def variabili(mese: int, primaria: bool | None = None) -> list[dict]:
         return [t for t in per_mese[mese]
-                if t["descrizione"].lower() not in nomi_preset and not t["straordinaria"]
+                if t["descrizione"].lower() not in preset and not t["straordinaria"]
                 and (primaria is None or t["primaria"] == primaria)]
 
-    # Primarie frequenti: categorie con in media almeno 2 uscite al mese.
-    conteggi: dict[str, int] = {}
-    for m in passati:
-        for t in variabili(m, True):
-            conteggi[t["categoria"]] = conteggi.get(t["categoria"], 0) + 1
-    frequenti = {c for c, n in conteggi.items() if n / len(passati) >= USCITE_AL_MESE_FREQUENTI}
+    # Primarie frequenti (giorni_settimana.py): in media almeno 2 uscite al mese.
+    frequenti = categorie_frequenti(primarie_variabili(uscite, preset_uscite), passati)
 
     def per_settimana(t: dict) -> bool:
         return t["primaria"] and t["categoria"] in frequenti
@@ -132,10 +128,7 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
     # domenica) nelle categorie frequenti = spesa di quel giorno / quante volte c'era.
     giorno_medio: dict[int, list[float]] = {}
     for m in passati:
-        anno, mese = divmod(m, 12)
-        n = [0] * 7
-        for g in range(1, calendar.monthrange(anno, mese + 1)[1] + 1):
-            n[date(anno, mese + 1, g).weekday()] += 1
+        n = giorni_della_settimana(m)
         spesa = [0.0] * 7
         for t in variabili(m, True):
             if per_settimana(t):
@@ -217,7 +210,7 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
         altri = np.delete(var_prim + var_sec, j)
         normali = [t for t in per_mese[m] if not t["straordinaria"]]
         fino_a_oggi = sum(t["importo"] for t in normali if t["giorno"] <= giorno)
-        fissi_dopo = sum(t["importo"] for t in normali if t["giorno"] > giorno and t["descrizione"].lower() in nomi_preset)
+        fissi_dopo = sum(t["importo"] for t in normali if t["giorno"] > giorno and t["descrizione"].lower() in preset)
         vero = sum(t["importo"] for t in normali)
         errori.append(abs(vero - (fino_a_oggi + fissi_dopo + float(np.median(altri)))))
 
@@ -238,12 +231,12 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
         "curve": curve,
         "affidabilita": {"erroreMedio": round(float(np.mean(errori)), 2), "mesiProvati": len(errori)},
         "mesiUsati": len(passati),
-        "perGiornoSettimana": _per_giorno_settimana(frequenti, per_mese, passati, nomi_preset, oggi, giorni_mese),
+        "perGiornoSettimana": _per_giorno_settimana(frequenti, per_mese, passati, preset, oggi, giorni_mese),
     }
 
 
 def _per_giorno_settimana(frequenti: set[str], per_mese: dict[int, list[dict]], passati: list[int],
-                          nomi_preset: set[str], oggi: date, giorni_mese: int) -> list[dict]:
+                          preset: set[str], oggi: date, giorni_mese: int) -> list[dict]:
     """Le categorie primarie stimate per giorno della settimana, con i giorni in
     cui di solito si spende (quelli sopra la media, 1/7 della spesa) e quanti ne
     restano in questo mese dopo oggi."""
@@ -256,7 +249,7 @@ def _per_giorno_settimana(frequenti: set[str], per_mese: dict[int, list[dict]], 
         for m in passati:
             for t in per_mese[m]:
                 if (t["primaria"] and t["categoria"] == categoria and not t["straordinaria"]
-                        and t["descrizione"].lower() not in nomi_preset):
+                        and t["descrizione"].lower() not in preset):
                     spesa[t["settimana"]] += t["importo"]
         totale = sum(spesa)
         if not categoria or totale <= 0:

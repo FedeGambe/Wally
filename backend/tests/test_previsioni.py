@@ -1,4 +1,5 @@
 """Previsioni: serie pulite, modello mensile, fine mese, patrimonio e rotta."""
+import calendar
 from datetime import date
 
 import numpy as np
@@ -372,3 +373,23 @@ def test_fine_mese_usa_le_soglie_valide_nel_mese():
     r = previsione_fine_mese(uscite, [], entrate, soglie, OGGI)
     primarie = next(s for s in r["soglie"] if s["nome"] == "Spese Primarie")
     assert primarie["percentuale"] == 40
+
+
+def test_flussi_rifornimento_segue_i_weekend_del_mese():
+    """10 € ogni sabato per un anno: la stima di ogni mese futuro è 10 € per i suoi sabati."""
+    risparmio, uscite = [], []
+    for m in range(indice_mese(2025, 10), indice_mese(2026, 10)):
+        anno, mese = divmod(m, 12)
+        giorni = calendar.monthrange(anno, mese + 1)[1]
+        sabati = [g for g in range(1, giorni + 1) if date(anno, mese + 1, g).weekday() == 5]
+        risparmio.append({"mese": MESI_IT[mese], "anno": anno, "entrate": 2000, "speseTotali": 500 + 10 * len(sabati)})
+        uscite.append(uscita(3, mese + 1, anno, 500))
+        uscite += [{**uscita(g, mese + 1, anno, 10, True, "Benzina"), "categoria": "Rifornimento"} for g in sabati]
+    f = previsioni_flussi(risparmio, OGGI, uscite, [])
+    assert f["categorieFrequenti"] == ["Rifornimento"]
+    per_mese = {p["mese"]: p for p in f["previsti"]}
+    # ottobre 2026 ha 5 sabati, novembre 4
+    assert per_mese["2026-10"]["primarieFrequenti"] == pytest.approx(50) and per_mese["2026-10"]["weekend"] == 5
+    assert per_mese["2026-11"]["primarieFrequenti"] == pytest.approx(40)
+    assert per_mese["2026-10"]["spese"]["centrale"] == pytest.approx(550)
+    assert per_mese["2026-11"]["spese"]["centrale"] == pytest.approx(540)
