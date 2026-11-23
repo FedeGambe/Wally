@@ -74,8 +74,9 @@ export const COLORI = {
   fondoPensione: '#d97706',
   auto: '#e11d48', // rosa di Analisi Consumi
   neutro: '#94a3b8',
-  // Soglia delle spese (primarie + secondarie): linea a puntini nei grafici.
-  soglia: '#94a3b8',
+  // Soglia delle spese (primarie + secondarie): linea a puntini nei grafici,
+  // rossa come il limite da non superare (né arancio spese né viola stima).
+  soglia: '#f43f5e',
 };
 
 /** Props comuni di griglia e assi, gli stessi di Entrate/Uscite/Panoramica. */
