@@ -44,7 +44,11 @@ def primarie_variabili(uscite: list[dict] | None, preset_uscite: list[dict] | No
 
 
 def giorni_della_settimana(mese: int) -> list[int]:
-    """Quanti lunedì, martedì… domenica ha il mese (indice_mese)."""
+    """Quanti lunedì, martedì… domenica ha il mese.
+
+    Esempio: novembre 2026 → [5, 4, 4, 4, 4, 4, 5]
+    (5 lunedì e 5 domeniche, 4 di tutti gli altri giorni).
+    """
     anno, m = divmod(mese, 12)
     conta = [0] * 7
     for g in range(1, calendar.monthrange(anno, m + 1)[1] + 1):
@@ -53,6 +57,13 @@ def giorni_della_settimana(mese: int) -> list[int]:
 
 
 def categorie_frequenti(voci: list[dict], mesi: list[int]) -> set[str]:
+    """Le categorie con in media almeno 2 uscite al mese nei mesi dati.
+
+    Riceve: le voci di primarie_variabili e i mesi da guardare.
+    Restituisce: i nomi delle categorie, es. {"Rifornimento", "Spesa"}.
+    Esempio: 50 rifornimenti in 12 mesi → 4,2 al mese → frequente;
+    3 multe in 12 mesi → no.
+    """
     if not mesi:
         return set()
     finestra = set(mesi)
@@ -64,11 +75,23 @@ def categorie_frequenti(voci: list[dict], mesi: list[int]) -> set[str]:
 
 
 def spesa_del_mese(voci: list[dict], mese: int, categorie: set[str]) -> float:
+    """Quanto si è speso in un mese nelle categorie date.
+
+    Esempio: spesa_del_mese(voci, ottobre 2026, {"Rifornimento"}) → 154,49
+    (i 4 rifornimenti di ottobre).
+    """
     return sum(v["importo"] for v in voci if v["mese"] == mese and v["categoria"] in categorie)
 
 
 def spesa_per_giorno(voci: list[dict], mesi: list[int], categorie: set[str]) -> list[float]:
-    """Spesa media di ogni giorno della settimana (lunedì = 0) nei mesi dati."""
+    """Spesa media di ogni giorno della settimana (lunedì = 0, domenica = 6).
+
+    Per ogni giorno: quanto si è speso in quel giorno della settimana, diviso
+    quante volte quel giorno c'era nei mesi dati.
+    Esempio: 4 rifornimenti da 30 € di sabato in un mese con 5 sabati
+    → il sabato "vale" 24 €. Moltiplicato per i sabati di un mese futuro dà
+    quanto ci si aspetta di spendere di sabato in quel mese.
+    """
     finestra = set(mesi)
     spesa, volte = [0.0] * 7, [0] * 7
     for m in mesi:

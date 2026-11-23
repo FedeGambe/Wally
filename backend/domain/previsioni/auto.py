@@ -34,6 +34,12 @@ CATEGORIE_AUTO_FUORI_MACRO = {"bollo auto", "bollo", "revisione"}
 
 
 def _rifornimenti(righe: list[dict] | None, oggi: date) -> list[dict]:
+    """Le righe di Analisi Consumi pulite e in ordine di data.
+
+    Restano fuori le righe senza data, nel futuro o senza km del contachilometri.
+    Ogni rifornimento ha: data, km (contachilometri), costo, litri, prezzo,
+    kmFatti (km dal rifornimento prima).
+    """
     puliti = []
     for r in righe or []:
         d = data_da_testo(r.get("data"))
@@ -50,15 +56,23 @@ class _Contachilometri:
     """Km a una data qualsiasi, interpolando fra i rifornimenti."""
 
     def __init__(self, rifornimenti: list[dict]):
+        """Prepara i punti noti: per ogni rifornimento, giorni dal primo e km."""
         self.inizio = rifornimenti[0]["data"]
         self.giorni = np.array([(r["data"] - self.inizio).days for r in rifornimenti], dtype=float)
         self.km = np.maximum.accumulate(np.array([r["km"] for r in rifornimenti], dtype=float))
 
     def __call__(self, giorno: date) -> float:
+        """I km del contachilometri a una data qualsiasi.
+
+        Fra due rifornimenti si traccia una linea dritta.
+        Esempio: 50.000 km il 1° marzo e 51.000 il 31 marzo → il 16 marzo 50.500.
+        Si usa così: conta = _Contachilometri(rif); conta(date(2026, 3, 16)).
+        """
         return float(np.interp((giorno - self.inizio).days, self.giorni, self.km))
 
 
 def _primo_del_mese(indice: int) -> date:
+    """Il primo giorno del mese. Esempio: 24322 → date(2026, 11, 1)."""
     anno, mese = anno_e_mese(indice)
     return date(anno, mese, 1)
 
@@ -80,6 +94,11 @@ def _affidabilita_km(conta: _Contachilometri, ultimo: date, orizzonte: int = 90)
 
 
 def _rate_fisse(preset: list[dict] | None) -> list[dict]:
+    """Le uscite ricorrenti dell'auto, prese dai preset.
+
+    Sono dell'auto i preset con macro "Automobile" o categoria bollo/revisione.
+    Esempio: Rata Assicurazione 80 €, Rata Bollo 23 € … → una voce ciascuna.
+    """
     voci = []
     for p in preset or []:
         macro = str(p.get("macroCategoria") or "").strip().lower()
@@ -91,6 +110,18 @@ def _rate_fisse(preset: list[dict] | None) -> list[dict]:
 
 
 def previsione_auto(consumi: list[dict] | None, preset_uscite: list[dict] | None, oggi: date) -> dict:
+    """Km e costi dell'auto dei prossimi 12 mesi (scheda "Auto").
+
+    Riceve: le righe di Analisi Consumi, i preset delle uscite e la data di oggi.
+    Restituisce, fra l'altro:
+      kmAlGiorno, kmAnno   il ritmo dell'ultimo anno e i km attesi in 12 mesi
+      kmAlLitro            consumo dell'ultimo anno
+      prezzo               prezzo di partenza del cursore (mediana degli ultimi
+                           4 rifornimenti) e minimo/medio/massimo dell'anno
+      rateFisse            le rate dell'auto al mese
+      storico, previsti    km e carburante mese per mese, veri e stimati
+    Il costo del carburante lo calcola l'app, perché dipende dal cursore del prezzo.
+    """
     rif = _rifornimenti(consumi, oggi)
     if len(rif) < RIFORNIMENTI_MINIMI:
         return {"disponibile": False, "motivo": "Servono almeno 3 rifornimenti in Analisi Consumi."}

@@ -45,6 +45,7 @@ La cartella [`docs/`](./docs/README.md) è pensata per chi non conosce bene Reac
 - [docs/ARCHITETTURA.md](./docs/ARCHITETTURA.md) — come si muovono i dati (foglio Google ↔ backend ↔ cache locale ↔ schermo)
 - [docs/FRONTEND.md](./docs/FRONTEND.md) — guida al frontend, file per file
 - [docs/BACKEND.md](./docs/BACKEND.md) — guida al backend, file per file
+- [docs/GUIDA-PYTHON.md](./docs/GUIDA-PYTHON.md) — la sintassi Python del backend con esempi dal codice
 - [docs/GUIDA-REACT-TS.md](./docs/GUIDA-REACT-TS.md) — concetti React/TypeScript con esempi dal codice
 
 ## Deploy

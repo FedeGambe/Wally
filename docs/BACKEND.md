@@ -2,7 +2,7 @@
 
 Il backend è un'app **Python + FastAPI** nella cartella `backend/`. Fa tutto il lavoro con il foglio Google e con le banche: il browser non parla mai direttamente con Google Sheets, chiama le rotte `/api/...` del backend.
 
-Per il flusso dei dati da un capo all'altro leggi [ARCHITETTURA.md](./ARCHITETTURA.md). Per il frontend c'è [FRONTEND.md](./FRONTEND.md).
+Per il flusso dei dati da un capo all'altro leggi [ARCHITETTURA.md](./ARCHITETTURA.md). Per il frontend c'è [FRONTEND.md](./FRONTEND.md). Se una riga di Python non si capisce (liste compresse, `x or []`, numpy…) parti da [GUIDA-PYTHON.md](./GUIDA-PYTHON.md).
 
 ## Come si avvia
 

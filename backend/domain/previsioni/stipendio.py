@@ -27,6 +27,13 @@ DEVIAZIONE_MINIMA = 0.03  # 3% dello stipendio, se i mesi sono troppo pochi o tu
 
 
 def serie_stipendio(entrate: list[dict]) -> dict[int, float]:
+    """Quanto stipendio è entrato in ogni mese.
+
+    Riceve: le righe della scheda Entrate.
+    Restituisce: {indice del mese: somma delle entrate con categoria "Stipendio"}.
+    Le altre categorie (interessi, regali) sono ignorate.
+    Esempio: due righe "Stipendio" di ottobre 2026 da 1.500 e 100 → {24321: 1600.0}.
+    """
     per_mese: dict[int, float] = {}
     for e in entrate or []:
         if str(e.get("categoria") or "").strip().lower() != CATEGORIA_STIPENDIO.lower():
@@ -38,7 +45,14 @@ def serie_stipendio(entrate: list[dict]) -> dict[int, float]:
 
 
 def periodo(ultimo_mese: int) -> dict | None:
-    """L'ultimo cambio di lavoro il cui primo stipendio è entro `ultimo_mese`."""
+    """Il lavoro di adesso: l'ultimo cambio di CAMBI_STIPENDIO (models/previsioni.py)
+    che ha già portato almeno uno stipendio entro `ultimo_mese`.
+
+    Restituisce: il cambio con in più "evento" (mese del cambio) e "dal" (mese
+    del primo stipendio, quello dopo); None se non ce n'è nessuno.
+    Esempio: con l'assunzione a marzo 2026, a ottobre 2026 → periodo
+    "Assunzione", dal aprile 2026, con tredicesima e quattordicesima.
+    """
     attivo = None
     for c in CAMBI_STIPENDIO:
         evento = mese_da_testo(c["mese"])
@@ -48,7 +62,15 @@ def periodo(ultimo_mese: int) -> dict | None:
 
 
 def quota_extra(mese: int, inizio: int) -> tuple[str, float] | None:
-    """Nome e frazione della mensilità extra pagata in `mese`, per chi ha iniziato in `inizio`."""
+    """Se in `mese` arriva una mensilità extra, quale e per che parte.
+
+    Riceve: il mese da controllare e il mese in cui è iniziato il lavoro.
+    Restituisce: (nome, frazione maturata) oppure None se in quel mese non c'è.
+    Il primo anno conta solo i mesi lavorati.
+    Esempi, assunto a marzo 2026:
+      dicembre 2026 → ("Tredicesima", 10/12)  (marzo-dicembre)
+      novembre 2026 → None
+    """
     regola = MENSILITA_EXTRA.get(mese % 12 + 1)
     if not regola:
         return None
@@ -58,7 +80,20 @@ def quota_extra(mese: int, inizio: int) -> tuple[str, float] | None:
 
 
 def prevedi_stipendio(stipendi: dict[int, float], ultimo_chiuso: int, mesi_futuri: list[int]) -> dict | None:
-    """Stipendio dei mesi futuri, o None se il periodo attuale ha troppo pochi mesi."""
+    """Stipendio dei mesi futuri.
+
+    Riceve: gli stipendi passati (serie_stipendio), l'ultimo mese chiuso e i
+    mesi da stimare.
+    Restituisce un dizionario con:
+      centrale    stipendio previsto per ogni mese futuro (con le extra nei loro mesi)
+      pieno       lo stesso con le extra intere, come dal secondo anno in poi
+      deviazione  quanto ballano di solito gli stipendi normali
+      tipico      lo stipendio normale (mediana del periodo)
+      resa        che parte della mensilità extra arriva davvero in busta (0,74 = 74%)
+      periodo     nome del lavoro, da quando, quanti mesi usati
+      extra       l'elenco delle mensilità extra previste
+    Oppure None se il lavoro attuale ha troppo pochi mesi per fidarsi.
+    """
     p = periodo(ultimo_chiuso)
     if not p:
         return None

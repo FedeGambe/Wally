@@ -38,6 +38,11 @@ MESI_PROVA = 12
 
 
 def mesi_chiusi(risparmio: list[dict], oggi: date) -> list[dict]:
+    """Le righe di Risparmio pulite, senza il mese in corso.
+
+    Il mese in corso è a metà: sembrerebbe un mese con poche spese e
+    falserebbe la media.
+    """
     corrente = indice_mese(oggi.year, oggi.month)
     return [r for r in serie_risparmio(risparmio, oggi) if r["mese"] < corrente]
 
@@ -98,6 +103,22 @@ def _prova(mesi, serie, stipendi, voci) -> dict:
 def previsioni_flussi(risparmio: list[dict], oggi: date, uscite: list[dict] | None = None,
                       entrate: list[dict] | None = None, orizzonte: int = 12,
                       preset_uscite: list[dict] | None = None) -> dict:
+    """Entrate, spese e avanzo dei prossimi 12 mesi (scheda "Prossimi 12 mesi").
+
+    Riceve: le righe di Risparmio, la data di oggi, uscite ed entrate (per
+    stipendio, voci straordinarie e primarie frequenti) e i preset delle uscite.
+    Restituisce un dizionario con:
+      previsti         per ogni mese futuro: entrate, spese, avanzo e avanzo
+                       accumulato (basso, centrale, alto), più la parte di
+                       primarie frequenti e i weekend del mese
+      storico          gli ultimi 24 mesi veri, senza le voci straordinarie
+      stipendio        lavoro attuale, stipendio tipico, mensilità extra
+      straordinarie    le voci tolte dalle stime
+      affidabilita     di quanto sbagliava sul mese dopo, provata sul passato
+      _avanzo          numeri per la proiezione del patrimonio (tolto prima di
+                       rispondere all'app)
+    Oppure {"disponibile": False, ...} con meno di 6 mesi chiusi.
+    """
     righe = mesi_chiusi(risparmio, oggi)
     if len(righe) < MESI_MINIMI:
         return {"disponibile": False, "motivo": f"Servono almeno {MESI_MINIMI} mesi chiusi nella scheda Risparmio."}
@@ -118,6 +139,12 @@ def previsioni_flussi(risparmio: list[dict], oggi: date, uscite: list[dict] | No
     avanzo_c = entrate_c - spese_c
 
     def fascia(centrale, dev, minimo=None, scala=1.0):
+        """Una stima pronta per l'app: centrale ± 1,28 deviazioni (8 volte su 10).
+
+        `minimo` taglia il basso (le spese non vanno sotto zero); `scala` allarga
+        la fascia per l'avanzo accumulato, che è più incerto più si va avanti.
+        Esempio: fascia(800, 100) → {"centrale": 800, "basso": 671.84, "alto": 928.16}.
+        """
         basso = centrale - Z_80 * dev * scala
         return {"centrale": round(float(centrale), 2),
                 "basso": round(float(basso if minimo is None else max(basso, minimo)), 2),

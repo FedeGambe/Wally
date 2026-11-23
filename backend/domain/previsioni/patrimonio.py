@@ -68,6 +68,10 @@ class Ipotesi:
 
     @classmethod
     def da_dizionario(cls, d: dict | None) -> "Ipotesi":
+        """Le ipotesi scelte nell'app (cursori di "E se…") lette dal JSON.
+
+        I campi mancanti restano ai valori di default; gli anni stanno fra 1 e 40.
+        """
         d = d or {}
         ipotesi = cls()
         ipotesi.anni = int(min(ANNI_MASSIMI, max(1, numero(d.get("anni")) or ipotesi.anni)))
@@ -86,6 +90,7 @@ class Ipotesi:
         return ipotesi
 
     def come_dizionario(self) -> dict:
+        """Il contrario di da_dizionario: le ipotesi come JSON per l'app."""
         return {"anni": self.anni, "risparmioExtra": self.risparmio_extra, "pacExtra": self.pac_extra,
                 "crescitaEntrate": self.crescita_entrate, "inflazione": self.inflazione, "obiettivo": self.obiettivo,
                 "includiFondoPensione": self.includi_fondo,
@@ -94,12 +99,25 @@ class Ipotesi:
 
 def _e_fondo(nome: str) -> bool:
     # "Fondo Unicredit" è il fondo pensione (valore di mercato).
+    """True se il conto della scheda Patrimonio è il fondo pensione.
+
+    Esempio: "Fondo Unicredit" → True; "Conto Santander" → False.
+    """
     return "fondo" in nome.lower()
 
 
 # --- 1. Storico ----------------------------------------------------------------
 
 def storico(risparmio: list[dict], rendimenti: list[dict], fondo_pensione: list[dict], oggi: date) -> dict:
+    """Da dove è venuta la crescita del patrimonio, mese per mese.
+
+    Riceve: le schede Risparmio, Rendimenti e Fondo Pensione, e la data di oggi.
+    Restituisce:
+      mesi       per ogni mese: risparmio rimasto sui conti, versamenti negli
+                 investimenti, rendimento di mercato, fondo pensione, i loro
+                 totali accumulati e il tasso di risparmio (del mese e sui 12 mesi)
+      ultimi12   le stesse quattro voci sommate sugli ultimi 12 mesi chiusi
+    """
     righe = serie_risparmio(risparmio, oggi)
     rend = serie_rendimenti(rendimenti, oggi)
     fondo = serie_fondo_pensione(fondo_pensione, oggi)
@@ -135,6 +153,16 @@ def storico(risparmio: list[dict], rendimenti: list[dict], fondo_pensione: list[
 # --- 2. Oggi ---------------------------------------------------------------------
 
 def situazione(patrimonio: list[dict], capitale_impegnato: list[dict], spese_medie: float) -> dict:
+    """Il patrimonio di oggi diviso in parti, e quanto è solido.
+
+    Riceve: i conti della scheda Patrimonio, il capitale impegnato e le spese
+    medie di un mese.
+    Restituisce: totale, liquidità, investimenti, fondo pensione, impegnato,
+    liquidità libera e due indicatori:
+      mesiAutonomia  per quanti mesi la liquidità libera copre le spese
+      anniDiSpese    quanti anni di spese vale tutto il patrimonio
+    Esempio: 12.000 € liberi e 1.000 € di spese al mese → 12 mesi di autonomia.
+    """
     totale = investimenti = fondo = 0.0
     for c in patrimonio or []:
         nome = str(c.get("categoria") or "")
@@ -180,6 +208,24 @@ def _rendimenti_mensili(r: Rendimento, rng, forma) -> np.ndarray:
 def proiezione(oggi_patrimonio: dict, pesi: dict[str, float], pac_mensile: float, fondo_mensile: float,
                previsione_avanzo: dict | None, entrate_medie: float, avanzo_medio: float,
                ipotesi: Ipotesi, primo_mese: int) -> dict:
+    """Dove può arrivare il patrimonio, simulando 2.000 futuri possibili.
+
+    Riceve: il patrimonio di oggi (situazione), i pesi di azioni/obbligazioni/
+    monetari, il PAC e il versamento al fondo di ogni mese, l'avanzo previsto
+    da flussi.py, le ipotesi dell'app e il primo mese da simulare.
+    Ogni mese, in ogni futuro:
+      1. ai conti si aggiunge l'avanzo del mese (con un po' di caso);
+      2. dai conti parte il PAC, solo fin dove bastano i soldi;
+      3. gli investimenti crescono di un rendimento casuale + il PAC;
+      4. se i conti vanno in rosso si vende un po' di investimenti;
+      5. il fondo pensione cresce del suo rendimento + il versamento.
+    Restituisce:
+      punti           ogni 3 mesi: 10°, 25°, 50°, 75° e 90° percentile dei
+                      futuri, quanto sarebbe solo con i versamenti, e come si
+                      divide fra liquidità, investimenti e fondo
+      pacNonCoperto   probabilità e mese in cui i conti non bastano più per il PAC
+      obiettivo       (se scelto) probabilità di raggiungerlo anno per anno
+    """
     mesi = ipotesi.anni * 12
     rng = np.random.default_rng(SEME)
     fondo_oggi = oggi_patrimonio["fondoPensione"] if ipotesi.includi_fondo else 0.0
@@ -283,10 +329,22 @@ def _ripartizione(medie: tuple[float, float, float], totale: float) -> dict:
 
 
 def anno_e_mese_fine(primo_mese: int, anni: int) -> int:
+    """L'anno in cui finisce l'anno numero `anni` della simulazione.
+
+    Esempio: si parte a dicembre 2026, anni=1 → 2027 (l'ultimo mese è novembre 2027).
+    """
     return (primo_mese + anni * 12 - 1) // 12
 
 
 def previsioni_patrimonio(dati: dict, oggi: date, ipotesi: Ipotesi, flussi: dict) -> dict:
+    """Tutta la scheda "Patrimonio" di Previsioni: storico, oggi, proiezione.
+
+    Riceve: i dati dell'app, la data di oggi, le ipotesi scelte e il risultato
+    di flussi.py (per l'avanzo dei prossimi 12 mesi).
+    Prima prepara i numeri di partenza (spese medie senza voci straordinarie,
+    pesi degli investimenti, PAC dai preset, versamento medio al fondo), poi
+    chiama storico, situazione e proiezione.
+    """
     righe = serie_risparmio(dati.get("risparmio"), oggi)
     corrente = indice_mese(oggi.year, oggi.month)
     chiusi = [r for r in righe if r["mese"] < corrente][-12:]

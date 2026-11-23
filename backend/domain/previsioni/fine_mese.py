@@ -56,6 +56,12 @@ def stipendio_mediano(entrate: list[dict], corrente: int) -> float | None:
 
 
 def _uscite_per_mese(uscite: list[dict]) -> dict[int, list[dict]]:
+    """Le uscite divise per mese, con solo quello che serve alla stima.
+
+    Restituisce: {indice del mese: [uscite]}, ogni uscita con giorno del mese,
+    giorno della settimana (0 = lunedì), categoria, importo, primaria,
+    descrizione e se è straordinaria.
+    """
     per_mese: dict[int, list[dict]] = {}
     straordinarie = uscite_straordinarie(uscite or [])
     for i, t in enumerate(uscite or []):
@@ -75,6 +81,10 @@ def _uscite_per_mese(uscite: list[dict]) -> dict[int, list[dict]]:
 
 
 def _soglia(soglie: list[dict], nome: str) -> float:
+    """La percentuale della soglia `nome` ("Spese Primarie"…), o quella di default.
+
+    Esempio: senza soglie sul foglio, "Spese Primarie" → 35.0 (35% delle entrate).
+    """
     for s in soglie or []:
         if str(s.get("categoria", "")).strip().lower() == nome.lower():
             return numero(s.get("percentuale"))
@@ -82,12 +92,31 @@ def _soglia(soglie: list[dict], nome: str) -> float:
 
 
 def _quantili(valori: np.ndarray) -> dict:
+    """Basso, centrale e alto di un gruppo di scenari: 10°, 50° e 90° percentile.
+
+    Esempio: 12 scenari da 700 a 900 € → circa {"basso": 720, "centrale": 800,
+    "alto": 880}: 8 volte su 10 il mese chiude fra 720 e 880.
+    """
     basso, centrale, alto = np.percentile(valori, [10, 50, 90])
     return {"basso": round(float(basso), 2), "centrale": round(float(centrale), 2), "alto": round(float(alto), 2)}
 
 
 def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate: list[dict], soglie: list[dict],
                          oggi: date, entrate_previste: float | None = None) -> dict:
+    """Come chiuderà il mese in corso (scheda "Questo mese" di Previsioni).
+
+    Riceve: uscite, preset delle uscite ricorrenti, entrate, soglie, la data di
+    oggi e (se non c'è nessuno stipendio passato) le entrate stimate da flussi.py.
+    Restituisce un dizionario con, fra l'altro:
+      spesoFinora      quanto è già uscito (primarie, secondarie, totale)
+      fissiInArrivo    i preset non ancora registrati
+      stima            spesa a fine mese: basso, centrale, alto
+      soglie           ogni soglia in euro e la probabilità di superarla
+      curve            la stima giorno per giorno, per il grafico
+      affidabilita     di quanto sbagliava, provata sui mesi passati
+      perGiornoSettimana  le primarie stimate sui giorni della settimana
+    Oppure {"disponibile": False, "motivo": ...} se mancano i dati.
+    """
     corrente = indice_mese(oggi.year, oggi.month)
     giorno = oggi.day
     giorni_mese = calendar.monthrange(oggi.year, oggi.month)[1]
@@ -114,6 +143,9 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
 
     # --- Scenari dai mesi passati: spesa variabile dopo il giorno di oggi -----
     def variabili(mese: int, primaria: bool | None = None) -> list[dict]:
+        """Le uscite "variabili" di un mese passato: senza preset né straordinarie.
+        `primaria`: True solo primarie, False solo secondarie, None tutte.
+        """
         return [t for t in per_mese[mese]
                 if t["descrizione"].lower() not in preset and not t["straordinaria"]
                 and (primaria is None or t["primaria"] == primaria)]
@@ -122,6 +154,9 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
     frequenti = categorie_frequenti(primarie_variabili(uscite, preset_uscite), passati)
 
     def per_settimana(t: dict) -> bool:
+        """True se l'uscita va stimata sul giorno della settimana
+        (primaria di una categoria frequente, es. il rifornimento).
+        """
         return t["primaria"] and t["categoria"] in frequenti
 
     # Per ogni mese passato: spesa media di ogni giorno della settimana (lunedì…
@@ -149,6 +184,12 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
         return totale
 
     def variabile_dopo(mese: int, da_giorno: int, primaria: bool | None = None) -> float:
+        """Spesa variabile da dopo `da_giorno` a fine mese, nello scenario
+        del mese passato `mese`.
+
+        Esempio: oggi è il 23 e lo scenario è ottobre 2025 → quanto si stima di
+        spendere dal 24 a fine mese se questo mese andasse come quello.
+        """
         return variabile_tra(mese, da_giorno, giorni_mese, primaria)
 
     var_prim = np.array([variabile_dopo(m, giorno, True) for m in passati])
@@ -185,7 +226,13 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
 
     # --- Curva giorno per giorno (totale, primarie, secondarie) ---------------
     def curva_di(primaria: bool | None) -> list[dict]:
+        """La stima giorno per giorno per il grafico.
+
+        Fino a oggi: "speso" (quello vero). Da oggi in poi: basso, centrale e alto
+        di già registrato + fissi arrivati entro quel giorno + variabile stimata.
+        """
         def del_tipo(x) -> bool:
+            """True se l'uscita è del tipo mostrato (primarie, secondarie o tutte)."""
             return primaria is None or x["primaria"] == primaria
         curva = []
         gia = 0.0

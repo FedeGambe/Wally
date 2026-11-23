@@ -19,6 +19,13 @@ from backend.domain.previsioni.patrimonio import Ipotesi, previsioni_patrimonio
 
 
 def calcola_previsioni(dati: dict, oggi: date, ipotesi: dict | None = None) -> dict:
+    """Tutte le previsioni della pagina, in una chiamata: la usa la rotta /api/previsioni.
+
+    Riceve: i dati che l'app ha in memoria, la data di oggi e le ipotesi dei cursori.
+    Restituisce: {"oggi", "fineMese", "flussi", "patrimonio", "auto"}.
+    L'ordine conta: i flussi servono sia alla fine del mese (entrate stimate)
+    sia al patrimonio (avanzo dei prossimi 12 mesi).
+    """
     flussi = previsioni_flussi(dati.get("risparmio"), oggi, dati.get("uscite"), dati.get("entrate"),
                                preset_uscite=dati.get("presetUscite"))
     entrate_previste = flussi["previsti"][0]["entrate"]["centrale"] if flussi["disponibile"] else None

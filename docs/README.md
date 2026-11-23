@@ -9,6 +9,7 @@ Questa cartella spiega come è fatto il progetto, per chi lo deve mantenere senz
 | [ARCHITETTURA.md](./ARCHITETTURA.md) | Come si muovono i dati: foglio Google → backend → cache locale → schermo, e la sincronizzazione con le banche. Da leggere per primo |
 | [FRONTEND.md](./FRONTEND.md) | Guida al frontend (React): ogni cartella e ogni file, a cosa serve |
 | [BACKEND.md](./BACKEND.md) | Guida al backend (Python + FastAPI): ogni rotta, cartella e file, a cosa serve |
+| [GUIDA-PYTHON.md](./GUIDA-PYTHON.md) | La sintassi Python usata nel backend (dizionari, liste compresse, `x or []`, numpy, decoratori…), con esempi presi dal codice. Parti da qui se una riga del backend non si capisce |
 | [GUIDA-REACT-TS.md](./GUIDA-REACT-TS.md) | I concetti base di React e TypeScript usati nel progetto, con esempi presi dal codice. Parti da qui se "componente", "hook" o "props" non ti dicono niente |
 | [PRODUCT.md](./PRODUCT.md) | A chi serve Wally e con quale tono parla |
 | [DESIGN.md](./DESIGN.md) | Il sistema grafico: colori, caratteri, componenti, regole |

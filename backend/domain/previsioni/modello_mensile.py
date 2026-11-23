@@ -39,6 +39,10 @@ class Modello:
     stagionalita: np.ndarray  # 12 valori, indice = mese di calendario - 1
 
     def prevedi(self, mesi: list[int]) -> np.ndarray:
+        """Il valore previsto per ogni mese della lista: livello + effetto di quel mese.
+
+        Esempio: livello 800 € e dicembre di solito +150 € → dicembre 950 €.
+        """
         return np.array([self.livello + self.stagionalita[m % 12] for m in mesi])
 
 
