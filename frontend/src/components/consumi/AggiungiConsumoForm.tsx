@@ -7,6 +7,7 @@ import { saveToLocalStorage, Transaction } from '../../data/mockData';
 import { iconPerMacroCategoria } from '../../data/datiBase';
 import { MESI_ITALIANI } from '../../utils/date';
 import { formatEuro } from '../../utils/format';
+import { parseNumeroInserito, pulisciNumeroInserito } from '../../utils/numeri';
 import AmountHero from '../AmountHero';
 import DropdownMenu from '../DropdownMenu';
 import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, type ContantiCounts } from '../ContantiBreakdown';
@@ -23,6 +24,10 @@ const toInputDate = (d: Date) => {
 
 interface AggiungiConsumoFormProps {
   onSaved: () => void;
+  /** Aperto dopo aver salvato un'uscita Rifornimento senza consumo: data
+   *  ("gg/mm/aaaa") e costo arrivano dall'uscita, si chiedono solo i dati del
+   *  pieno e dopo il salvataggio non si propone di nuovo l'uscita. */
+  daUscita?: { data: string; costo: number };
 }
 
 /**
@@ -36,7 +41,19 @@ interface AggiungiConsumoFormProps {
  * un push precedente è fallito). Anche "Efficienza" (colonna P) è una formula
  * del foglio e segue la stessa strada.
  */
-export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProps) {
+/** "gg/mm/aaaa" → "aaaa-mm-gg" per l'input data. */
+const daDataFoglio = (s: string) => {
+  const [d, m, y] = s.split('/');
+  return y && m && d ? `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}` : toInputDate(new Date());
+};
+
+// Litri, €/Lt e km si scrivono come testo (non type="number"): così il punto e
+// la virgola valgono entrambi come decimale e i km con decimali non vengono
+// rifiutati dal browser. Li legge parseNumeroInserito.
+const num = (s: string) => parseNumeroInserito(s);
+const arrotonda = (n: number, cifre: number) => String(Number(n.toFixed(cifre))).replace('.', ',');
+
+export default function AggiungiConsumoForm({ onSaved, daUscita }: AggiungiConsumoFormProps) {
   const dataId = useId();
   const costoId = useId();
   const litriId = useId();
@@ -47,8 +64,8 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   const { conti } = useDatiBase();
   const { appendAndPush, isSaving, error } = useSaveAndPush();
 
-  const [dataStr, setDataStr] = useState(() => toInputDate(new Date()));
-  const [costo, setCosto] = useState('');
+  const [dataStr, setDataStr] = useState(() => daUscita ? daDataFoglio(daUscita.data) : toInputDate(new Date()));
+  const [costo, setCosto] = useState(daUscita ? String(daUscita.costo) : '');
   const [quantitaLitri, setQuantitaLitri] = useState('');
   const [prezzoAlLitro, setPrezzoAlLitro] = useState('');
   const [kmFinali, setKmFinali] = useState('');
@@ -72,28 +89,34 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
   const ricalcolaDaCosto = (costoStr: string, guida: 'litri' | 'prezzo' | null, valoreGuida: string) => {
     const c = Number(costoStr);
     if (!c || !guida || !valoreGuida) return;
-    const v = Number(valoreGuida);
-    if (!v || v <= 0) return;
-    if (guida === 'litri') setPrezzoAlLitro((c / v).toFixed(3));
-    else setQuantitaLitri((c / v).toFixed(2));
+    const v = num(valoreGuida);
+    if (!(v > 0)) return;
+    if (guida === 'litri') setPrezzoAlLitro(arrotonda(c / v, 3));
+    else setQuantitaLitri(arrotonda(c / v, 2));
   };
 
   const handleCostoChange = (v: string) => {
     setCosto(v);
     ricalcolaDaCosto(v, campoGuida, campoGuida === 'litri' ? quantitaLitri : prezzoAlLitro);
   };
-  const handleLitriChange = (v: string) => {
+  const handleLitriChange = (raw: string) => {
+    const v = pulisciNumeroInserito(raw);
     setQuantitaLitri(v);
     setCampoGuida('litri');
     ricalcolaDaCosto(costo, 'litri', v);
   };
-  const handlePrezzoChange = (v: string) => {
+  const handlePrezzoChange = (raw: string) => {
+    const v = pulisciNumeroInserito(raw);
     setPrezzoAlLitro(v);
     setCampoGuida('prezzo');
     ricalcolaDaCosto(costo, 'prezzo', v);
   };
 
-  const isValid = Boolean(dataStr && Number(costo) > 0 && Number(quantitaLitri) > 0 && Number(prezzoAlLitro) > 0 && Number(kmFinali) > 0);
+  // Ultimo contachilometri registrato: suggerito come segnaposto dei Km finali.
+  const ultimiKm = [...data.analisiConsumi].reverse().map(r => Number((r as any)?.kmFinali) || 0).find(k => k > 0);
+  const kmAlLitroNum = num(kmAlLitroAuto);
+  const isValid = Boolean(dataStr && Number(costo) > 0 && num(quantitaLitri) > 0 && num(prezzoAlLitro) > 0 && num(kmFinali) > 0
+    && (!kmAlLitroAuto || kmAlLitroNum > 0));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,17 +126,20 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
     const nuovoRecord: Record<string, any> = {
       data: `${d}/${m}/${y}`,
       costo: Number(costo),
-      quantitaLitri: Number(quantitaLitri),
-      prezzoAlLitro: Number(prezzoAlLitro),
-      kmFinali: Number(kmFinali)
+      quantitaLitri: num(quantitaLitri),
+      prezzoAlLitro: num(prezzoAlLitro),
+      kmFinali: num(kmFinali)
     };
     // Opzionale: se non compilato, non scriviamo 0 (un dato falso) ma lasciamo la cella vuota.
-    if (kmAlLitroAuto) nuovoRecord.kmAlLitroAuto = Number(kmAlLitroAuto);
+    if (kmAlLitroAuto) nuovoRecord.kmAlLitroAuto = kmAlLitroNum;
 
     const ok = await appendAndPush(() => {
       saveToLocalStorage({ analisiConsumi: [...data.analisiConsumi, nuovoRecord] as any });
     }, [{ tabTitle: 'Analisi consumi', record: nuovoRecord }]);
-    if (ok) setConsumoSalvato({ data: nuovoRecord.data, costo: nuovoRecord.costo });
+    if (!ok) return;
+    // Arrivando da un'uscita, l'uscita c'è già: si chiude e basta.
+    if (daUscita) onSaved();
+    else setConsumoSalvato({ data: nuovoRecord.data, costo: nuovoRecord.costo });
   };
 
   const handleAggiungiUscita = async () => {
@@ -213,40 +239,51 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <AmountHero
-        id={costoId}
-        label="Costo"
-        value={costo}
-        onChange={handleCostoChange}
-      />
+      {daUscita ? (
+        <div className="rounded-2xl bg-canvas dark:bg-white/5 p-4">
+          <p className="text-sm font-bold text-ink dark:text-slate-100">Uscita salvata.</p>
+          <p className="text-sm text-ink-soft dark:text-slate-300 mt-1">
+            In Analisi Consumi manca il rifornimento di {formatEuro(daUscita.costo)} del {daUscita.data}: aggiungi i dati del pieno.
+          </p>
+        </div>
+      ) : (
+        <>
+          <AmountHero
+            id={costoId}
+            label="Costo"
+            value={costo}
+            onChange={handleCostoChange}
+          />
 
-      <div>
-        <label htmlFor={dataId} className={labelClass}>Data</label>
-        <input id={dataId} type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
-      </div>
+          <div>
+            <label htmlFor={dataId} className={labelClass}>Data</label>
+            <input id={dataId} type="date" value={dataStr} onChange={e => setDataStr(e.target.value)} className={dateInputClass} required />
+          </div>
+        </>
+      )}
 
       <div>
         <p className="text-2xs text-ink-soft mb-1.5">Basta compilare uno tra Litri e €/Lt: l'altro si calcola dal Costo.</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor={litriId} className={labelClass}>Quantità (Lt)</label>
-            <input id={litriId} type="number" step="0.01" min="0.01" value={quantitaLitri} onChange={e => handleLitriChange(e.target.value)} placeholder="0.00" className={inputClass} required />
+            <input id={litriId} type="text" inputMode="decimal" autoComplete="off" value={quantitaLitri} onChange={e => handleLitriChange(e.target.value)} placeholder="0,00" className={inputClass} required />
           </div>
           <div>
             <label htmlFor={prezzoId} className={labelClass}>€/Lt</label>
-            <input id={prezzoId} type="number" step="0.001" min="0.001" value={prezzoAlLitro} onChange={e => handlePrezzoChange(e.target.value)} placeholder="0.000" className={inputClass} required />
+            <input id={prezzoId} type="text" inputMode="decimal" autoComplete="off" value={prezzoAlLitro} onChange={e => handlePrezzoChange(e.target.value)} placeholder="0,000" className={inputClass} required />
           </div>
         </div>
       </div>
 
       <div>
         <label htmlFor={kmFinaliId} className={labelClass}>Km finali</label>
-        <input id={kmFinaliId} type="number" step="1" min="0" value={kmFinali} onChange={e => setKmFinali(e.target.value)} placeholder="0" className={inputClass} required />
+        <input id={kmFinaliId} type="text" inputMode="decimal" autoComplete="off" value={kmFinali} onChange={e => setKmFinali(pulisciNumeroInserito(e.target.value))} placeholder={ultimiKm ? `ultimo: ${ultimiKm.toLocaleString('it-IT')}` : '0'} className={inputClass} required />
       </div>
 
       <div>
         <label htmlFor={kmAlLitroId} className={labelClass}>Km/lt (bordo auto)</label>
-        <input id={kmAlLitroId} type="number" step="0.1" min="0" value={kmAlLitroAuto} onChange={e => setKmAlLitroAuto(e.target.value)} placeholder="opzionale" className={inputClass} />
+        <input id={kmAlLitroId} type="text" inputMode="decimal" autoComplete="off" value={kmAlLitroAuto} onChange={e => setKmAlLitroAuto(pulisciNumeroInserito(e.target.value))} placeholder="opzionale" className={inputClass} />
       </div>
 
       <p className="text-2xs text-ink-soft leading-relaxed">
@@ -256,13 +293,25 @@ export default function AggiungiConsumoForm({ onSaved }: AggiungiConsumoFormProp
 
       {error && <p className="text-xs text-down font-semibold">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={!isValid || isSaving}
-        className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-      >
-        {isSaving ? 'Salvataggio...' : 'Aggiungi Consumo'}
-      </button>
+      <div className={daUscita ? 'grid grid-cols-2 gap-3' : ''}>
+        {daUscita && (
+          <button
+            type="button"
+            onClick={onSaved}
+            disabled={isSaving}
+            className="py-3 bg-canvas dark:bg-white/10 text-ink dark:text-slate-200 font-bold text-sm rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+          >
+            No, grazie
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={!isValid || isSaving}
+          className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {isSaving ? 'Salvataggio...' : 'Aggiungi Consumo'}
+        </button>
+      </div>
     </form>
   );
 }

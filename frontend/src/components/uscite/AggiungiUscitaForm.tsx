@@ -11,6 +11,8 @@ import { creaSuggeritore } from '../../utils/suggerisciCategoria';
 import DropdownMenu from '../DropdownMenu';
 import AmountHero from '../AmountHero';
 import ContantiBreakdown, { EMPTY_CONTANTI_COUNTS, contantiTotal, type ContantiCounts } from '../ContantiBreakdown';
+import AggiungiConsumoForm from '../consumi/AggiungiConsumoForm';
+import { consumoGiaRegistrato, isUscitaRifornimento } from '../../utils/rifornimenti';
 
 const toInputDate = (d: Date) => {
   const y = d.getFullYear();
@@ -39,6 +41,11 @@ interface AggiungiUscitaFormProps {
  * altrimenti da importo, conto e giorno (i movimenti Trade Republic arrivano
  * senza causale). Aperto da un movimento bancario, la prima proposta è già
  * selezionata; inserendo a mano si sceglie toccandola.
+ *
+ * Un'uscita Rifornimento senza il suo consumo in Analisi Consumi (stesso
+ * giorno, o pochi giorni dopo con lo stesso costo: utils/rifornimenti.ts) non
+ * chiude il popup: subito dopo si chiedono i dati del pieno che mancano
+ * (litri o €/Lt, km finali, km/lt di bordo), con data e costo dell'uscita.
  */
 export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscitaFormProps) {
   const dataId = useId();
@@ -59,6 +66,8 @@ export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscita
   const [presetSelezionatoId, setPresetSelezionatoId] = useState<string | null>(null);
   const [ancheTrasferimento, setAncheTrasferimento] = useState(false);
   const [contantiCounts, setContantiCounts] = useState<ContantiCounts>(EMPTY_CONTANTI_COUNTS);
+  // Uscita Rifornimento appena salvata il cui consumo manca: data "gg/mm/aaaa" e costo.
+  const [consumoMancante, setConsumoMancante] = useState<{ data: string; costo: number } | null>(null);
 
   // L'Importo deve corrispondere sempre alla composizione di banconote scelta
   // (non ha senso registrare un'uscita in contanti per un importo diverso da
@@ -185,7 +194,13 @@ export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscita
         saveToLocalStorage({ trasferimenti: [...data.trasferimenti, nuovoTrasferimento] });
       }
     }, appends, contantiDelta && Object.keys(contantiDelta).length > 0 ? contantiDelta : undefined);
-    if (ok) onSaved();
+    if (!ok) return;
+    if (isUscitaRifornimento(categoria)
+      && !consumoGiaRegistrato(data.analisiConsumi as any[], nuovaTransazione.data, nuovaTransazione.importo)) {
+      setConsumoMancante({ data: nuovaTransazione.data, costo: nuovaTransazione.importo });
+      return;
+    }
+    onSaved();
   };
 
   const inputClass = "w-full px-3 py-2.5 rounded-xl text-sm bg-canvas dark:bg-white/5 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-orange-500";
@@ -194,6 +209,10 @@ export default function AggiungiUscitaForm({ onSaved, iniziale }: AggiungiUscita
   // (funziona su Chrome/Edge/Safari, gli unici che espongono questo pseudo-elemento).
   const dateInputClass = `${inputClass} dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:dark:invert`;
   const labelClass = "block text-2xs font-bold text-ink-soft uppercase mb-1.5 tracking-wider";
+
+  if (consumoMancante) {
+    return <AggiungiConsumoForm daUscita={consumoMancante} onSaved={onSaved} />;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

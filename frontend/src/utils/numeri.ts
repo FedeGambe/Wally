@@ -53,3 +53,31 @@ export const parseLocalizedNumber = (val: any): number => {
   const parsed = parseFloat(str);
   return isNaN(parsed) ? 0 : parsed;
 };
+
+/**
+ * Numero digitato in un campo del form (litri, €/Lt, km...). Il separatore
+ * dei decimali può essere il punto o la virgola: "15,4" e "15.4" valgono
+ * 15,4. A differenza di parseLocalizedNumber un punto solo è SEMPRE il
+ * decimale ("1.789" €/Lt è 1,789, non 1789). Se ci sono entrambi, l'ultimo è
+ * il decimale e l'altro separa le migliaia ("52.080,5" → 52080,5).
+ * Campo vuoto o non numerico → NaN, così il form lo tratta come mancante.
+ *
+ * Esempio: parseNumeroInserito("52080,5") → 52080.5
+ */
+export const parseNumeroInserito = (val: string): number => {
+  let str = String(val ?? '').trim().replace(/\s/g, '');
+  if (!str) return NaN;
+  const ultimaVirgola = str.lastIndexOf(',');
+  const ultimoPunto = str.lastIndexOf('.');
+  if (ultimaVirgola !== -1 && ultimoPunto !== -1) {
+    const decimale = ultimaVirgola > ultimoPunto ? ',' : '.';
+    const migliaia = decimale === ',' ? /\./g : /,/g;
+    str = str.replace(migliaia, '');
+  }
+  str = str.replace(',', '.');
+  if (!/^-?\d*\.?\d+$|^-?\d+\.$/.test(str)) return NaN;
+  return parseFloat(str);
+};
+
+/** Lascia nel campo solo cifre, punto e virgola (niente lettere o spazi). */
+export const pulisciNumeroInserito = (val: string): string => val.replace(/[^0-9.,]/g, '');
