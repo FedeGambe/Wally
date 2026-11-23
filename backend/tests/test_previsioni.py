@@ -132,6 +132,30 @@ def test_fine_mese_preset_gia_registrato_non_conta_due_volte():
     assert r["stima"]["totale"]["centrale"] == 500
 
 
+def test_fine_mese_rifornimento_conta_i_weekend_rimasti():
+    """Il rifornimento (40 € ogni sabato) segue i sabati che restano, non il giorno del mese."""
+    uscite = []
+    for m in range(4, 10):
+        g = 1
+        while g <= 28:
+            if date(2026, m, g).weekday() == 5:
+                uscite.append({**uscita(g, m, 2026, 40, True, "Benzina"), "categoria": "Rifornimento"})
+            g += 1
+    oggi = date(2026, 10, 19)  # lunedì: restano i sabati 24 e 31
+    r = previsione_fine_mese(uscite, [], [], [], oggi)
+    assert r["stima"]["primarie"]["centrale"] == 80
+    assert r["perGiornoSettimana"] == [{"categoria": "Rifornimento", "giorni": ["sabato"], "quotaNeiGiorni": 1.0,
+                                        "giorniRestanti": 2}]
+    curva = {p["giorno"]: p["centrale"] for p in r["curve"]["primarie"] if "centrale" in p}
+    assert curva[23] == 0 and curva[24] == 40 and curva[30] == 40 and curva[31] == 80
+
+
+def test_fine_mese_preset_senza_badare_alle_maiuscole():
+    uscite = [uscita(5, m, 2026, 100) for m in range(6, 10)] + [uscita(1, 10, 2026, 500, True, "rata affitto")]
+    preset = [{"nome": "Rata Affitto", "importo": 500, "primaria": True, "giornoDelMese": 1}]
+    assert previsione_fine_mese(uscite, preset, [], [], OGGI)["fissiInArrivo"] == []
+
+
 def test_fine_mese_senza_storia():
     assert not previsione_fine_mese([uscita(1, 10, 2026, 5)], [], [], [], OGGI)["disponibile"]
 

@@ -24,6 +24,7 @@ Deciso il 31/10/2026. Pagina solo da computer con stime sui dati del foglio, cal
 3. Pagina `Previsioni.tsx` nella barra laterale (solo computer).
 4. Incognito (dati finti mandati al backend) e demo (`data/demoPrevisioni.json`, `npm run previsioni:demo`).
 5. D. Auto (`auto.py`, scheda Auto): km dei prossimi 12 mesi dal ritmo del contachilometri dell'ultimo anno, consumo dell'ultimo anno, prezzo della benzina a cursore (di partenza la mediana degli ultimi 4 rifornimenti), rate fisse dai preset. Provato sui dati veri: sui 90 giorni dopo sbaglia in media ~9%.
+6. A. Chiusura del mese, primarie frequenti per giorno della settimana: le categorie primarie con in media almeno 2 uscite al mese (il rifornimento, quasi tutto fra venerdì e domenica) si stimano dalla spesa media di ogni giorno della settimana per i giorni della settimana che restano nel mese, non più dal giorno del mese. Le altre voci (rate a giorno fisso, secondarie) restano sul giorno del mese. Provato sui dati veri (ott 2025 → ott 2026): errore sulle primarie -7% sul mese intero, -24% nella seconda metà (18,9 → 14,4 €); sulle secondarie nessun guadagno. I preset si riconoscono senza badare alle maiuscole.
 
 ## Prossimi passi possibili
 

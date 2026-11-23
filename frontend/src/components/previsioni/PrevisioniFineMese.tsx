@@ -13,6 +13,11 @@ const SOGLIA: Record<Tipo, string> = { totale: 'Spese Totali', primarie: 'Spese 
 
 /** A. Come chiude il mese in corso (backend/domain/previsioni/fine_mese.py).
  * Di default le spese totali; si possono vedere anche primarie e secondarie. */
+/** "venerdì, sabato e domenica" */
+function elenco(voci: string[]) {
+  return voci.length <= 1 ? (voci[0] ?? '') : `${voci.slice(0, -1).join(', ')} e ${voci[voci.length - 1]}`;
+}
+
 export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | ND }) {
   const [tipo, setTipo] = useState<Tipo>('totale');
   if (!fineMese.disponibile) {
@@ -31,6 +36,8 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
     fascia: p.basso !== undefined && p.alto !== undefined ? [p.basso, p.alto] : undefined,
   }));
   const ultimoGiorno = f.giorno >= f.giorniMese;
+  // Primarie stimate sui giorni della settimana rimasti (es. il rifornimento nel weekend).
+  const perSettimana = tipo === 'secondarie' ? [] : (f.perGiornoSettimana ?? []);
 
   return (
     <Riquadro
@@ -50,6 +57,16 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
               nota={fissi.length ? `${fissi.length} dai preset ricorrenti` : 'nessuna'}
             />
           </div>
+          {perSettimana.length > 0 && !ultimoGiorno && (
+            <ul className="space-y-1 text-2xs text-ink-soft">
+              {perSettimana.map(v => (
+                <li key={v.categoria}>
+                  <span className="font-semibold text-ink">{v.categoria}</span>: di solito {elenco(v.giorni)} ({percentuale(v.quotaNeiGiorni)} della spesa),
+                  {' '}{v.giorniRestanti === 0 ? 'nel mese non ne restano più' : v.giorniRestanti === 1 ? 'nel mese ne resta 1 di questi giorni' : `nel mese ne restano ${v.giorniRestanti} di questi giorni`}.
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="space-y-3">
             {soglia && [soglia].map(s => {
@@ -118,6 +135,7 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
 
       <Nota>
         Come è calcolata: già speso + uscite fisse dei preset non ancora registrate + quanto hai speso dopo il giorno {f.giorno} in ognuno degli ultimi {f.mesiUsati} mesi (ogni mese è uno scenario).
+        Le primarie frequenti (almeno 2 al mese, come il rifornimento) seguono invece il giorno della settimana: la spesa media di ogni lunedì, martedì… di quel mese per i lunedì, martedì… che restano in questo, così contano i weekend rimasti.
         Provata sugli stessi {f.affidabilita.mesiProvati} mesi, al giorno {f.giorno} sbagliava in media di {euroEsatto(f.affidabilita.erroreMedio)}.
       </Nota>
     </Riquadro>

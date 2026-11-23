@@ -653,7 +653,8 @@
    "erroreMedio": 72.52,
    "mesiProvati": 5
   },
-  "mesiUsati": 5
+  "mesiUsati": 5,
+  "perGiornoSettimana": []
  },
  "flussi": {
   "disponibile": true,

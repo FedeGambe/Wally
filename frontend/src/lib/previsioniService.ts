@@ -51,6 +51,9 @@ export interface FineMese {
   curve?: { totale: PuntoCurva[]; primarie: PuntoCurva[]; secondarie: PuntoCurva[] };
   affidabilita: { erroreMedio: number; mesiProvati: number };
   mesiUsati: number;
+  /** Primarie frequenti (es. Rifornimento) stimate per giorno della settimana: i giorni
+   *  in cui di solito si spende, che quota della spesa ci cade e quanti ne restano nel mese. */
+  perGiornoSettimana?: { categoria: string; giorni: string[]; quotaNeiGiorni: number; giorniRestanti: number }[];
 }
 
 export interface VoceStraordinaria {
