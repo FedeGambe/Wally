@@ -80,7 +80,7 @@ def _uscite_per_mese(uscite: list[dict]) -> dict[int, list[dict]]:
     return per_mese
 
 
-def _soglia(soglie: list[dict], nome: str) -> float:
+def percentuale_soglia(soglie: list[dict], nome: str) -> float:
     """La percentuale della soglia `nome` ("Spese Primarie"…), o quella di default.
 
     Esempio: senza soglie sul foglio, "Spese Primarie" → 35.0 (35% delle entrate).
@@ -210,7 +210,7 @@ def previsione_fine_mese(uscite: list[dict], preset_uscite: list[dict], entrate:
 
     # Le soglie valide nel mese in corso (possono cambiare nel tempo).
     soglie = soglie_del_mese(soglie, oggi.year, oggi.month)
-    perc = {nome: _soglia(soglie, nome) for nome in SOGLIE_PREDEFINITE}
+    perc = {nome: percentuale_soglia(soglie, nome) for nome in SOGLIE_PREDEFINITE}
     soglie_esito = []
     for nome, scenari, percentuale in (
         ("Spese Totali", finale, perc["Spese Primarie"] + perc["Spese Secondarie"]),

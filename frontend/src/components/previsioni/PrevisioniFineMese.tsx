@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { CalendarClock } from 'lucide-react';
-import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { FineMese, NonDisponibile as ND } from '../../lib/previsioniService';
 import {
   ASSE, COLORI, GRIGLIA, Legenda, NonDisponibile, Nota, Riquadro, Segmenti, Suggerimento, ValoreEsatto, ValoreStimato,
-  euroAsse, euroEsatto, euroStima, meseLungo, percentuale,
+  euroAsse, euroEsatto, euroIntero, euroStima, meseLungo, percentuale,
 } from './comune';
 
 type Tipo = 'totale' | 'primarie' | 'secondarie';
@@ -29,6 +29,7 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
   const soglia = f.soglie.find(s => s.nome === SOGLIA[tipo]);
   // Stipendio non ancora registrato: le soglie si misurano su entrate stimate (asterisco).
   const ast = f.entrateStimate ? '*' : '';
+  const limite = soglia?.limite ?? undefined;
 
   const scelta = <Segmenti voci={NOMI} attiva={tipo} onChange={setTipo} etichetta="Spese da mostrare" />;
   const curva = curvaTipo.map(p => ({
@@ -100,6 +101,7 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
             { nome: 'Speso', colore: COLORI.spese },
             { nome: 'Stima', colore: COLORI.stima, forma: 'tratteggio' },
             { nome: '8 volte su 10 qui dentro', colore: COLORI.fascia, forma: 'fascia' },
+            ...(limite !== undefined ? [{ nome: `Soglia ${euroIntero(limite)}${ast}`, colore: COLORI.soglia, forma: 'puntini' as const }] : []),
           ]} />
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -112,7 +114,13 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
                 </defs>
                 <CartesianGrid {...GRIGLIA} />
                 <XAxis dataKey="giorno" {...ASSE} interval="preserveStartEnd" minTickGap={12} />
-                <YAxis {...ASSE} width={60} tickFormatter={euroAsse} />
+                {/* l'asse arriva almeno alla soglia, così la linea si vede anche quando la spesa è lontana */}
+                <YAxis {...ASSE} width={60} tickFormatter={euroAsse}
+                  domain={[0, (max: number) => Math.max(max, (limite ?? 0) * 1.05)]} />
+                {limite !== undefined && (
+                  <ReferenceLine y={limite} stroke={COLORI.soglia} strokeWidth={2} strokeDasharray="3 3" ifOverflow="extendDomain"
+                    label={{ value: `soglia ${euroIntero(limite)}${ast}`, position: 'insideTopLeft', fill: COLORI.soglia, fontSize: 11 }} />
+                )}
                 <Tooltip content={({ active, payload }: any) => {
                   if (!active || !payload?.length) return null;
                   const p = payload[0].payload;
@@ -122,6 +130,7 @@ export default function PrevisioniFineMese({ fineMese }: { fineMese: FineMese | 
                     righe.push({ nome: 'Stima', valore: `~ ${euroStima(p.centrale)}`, colore: COLORI.stima });
                     righe.push({ nome: '8 volte su 10 tra', valore: `${euroStima(p.basso)} e ${euroStima(p.alto)}` });
                   }
+                  if (limite !== undefined) righe.push({ nome: 'Soglia', valore: `${euroIntero(limite)}${ast}`, colore: COLORI.soglia });
                   return <Suggerimento titolo={`Giorno ${p.giorno}`} righe={righe} />;
                 }} />
                 <Area type="monotone" dataKey="fascia" stroke="none" fill={COLORI.fascia} fillOpacity={0.15} connectNulls={false} activeDot={false} />

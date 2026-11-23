@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { CalendarClock, CalendarRange, Landmark, TrendingUp } from 'lucide-react';
 import EuroAmount from '../EuroAmount';
 import type { RispostaPrevisioni } from '../../lib/previsioniService';
-import { COLORI, euroEsatto, euroStima, meseBreve, meseLungo, percentuale } from './comune';
+import { COLORI, euroEsatto, euroIntero, euroStima, meseBreve, meseLungo, percentuale } from './comune';
 
 export type SchedaPrevisioni = 'mese' | 'prossimi' | 'patrimonio' | 'auto';
 
@@ -123,7 +123,14 @@ export default function PrevisioniKpiCards({ risposta, anni, scheda, setScheda }
     const max = Math.max(s.alto, limite ?? 0) * 1.08 || 1;
     return (
       <Card tono="spese" icona={CalendarClock} titolo={`Spese a fine ${meseLungo(fineMese.mese).split(' ')[0]}`} stima
-        valore={`~ ${euroStima(s.centrale)}`}
+        valore={<>
+          ~ {euroStima(s.centrale)}
+          {limite !== undefined && (
+            <span className="block mt-1.5 text-xs font-bold font-sans text-ink-soft dark:text-slate-400">
+              su soglia {euroIntero(limite)}{fineMese.entrateStimate ? '*' : ''}
+            </span>
+          )}
+        </>}
         barra={<BarraStima max={max} soglia={limite} tacca={s.centrale} tratti={[
           { da: 0, a: speso, colore: COLORI.spese, titolo: 'già speso' },
           // da quanto già speso alla fascia alta: dove arriverà la spesa (8 volte su 10 tra basso e alto)

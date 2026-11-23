@@ -67,7 +67,9 @@ export interface VoceStraordinaria {
 export interface Flussi {
   disponibile: true;
   /** Mesi passati SENZA le voci straordinarie (sono a parte, negli ultimi due campi). */
-  storico: { mese: string; entrate: number; spese: number; avanzo: number; straordinarieEntrate: number; straordinarieUscite: number }[];
+  storico: { mese: string; entrate: number; spese: number; avanzo: number; straordinarieEntrate: number; straordinarieUscite: number;
+    /** Soglia delle spese del mese: (primarie + secondarie) % delle entrate, con le soglie di allora. */
+    sogliaSpese?: number }[];
   stipendio: {
     periodo: { nome: string; dal: string; mesi: number };
     tipico: number;
@@ -81,6 +83,8 @@ export interface Flussi {
     primarieFrequenti?: number;
     /** Sabati del mese. */
     weekend?: number;
+    /** Soglia delle spese del mese, sulle entrate stimate. */
+    sogliaSpese?: number;
   }[];
   /** Le categorie primarie stimate per giorno della settimana (es. Rifornimento). */
   categorieFrequenti?: string[];

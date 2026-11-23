@@ -29,9 +29,11 @@ import numpy as np
 from backend.domain.previsioni.giorni_settimana import (categorie_frequenti, giorni_della_settimana,
                                                         primarie_variabili, spesa_del_mese, spesa_per_giorno)
 from backend.domain.previsioni.modello_mensile import Z_80, prevedi_serie
-from backend.domain.previsioni.serie import chiave_mese, indice_mese, serie_risparmio
+from backend.domain.previsioni.fine_mese import SOGLIE_PREDEFINITE, percentuale_soglia
+from backend.domain.previsioni.serie import anno_e_mese, chiave_mese, indice_mese, serie_risparmio
 from backend.domain.previsioni.stipendio import prevedi_stipendio, serie_stipendio
 from backend.domain.previsioni.straordinarie import straordinarie_per_mese
+from backend.domain.soglie import soglie_del_mese
 
 MESI_MINIMI = 6
 MESI_PROVA = 12
@@ -100,18 +102,36 @@ def _prova(mesi, serie, stipendi, voci) -> dict:
     return {k: {"erroreMedio": round(float(np.mean(v)), 2) if v else None, "mesiProvati": len(v)} for k, v in errori.items()}
 
 
+def soglia_spese(soglie: list[dict] | None, mese: int, entrate: float) -> float:
+    """Quanto si può spendere in un mese secondo le soglie: primarie + secondarie
+    in % delle entrate di quel mese, con le soglie che valevano allora.
+
+    Riceve: tutte le versioni delle soglie, il mese (indice_mese) e le entrate del mese.
+    Restituisce: la soglia delle spese totali in euro.
+    Esempio: primarie 23% e secondarie 22% da ottobre 2026, entrate 4.000 €
+      → 1.800 € (45% di 4.000).
+    """
+    anno, numero_mese = anno_e_mese(mese)
+    valide = soglie_del_mese(soglie, anno, numero_mese)
+    percentuale = sum(percentuale_soglia(valide, nome) for nome in SOGLIE_PREDEFINITE)
+    return round(max(entrate, 0.0) * percentuale / 100, 2)
+
+
 def previsioni_flussi(risparmio: list[dict], oggi: date, uscite: list[dict] | None = None,
                       entrate: list[dict] | None = None, orizzonte: int = 12,
-                      preset_uscite: list[dict] | None = None) -> dict:
+                      preset_uscite: list[dict] | None = None, soglie: list[dict] | None = None) -> dict:
     """Entrate, spese e avanzo dei prossimi 12 mesi (scheda "Prossimi 12 mesi").
 
     Riceve: le righe di Risparmio, la data di oggi, uscite ed entrate (per
-    stipendio, voci straordinarie e primarie frequenti) e i preset delle uscite.
+    stipendio, voci straordinarie e primarie frequenti), i preset delle uscite
+    e le soglie (per la soglia delle spese di ogni mese).
     Restituisce un dizionario con:
       previsti         per ogni mese futuro: entrate, spese, avanzo e avanzo
                        accumulato (basso, centrale, alto), più la parte di
-                       primarie frequenti e i weekend del mese
-      storico          gli ultimi 24 mesi veri, senza le voci straordinarie
+                       primarie frequenti, i weekend del mese e la soglia
+                       delle spese (sulle entrate stimate)
+      storico          gli ultimi 24 mesi veri, senza le voci straordinarie,
+                       con la soglia delle spese di ogni mese
       stipendio        lavoro attuale, stipendio tipico, mensilità extra
       straordinarie    le voci tolte dalle stime
       affidabilita     di quanto sbagliava sul mese dopo, provata sul passato
@@ -162,6 +182,7 @@ def previsioni_flussi(risparmio: list[dict], oggi: date, uscite: list[dict] | No
             "weekend": giorni_della_settimana(m)[5],  # sabati del mese
             "avanzo": fascia(avanzo_c[i], dev_avanzo),
             "avanzoCumulato": fascia(cumulato[i], dev_avanzo, scala=h[i]),
+            "sogliaSpese": soglia_spese(soglie, m, float(entrate_c[i])),
         })
 
     stip = s["stipendio"]
@@ -171,7 +192,8 @@ def previsioni_flussi(risparmio: list[dict], oggi: date, uscite: list[dict] | No
                      "spese": round(float(serie["spese"][i]), 2),
                      "avanzo": round(float(serie["entrate"][i] - serie["spese"][i]), 2),
                      "straordinarieEntrate": round(extra_entrate.get(m, 0.0), 2),
-                     "straordinarieUscite": round(extra_uscite.get(m, 0.0), 2)}
+                     "straordinarieUscite": round(extra_uscite.get(m, 0.0), 2),
+                     "sogliaSpese": soglia_spese(soglie, m, float(serie["entrate"][i]))}
                     for i, m in enumerate(mesi)][-24:],
         "previsti": previsti,
         "stipendio": None if stip is None else {

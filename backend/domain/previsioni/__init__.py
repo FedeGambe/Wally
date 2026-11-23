@@ -27,7 +27,7 @@ def calcola_previsioni(dati: dict, oggi: date, ipotesi: dict | None = None) -> d
     sia al patrimonio (avanzo dei prossimi 12 mesi).
     """
     flussi = previsioni_flussi(dati.get("risparmio"), oggi, dati.get("uscite"), dati.get("entrate"),
-                               preset_uscite=dati.get("presetUscite"))
+                               preset_uscite=dati.get("presetUscite"), soglie=dati.get("soglie"))
     entrate_previste = flussi["previsti"][0]["entrate"]["centrale"] if flussi["disponibile"] else None
     fine_mese = previsione_fine_mese(dati.get("uscite"), dati.get("presetUscite"), dati.get("entrate"),
                                      dati.get("soglie"), oggi, entrate_previste)

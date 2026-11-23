@@ -4,7 +4,7 @@ import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveCont
 import type { Flussi, NonDisponibile as ND } from '../../lib/previsioniService';
 import {
   ASSE, COLORI, EtichettaStima, GRIGLIA, Legenda, NonDisponibile, Nota, Riquadro, Segmenti, Suggerimento, ValoreStimato,
-  euroAsse, euroEsatto, euroStima, meseAsse, meseBreve, meseLungo, pallino,
+  euroAsse, euroEsatto, euroIntero, euroStima, meseAsse, meseBreve, meseLungo, pallino,
 } from './comune';
 
 type Serie = 'avanzo' | 'entrate' | 'spese';
@@ -20,13 +20,14 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
     if (!flussi.disponibile) return [];
     const storico = flussi.storico.slice(-12).map(s => ({
       mese: s.mese, vero: s[serie], fuoriEntrate: s.straordinarieEntrate, fuoriUscite: s.straordinarieUscite,
+      soglia: s.sogliaSpese,
     }));
     // Il primo mese previsto si attacca all'ultimo vero, così la linea è continua.
     const ultimo = storico[storico.length - 1];
     if (ultimo) Object.assign(ultimo, { centrale: ultimo.vero, fascia: [ultimo.vero, ultimo.vero] });
     const previsti = flussi.previsti.map(p => ({
       mese: p.mese, centrale: p[serie].centrale, basso: p[serie].basso, alto: p[serie].alto, fascia: [p[serie].basso, p[serie].alto],
-      frequenti: p.primarieFrequenti, weekend: p.weekend,
+      frequenti: p.primarieFrequenti, weekend: p.weekend, soglia: p.sogliaSpese,
     }));
     return [...storico, ...previsti];
   }, [flussi, serie]);
@@ -37,6 +38,8 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
   const ultimoPrevisto = flussi.previsti[flussi.previsti.length - 1];
   const affidabilita = flussi.affidabilita[serie];
   const elencoCategorie = (flussi.categorieFrequenti ?? []).join(' e ').toLowerCase() || 'primarie frequenti';
+  // Soglia delle spese mese per mese: solo sulla serie Spese.
+  const conSoglia = serie === 'spese' && punti.some(p => p.soglia !== undefined);
 
   const scelta = <Segmenti voci={NOMI} attiva={serie} onChange={setSerie} etichetta="Serie da mostrare" />;
 
@@ -71,6 +74,7 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
             { nome: `${NOMI[serie]} (vero)`, colore: COLORE[serie] },
             { nome: 'Stima', colore: COLORI.stima, forma: 'tratteggio' },
             { nome: '8 volte su 10 qui dentro', colore: COLORI.fascia, forma: 'fascia' },
+            ...(conSoglia ? [{ nome: 'Soglia', colore: COLORI.soglia, forma: 'puntini' as const }] : []),
           ]} />
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -92,6 +96,8 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
                     ...(p.fuoriEntrate ? [{ nome: 'Entrate straordinarie escluse', valore: euroEsatto(p.fuoriEntrate) }] : []),
                     ...(p.fuoriUscite ? [{ nome: 'Uscite straordinarie escluse', valore: euroEsatto(p.fuoriUscite) }] : []),
                   ];
+                  const soglia = conSoglia && p.soglia !== undefined
+                    ? [{ nome: p.vero !== undefined ? 'Soglia' : 'Soglia (su entrate stimate)', valore: euroIntero(p.soglia), colore: COLORI.soglia }] : [];
                   const righe = p.vero !== undefined
                     ? [{ nome: `${NOMI[serie]} (senza straordinarie)`, valore: euroEsatto(p.vero), colore: COLORE[serie] }, ...fuori]
                     : [{ nome: `${NOMI[serie]} (stima)`, valore: `~ ${euroStima(p.centrale)}`, colore: COLORI.stima },
@@ -100,6 +106,7 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
                          nome: `di cui ${elencoCategorie}${p.weekend ? ` (${p.weekend} weekend)` : ''}`,
                          valore: `~ ${euroStima(p.frequenti)}`,
                        }] : [])];
+                  righe.push(...soglia);
                   return <Suggerimento titolo={meseLungo(p.mese)} righe={righe} />;
                 }} />
                 <Area type="monotone" dataKey="fascia" stroke="none" fill={COLORI.fascia} fillOpacity={0.15} activeDot={false} />
@@ -107,6 +114,11 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
                   dot={pallino(COLORE[serie])} activeDot={{ r: 6 }} />
                 <Line type="monotone" dataKey="centrale" stroke={COLORI.stima} strokeWidth={2.5} strokeDasharray="6 4"
                   dot={pallino(COLORI.stima)} activeDot={{ r: 6 }} />
+                {conSoglia && (
+                  // a gradini: la soglia è una cifra per mese, non una curva
+                  <Line type="stepAfter" dataKey="soglia" stroke={COLORI.soglia} strokeWidth={2} strokeDasharray="3 3"
+                    dot={false} activeDot={false} isAnimationActive={false} />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -156,6 +168,7 @@ export default function PrevisioniProssimiMesi({ flussi }: { flussi: Flussi | ND
         Come è calcolata: stipendio del periodo attuale con tredicesima e quattordicesima, più le altre entrate e le spese stimate con la media degli ultimi 12 mesi e l'effetto tipico di quel mese dell'anno ({flussi.mesiUsati} mesi della scheda Risparmio), tutto senza le voci straordinarie.
         Le primarie frequenti (almeno 2 al mese, come il rifornimento) sono stimate a parte, dalla spesa media di ogni giorno della settimana per i giorni di quel mese: un mese con 5 weekend conta un rifornimento in più di uno con 4.
         La fascia viene da quanto i mesi dell'ultimo anno si sono discostati dalla stima.
+        {serie === 'spese' && <> La soglia (a puntini) è primarie + secondarie in % delle entrate di quel mese, con le soglie valide allora: nei mesi passati sulle entrate vere senza le straordinarie, in quelli futuri sulle entrate stimate.</>}
         {affidabilita.erroreMedio !== null && <> Provata sugli ultimi {affidabilita.mesiProvati} mesi, la stima del mese dopo ({NOMI[serie].toLowerCase()}) sbagliava in media di {euroEsatto(affidabilita.erroreMedio)} (compresi eventuali cambi di situazione, come un nuovo stipendio).</>}
       </Nota>
     </Riquadro>

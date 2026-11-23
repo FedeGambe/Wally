@@ -51,6 +51,10 @@ export function euroStima(valore: number): string {
 
 export const euroEsatto = formatEuro;
 
+/** Euro interi, senza centesimi: per le soglie ("1.050 €"). */
+export const euroIntero = (valore: number) =>
+  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, useGrouping: true }).format(valore);
+
 export const percentuale = (v: number | null | undefined, decimali = 0) =>
   v === null || v === undefined ? '—' : `${(v * 100).toLocaleString('it-IT', { maximumFractionDigits: decimali, minimumFractionDigits: decimali })}%`;
 
@@ -70,6 +74,8 @@ export const COLORI = {
   fondoPensione: '#d97706',
   auto: '#e11d48', // rosa di Analisi Consumi
   neutro: '#94a3b8',
+  // Soglia delle spese (primarie + secondarie): linea a puntini nei grafici.
+  soglia: '#94a3b8',
 };
 
 /** Props comuni di griglia e assi, gli stessi di Entrate/Uscite/Panoramica. */

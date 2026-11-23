@@ -665,7 +665,8 @@
     "spese": 780.0,
     "avanzo": 1120.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 950.0
    },
    {
     "mese": "2025-08",
@@ -673,7 +674,8 @@
     "spese": 810.0,
     "avanzo": 1090.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 950.0
    },
    {
     "mese": "2025-09",
@@ -681,7 +683,8 @@
     "spese": 850.0,
     "avanzo": 1100.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 975.0
    },
    {
     "mese": "2025-10",
@@ -689,7 +692,8 @@
     "spese": 800.0,
     "avanzo": 1150.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 975.0
    },
    {
     "mese": "2025-11",
@@ -697,7 +701,8 @@
     "spese": 870.0,
     "avanzo": 1080.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 975.0
    },
    {
     "mese": "2025-12",
@@ -705,7 +710,8 @@
     "spese": 980.0,
     "avanzo": 1220.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 1100.0
    },
    {
     "mese": "2026-01",
@@ -713,7 +719,8 @@
     "spese": 850.0,
     "avanzo": 1150.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 1000.0
    },
    {
     "mese": "2026-02",
@@ -721,7 +728,8 @@
     "spese": 920.0,
     "avanzo": 1080.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 1000.0
    },
    {
     "mese": "2026-03",
@@ -729,7 +737,8 @@
     "spese": 780.0,
     "avanzo": 1270.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 1025.0
    },
    {
     "mese": "2026-04",
@@ -737,7 +746,8 @@
     "spese": 830.0,
     "avanzo": 1220.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 1025.0
    },
    {
     "mese": "2026-05",
@@ -745,7 +755,8 @@
     "spese": 900.0,
     "avanzo": 1200.0,
     "straordinarieEntrate": 0.0,
-    "straordinarieUscite": 0.0
+    "straordinarieUscite": 0.0,
+    "sogliaSpese": 1050.0
    }
   ],
   "previsti": [
@@ -772,7 +783,8 @@
      "centrale": 1223.18,
      "basso": 1110.2,
      "alto": 1336.16
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2026-07",
@@ -797,7 +809,8 @@
      "centrale": 3138.03,
      "basso": 2978.25,
      "alto": 3297.81
-    }
+    },
+    "sogliaSpese": 1383.33
    },
    {
     "mese": "2026-08",
@@ -822,7 +835,8 @@
      "centrale": 4361.21,
      "basso": 4165.52,
      "alto": 4556.9
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2026-09",
@@ -847,7 +861,8 @@
      "centrale": 5584.39,
      "basso": 5358.43,
      "alto": 5810.35
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2026-10",
@@ -872,7 +887,8 @@
      "centrale": 6807.58,
      "basso": 6554.94,
      "alto": 7060.21
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2026-11",
@@ -897,7 +913,8 @@
      "centrale": 8030.76,
      "basso": 7754.01,
      "alto": 8307.5
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2026-12",
@@ -922,7 +939,8 @@
      "centrale": 10983.11,
      "basso": 10684.19,
      "alto": 11282.02
-    }
+    },
+    "sogliaSpese": 1902.08
    },
    {
     "mese": "2027-01",
@@ -947,7 +965,8 @@
      "centrale": 12206.29,
      "basso": 11886.73,
      "alto": 12525.84
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2027-02",
@@ -972,7 +991,8 @@
      "centrale": 13429.47,
      "basso": 13090.53,
      "alto": 13768.41
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2027-03",
@@ -997,7 +1017,8 @@
      "centrale": 14652.65,
      "basso": 14295.38,
      "alto": 15009.93
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2027-04",
@@ -1022,7 +1043,8 @@
      "centrale": 15875.83,
      "basso": 15501.12,
      "alto": 16250.55
-    }
+    },
+    "sogliaSpese": 1037.5
    },
    {
     "mese": "2027-05",
@@ -1047,7 +1069,8 @@
      "centrale": 17099.02,
      "basso": 16707.64,
      "alto": 17490.39
-    }
+    },
+    "sogliaSpese": 1037.5
    }
   ],
   "stipendio": {

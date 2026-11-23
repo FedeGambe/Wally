@@ -393,3 +393,20 @@ def test_flussi_rifornimento_segue_i_weekend_del_mese():
     assert per_mese["2026-11"]["primarieFrequenti"] == pytest.approx(40)
     assert per_mese["2026-10"]["spese"]["centrale"] == pytest.approx(550)
     assert per_mese["2026-11"]["spese"]["centrale"] == pytest.approx(540)
+
+
+def test_flussi_soglia_spese_di_ogni_mese():
+    """Soglia = (primarie + secondarie) % delle entrate, con le soglie che valevano quel mese."""
+    from backend.domain.previsioni.flussi import soglia_spese
+    soglie = [{"categoria": "Spese Primarie", "percentuale": 35}, {"categoria": "Spese Secondarie", "percentuale": 15},
+              {"categoria": "Spese Primarie", "percentuale": 23, "dal": "2026-10"},
+              {"categoria": "Spese Secondarie", "percentuale": 22, "dal": "2026-10"}]
+    assert soglia_spese(soglie, indice_mese(2026, 9), 4000) == 2000
+    assert soglia_spese(soglie, indice_mese(2026, 10), 4000) == 1800
+    assert soglia_spese([], indice_mese(2026, 10), 1000) == 500  # senza soglie: 35 + 15
+    risparmio = [{"mese": MESI_IT[m % 12], "anno": m // 12, "entrate": 2000, "speseTotali": 900}
+                 for m in range(indice_mese(2025, 10), indice_mese(2026, 10))]
+    f = previsioni_flussi(risparmio, OGGI, [], [], soglie=soglie)
+    assert f["storico"][-1]["sogliaSpese"] == 1000  # settembre 2026: 50% di 2.000
+    ottobre = f["previsti"][0]
+    assert ottobre["sogliaSpese"] == pytest.approx(ottobre["entrate"]["centrale"] * 0.45, abs=0.01)
